@@ -59,7 +59,7 @@ set_target_properties(AXR_Engine PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(AXR_Engine
     PRIVATE axr_compiler_flags
     Vulkan::Vulkan
-    # OpenXR::openxr_loader
+    OpenXR::openxr_loader
 )
 
 # ---------------------------------------------
@@ -67,6 +67,7 @@ target_link_libraries(AXR_Engine
 # ---------------------------------------------
 target_include_directories(AXR_Engine 
     PUBLIC ${AXR_INCLUDE_DIR} 
+    ${OPENXR_HPP_DIRECTORY}/include
     # ${SPDLOG_DIRECTORY}/include
     # ${EnTT_DIRECTORY}/single_include
     # ${Vulkan_INCLUDE_DIR}

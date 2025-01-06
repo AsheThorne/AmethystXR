@@ -3,6 +3,27 @@ An OpenXR focused game engine written in c++
 
 ## Project Setup
 
+### Build OpenXR
+
+Open external/OpenXR-SDK-Source in cmd
+
+```
+mkdir build
+cd build
+cmake -G "Visual Studio 17" -A x64 ../
+```
+
+Open OpenXR.sln and build the solution in release mode.
+
+### Build OpenXR.hpp
+
+Open external/OpenXR-HPP
+run `generate-openxr-hpp.ps1`
+
+### Build AmethystXR
+
+Open AmethystXR root folder in cmd
+
 ```
 mkdir cmake-build
 cd cmake-build

@@ -49,5 +49,5 @@ target_link_libraries(Sandbox
     PUBLIC AXR_Engine
     axr_compiler_flags
     Vulkan::Vulkan
-    # OpenXR::openxr_loader
+    OpenXR::openxr_loader
 )

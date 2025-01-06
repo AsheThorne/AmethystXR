@@ -18,6 +18,7 @@ target_compile_features(axr_compiler_flags INTERFACE cxx_std_20)
 set(OUTPUT_DIRECTORY $<CONFIG>-$<PLATFORM_ID>)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
+set(OPENXR_HPP_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/OpenXR-HPP)
 # set(SPDLOG_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/spdlog)
 # set(EnTT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/entt)
 # set(STB_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/stb)
@@ -33,7 +34,7 @@ set_property(
 # ---------------------------------------------
 # Add External Libraries
 # ---------------------------------------------
-# find_package(OpenXR REQUIRED)
+find_package(OpenXR REQUIRED)
 find_package(Vulkan)
 
 # ---------------------------------------------
