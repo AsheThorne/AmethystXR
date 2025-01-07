@@ -3,9 +3,10 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/common/defines.h"
+#include "axr/test.h"
 
-extern "C" {
-    AXR_API int axrTest();
+namespace axr {
+    inline int test() {
+        return axrTest();
+    }
 }
-

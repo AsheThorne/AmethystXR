@@ -30,6 +30,13 @@ set(AXR_PUBLIC_HEADER_FILES
     ${AXR_INCLUDE_DIR}/axr/test.h
 )
 
+set(AXR_PUBLIC_HEADER_HPP_FILES
+    # ---- Root ----
+    ${AXR_INCLUDE_DIR}/axr.hpp
+    # ---- Test ----
+    ${AXR_INCLUDE_DIR}/axr-hpp/test.hpp
+)
+
 set(AXR_HEADER_FILES
 )
 
@@ -39,7 +46,7 @@ set(AXR_HEADER_FILES
 
 set(AXR_CPP_FILES
     # ---- Test ----
-    ${AXR_INCLUDE_DIR}/axr/test.cpp
+    ${AXR_SRC_DIR}/test.cpp
 )
 
 # ---------------------------------------------
@@ -47,7 +54,7 @@ set(AXR_CPP_FILES
 # ---------------------------------------------
 
 # ---- Combine cpp and header files into one list called AXR_SOURCE_FILES ----
-list(APPEND AXR_SOURCE_FILES ${AXR_CPP_FILES} ${AXR_HEADER_FILES} ${AXR_PUBLIC_HEADER_FILES})
+list(APPEND AXR_SOURCE_FILES ${AXR_CPP_FILES} ${AXR_HEADER_FILES} ${AXR_PUBLIC_HEADER_FILES} ${AXR_PUBLIC_HEADER_HPP_FILES})
 
 add_library(AXR_Engine SHARED ${AXR_SOURCE_FILES})
 
@@ -81,6 +88,7 @@ target_include_directories(AXR_Engine
 # ---------------------------------------------
 add_compile_definitions(UNICODE)
 add_compile_definitions(AXR_BUILD_DLL)
+add_compile_definitions(OPENXR_HPP_NO_EXCEPTIONS)
 
 if(WIN32)
     add_compile_definitions(AXR_PLATFORM_WINDOWS)
