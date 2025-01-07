@@ -21,23 +21,24 @@ configure_file(
 set(AXR_PUBLIC_HEADER_FILES
     # ---- Root ----
     ${AXR_INCLUDE_DIR}/axr.h
-    # ---- Axr ----
-    ${AXR_INCLUDE_DIR}/axr/common_includes.h
+    # ---- AXR ----
+    ${AXR_INCLUDE_DIR}/axr/common.h
+    ${AXR_INCLUDE_DIR}/axr/axrApplication.h
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr/common/defines.h.in
     ${AXR_INCLUDE_DIR}/axr/common/defines.h
-    # ---- Test ----
-    ${AXR_INCLUDE_DIR}/axr/test.h
 )
 
 set(AXR_PUBLIC_HEADER_HPP_FILES
     # ---- Root ----
     ${AXR_INCLUDE_DIR}/axr.hpp
-    # ---- Test ----
-    ${AXR_INCLUDE_DIR}/axr-hpp/test.hpp
+    # ---- AXR HPP ----
+    ${AXR_INCLUDE_DIR}/axr-hpp/axrApplication.hpp
 )
 
 set(AXR_HEADER_FILES
+    # ---- AXR Application ----
+    ${AXR_SRC_DIR}/axrApplication/axrApplication.hpp
 )
 
 # ---------------------------------------------
@@ -45,8 +46,8 @@ set(AXR_HEADER_FILES
 # ---------------------------------------------
 
 set(AXR_CPP_FILES
-    # ---- Test ----
-    ${AXR_SRC_DIR}/test.cpp
+    # ---- AXR Application ----
+    ${AXR_SRC_DIR}/axrApplication/axrApplication.cpp
 )
 
 # ---------------------------------------------

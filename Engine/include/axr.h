@@ -1,4 +1,4 @@
 #pragma once
 
-#include "axr/common_includes.h"
-#include "axr/test.h"
+#include "axr/common.h"
+#include "axr/axrApplication.h"
