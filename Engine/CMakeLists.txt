@@ -83,6 +83,12 @@ target_include_directories(AXR_Engine
     # ${JSON_DIRECTORY}/include
 )
 
+if(VULKAN_HPP_DIRECTORY)
+    target_include_directories(AXR_Engine
+        PUBLIC ${VULKAN_HPP_DIRECTORY}
+    )
+endif()
+
 # ---------------------------------------------
 # Set AXR_Engine compile definitions
 # ---------------------------------------------
@@ -99,4 +105,5 @@ if(Vulkan_FOUND)
     add_compile_definitions(AXR_SUPPORTED_GRAPHICS_VULKAN)
     # This definition is for OpenXR
     add_compile_definitions(XR_USE_GRAPHICS_API_VULKAN)
+    add_compile_definitions(VULKAN_HPP_NO_EXCEPTIONS)
 endif()

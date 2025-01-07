@@ -12,11 +12,18 @@ add_library(axr_compiler_flags INTERFACE)
 target_compile_features(axr_compiler_flags INTERFACE cxx_std_20)
 
 # ---------------------------------------------
+# Add External Libraries
+# ---------------------------------------------
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
+find_package(OpenXR REQUIRED)
+find_package(Vulkan)
+
+# ---------------------------------------------
 # Set Global Variables/Properties
 # ---------------------------------------------
 
 set(OUTPUT_DIRECTORY $<CONFIG>-$<PLATFORM_ID>)
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 set(OPENXR_HPP_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/OpenXR-HPP)
 # set(SPDLOG_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/spdlog)
@@ -25,17 +32,15 @@ set(OPENXR_HPP_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/OpenXR-HPP)
 # set(TINY_GLTF_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/tiny-gltf)
 # set(JSON_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/json)
 
+if(Vulkan_FOUND)
+    set(VULKAN_HPP_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/Vulkan-HPP)
+endif()
+
 # ---- Add Predefined Cmake Projects To It's Own Folder ----
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(
     GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMake predefined targets"
 )
-
-# ---------------------------------------------
-# Add External Libraries
-# ---------------------------------------------
-find_package(OpenXR REQUIRED)
-find_package(Vulkan)
 
 # ---------------------------------------------
 # Set Output Directories

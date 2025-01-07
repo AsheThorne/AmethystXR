@@ -4,3 +4,6 @@
 [submodule "external/OpenXR-Hpp"]
 	path = external/OpenXR-Hpp
 	url = https://github.com/KhronosGroup/OpenXR-Hpp
+[submodule "external/Vulkan-Hpp"]
+	path = external/Vulkan-Hpp
+	url = https://github.com/KhronosGroup/Vulkan-Hpp
