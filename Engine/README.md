@@ -15,3 +15,7 @@ The `include/axr-hpp` directory MUST ONLY contain `.hpp` files.
 
 The `include` directory is for public facing header files only.
 Any header file which isn't accessed by the application, must go inside the `src` directory.
+
+- Avoid `dynamic_cast`
+- Minimal polymorphism. Only for small things with minimal impact on the engine
+- Try to avoid using std::string where possible

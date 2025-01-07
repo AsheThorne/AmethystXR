@@ -23,7 +23,7 @@
 // AXR Engine Data
 // ----------------------------------------- //
 inline const char* AxrEngineName = "AmethystXR";
-#define AXR_ENGINE_VERSION AXR_MAKE_VERSION(@AmethystXR_V1_VERSION_MAJOR @, @AmethystXR_V1_VERSION_MINOR @, @AmethystXR_V1_VERSION_PATCH @)
+#define AXR_ENGINE_VERSION AXR_MAKE_VERSION(1, 0, 0)
 
 // ----------------------------------------- //
 // Vulkan Macros

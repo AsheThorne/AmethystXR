@@ -14,7 +14,11 @@
 #include <axr.hpp>
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow) {
-    std::cout << "Hello World!" << '\n';
-    auto app = axr::Application();
+    const auto appConfig = axr::ApplicationConfig(
+        "Sandbox",
+        AXR_MAKE_VERSION(1, 0, 0)
+    );
+    
+    auto app = axr::Application(appConfig);
     app.setup();
 }

@@ -11,7 +11,8 @@ public:
     // ---- Constructors ----
 
     /// Constructor
-    AxrApplication();
+    /// @param config Application config
+    AxrApplication(const AxrApplicationConfig& config);
     /// Copy Constructor
     /// @param src Source AxrApplication to copy from
     AxrApplication(const AxrApplication& src) = delete;
@@ -39,4 +40,10 @@ public:
 
     /// Set up the AxrApplication class
     void setup();
+
+private:
+    // ----------------------------------------- //
+    // Private Variables
+    // ----------------------------------------- //
+    AxrApplicationConfig m_Config;
 };

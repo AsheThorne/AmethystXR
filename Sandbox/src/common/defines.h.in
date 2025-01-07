@@ -1,8 +1,0 @@
-#pragma once
-
-#include "axr/common/defines.h"
-
-// ----------------------------------------- //
-// Sandbox Application Data
-// ----------------------------------------- //
-#define SANDBOX_VERSION AXR_MAKE_VERSION(@Sandbox_VERSION_MAJOR@, @Sandbox_VERSION_MINOR@, @Sandbox_VERSION_PATCH@)

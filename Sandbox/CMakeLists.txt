@@ -6,21 +6,10 @@ project(Sandbox VERSION 1.0.0)
 set(AXR_SANDBOX_SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/src)
 
 # ---------------------------------------------
-# Generate defines.h from defines.h.in
-# ---------------------------------------------
-configure_file(
-    ${AXR_SANDBOX_SRC_DIR}/common/defines.h.in 
-    ${AXR_SANDBOX_SRC_DIR}/common/defines.h
-)
-
-# ---------------------------------------------
 # Set Header Files
 # ---------------------------------------------
 
 set(AXR_SANDBOX_HEADER_FILES
-    # ---- Common ----
-    ${AXR_SANDBOX_SRC_DIR}/common/defines.h.in
-    ${AXR_SANDBOX_SRC_DIR}/common/defines.h
 )
 
 # ---------------------------------------------
