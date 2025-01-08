@@ -15,11 +15,6 @@ cmake -G "Visual Studio 17" -A x64 ../
 
 Open OpenXR.sln and build the solution in release mode.
 
-### Build OpenXR.hpp
-
-Open external/OpenXR-HPP
-run `generate-openxr-hpp.ps1`
-
 ### Build AmethystXR
 
 Open AmethystXR root folder in cmd

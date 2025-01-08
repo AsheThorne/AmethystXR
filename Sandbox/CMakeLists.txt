@@ -40,5 +40,3 @@ target_link_libraries(Sandbox
     Vulkan::Vulkan
     OpenXR::openxr_loader
 )
-
-add_compile_definitions(OPENXR_HPP_NO_EXCEPTIONS)

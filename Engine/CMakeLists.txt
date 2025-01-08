@@ -75,7 +75,6 @@ target_link_libraries(AXR_Engine
 # ---------------------------------------------
 target_include_directories(AXR_Engine 
     PUBLIC ${AXR_INCLUDE_DIR} 
-    ${OPENXR_HPP_DIRECTORY}/include
     ${SPDLOG_DIRECTORY}/include
     # ${EnTT_DIRECTORY}/single_include
     # ${Vulkan_INCLUDE_DIR}
@@ -95,7 +94,6 @@ endif()
 # ---------------------------------------------
 add_compile_definitions(UNICODE)
 add_compile_definitions(AXR_BUILD_DLL)
-add_compile_definitions(OPENXR_HPP_NO_EXCEPTIONS)
 
 if(WIN32)
     add_compile_definitions(AXR_PLATFORM_WINDOWS)
