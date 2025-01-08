@@ -8,8 +8,8 @@ For example, wrapping functions into namespaces and classes.
 
 Everything in `include/axr-hpp` is header only. No definitions in a `.cpp` file.
 
-The `include/axr` directory MUST ONLY contain `.h` files. These files MUST be valid c code.
-No c++ specific code can be here.
+The `include/axr` directory MUST ONLY contain `.h` files. These files MUST be valid c code if they're exporting from the
+axr library. They can contain c++ code if they are header only and just wrappers for libraries like spdlog.
 
 The `include/axr-hpp` directory MUST ONLY contain `.hpp` files.
 

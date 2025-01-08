@@ -76,7 +76,7 @@ target_link_libraries(AXR_Engine
 target_include_directories(AXR_Engine 
     PUBLIC ${AXR_INCLUDE_DIR} 
     ${OPENXR_HPP_DIRECTORY}/include
-    # ${SPDLOG_DIRECTORY}/include
+    ${SPDLOG_DIRECTORY}/include
     # ${EnTT_DIRECTORY}/single_include
     # ${Vulkan_INCLUDE_DIR}
     # ${STB_DIRECTORY}/include

@@ -3,6 +3,7 @@
 // ----------------------------------------- //
 #include "axr/axrApplication.h"
 #include "axrApplication.hpp"
+#include "axr/logger.h"
 
 #include <iostream>
 
@@ -42,6 +43,7 @@ AxrApplication::~AxrApplication() {
 }
 
 void AxrApplication::setup() {
+    axrLogInfo("Test 2");
     std::cout << "AxrApplication::setup()" << '\n';
     std::cout << "Name: " << m_Config.ApplicationName << '\n';
     std::cout << "Version: "

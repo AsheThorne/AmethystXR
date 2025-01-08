@@ -33,7 +33,7 @@ struct AxrApplicationConfig {
 };
 
 // ----------------------------------------- //
-// Function Definitions
+// External Function Definitions
 // ----------------------------------------- //
 extern "C" {
     /// Create an AxrApplication
