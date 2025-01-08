@@ -24,6 +24,8 @@ set(AXR_PUBLIC_HEADER_FILES
     # ---- AXR ----
     ${AXR_INCLUDE_DIR}/axr/common.h
     ${AXR_INCLUDE_DIR}/axr/axrApplication.h
+    ${AXR_INCLUDE_DIR}/axr/logger.h
+    ${AXR_INCLUDE_DIR}/axr/setup.h
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr/common/defines.h.in
     ${AXR_INCLUDE_DIR}/axr/common/defines.h
@@ -34,6 +36,8 @@ set(AXR_PUBLIC_HEADER_HPP_FILES
     ${AXR_INCLUDE_DIR}/axr.hpp
     # ---- AXR HPP ----
     ${AXR_INCLUDE_DIR}/axr-hpp/axrApplication.hpp
+    ${AXR_INCLUDE_DIR}/axr-hpp/logger.hpp
+    ${AXR_INCLUDE_DIR}/axr-hpp/setup.hpp
 )
 
 set(AXR_HEADER_FILES
@@ -46,6 +50,8 @@ set(AXR_HEADER_FILES
 # ---------------------------------------------
 
 set(AXR_CPP_FILES
+    # ---- Root ----
+    ${AXR_SRC_DIR}/setup.cpp
     # ---- AXR Application ----
     ${AXR_SRC_DIR}/axrApplication/axrApplication.cpp
 )
