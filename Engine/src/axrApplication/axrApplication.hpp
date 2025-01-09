@@ -46,6 +46,12 @@ public:
     /// Set up the AxrApplication class
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setup();
+    /// Check if the application is running
+    /// @returns True if the application is running
+    [[nodiscard]] bool isRunning() const;
+    /// Process application events
+    void processEvents();
+    
     /// Get the window system
     /// @returns A handle to the window system
     [[nodiscard]] AxrWindowSystem_T getWindowSystem();

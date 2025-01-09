@@ -53,7 +53,4 @@ extern "C" {
     /// Signal that we want to close the window
     /// @param windowSystem The window system to use
     AXR_API void axrWindowSystemCloseWindow(AxrWindowSystem_T windowSystem);
-    /// Process the window events
-    /// @param windowSystem The window system to use
-    AXR_API void axrWindowSystemProcessEvents(AxrWindowSystem_T windowSystem);
 }

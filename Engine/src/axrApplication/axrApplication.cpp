@@ -31,6 +31,24 @@ extern "C" {
         return app->setup();
     }
 
+    bool axrApplicationIsRunning(const AxrApplication_T app) {
+        if (app == nullptr) {
+            axrLogError("axrApplicationIsRunning - `app` is null.");
+            return false;
+        }
+
+        return app->isRunning();
+    }
+
+    void axrApplicationProcessEvents(const AxrApplication_T app) {
+        if (app == nullptr) {
+            axrLogError("axrApplicationProcessEvents - `app` is null.");
+            return;
+        }
+
+        app->processEvents();
+    }
+
     AxrWindowSystem_T axrApplicationGetWindowSystem(const AxrApplication_T app) {
         if (app == nullptr) {
             axrLogError("axrApplicationGetWindowSystem - `app` is null.");
@@ -72,6 +90,16 @@ AxrResult AxrApplication::setup() {
     if (AXR_FAILED(axrResult)) return axrResult;
 
     return axrResult;
+}
+
+bool AxrApplication::isRunning() const {
+    // TODO: Check if the OpenXR session is running too
+    return m_WindowSystem.isWindowOpen();
+}
+
+void AxrApplication::processEvents() {
+    // TODO: Process OpenXR events too
+    m_WindowSystem.processEvents();
 }
 
 AxrWindowSystem_T AxrApplication::getWindowSystem() {

@@ -125,11 +125,6 @@ namespace axr {
             axrWindowSystemCloseWindow(m_WindowSystem);
         }
 
-        /// Process the window events
-        void processEvents() {
-            axrWindowSystemProcessEvents(m_WindowSystem);
-        }
-
     private:
         // ----------------------------------------- //
         // Private Variables

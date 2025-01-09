@@ -119,6 +119,17 @@ namespace axr {
             return static_cast<axr::Result>(axrApplicationSetup(m_Application));
         }
 
+        /// Check if the application is running
+        /// @returns True if the application is running
+        [[nodiscard]] bool isRunning() const {
+            return axrApplicationIsRunning(m_Application);
+        }
+        
+        /// Process application events
+        void processEvents() {
+            axrApplicationProcessEvents(m_Application);
+        }
+
         /// Get the window system
         /// @returns A handle to the window system
         [[nodiscard]] axr::WindowSystem getWindowSystem() {

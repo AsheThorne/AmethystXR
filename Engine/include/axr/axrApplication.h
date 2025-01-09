@@ -45,6 +45,14 @@ extern "C" {
     /// @param app The AxrApplication to use
     /// @returns AXR_SUCCESS if the function succeeded
     AXR_API AxrResult axrApplicationSetup(AxrApplication_T app);
+    /// Check if the application is running
+    /// @param app The AxrApplication to use
+    /// @returns True if the application is running
+    AXR_API bool axrApplicationIsRunning(AxrApplication_T app);
+    /// Process application events
+    /// @param app The AxrApplication to use
+    AXR_API void axrApplicationProcessEvents(AxrApplication_T app);
+
     /// Get the axrApplication window system
     /// @param app The AxrApplication to use
     /// @returns A handle to the window system

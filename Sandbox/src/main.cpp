@@ -33,9 +33,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     axr::WindowSystem windowSystem = app.getWindowSystem();
     if (AXR_FAILED(windowSystem.openWindow())) return 0;
 
-    // TODO: Create app.isRunning() which just returns (windowSystem.isWindowOpen() || openXrSystem.isSessionRunning())
-    while (windowSystem.isWindowOpen()) {
-        // TODO: Create app.ProcessEvents() to process window and OpenXR events. Remove windowSystem.processEvents().
-        windowSystem.processEvents();
+    while (app.isRunning()) {
+        app.processEvents();
     }
 }
