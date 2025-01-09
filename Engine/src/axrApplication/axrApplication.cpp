@@ -30,6 +30,15 @@ extern "C" {
 
         return app->setup();
     }
+
+    AxrWindowSystem_T axrApplicationGetWindowSystem(const AxrApplication_T app) {
+        if (app == nullptr) {
+            axrLogError("axrApplicationGetWindowSystem - `app` is null.");
+            return nullptr;
+        }
+
+        return app->getWindowSystem();
+    }
 }
 
 // ----------------------------------------- //
@@ -41,8 +50,15 @@ extern "C" {
 // ----------------------------------------- //
 
 AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
-    m_Config(config) {
-    axrLogInfo("AxrApplication::AxrApplication()");
+    m_Config(config),
+    m_WindowSystem(
+        {
+            .ApplicationName = config.ApplicationName,
+            .Platform = config.WindowSystemConfig.Platform,
+            .Width = config.WindowSystemConfig.Width,
+            .Height = config.WindowSystemConfig.Height,
+        }
+    ) {
 }
 
 // ----------------------------------------- //
@@ -51,6 +67,13 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
 
 AxrResult AxrApplication::setup() {
     AxrResult axrResult = AXR_SUCCESS;
-    
+
+    axrResult = m_WindowSystem.setup();
+    if (AXR_FAILED(axrResult)) return axrResult;
+
     return axrResult;
+}
+
+AxrWindowSystem_T AxrApplication::getWindowSystem() {
+    return &m_WindowSystem;
 }

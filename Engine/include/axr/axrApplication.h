@@ -9,6 +9,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/common.h"
+#include "axr/windowSystem.h"
 
 // ----------------------------------------- //
 // Forward Declared Handles
@@ -25,6 +26,7 @@ typedef class AxrApplication* AxrApplication_T;
 struct AxrApplicationConfig {
     const char* ApplicationName;
     uint32_t ApplicationVersion;
+    AxrWindowSystemConfig WindowSystemConfig;
 };
 
 // ----------------------------------------- //
@@ -40,7 +42,11 @@ extern "C" {
     AXR_API void axrDestroyApplication(AxrApplication_T* app);
 
     /// Set up the given axrApplication
-    /// @param app The AxrApplication to set up
+    /// @param app The AxrApplication to use
     /// @returns AXR_SUCCESS if the function succeeded
     AXR_API AxrResult axrApplicationSetup(AxrApplication_T app);
+    /// Get the axrApplication window system
+    /// @param app The AxrApplication to use
+    /// @returns A handle to the window system
+    AXR_API AxrWindowSystem_T axrApplicationGetWindowSystem(AxrApplication_T app);
 }

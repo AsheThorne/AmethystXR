@@ -5,6 +5,7 @@
 // ----------------------------------------- //
 #include "common.hpp"
 #include "axr/axrApplication.h"
+#include "windowSystem.hpp"
 
 namespace axr {
     // ----------------------------------------- //
@@ -22,24 +23,21 @@ namespace axr {
         /// Default Constructor
         ApplicationConfig() :
             ApplicationName{},
-            ApplicationVersion{} {
+            ApplicationVersion{},
+            WindowSystemConfig{} {
         }
 
         /// Constructor
         /// @param applicationName The application name
         /// @param applicationVersion The application version
+        /// @param windowSystemConfig The window system config
         ApplicationConfig(
             const char* applicationName,
-            const uint32_t applicationVersion
-        ) : ApplicationVersion(applicationVersion) {
-            if (applicationName != nullptr) {
-                strncpy_s(
-                    ApplicationName,
-                    AXR_MAX_APPLICATION_NAME_SIZE,
-                    applicationName,
-                    AXR_MAX_APPLICATION_NAME_SIZE
-                );
-            }
+            const uint32_t applicationVersion,
+            const axr::WindowSystemConfig& windowSystemConfig
+        ) : ApplicationName(applicationName),
+            ApplicationVersion(applicationVersion),
+            WindowSystemConfig{windowSystemConfig} {
         }
 
         // ----------------------------------------- //
@@ -47,6 +45,7 @@ namespace axr {
         // ----------------------------------------- //
         const char* ApplicationName;
         uint32_t ApplicationVersion;
+        axr::WindowSystemConfig WindowSystemConfig;
 
         // ----------------------------------------- //
         // Public Functions
@@ -89,7 +88,7 @@ namespace axr {
         /// Constructor
         /// @param config Application config
         Application(const ApplicationConfig& config) {
-            m_AxrApplication = axrCreateApplication(config.toRaw());
+            m_Application = axrCreateApplication(config.toRaw());
         }
 
         /// Copy Constructor
@@ -103,7 +102,7 @@ namespace axr {
 
         /// Destructor
         ~Application() {
-            axrDestroyApplication(&m_AxrApplication);
+            axrDestroyApplication(&m_Application);
         }
 
         // ---- Operator Overloads ----
@@ -117,13 +116,19 @@ namespace axr {
 
         /// Set up the application
         [[nodiscard]] axr::Result setup() {
-            return static_cast<axr::Result>(axrApplicationSetup(m_AxrApplication));
+            return static_cast<axr::Result>(axrApplicationSetup(m_Application));
+        }
+
+        /// Get the window system
+        /// @returns A handle to the window system
+        [[nodiscard]] axr::WindowSystem getWindowSystem() {
+            return axrApplicationGetWindowSystem(m_Application);
         }
 
     private:
         // ----------------------------------------- //
         // Private Variables
         // ----------------------------------------- //
-        AxrApplication_T m_AxrApplication;
+        AxrApplication_T m_Application;
     };
 }

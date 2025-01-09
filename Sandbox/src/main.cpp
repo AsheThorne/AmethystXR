@@ -9,17 +9,33 @@
 #include <axr.hpp>
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow) {
+    const char* applicationName = "Sandbox";
+
     const auto engineSetupConfig = axr::SetupConfig(axr::LogLevelEnum::Info);
     axr::setup(engineSetupConfig);
+    axr::loggerSetup(applicationName);
 
-    axr::loggerSetup("Sandbox");
-    axr::logInfo("Test: {0}", 5);
+    const axr::WindowSystemConfig windowSystemConfig(
+        axr::WindowPlatformEnum::Win32,
+        800,
+        600
+    );
 
     const auto appConfig = axr::ApplicationConfig(
-        "Sandbox",
-        AXR_MAKE_VERSION(1, 0, 0)
+        applicationName,
+        AXR_MAKE_VERSION(1, 0, 0),
+        windowSystemConfig
     );
 
     auto app = axr::Application(appConfig);
-    app.setup();
+    if (AXR_FAILED(app.setup())) return 0;
+
+    axr::WindowSystem windowSystem = app.getWindowSystem();
+    if (AXR_FAILED(windowSystem.openWindow())) return 0;
+
+    // TODO: Create app.isRunning() which just returns (windowSystem.isWindowOpen() || openXrSystem.isSessionRunning())
+    while (windowSystem.isWindowOpen()) {
+        // TODO: Create app.ProcessEvents() to process window and OpenXR events. Remove windowSystem.processEvents().
+        windowSystem.processEvents();
+    }
 }

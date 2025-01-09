@@ -4,6 +4,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/axrApplication.h"
+#include "../windowSystem/windowSystem.hpp"
 
 /// AmethystXr Application
 class AxrApplication {
@@ -22,7 +23,7 @@ public:
     AxrApplication(const AxrApplication& src) = delete;
     /// Move Constructor
     /// @param src Source AxrApplication to move from
-    AxrApplication(AxrApplication&& src)  = delete;
+    AxrApplication(AxrApplication&& src) = delete;
 
     // ---- Destructor ----
 
@@ -45,10 +46,14 @@ public:
     /// Set up the AxrApplication class
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setup();
+    /// Get the window system
+    /// @returns A handle to the window system
+    [[nodiscard]] AxrWindowSystem_T getWindowSystem();
 
 private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
     AxrApplicationConfig m_Config;
+    AxrWindowSystem m_WindowSystem;
 };

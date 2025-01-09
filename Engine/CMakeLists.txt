@@ -26,6 +26,7 @@ set(AXR_PUBLIC_HEADER_FILES
     ${AXR_INCLUDE_DIR}/axr/axrApplication.h
     ${AXR_INCLUDE_DIR}/axr/logger.h
     ${AXR_INCLUDE_DIR}/axr/setup.h
+    ${AXR_INCLUDE_DIR}/axr/windowSystem.h
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr/common/defines.h.in
     ${AXR_INCLUDE_DIR}/axr/common/defines.h
@@ -40,6 +41,7 @@ set(AXR_PUBLIC_HEADER_HPP_FILES
     ${AXR_INCLUDE_DIR}/axr-hpp/axrApplication.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/logger.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/setup.hpp
+    ${AXR_INCLUDE_DIR}/axr-hpp/windowSystem.hpp
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr-hpp/common/defines.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/common/result.hpp
@@ -48,6 +50,12 @@ set(AXR_PUBLIC_HEADER_HPP_FILES
 set(AXR_HEADER_FILES
     # ---- AXR Application ----
     ${AXR_SRC_DIR}/axrApplication/axrApplication.hpp
+    # ---- Utils ----
+    ${AXR_SRC_DIR}/utils/stringUtils.hpp
+    # ---- Window System ----
+    ${AXR_SRC_DIR}/windowSystem/windowSystem.hpp
+    # ---- Window System - Win32 ----
+    ${AXR_SRC_DIR}/windowSystem/win32/win32WindowSystem.hpp
 )
 
 # ---------------------------------------------
@@ -59,6 +67,12 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/setup.cpp
     # ---- AXR Application ----
     ${AXR_SRC_DIR}/axrApplication/axrApplication.cpp
+    # ---- Utils ----
+    ${AXR_SRC_DIR}/utils/stringUtils.cpp
+    # ---- Window System ----
+    ${AXR_SRC_DIR}/windowSystem/windowSystem.cpp
+    # ---- Window System - Win32 ----
+    ${AXR_SRC_DIR}/windowSystem/win32/win32WindowSystem.cpp
 )
 
 # ---------------------------------------------
