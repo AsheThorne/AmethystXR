@@ -3,17 +3,12 @@
 // ----------------------------------------- //
 // C Headers
 // ----------------------------------------- //
-#include <stdint.h>
+#include <cstdint>
 
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/common/defines.h"
-
-// ----------------------------------------- //
-// Preprocessor Definitions
-// ----------------------------------------- //
-#define AXR_MAX_APPLICATION_NAME_SIZE 128
+#include "axr/common.h"
 
 // ----------------------------------------- //
 // Forward Declared Handles
@@ -28,7 +23,7 @@ typedef class AxrApplication* AxrApplication_T;
 
 /// Config for the AxrApplication
 struct AxrApplicationConfig {
-    char ApplicationName[AXR_MAX_APPLICATION_NAME_SIZE];
+    const char* ApplicationName;
     uint32_t ApplicationVersion;
 };
 
@@ -46,5 +41,6 @@ extern "C" {
 
     /// Set up the given axrApplication
     /// @param app The AxrApplication to set up
-    AXR_API void axrApplicationSetup(AxrApplication_T app);
+    /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrApplicationSetup(AxrApplication_T app);
 }

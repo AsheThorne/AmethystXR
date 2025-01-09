@@ -29,15 +29,20 @@ set(AXR_PUBLIC_HEADER_FILES
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr/common/defines.h.in
     ${AXR_INCLUDE_DIR}/axr/common/defines.h
+    ${AXR_INCLUDE_DIR}/axr/common/result.h
 )
 
 set(AXR_PUBLIC_HEADER_HPP_FILES
     # ---- Root ----
     ${AXR_INCLUDE_DIR}/axr.hpp
     # ---- AXR HPP ----
+    ${AXR_INCLUDE_DIR}/axr-hpp/common.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/axrApplication.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/logger.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/setup.hpp
+    # ---- Common ----
+    ${AXR_INCLUDE_DIR}/axr-hpp/common/defines.hpp
+    ${AXR_INCLUDE_DIR}/axr-hpp/common/result.hpp
 )
 
 set(AXR_HEADER_FILES

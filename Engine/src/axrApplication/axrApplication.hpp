@@ -1,5 +1,9 @@
 #pragma once
 
+// ----------------------------------------- //
+// AXR Headers
+// ----------------------------------------- //
+#include "axr/axrApplication.h"
 
 /// AmethystXr Application
 class AxrApplication {
@@ -23,7 +27,7 @@ public:
     // ---- Destructor ----
 
     /// Destructor
-    ~AxrApplication();
+    ~AxrApplication() = default;
 
     // ---- Operator Overloads ----
 
@@ -39,7 +43,8 @@ public:
     // ----------------------------------------- //
 
     /// Set up the AxrApplication class
-    void setup();
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setup();
 
 private:
     // ----------------------------------------- //

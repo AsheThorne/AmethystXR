@@ -22,10 +22,13 @@ extern "C" {
         *app = nullptr;
     }
 
-    void axrApplicationSetup(const AxrApplication_T app) {
-        if (app == nullptr) return;
+    AxrResult axrApplicationSetup(const AxrApplication_T app) {
+        if (app == nullptr) {
+            axrLogError("axrApplicationSetup - `app` is null.");
+            return AXR_ERROR;
+        }
 
-        app->setup();
+        return app->setup();
     }
 }
 
@@ -33,22 +36,21 @@ extern "C" {
 // Internal Functions
 // ----------------------------------------- //
 
+// ----------------------------------------- //
+// Special Functions
+// ----------------------------------------- //
+
 AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
     m_Config(config) {
     axrLogInfo("AxrApplication::AxrApplication()");
 }
 
-AxrApplication::~AxrApplication() {
-    axrLogInfo("AxrApplication::~AxrApplication()");
-}
+// ----------------------------------------- //
+// Public Functions
+// ----------------------------------------- //
 
-void AxrApplication::setup() {
-    axrLogInfo("AxrApplication::setup()");
-    axrLogInfo("Name: {0}", m_Config.ApplicationName);
-    axrLogInfo(
-        "Version: {0}.{1}.{2}",
-        AXR_VERSION_MAJOR(m_Config.ApplicationVersion),
-        AXR_VERSION_MINOR(m_Config.ApplicationVersion),
-        AXR_VERSION_PATCH(m_Config.ApplicationVersion)
-    );
+AxrResult AxrApplication::setup() {
+    AxrResult axrResult = AXR_SUCCESS;
+    
+    return axrResult;
 }

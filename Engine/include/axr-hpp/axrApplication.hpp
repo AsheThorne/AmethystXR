@@ -3,6 +3,7 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
+#include "common.hpp"
 #include "axr/axrApplication.h"
 
 namespace axr {
@@ -44,7 +45,7 @@ namespace axr {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-        char ApplicationName[AXR_MAX_APPLICATION_NAME_SIZE];
+        const char* ApplicationName;
         uint32_t ApplicationVersion;
 
         // ----------------------------------------- //
@@ -115,8 +116,8 @@ namespace axr {
         Application& operator=(Application&& src) noexcept = delete;
 
         /// Set up the application
-        void setup() {
-            axrApplicationSetup(m_AxrApplication);
+        [[nodiscard]] axr::Result setup() {
+            return static_cast<axr::Result>(axrApplicationSetup(m_AxrApplication));
         }
 
     private:
