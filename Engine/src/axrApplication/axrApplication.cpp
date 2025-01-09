@@ -35,22 +35,20 @@ extern "C" {
 
 AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
     m_Config(config) {
-    std::cout << "AxrApplication::AxrApplication()" << '\n';
+    axrLogInfo("AxrApplication::AxrApplication()");
 }
 
 AxrApplication::~AxrApplication() {
-    std::cout << "AxrApplication::~AxrApplication()" << '\n';
+    axrLogInfo("AxrApplication::~AxrApplication()");
 }
 
 void AxrApplication::setup() {
-    axrLogInfo("Test 2");
-    std::cout << "AxrApplication::setup()" << '\n';
-    std::cout << "Name: " << m_Config.ApplicationName << '\n';
-    std::cout << "Version: "
-        << AXR_VERSION_MAJOR(m_Config.ApplicationVersion)
-        << "."
-        << AXR_VERSION_MINOR(m_Config.ApplicationVersion)
-        << "."
-        << AXR_VERSION_PATCH(m_Config.ApplicationVersion)
-        << '\n';
+    axrLogInfo("AxrApplication::setup()");
+    axrLogInfo("Name: {0}", m_Config.ApplicationName);
+    axrLogInfo(
+        "Version: {0}.{1}.{2}",
+        AXR_VERSION_MAJOR(m_Config.ApplicationVersion),
+        AXR_VERSION_MINOR(m_Config.ApplicationVersion),
+        AXR_VERSION_PATCH(m_Config.ApplicationVersion)
+    );
 }

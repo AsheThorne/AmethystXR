@@ -13,7 +13,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     axr::setup(engineSetupConfig);
 
     axr::loggerSetup("Sandbox");
-    axr::logInfo("Test");
+    axr::logInfo("Test: {0}", 5);
 
     const auto appConfig = axr::ApplicationConfig(
         "Sandbox",
