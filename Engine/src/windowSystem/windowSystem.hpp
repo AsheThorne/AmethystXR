@@ -5,11 +5,7 @@
 // ----------------------------------------- //
 #include "axr/common.h"
 #include "axr/windowSystem.h"
-
-// ---- Win32 Headers ----
-#ifdef AXR_PLATFORM_WINDOWS
 #include "win32/win32WindowSystem.hpp"
-#endif
 
 /// Axr Window System
 class AxrWindowSystem {
@@ -25,7 +21,7 @@ public:
         uint32_t Width;
         uint32_t Height;
     };
-    
+
     // ----------------------------------------- //
     // Special Functions
     // ----------------------------------------- //
@@ -33,6 +29,7 @@ public:
     // ---- Constructors ----
 
     /// Constructor
+    /// @param config Window config
     AxrWindowSystem(const Config& config);
     /// Copy Constructor
     /// @param src Source AxrWindowSystem to copy from
@@ -90,7 +87,7 @@ private:
     // ----------------------------------------- //
 
     // ---- Win32 Functions ----
-    
+
     /// Set up the win32 window
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setupWin32Window();

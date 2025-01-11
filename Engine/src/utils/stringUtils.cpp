@@ -9,11 +9,10 @@
 // ----------------------------------------- //
 #include <cstdlib>
 
-
 std::wstring axrToWString(const char* string) {
     const size_t stringLength = strlen(string) + 1;
     size_t numOfConvertedChars;
-    std::wstring convertedChars(stringLength, L'#');
+    std::wstring convertedChars(stringLength, L'\0');
     
     const errno_t error = mbstowcs_s(
         &numOfConvertedChars,

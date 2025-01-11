@@ -60,6 +60,10 @@ namespace axr {
         "Original type and wrapper have different size!"
     );
 
+    // ----------------------------------------- //
+    // Function Definitions
+    // ----------------------------------------- //
+
     /// Set up the AmethystXR Engine
     inline void setup(const SetupConfig& config) {
         axrSetup(config.toRaw());

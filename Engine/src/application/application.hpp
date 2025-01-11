@@ -3,8 +3,9 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/axrApplication.h"
+#include "axr/application.h"
 #include "../windowSystem/windowSystem.hpp"
+#include "../graphicsSystem/graphicsSystem.hpp"
 
 /// AmethystXr Application
 class AxrApplication {
@@ -55,6 +56,9 @@ public:
     /// Get the window system
     /// @returns A handle to the window system
     [[nodiscard]] AxrWindowSystem_T getWindowSystem();
+    /// Get the graphics system
+    /// @returns A handle to the graphics system
+    [[nodiscard]] AxrGraphicsSystem_T getGraphicsSystem();
 
 private:
     // ----------------------------------------- //
@@ -62,4 +66,5 @@ private:
     // ----------------------------------------- //
     AxrApplicationConfig m_Config;
     AxrWindowSystem m_WindowSystem;
+    AxrGraphicsSystem m_GraphicsSystem;
 };

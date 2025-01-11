@@ -21,10 +21,15 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         600
     );
 
+    const axr::GraphicsSystemConfig graphicsSystemConfig(
+        axr::GraphicsApiEnum::Vulkan
+    );
+
     const auto appConfig = axr::ApplicationConfig(
         applicationName,
         AXR_MAKE_VERSION(1, 0, 0),
-        windowSystemConfig
+        windowSystemConfig,
+        graphicsSystemConfig
     );
 
     auto app = axr::Application(appConfig);
@@ -36,4 +41,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     while (app.isRunning()) {
         app.processEvents();
     }
+
+    return 0;
 }

@@ -23,10 +23,11 @@ set(AXR_PUBLIC_HEADER_FILES
     ${AXR_INCLUDE_DIR}/axr.h
     # ---- AXR ----
     ${AXR_INCLUDE_DIR}/axr/common.h
-    ${AXR_INCLUDE_DIR}/axr/axrApplication.h
+    ${AXR_INCLUDE_DIR}/axr/application.h
     ${AXR_INCLUDE_DIR}/axr/logger.h
     ${AXR_INCLUDE_DIR}/axr/setup.h
     ${AXR_INCLUDE_DIR}/axr/windowSystem.h
+    ${AXR_INCLUDE_DIR}/axr/graphicsSystem.h
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr/common/defines.h.in
     ${AXR_INCLUDE_DIR}/axr/common/defines.h
@@ -38,10 +39,11 @@ set(AXR_PUBLIC_HEADER_HPP_FILES
     ${AXR_INCLUDE_DIR}/axr.hpp
     # ---- AXR HPP ----
     ${AXR_INCLUDE_DIR}/axr-hpp/common.hpp
-    ${AXR_INCLUDE_DIR}/axr-hpp/axrApplication.hpp
+    ${AXR_INCLUDE_DIR}/axr-hpp/application.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/logger.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/setup.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/windowSystem.hpp
+    ${AXR_INCLUDE_DIR}/axr-hpp/graphicsSystem.hpp
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr-hpp/common/defines.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/common/result.hpp
@@ -49,13 +51,17 @@ set(AXR_PUBLIC_HEADER_HPP_FILES
 
 set(AXR_HEADER_FILES
     # ---- AXR Application ----
-    ${AXR_SRC_DIR}/axrApplication/axrApplication.hpp
+    ${AXR_SRC_DIR}/application/application.hpp
     # ---- Utils ----
     ${AXR_SRC_DIR}/utils/stringUtils.hpp
     # ---- Window System ----
     ${AXR_SRC_DIR}/windowSystem/windowSystem.hpp
     # ---- Window System - Win32 ----
     ${AXR_SRC_DIR}/windowSystem/win32/win32WindowSystem.hpp
+    # ---- Graphics System ----
+    ${AXR_SRC_DIR}/graphicsSystem/graphicsSystem.hpp
+    # ---- Graphics System - Vulkan ----
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanGraphicsSystem.hpp
 )
 
 # ---------------------------------------------
@@ -66,13 +72,17 @@ set(AXR_CPP_FILES
     # ---- Root ----
     ${AXR_SRC_DIR}/setup.cpp
     # ---- AXR Application ----
-    ${AXR_SRC_DIR}/axrApplication/axrApplication.cpp
+    ${AXR_SRC_DIR}/application/application.cpp
     # ---- Utils ----
     ${AXR_SRC_DIR}/utils/stringUtils.cpp
     # ---- Window System ----
     ${AXR_SRC_DIR}/windowSystem/windowSystem.cpp
     # ---- Window System - Win32 ----
     ${AXR_SRC_DIR}/windowSystem/win32/win32WindowSystem.cpp
+    # ---- Graphics System ----
+    ${AXR_SRC_DIR}/graphicsSystem/graphicsSystem.cpp
+    # ---- Graphics System - Vulkan ----
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanGraphicsSystem.cpp
 )
 
 # ---------------------------------------------

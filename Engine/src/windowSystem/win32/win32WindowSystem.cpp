@@ -7,9 +7,7 @@
 #include "axr/logger.h"
 #include "../../utils/stringUtils.hpp"
 
-// ----------------------------------------- //
-// Special Functions
-// ----------------------------------------- //
+// ---- Special Functions ----
 
 AxrWin32WindowSystem::AxrWin32WindowSystem(const Config& config) :
     m_Config(config),
@@ -21,9 +19,7 @@ AxrWin32WindowSystem::~AxrWin32WindowSystem() {
     destroyWin32Window();
 }
 
-// ----------------------------------------- //
-// Public Functions
-// ----------------------------------------- //
+// ---- Public Functions ----
 
 AxrResult AxrWin32WindowSystem::setup() {
     const HINSTANCE hInstance = GetModuleHandle(nullptr);
@@ -117,9 +113,7 @@ void AxrWin32WindowSystem::processEvents() {
     }
 }
 
-// ----------------------------------------- //
-// Private Functions
-// ----------------------------------------- //
+// ---- Private Functions ----
 
 void AxrWin32WindowSystem::destroyWin32Window() {
     if (m_WindowHandle == nullptr) return;
@@ -149,9 +143,7 @@ LRESULT AxrWin32WindowSystem::processWindowMessageInternal(
     }
 }
 
-// ----------------------------------------- //
-// Private Static Functions
-// ----------------------------------------- //
+// ---- Private Static Functions ----
 
 LRESULT AxrWin32WindowSystem::processWindowMessage(
     const HWND windowHandle,

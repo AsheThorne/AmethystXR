@@ -10,6 +10,7 @@
 // ----------------------------------------- //
 #include "axr/common.h"
 #include "axr/windowSystem.h"
+#include "axr/graphicsSystem.h"
 
 // ----------------------------------------- //
 // Forward Declared Handles
@@ -27,6 +28,7 @@ struct AxrApplicationConfig {
     const char* ApplicationName;
     uint32_t ApplicationVersion;
     AxrWindowSystemConfig WindowSystemConfig;
+    AxrGraphicsSystemConfig GraphicsSystemConfig;
 };
 
 // ----------------------------------------- //

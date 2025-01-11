@@ -7,9 +7,7 @@
 // External Functions
 // ----------------------------------------- //
 
-extern "C" {
-    void axrSetup(const AxrSetupConfig* config) {
-        axrLoggerSetup(AxrEngineName);
-        axrSetLoggerLevel(config->LogLevel);
-    }
+void axrSetup(const AxrSetupConfig* config) {
+    axrLoggerSetup(AxrEngineName);
+    axrSetLoggerLevel(config->LogLevel);
 }

@@ -24,7 +24,7 @@ public:
     // Structs
     // ----------------------------------------- //
 
-    /// Win32 Window System
+    /// Win32 Window System Config
     struct Config {
         const char* ApplicationName;
         uint32_t Width;
@@ -38,6 +38,7 @@ public:
     // ---- Constructors ----
 
     /// Constructor
+    /// @param config Win32 window config
     AxrWin32WindowSystem(const Config& config);
     /// Copy Constructor
     /// @param src Source AxrWin32WindowSystem to copy from

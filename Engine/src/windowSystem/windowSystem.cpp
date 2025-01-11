@@ -48,9 +48,7 @@ void axrWindowSystemProcessEvents(const AxrWindowSystem_T windowSystem) {
 // Internal Functions
 // ----------------------------------------- //
 
-// ----------------------------------------- //
-// Special Functions
-// ----------------------------------------- //
+// ---- Special Functions ----
 
 AxrWindowSystem::AxrWindowSystem(const Config& config):
 #ifdef AXR_PLATFORM_WINDOWS
@@ -65,9 +63,7 @@ AxrWindowSystem::AxrWindowSystem(const Config& config):
     m_Config(config) {
 }
 
-// ----------------------------------------- //
-// Public Functions
-// ----------------------------------------- //
+// ---- Public Functions ----
 
 AxrResult AxrWindowSystem::setup() {
     switch (m_Config.Platform) {
@@ -85,9 +81,7 @@ AxrResult AxrWindowSystem::setup() {
 bool AxrWindowSystem::isWindowOpen() const {
     switch (m_Config.Platform) {
         case AXR_WINDOW_PLATFORM_WIN32: {
-#ifdef AXR_PLATFORM_WINDOWS
             return isWin32WindowOpen();
-#endif
         }
         case AXR_WINDOW_PLATFORM_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
@@ -100,9 +94,7 @@ bool AxrWindowSystem::isWindowOpen() const {
 AxrResult AxrWindowSystem::openWindow() {
     switch (m_Config.Platform) {
         case AXR_WINDOW_PLATFORM_WIN32: {
-#ifdef AXR_PLATFORM_WINDOWS
             return openWin32Window();
-#endif
         }
         case AXR_WINDOW_PLATFORM_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
@@ -115,10 +107,8 @@ AxrResult AxrWindowSystem::openWindow() {
 void AxrWindowSystem::closeWindow() {
     switch (m_Config.Platform) {
         case AXR_WINDOW_PLATFORM_WIN32: {
-#ifdef AXR_PLATFORM_WINDOWS
             closeWin32Window();
             return;
-#endif
         }
         case AXR_WINDOW_PLATFORM_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
@@ -131,10 +121,8 @@ void AxrWindowSystem::closeWindow() {
 void AxrWindowSystem::processEvents() {
     switch (m_Config.Platform) {
         case AXR_WINDOW_PLATFORM_WIN32: {
-#ifdef AXR_PLATFORM_WINDOWS
             processWin32Events();
             return;
-#endif
         }
         case AXR_WINDOW_PLATFORM_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
@@ -144,16 +132,14 @@ void AxrWindowSystem::processEvents() {
     }
 }
 
-// ----------------------------------------- //
-// Private Functions
-// ----------------------------------------- //
+// ---- Private Functions ----
 
 AxrResult AxrWindowSystem::setupWin32Window() {
 #ifdef AXR_PLATFORM_WINDOWS
     return m_Win32WindowSystem.setup();
 #elif
  axrLogError(
-        "AxrWindowSystem::setupWin32Window - Missing AXR_PLATFORM_WINDOWS define."
+        "AxrWindowSystem::setupWin32Window - Windows platform not supported."
     );
     return AXR_ERROR;
 #endif
@@ -164,7 +150,7 @@ bool AxrWindowSystem::isWin32WindowOpen() const {
     return m_Win32WindowSystem.isWindowOpen();
 #elif
     axrLogError(
-           "AxrWindowSystem::isWin32WindowOpen - Missing AXR_PLATFORM_WINDOWS define."
+           "AxrWindowSystem::isWin32WindowOpen - Windows platform not supported."
        );
     return AXR_ERROR;
 #endif
@@ -175,7 +161,7 @@ AxrResult AxrWindowSystem::openWin32Window() {
     return m_Win32WindowSystem.openWindow();
 #elif
     axrLogError(
-           "AxrWindowSystem::openWin32Window - Missing AXR_PLATFORM_WINDOWS define."
+           "AxrWindowSystem::openWin32Window - Windows platform not supported."
        );
     return AXR_ERROR;
 #endif
@@ -186,7 +172,7 @@ void AxrWindowSystem::closeWin32Window() {
     m_Win32WindowSystem.closeWindow();
 #elif
     axrLogError(
-           "AxrWindowSystem::closeWin32Window - Missing AXR_PLATFORM_WINDOWS define."
+           "AxrWindowSystem::closeWin32Window - Windows platform not supported."
        );
     return AXR_ERROR;
 #endif
@@ -197,7 +183,7 @@ void AxrWindowSystem::processWin32Events() {
     m_Win32WindowSystem.processEvents();
 #elif
     axrLogError(
-           "AxrWindowSystem::processWin32Events - Missing AXR_PLATFORM_WINDOWS define."
+           "AxrWindowSystem::processWin32Events - Windows platform not supported."
        );
     return AXR_ERROR;
 #endif

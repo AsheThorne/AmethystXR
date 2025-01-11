@@ -4,8 +4,9 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "common.hpp"
-#include "axr/axrApplication.h"
+#include "axr/application.h"
 #include "windowSystem.hpp"
+#include "graphicsSystem.hpp"
 
 namespace axr {
     // ----------------------------------------- //
@@ -24,20 +25,24 @@ namespace axr {
         ApplicationConfig() :
             ApplicationName{},
             ApplicationVersion{},
-            WindowSystemConfig{} {
+            WindowSystemConfig{},
+            GraphicsSystemConfig{} {
         }
 
         /// Constructor
         /// @param applicationName The application name
         /// @param applicationVersion The application version
         /// @param windowSystemConfig The window system config
+        /// @param graphicsSystemConfig The graphics system config
         ApplicationConfig(
             const char* applicationName,
             const uint32_t applicationVersion,
-            const axr::WindowSystemConfig& windowSystemConfig
+            const axr::WindowSystemConfig& windowSystemConfig,
+            const axr::GraphicsSystemConfig& graphicsSystemConfig
         ) : ApplicationName(applicationName),
             ApplicationVersion(applicationVersion),
-            WindowSystemConfig{windowSystemConfig} {
+            WindowSystemConfig(windowSystemConfig),
+            GraphicsSystemConfig(graphicsSystemConfig) {
         }
 
         // ----------------------------------------- //
@@ -46,6 +51,7 @@ namespace axr {
         const char* ApplicationName;
         uint32_t ApplicationVersion;
         axr::WindowSystemConfig WindowSystemConfig;
+        axr::GraphicsSystemConfig GraphicsSystemConfig;
 
         // ----------------------------------------- //
         // Public Functions
@@ -114,6 +120,10 @@ namespace axr {
         /// @param src Source Application to move from
         Application& operator=(Application&& src) noexcept = delete;
 
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
         /// Set up the application
         [[nodiscard]] axr::Result setup() {
             return static_cast<axr::Result>(axrApplicationSetup(m_Application));
@@ -124,7 +134,7 @@ namespace axr {
         [[nodiscard]] bool isRunning() const {
             return axrApplicationIsRunning(m_Application);
         }
-        
+
         /// Process application events
         void processEvents() {
             axrApplicationProcessEvents(m_Application);

@@ -99,14 +99,14 @@ namespace axr {
         // ---- Constructors ----
 
         /// Constructor
+        /// @param windowSystem Window system handle
         WindowSystem(const AxrWindowSystem_T windowSystem):
             m_WindowSystem(windowSystem) {
         }
 
-        // ---- Destructor ----
-
-        /// Destructor
-        ~WindowSystem() = default;
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
 
         /// Check if the window is open
         /// @returns True if the window is open

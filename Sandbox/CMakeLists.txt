@@ -40,3 +40,12 @@ target_link_libraries(Sandbox
     Vulkan::Vulkan
     OpenXR::openxr_loader
 )
+
+# ---------------------------------------------
+# Set AXR_Engine compile definitions
+# ---------------------------------------------
+add_compile_definitions(UNICODE)
+
+if(WIN32)
+    add_compile_definitions(NOMINMAX)
+endif()
