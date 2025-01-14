@@ -54,6 +54,7 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/application/application.hpp
     # ---- Utils ----
     ${AXR_SRC_DIR}/utils/stringUtils.hpp
+    ${AXR_SRC_DIR}/utils/vulkanUtils.hpp
     # ---- Window System ----
     ${AXR_SRC_DIR}/windowSystem/windowSystem.hpp
     # ---- Window System - Win32 ----
@@ -75,6 +76,7 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/application/application.cpp
     # ---- Utils ----
     ${AXR_SRC_DIR}/utils/stringUtils.cpp
+    ${AXR_SRC_DIR}/utils/vulkanUtils.cpp
     # ---- Window System ----
     ${AXR_SRC_DIR}/windowSystem/windowSystem.cpp
     # ---- Window System - Win32 ----

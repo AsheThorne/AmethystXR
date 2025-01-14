@@ -16,8 +16,9 @@ public:
 
     /// Graphics System Config
     struct Config {
-        const char* ApplicationName;
         AxrGraphicsApiEnum GraphicsApi;
+        const char* ApplicationName;
+        uint32_t ApplicationVersion;
     };
 
     // ----------------------------------------- //

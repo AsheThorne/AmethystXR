@@ -76,8 +76,9 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
     ),
     m_GraphicsSystem(
         {
-            .ApplicationName = config.ApplicationName,
             .GraphicsApi = config.GraphicsSystemConfig.GraphicsApi,
+            .ApplicationName = config.ApplicationName,
+            .ApplicationVersion = config.ApplicationVersion,
         }
     ) {
 }

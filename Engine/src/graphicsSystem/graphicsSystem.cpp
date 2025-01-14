@@ -19,6 +19,7 @@ AxrGraphicsSystem::AxrGraphicsSystem(const Config& config):
     m_VulkanGraphicsSystem(
         {
             .ApplicationName = config.ApplicationName,
+            .ApplicationVersion = config.ApplicationVersion,
         }
     ),
 #endif

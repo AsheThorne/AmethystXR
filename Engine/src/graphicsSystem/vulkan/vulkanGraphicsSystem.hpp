@@ -2,9 +2,23 @@
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 
 // ----------------------------------------- //
+// C/C++ Headers
+// ----------------------------------------- //
+#include <cstdint>
+
+// ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/common.h"
+
+// ----------------------------------------- //
+// Vulkan Headers
+// ----------------------------------------- //
+#include <vulkan/vulkan.hpp>
+
+// TODO: Remove from here or safe guard it with preprocessor
+#include <windows.h>
+#include <vulkan/vulkan_win32.h>
 
 /// Vulkan Graphics System
 class AxrVulkanGraphicsSystem {
@@ -16,6 +30,7 @@ public:
     /// Vulkan Graphics System Config
     struct Config {
         const char* ApplicationName;
+        uint32_t ApplicationVersion;
     };
     
     // ----------------------------------------- //
@@ -61,6 +76,17 @@ private:
     // Private Variables
     // ----------------------------------------- //
     Config m_Config;
+    vk::Instance m_Instance;
+
+    // ----------------------------------------- //
+    // Private Functions
+    // ----------------------------------------- //
+
+    /// Create the vulkan instance
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createInstance();
+    /// Destroy the vulkan instance
+    void destroyInstance();
 };
 
 #endif

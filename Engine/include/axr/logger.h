@@ -1,10 +1,27 @@
 #pragma once
 
 // ----------------------------------------- //
+// AXR Headers
+// ----------------------------------------- //
+#include <axr/common/defines.h>
+
+// ----------------------------------------- //
 // Spdlog Headers
 // ----------------------------------------- //
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+
+// ----------------------------------------- //
+// C/C++ Headers
+// ----------------------------------------- //
+#include <source_location>
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+// ----------------------------------------- //
+// Vulkan Headers
+// ----------------------------------------- //
+#include "vulkan/vulkan.hpp"
+#endif
 
 // ----------------------------------------- //
 // Enums
@@ -140,6 +157,20 @@ void axrLogForLogger(
     spdlog::format_string_t<Args...> message,
     Args... args
 );
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+// ---- Vulkan Logging Functions ----
+
+/// Log a vulkan result if it failed
+/// @param result Vulkan result
+/// @param functionName The name of the function that gave the result
+/// @param location Source file location. You don't need to ever change this from the default
+void axrLogVkResult(
+    vk::Result result,
+    const char* functionName,
+    const std::source_location& location = std::source_location::current()
+);
+#endif
 
 // ----------------------------------------- //
 // Function Implementations
@@ -285,3 +316,23 @@ void axrLogForLogger(
 
     logger->log(axrToSpdlogLevel(level), message, std::forward<Args>(args)...);
 }
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+// ---- Vulkan Logging Functions ----
+
+inline void axrLogVkResult(
+    const vk::Result result,
+    const char* functionName,
+    const std::source_location& location
+) {
+    // TODO: Maybe this should use the axrVkFailed function
+    if (VK_FAILED(static_cast<VkResult>(result))) {
+        axrLogError(
+            "{0} failed with a result of {1}. Called from: {2}.",
+            functionName,
+            to_string(result).c_str(),
+            location.function_name()
+        );
+    }
+}
+#endif
