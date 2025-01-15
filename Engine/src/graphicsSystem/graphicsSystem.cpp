@@ -35,7 +35,7 @@ AxrResult AxrGraphicsSystem::setup() {
         }
         case AXR_GRAPHICS_API_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
-            axrLogError("AxrGraphicsSystem::setup - Unknown platform.");
+            axrLogErrorLocation("Unknown platform.");
             return AXR_ERROR;
         }
     }
@@ -47,8 +47,8 @@ AxrResult AxrGraphicsSystem::setupVulkan() {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     return m_VulkanGraphicsSystem.setup();
 #elif
-    axrLogError(
-           "AxrGraphicsSystem::setupVulkan - Vulkan not supported."
+    axrLogErrorLocation(
+           "Vulkan not supported."
        );
     return AXR_ERROR;
 #endif

@@ -24,7 +24,7 @@ void axrDestroyApplication(AxrApplication_T* app) {
 
 AxrResult axrApplicationSetup(const AxrApplication_T app) {
     if (app == nullptr) {
-        axrLogError("axrApplicationSetup - `app` is null.");
+        axrLogErrorLocation("`app` is null.");
         return AXR_ERROR;
     }
 
@@ -33,7 +33,7 @@ AxrResult axrApplicationSetup(const AxrApplication_T app) {
 
 bool axrApplicationIsRunning(const AxrApplication_T app) {
     if (app == nullptr) {
-        axrLogError("axrApplicationIsRunning - `app` is null.");
+        axrLogErrorLocation("`app` is null.");
         return false;
     }
 
@@ -42,7 +42,7 @@ bool axrApplicationIsRunning(const AxrApplication_T app) {
 
 void axrApplicationProcessEvents(const AxrApplication_T app) {
     if (app == nullptr) {
-        axrLogError("axrApplicationProcessEvents - `app` is null.");
+        axrLogErrorLocation("`app` is null.");
         return;
     }
 
@@ -51,7 +51,7 @@ void axrApplicationProcessEvents(const AxrApplication_T app) {
 
 AxrWindowSystem_T axrApplicationGetWindowSystem(const AxrApplication_T app) {
     if (app == nullptr) {
-        axrLogError("axrApplicationGetWindowSystem - `app` is null.");
+        axrLogErrorLocation("`app` is null.");
         return nullptr;
     }
 

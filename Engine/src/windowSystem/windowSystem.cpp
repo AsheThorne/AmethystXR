@@ -10,7 +10,7 @@
 
 bool axrWindowSystemIsWindowOpen(const AxrWindowSystem_T windowSystem) {
     if (windowSystem == nullptr) {
-        axrLogError("axrWindowSystemIsWindowOpen - `windowSystem` is null.");
+        axrLogErrorLocation("`windowSystem` is null.");
         return false;
     }
 
@@ -19,7 +19,7 @@ bool axrWindowSystemIsWindowOpen(const AxrWindowSystem_T windowSystem) {
 
 AxrResult axrWindowSystemOpenWindow(const AxrWindowSystem_T windowSystem) {
     if (windowSystem == nullptr) {
-        axrLogError("axrWindowSystemOpenWindow - `windowSystem` is null.");
+        axrLogErrorLocation("`windowSystem` is null.");
         return AXR_ERROR;
     }
 
@@ -28,7 +28,7 @@ AxrResult axrWindowSystemOpenWindow(const AxrWindowSystem_T windowSystem) {
 
 void axrWindowSystemCloseWindow(const AxrWindowSystem_T windowSystem) {
     if (windowSystem == nullptr) {
-        axrLogError("axrWindowSystemCloseWindow - `windowSystem` is null.");
+        axrLogErrorLocation("`windowSystem` is null.");
         return;
     }
 
@@ -37,7 +37,7 @@ void axrWindowSystemCloseWindow(const AxrWindowSystem_T windowSystem) {
 
 void axrWindowSystemProcessEvents(const AxrWindowSystem_T windowSystem) {
     if (windowSystem == nullptr) {
-        axrLogError("axrWindowSystemProcessEvents - `windowSystem` is null.");
+        axrLogErrorLocation("`windowSystem` is null.");
         return;
     }
 
@@ -72,7 +72,7 @@ AxrResult AxrWindowSystem::setup() {
         }
         case AXR_WINDOW_PLATFORM_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
-            axrLogError("AxrWindowSystem::setup - Unknown platform.");
+            axrLogErrorLocation("Unknown platform.");
             return AXR_ERROR;
         }
     }
@@ -85,7 +85,7 @@ bool AxrWindowSystem::isWindowOpen() const {
         }
         case AXR_WINDOW_PLATFORM_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
-            axrLogError("AxrWindowSystem::isWindowOpen - Unknown platform.");
+            axrLogErrorLocation("Unknown platform.");
             return false;
         }
     }
@@ -98,7 +98,7 @@ AxrResult AxrWindowSystem::openWindow() {
         }
         case AXR_WINDOW_PLATFORM_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
-            axrLogError("AxrWindowSystem::openWindow - Unknown platform.");
+            axrLogErrorLocation("Unknown platform.");
             return AXR_ERROR;
         }
     }
@@ -112,7 +112,7 @@ void AxrWindowSystem::closeWindow() {
         }
         case AXR_WINDOW_PLATFORM_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
-            axrLogError("AxrWindowSystem::closeWindow - Unknown platform.");
+            axrLogErrorLocation("Unknown platform.");
             return;
         }
     }
@@ -126,7 +126,7 @@ void AxrWindowSystem::processEvents() {
         }
         case AXR_WINDOW_PLATFORM_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
-            axrLogError("AxrWindowSystem::processEvents - Unknown platform.");
+            axrLogErrorLocation("Unknown platform.");
             return;
         }
     }
@@ -138,8 +138,8 @@ AxrResult AxrWindowSystem::setupWin32Window() {
 #ifdef AXR_PLATFORM_WINDOWS
     return m_Win32WindowSystem.setup();
 #elif
- axrLogError(
-        "AxrWindowSystem::setupWin32Window - Windows platform not supported."
+ axrLogErrorLocation(
+        "Windows platform not supported."
     );
     return AXR_ERROR;
 #endif
@@ -149,8 +149,8 @@ bool AxrWindowSystem::isWin32WindowOpen() const {
 #ifdef AXR_PLATFORM_WINDOWS
     return m_Win32WindowSystem.isWindowOpen();
 #elif
-    axrLogError(
-           "AxrWindowSystem::isWin32WindowOpen - Windows platform not supported."
+    axrLogErrorLocation(
+           "Windows platform not supported."
        );
     return AXR_ERROR;
 #endif
@@ -160,8 +160,8 @@ AxrResult AxrWindowSystem::openWin32Window() {
 #ifdef AXR_PLATFORM_WINDOWS
     return m_Win32WindowSystem.openWindow();
 #elif
-    axrLogError(
-           "AxrWindowSystem::openWin32Window - Windows platform not supported."
+    axrLogErrorLocation(
+           "Windows platform not supported."
        );
     return AXR_ERROR;
 #endif
@@ -171,8 +171,8 @@ void AxrWindowSystem::closeWin32Window() {
 #ifdef AXR_PLATFORM_WINDOWS
     m_Win32WindowSystem.closeWindow();
 #elif
-    axrLogError(
-           "AxrWindowSystem::closeWin32Window - Windows platform not supported."
+    axrLogErrorLocation(
+           "Windows platform not supported."
        );
     return AXR_ERROR;
 #endif
@@ -182,8 +182,8 @@ void AxrWindowSystem::processWin32Events() {
 #ifdef AXR_PLATFORM_WINDOWS
     m_Win32WindowSystem.processEvents();
 #elif
-    axrLogError(
-           "AxrWindowSystem::processWin32Events - Windows platform not supported."
+    axrLogErrorLocation(
+           "Windows platform not supported."
        );
     return AXR_ERROR;
 #endif

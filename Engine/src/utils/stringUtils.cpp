@@ -23,7 +23,7 @@ std::wstring axrToWString(const char* string) {
     );
 
     if (error != 0) {
-        axrLogError("axrToWString - mbstowcs_s() failed for string: {0}", string);
+        axrLogErrorLocation("mbstowcs_s() failed for string: {0}", string);
         return L"";
     }
 

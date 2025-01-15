@@ -27,7 +27,7 @@ AxrResult AxrWin32WindowSystem::setup() {
     // Check if window class is already registered
     WNDCLASSEX windowClassInfo;
     if (GetClassInfoEx(hInstance, m_WindowClassName.c_str(), &windowClassInfo) != 0) {
-        axrLogError("AxrWin32WindowSystem::setup - Window class is already registered.");
+        axrLogErrorLocation("Window class is already registered.");
         return AXR_ERROR;
     }
 
@@ -40,7 +40,7 @@ AxrResult AxrWin32WindowSystem::setup() {
     windowClass.hCursor = LoadCursor(nullptr, IDC_ARROW);
 
     if (RegisterClassEx(&windowClass) == 0) {
-        axrLogError("AxrWin32WindowSystem::setup - Failed to register class.");
+        axrLogErrorLocation("Failed to register class.");
         return AXR_ERROR;
     }
 
@@ -53,7 +53,7 @@ bool AxrWin32WindowSystem::isWindowOpen() const {
 
 AxrResult AxrWin32WindowSystem::openWindow() {
     if (isWindowOpen()) {
-        axrLogWarning("AxrWin32WindowSystem::openWindow - Window already open.");
+        axrLogWarningLocation("Window already open.");
         return AXR_SUCCESS;
     }
 
@@ -80,7 +80,7 @@ AxrResult AxrWin32WindowSystem::openWindow() {
     );
 
     if (m_WindowHandle == nullptr) {
-        axrLogError("AxrWin32WindowSystem::openWindow - Failed to create window handle.");
+        axrLogErrorLocation("Failed to create window handle.");
         return AXR_ERROR;
     }
 

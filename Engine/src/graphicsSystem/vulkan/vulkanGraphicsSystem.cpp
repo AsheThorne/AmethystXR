@@ -35,8 +35,7 @@ AxrResult AxrVulkanGraphicsSystem::createInstance() {
     // ----------------------------------------- //
     
     if (m_Instance != nullptr) {
-        // TODO: create an error log that automatically uses the function name. similar to axrLogVkResult but this one shouldn't be public
-        axrLogError("AxrVulkanGraphicsSystem::createInstance - Instance already exists.");
+        axrLogErrorLocation("Instance already exists.");
         return AXR_ERROR;
     }
 

@@ -26,6 +26,33 @@ namespace axr {
     );
 
     // ----------------------------------------- //
+    // Log Message With Location Struct
+    // ----------------------------------------- //
+
+    /// Log message with a location
+    struct LogMessageWithLocation {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        AxrLogMessageWithLocation MessageWithLocation;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        /// Constructor
+        /// @param message Message
+        /// @param location Source file location. You don't need to ever change this from the default
+        template <typename String>
+        LogMessageWithLocation(
+            const String& message,
+            const std::source_location& location = std::source_location::current()
+        ) :
+            MessageWithLocation(message, location) {
+        }
+    };
+
+    // ----------------------------------------- //
     // Function Definitions
     // ----------------------------------------- //
 
@@ -43,10 +70,30 @@ namespace axr {
         axrSetDefaultLogger(loggerName);
     }
 
-    /// Set the default logger minimum log level
+    /// Set the minimum log level for the default logger
     /// @param level The minimum log level
     inline void setLoggerLevel(const axr::LogLevelEnum level) {
         axrSetLoggerLevel(static_cast<AxrLogLevelEnum>(level));
+    }
+
+    /// Set the minimum log level for the given logger
+    /// @param loggerName Logger name
+    /// @param level The minimum log level
+    inline void setLoggerLevel(const std::string& loggerName, const AxrLogLevelEnum level) {
+        axrSetLoggerLevel(loggerName, level);
+    }
+
+    /// Set the pattern for the default logger
+    /// @param pattern Logger pattern
+    inline void setLoggerPattern(const std::string& pattern) {
+        axrSetLoggerPattern(pattern);
+    }
+
+    /// Set the pattern for the given logger
+    /// @param loggerName Logger name
+    /// @param pattern Logger pattern
+    inline void setLoggerPattern(const std::string& loggerName, const std::string& pattern) {
+        axrSetLoggerPattern(loggerName, pattern);
     }
 
     /// Set up the logger for the current application
@@ -117,6 +164,66 @@ namespace axr {
     /// @param message Message
     inline void logForLogger(const std::string& loggerName, const axr::LogLevelEnum level, const char* message) {
         axrLogForLogger(loggerName, static_cast<AxrLogLevelEnum>(level), message);
+    }
+
+    // ---- Basic Logging Functions With Location ----
+
+    /// Log an info message to the default logger with the source location
+    /// @param message Message
+    inline void logInfoLocation(const axr::LogMessageWithLocation& message) {
+        axrLogInfoLocation(message.MessageWithLocation);
+    }
+
+    /// Log a warning message to the default logger with the source location
+    /// @param message Message
+    inline void logWarningLocation(const axr::LogMessageWithLocation& message) {
+        axrLogWarningLocation(message.MessageWithLocation);
+    }
+
+    /// Log an error message to the default logger with the source location
+    /// @param message Message
+    inline void logErrorLocation(const axr::LogMessageWithLocation& message) {
+        axrLogErrorLocation(message.MessageWithLocation);
+    }
+
+    /// Log a message to the default logger with the source location
+    /// @param level Log level
+    /// @param message Message
+    inline void logLocation(const AxrLogLevelEnum level, const axr::LogMessageWithLocation& message) {
+        axrLogLocation(level, message.MessageWithLocation);
+    }
+
+    /// Log an info message to the named logger with the source location
+    /// @param loggerName Name of the logger
+    /// @param message Message
+    inline void logInfoLocationForLogger(const std::string& loggerName, const axr::LogMessageWithLocation& message) {
+        axrLogInfoLocationForLogger(loggerName, message.MessageWithLocation);
+    }
+
+    /// Log a warning message to the named logger with the source location
+    /// @param loggerName Name of the logger
+    /// @param message Message
+    inline void logWarningLocationForLogger(const std::string& loggerName, const axr::LogMessageWithLocation& message) {
+        axrLogWarningLocationForLogger(loggerName, message.MessageWithLocation);
+    }
+
+    /// Log an error message to the named logger with the source location
+    /// @param loggerName Name of the logger
+    /// @param message Message
+    inline void logErrorLocationForLogger(const std::string& loggerName, const axr::LogMessageWithLocation& message) {
+        axrLogErrorLocationForLogger(loggerName, message.MessageWithLocation);
+    }
+
+    /// Log a message to the named logger with the source location
+    /// @param loggerName Name of the logger
+    /// @param level Log level
+    /// @param message Message
+    inline void logForLocationLogger(
+        const std::string& loggerName,
+        const AxrLogLevelEnum level,
+        const axr::LogMessageWithLocation& message
+    ) {
+        axrLogForLocationLogger(loggerName, level, message.MessageWithLocation);
     }
 
     // ---- Formatted Logging Functions ----
@@ -202,5 +309,102 @@ namespace axr {
         Args... args
     ) {
         axrLogForLogger(loggerName, static_cast<AxrLogLevelEnum>(level), message, std::forward<Args>(args)...);
+    }
+
+    // ---- Formatted Logging Functions With Location ----
+
+    /// Log an info message to the default logger with the source location
+    /// @tparam Args Message property types
+    /// @param message Message
+    /// @param args Message property values
+    template <typename... Args>
+    void logInfoLocation(const axr::LogMessageWithLocation& message, Args... args) {
+        axrLogInfoLocation(message.MessageWithLocation, std::forward<Args>(args)...);
+    }
+
+    /// Log a warning message to the default logger with the source location
+    /// @tparam Args Message property types
+    /// @param message Message
+    /// @param args Message property values
+    template <typename... Args>
+    void logWarningLocation(const axr::LogMessageWithLocation& message, Args... args) {
+        axrLogWarningLocation(message.MessageWithLocation, std::forward<Args>(args)...);
+    }
+
+    /// Log an error message to the default logger with the source location
+    /// @tparam Args Message property types
+    /// @param message Message
+    /// @param args Message property values
+    template <typename... Args>
+    void logErrorLocation(const axr::LogMessageWithLocation& message, Args... args) {
+        axrLogErrorLocation(message.MessageWithLocation, std::forward<Args>(args)...);
+    }
+
+    /// Log a message to the default logger with the source location
+    /// @tparam Args Message property types
+    /// @param level Log level
+    /// @param message Message
+    /// @param args Message property values
+    template <typename... Args>
+    void logLocation(const AxrLogLevelEnum level, const axr::LogMessageWithLocation& message, Args... args) {
+        axrLogLocation(level, message.MessageWithLocation, std::forward<Args>(args)...);
+    }
+
+    /// Log an info message to the named logger with the source location
+    /// @tparam Args Message property types
+    /// @param loggerName Name of the logger
+    /// @param message Message
+    /// @param args Message property values
+    template <typename... Args>
+    void logInfoLocationForLogger(
+        const std::string& loggerName,
+        const axr::LogMessageWithLocation& message,
+        Args... args
+    ) {
+        axrLogInfoLocationForLogger(loggerName, message.MessageWithLocation, std::forward<Args>(args)...);
+    }
+
+    /// Log a warning message to the named logger with the source location
+    /// @tparam Args Message property types
+    /// @param loggerName Name of the logger
+    /// @param message Message
+    /// @param args Message property values
+    template <typename... Args>
+    void logWarningLocationForLogger(
+        const std::string& loggerName,
+        const axr::LogMessageWithLocation& message,
+        Args... args
+    ) {
+        axrLogWarningLocationForLogger(loggerName, message.MessageWithLocation, std::forward<Args>(args)...);
+    }
+
+    /// Log an error message to the named logger with the source location
+    /// @tparam Args Message property types
+    /// @param loggerName Name of the logger
+    /// @param message Message
+    /// @param args Message property values
+    template <typename... Args>
+    void logErrorLocationForLogger(
+        const std::string& loggerName,
+        const axr::LogMessageWithLocation& message,
+        Args... args
+    ) {
+        axrLogErrorLocationForLogger(loggerName, message.MessageWithLocation, std::forward<Args>(args)...);
+    }
+
+    /// Log a message to the named logger with the source location
+    /// @tparam Args Message property types
+    /// @param loggerName Name of the logger
+    /// @param level Log level
+    /// @param message Message
+    /// @param args Message property values
+    template <typename... Args>
+    void logLocationForLogger(
+        const std::string& loggerName,
+        const AxrLogLevelEnum level,
+        const axr::LogMessageWithLocation& message,
+        Args... args
+    ) {
+        axrLogLocationForLogger(loggerName, level, message.MessageWithLocation, std::forward<Args>(args)...);
     }
 }
