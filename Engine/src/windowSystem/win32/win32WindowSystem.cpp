@@ -5,7 +5,7 @@
 // ----------------------------------------- //
 #include "win32WindowSystem.hpp"
 #include "axr/logger.h"
-#include "../../utils/stringUtils.hpp"
+#include "../../utils.hpp"
 
 // ---- Special Functions ----
 

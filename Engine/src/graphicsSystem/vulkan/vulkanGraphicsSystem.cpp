@@ -3,7 +3,7 @@
 // ----------------------------------------- //
 #include "axr/logger.h"
 #include "vulkanGraphicsSystem.hpp"
-#include "../../utils/vulkanUtils.hpp"
+#include "../../utils.hpp"
 
 // ---- Special Functions ----
 

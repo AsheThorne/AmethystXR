@@ -17,13 +17,6 @@
 #include <source_location>
 #include <string>
 
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-// ----------------------------------------- //
-// Vulkan Headers
-// ----------------------------------------- //
-#include "vulkan/vulkan.hpp"
-#endif
-
 // ----------------------------------------- //
 // Macros
 // ----------------------------------------- //
@@ -321,21 +314,6 @@ void axrLogLocationForLogger(
     Args... args
 );
 
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-// ---- Vulkan Logging Functions ----
-
-// TODO: I don't think this should be public. Move to axr src
-/// Log a vulkan result if it failed
-/// @param result Vulkan result
-/// @param functionName The name of the function that gave the result
-/// @param location Source file location. You don't need to ever change this from the default
-void axrLogVkResult(
-    vk::Result result,
-    const char* functionName,
-    const std::source_location& location = std::source_location::current()
-);
-#endif
-
 // ----------------------------------------- //
 // Function Implementations
 // ----------------------------------------- //
@@ -629,23 +607,3 @@ void axrLogLocationForLogger(
         AXR_LOGGING_LOCATION_ARGS(message.Location)
     );
 }
-
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-// ---- Vulkan Logging Functions ----
-
-inline void axrLogVkResult(
-    const vk::Result result,
-    const char* functionName,
-    const std::source_location& location
-) {
-    // TODO: Maybe this should use the axrVkFailed function
-    if (VK_FAILED(static_cast<VkResult>(result))) {
-        axrLogError(
-            "{0} failed with a result of {1}. Called from: {2}.",
-            functionName,
-            to_string(result).c_str(),
-            location.function_name()
-        );
-    }
-}
-#endif
