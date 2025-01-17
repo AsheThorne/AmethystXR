@@ -64,7 +64,11 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
-    AxrApplicationConfig m_Config;
+    
+    // ---- Config Variables ----
+    const char* m_ApplicationName;
+    uint32_t m_ApplicationVersion;
+    
     AxrWindowSystem m_WindowSystem;
     AxrGraphicsSystem m_GraphicsSystem;
 };

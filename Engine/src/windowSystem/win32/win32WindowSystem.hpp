@@ -83,7 +83,12 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
-    Config m_Config;
+
+    // ---- Config Variables ----
+    const char* m_ApplicationName;
+    uint32_t m_Width;
+    uint32_t m_Height;
+
     std::wstring m_WindowClassName;
     HWND m_WindowHandle;
 

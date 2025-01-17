@@ -51,22 +51,26 @@ void axrWindowSystemProcessEvents(const AxrWindowSystem_T windowSystem) {
 // ---- Special Functions ----
 
 AxrWindowSystem::AxrWindowSystem(const Config& config):
+    m_Platform(config.WindowConfig.Platform) {
 #ifdef AXR_PLATFORM_WINDOWS
-    m_Win32WindowSystem(
-        {
-            .ApplicationName = config.ApplicationName,
-            .Width = config.Width,
-            .Height = config.Height,
-        }
-    ),
+
+    if (config.WindowConfig.Platform == AXR_WINDOW_PLATFORM_WIN32) {
+        m_Win32WindowSystem = std::make_unique<AxrWin32WindowSystem>(
+            AxrWin32WindowSystem::Config{
+                .ApplicationName = config.ApplicationName,
+                .Width = config.WindowConfig.Width,
+                .Height = config.WindowConfig.Height,
+            }
+        );
+    }
+
 #endif
-    m_Config(config) {
 }
 
 // ---- Public Functions ----
 
 AxrResult AxrWindowSystem::setup() {
-    switch (m_Config.Platform) {
+    switch (m_Platform) {
         case AXR_WINDOW_PLATFORM_WIN32: {
             return setupWin32Window();
         }
@@ -79,7 +83,7 @@ AxrResult AxrWindowSystem::setup() {
 }
 
 bool AxrWindowSystem::isWindowOpen() const {
-    switch (m_Config.Platform) {
+    switch (m_Platform) {
         case AXR_WINDOW_PLATFORM_WIN32: {
             return isWin32WindowOpen();
         }
@@ -92,7 +96,7 @@ bool AxrWindowSystem::isWindowOpen() const {
 }
 
 AxrResult AxrWindowSystem::openWindow() {
-    switch (m_Config.Platform) {
+    switch (m_Platform) {
         case AXR_WINDOW_PLATFORM_WIN32: {
             return openWin32Window();
         }
@@ -105,7 +109,7 @@ AxrResult AxrWindowSystem::openWindow() {
 }
 
 void AxrWindowSystem::closeWindow() {
-    switch (m_Config.Platform) {
+    switch (m_Platform) {
         case AXR_WINDOW_PLATFORM_WIN32: {
             closeWin32Window();
             return;
@@ -119,7 +123,7 @@ void AxrWindowSystem::closeWindow() {
 }
 
 void AxrWindowSystem::processEvents() {
-    switch (m_Config.Platform) {
+    switch (m_Platform) {
         case AXR_WINDOW_PLATFORM_WIN32: {
             processWin32Events();
             return;
@@ -136,7 +140,12 @@ void AxrWindowSystem::processEvents() {
 
 AxrResult AxrWindowSystem::setupWin32Window() {
 #ifdef AXR_PLATFORM_WINDOWS
-    return m_Win32WindowSystem.setup();
+    if (m_Win32WindowSystem == nullptr) {
+        axrLogErrorLocation("Win32WindowSystem is null.");
+        return AXR_ERROR;
+    }
+
+    return m_Win32WindowSystem->setup();
 #elif
  axrLogErrorLocation(
         "Windows platform not supported."
@@ -147,18 +156,28 @@ AxrResult AxrWindowSystem::setupWin32Window() {
 
 bool AxrWindowSystem::isWin32WindowOpen() const {
 #ifdef AXR_PLATFORM_WINDOWS
-    return m_Win32WindowSystem.isWindowOpen();
+    if (m_Win32WindowSystem == nullptr) {
+        axrLogErrorLocation("Win32WindowSystem is null.");
+        return false;
+    }
+
+    return m_Win32WindowSystem->isWindowOpen();
 #elif
     axrLogErrorLocation(
            "Windows platform not supported."
        );
-    return AXR_ERROR;
+    return false;
 #endif
 }
 
 AxrResult AxrWindowSystem::openWin32Window() {
 #ifdef AXR_PLATFORM_WINDOWS
-    return m_Win32WindowSystem.openWindow();
+    if (m_Win32WindowSystem == nullptr) {
+        axrLogErrorLocation("Win32WindowSystem is null.");
+        return AXR_ERROR;
+    }
+
+    return m_Win32WindowSystem->openWindow();
 #elif
     axrLogErrorLocation(
            "Windows platform not supported."
@@ -169,22 +188,32 @@ AxrResult AxrWindowSystem::openWin32Window() {
 
 void AxrWindowSystem::closeWin32Window() {
 #ifdef AXR_PLATFORM_WINDOWS
-    m_Win32WindowSystem.closeWindow();
+    if (m_Win32WindowSystem == nullptr) {
+        axrLogErrorLocation("Win32WindowSystem is null.");
+        return;
+    }
+
+    m_Win32WindowSystem->closeWindow();
 #elif
     axrLogErrorLocation(
            "Windows platform not supported."
        );
-    return AXR_ERROR;
+    return;
 #endif
 }
 
 void AxrWindowSystem::processWin32Events() {
 #ifdef AXR_PLATFORM_WINDOWS
-    m_Win32WindowSystem.processEvents();
+    if (m_Win32WindowSystem == nullptr) {
+        axrLogErrorLocation("Win32WindowSystem is null.");
+        return;
+    }
+
+    m_Win32WindowSystem->processEvents();
 #elif
     axrLogErrorLocation(
            "Windows platform not supported."
        );
-    return AXR_ERROR;
+    return;
 #endif
 }

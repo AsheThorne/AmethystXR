@@ -49,3 +49,7 @@ add_compile_definitions(UNICODE)
 if(WIN32)
     add_compile_definitions(NOMINMAX)
 endif()
+
+if(Vulkan_FOUND)
+    add_compile_definitions(AXR_SUPPORTED_GRAPHICS_VULKAN)
+endif()

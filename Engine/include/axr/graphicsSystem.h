@@ -3,7 +3,9 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/common.h"
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+#include "vulkanApi.h"
+#endif
 
 // ----------------------------------------- //
 // Forward Declared Handles
@@ -29,6 +31,9 @@ enum AxrGraphicsApiEnum {
 /// Config for the graphics system
 struct AxrGraphicsSystemConfig {
     AxrGraphicsApiEnum GraphicsApi;
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    AxrVulkanApiConfig_T VulkanConfig;
+#endif
 };
 
 // ----------------------------------------- //

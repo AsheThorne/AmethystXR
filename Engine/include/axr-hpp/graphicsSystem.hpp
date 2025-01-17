@@ -5,6 +5,10 @@
 // ----------------------------------------- //
 #include "axr/graphicsSystem.h"
 
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+#include "vulkanApi.hpp"
+#endif
+
 namespace axr {
     // ----------------------------------------- //
     // Graphics Api Enum Definition
@@ -15,11 +19,6 @@ namespace axr {
         Undefined = AXR_GRAPHICS_API_UNDEFINED,
         Vulkan = AXR_GRAPHICS_API_VULKAN,
     };
-
-    static_assert(
-        sizeof(AxrGraphicsApiEnum) == sizeof(axr::GraphicsApiEnum),
-        "Original type and wrapper have different size!"
-    );
 
     // ----------------------------------------- //
     // Graphics Config Definition
@@ -35,19 +34,30 @@ namespace axr {
 
         /// Default Constructor
         GraphicsSystemConfig() :
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+            VulkanApiConfig(nullptr),
+#endif
             GraphicsApi{} {
         }
 
-        /// Constructor
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+        /// Vulkan Graphics Constructor
         /// @param graphicsApi The graphics api
+        /// @param vulkanApiConfig The vulkan api config
         GraphicsSystemConfig(
-            const axr::GraphicsApiEnum graphicsApi
-        ) : GraphicsApi(graphicsApi) {
+            const axr::GraphicsApiEnum graphicsApi,
+            axr::VulkanApiConfig* vulkanApiConfig
+        ) : GraphicsApi(graphicsApi),
+            VulkanApiConfig(vulkanApiConfig) {
         }
+#endif
 
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+        axr::VulkanApiConfig* VulkanApiConfig;
+#endif
         axr::GraphicsApiEnum GraphicsApi;
 
         // ----------------------------------------- //

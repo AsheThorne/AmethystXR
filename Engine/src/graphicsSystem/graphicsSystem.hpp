@@ -5,7 +5,11 @@
 // ----------------------------------------- //
 #include "axr/common.h"
 #include "axr/graphicsSystem.h"
+#include "axr/windowSystem.h"
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 #include "vulkan/vulkanGraphicsSystem.hpp"
+#endif
 
 /// Graphics System
 class AxrGraphicsSystem {
@@ -16,9 +20,10 @@ public:
 
     /// Graphics System Config
     struct Config {
-        AxrGraphicsApiEnum GraphicsApi;
         const char* ApplicationName;
         uint32_t ApplicationVersion;
+        AxrWindowPlatformEnum WindowPlatform;
+        AxrGraphicsSystemConfig GraphicsConfig;
     };
 
     // ----------------------------------------- //
@@ -64,12 +69,13 @@ private:
     // Private Variables
     // ----------------------------------------- //
 
-    // ---- Vulkan Variables ----
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    AxrVulkanGraphicsSystem m_VulkanGraphicsSystem;
+    // ---- Vulkan Variables ----
+    std::unique_ptr<AxrVulkanGraphicsSystem> m_VulkanGraphicsSystem;
 #endif
-    
-    Config m_Config;
+
+    // ---- Config Variables ----
+    AxrGraphicsApiEnum m_GraphicsApi;
 
     // ----------------------------------------- //
     // Private Functions

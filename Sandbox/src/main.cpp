@@ -20,9 +20,26 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         800,
         600
     );
+    
+    axr::VulkanApiConfig vulkanApiConfig{};
+    
+#ifndef NDEBUG
+    vulkanApiConfig.addApiLayerCoreValidation();
+    vulkanApiConfig.addExtensionDebugUtils(
+        // axr::VulkanDebugUtilsSeverityFlagBits::Verbose |
+        // axr::VulkanDebugUtilsSeverityFlagBits::Info |
+        axr::VulkanDebugUtilsSeverityFlagBits::Warning |
+        axr::VulkanDebugUtilsSeverityFlagBits::Error,
+        axr::VulkanDebugUtilsTypeFlagBits::General |
+        axr::VulkanDebugUtilsTypeFlagBits::Validation |
+        axr::VulkanDebugUtilsTypeFlagBits::Performance |
+        axr::VulkanDebugUtilsTypeFlagBits::DeviceAddressBinding
+    );
+#endif
 
     const axr::GraphicsSystemConfig graphicsSystemConfig(
-        axr::GraphicsApiEnum::Vulkan
+        axr::GraphicsApiEnum::Vulkan,
+        &vulkanApiConfig
     );
 
     const auto appConfig = axr::ApplicationConfig(

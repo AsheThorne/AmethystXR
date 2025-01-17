@@ -16,11 +16,6 @@ namespace axr {
         Win32 = AXR_WINDOW_PLATFORM_WIN32,
     };
 
-    static_assert(
-        sizeof(AxrWindowPlatformEnum) == sizeof(axr::WindowPlatformEnum),
-        "Original type and wrapper have different size!"
-    );
-
     // ----------------------------------------- //
     // Window Config Definition
     // ----------------------------------------- //

@@ -65,20 +65,20 @@ AxrWindowSystem_T axrApplicationGetWindowSystem(const AxrApplication_T app) {
 // ---- Special Functions ----
 
 AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
-    m_Config(config),
+    m_ApplicationName(config.ApplicationName),
+    m_ApplicationVersion(config.ApplicationVersion),
     m_WindowSystem(
-        {
+        AxrWindowSystem::Config{
             .ApplicationName = config.ApplicationName,
-            .Platform = config.WindowSystemConfig.Platform,
-            .Width = config.WindowSystemConfig.Width,
-            .Height = config.WindowSystemConfig.Height,
+            .WindowConfig = config.WindowSystemConfig
         }
     ),
     m_GraphicsSystem(
-        {
-            .GraphicsApi = config.GraphicsSystemConfig.GraphicsApi,
+        AxrGraphicsSystem::Config{
             .ApplicationName = config.ApplicationName,
             .ApplicationVersion = config.ApplicationVersion,
+            .WindowPlatform = config.WindowSystemConfig.Platform,
+            .GraphicsConfig = config.GraphicsSystemConfig,
         }
     ) {
 }
@@ -90,7 +90,7 @@ AxrResult AxrApplication::setup() {
 
     axrResult = m_WindowSystem.setup();
     if (AXR_FAILED(axrResult)) return axrResult;
-    
+
     axrResult = m_GraphicsSystem.setup();
     if (AXR_FAILED(axrResult)) return axrResult;
 

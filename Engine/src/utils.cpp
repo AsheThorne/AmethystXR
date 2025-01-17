@@ -1,7 +1,6 @@
 ﻿// ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/common/defines.h"
 #include "utils.hpp"
 #include "axr/logger.h"
 
@@ -33,30 +32,15 @@ std::wstring axrToWString(const char* string) {
     return convertedChars;
 }
 
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-
-// ---- Vulkan Utils ----
-
-bool axrVkSucceeded(vk::Result result) {
-    return VK_SUCCEEDED(static_cast<VkResult>(result));
-}
-
-bool axrVkFailed(vk::Result result) {
-    return VK_FAILED(static_cast<VkResult>(result));
-}
-
-void axrLogVkResult(
-    const vk::Result result,
-    const char* functionName,
-    const std::source_location& location
+bool axrContainsString(
+    const char* string,
+    const std::vector<std::string>& stringCollection
 ) {
-    if (axrVkFailed(result)) {
-        axrLogErrorLocation(
-            {"{0} failed with a result of {1}.", location},
-            functionName,
-            to_string(result).c_str()
-        );
+    for (const std::string& str : stringCollection) {
+        if (strcmp(string, str.c_str()) == 0) {
+            return true;
+        }
     }
-}
 
-#endif
+    return false;
+}

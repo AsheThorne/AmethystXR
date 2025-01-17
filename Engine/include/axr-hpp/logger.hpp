@@ -20,11 +20,6 @@ namespace axr {
         Error = AXR_LOG_LEVEL_ERROR
     };
 
-    static_assert(
-        sizeof(AxrLogLevelEnum) == sizeof(axr::LogLevelEnum),
-        "Original type and wrapper have different size!"
-    );
-
     // ----------------------------------------- //
     // Log Message With Location Struct
     // ----------------------------------------- //

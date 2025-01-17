@@ -7,6 +7,11 @@
 #include "axr/windowSystem.h"
 #include "win32/win32WindowSystem.hpp"
 
+// ----------------------------------------- //
+// C/C++ Headers
+// ----------------------------------------- //
+#include <memory>
+
 /// Axr Window System
 class AxrWindowSystem {
 public:
@@ -17,9 +22,7 @@ public:
     /// Window System Config
     struct Config {
         const char* ApplicationName;
-        AxrWindowPlatformEnum Platform;
-        uint32_t Width;
-        uint32_t Height;
+        AxrWindowSystemConfig WindowConfig;
     };
 
     // ----------------------------------------- //
@@ -75,12 +78,13 @@ private:
     // Private Variables
     // ----------------------------------------- //
 
-    // ---- Win32 Variables ----
 #ifdef AXR_PLATFORM_WINDOWS
-    AxrWin32WindowSystem m_Win32WindowSystem;
+    // ---- Win32 Variables ----
+    std::unique_ptr<AxrWin32WindowSystem> m_Win32WindowSystem;
 #endif
 
-    Config m_Config;
+    // ---- Config Variables ----
+    AxrWindowPlatformEnum m_Platform;
 
     // ----------------------------------------- //
     // Private Functions

@@ -28,6 +28,7 @@ set(AXR_PUBLIC_HEADER_FILES
     ${AXR_INCLUDE_DIR}/axr/setup.h
     ${AXR_INCLUDE_DIR}/axr/windowSystem.h
     ${AXR_INCLUDE_DIR}/axr/graphicsSystem.h
+    ${AXR_INCLUDE_DIR}/axr/vulkanApi.h
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr/common/defines.h.in
     ${AXR_INCLUDE_DIR}/axr/common/defines.h
@@ -44,6 +45,8 @@ set(AXR_PUBLIC_HEADER_HPP_FILES
     ${AXR_INCLUDE_DIR}/axr-hpp/setup.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/windowSystem.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/graphicsSystem.hpp
+    ${AXR_INCLUDE_DIR}/axr-hpp/vulkanApi.hpp
+    ${AXR_INCLUDE_DIR}/axr-hpp/flags.hpp
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr-hpp/common/defines.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/common/result.hpp
@@ -62,6 +65,7 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/graphicsSystem/graphicsSystem.hpp
     # ---- Graphics System - Vulkan ----
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanGraphicsSystem.hpp
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanUtils.hpp
 )
 
 # ---------------------------------------------
@@ -82,6 +86,7 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/graphicsSystem/graphicsSystem.cpp
     # ---- Graphics System - Vulkan ----
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanGraphicsSystem.cpp
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanUtils.cpp
 )
 
 # ---------------------------------------------
@@ -130,6 +135,7 @@ add_compile_definitions(UNICODE)
 add_compile_definitions(AXR_BUILD_DLL)
 
 if(WIN32)
+    # TODO: Change this to AXR_PLATFORM_WIN32
     add_compile_definitions(AXR_PLATFORM_WINDOWS)
     add_compile_definitions(NOMINMAX)
 endif()

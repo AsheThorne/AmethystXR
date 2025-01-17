@@ -15,21 +15,27 @@
 // ---- Special Functions ----
 
 AxrGraphicsSystem::AxrGraphicsSystem(const Config& config):
+    m_GraphicsApi(config.GraphicsConfig.GraphicsApi) {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    m_VulkanGraphicsSystem(
-        {
-            .ApplicationName = config.ApplicationName,
-            .ApplicationVersion = config.ApplicationVersion,
-        }
-    ),
+
+    if (config.GraphicsConfig.GraphicsApi == AXR_GRAPHICS_API_VULKAN) {
+        m_VulkanGraphicsSystem = std::make_unique<AxrVulkanGraphicsSystem>(
+            AxrVulkanGraphicsSystem::Config{
+                .ApplicationName = config.ApplicationName,
+                .ApplicationVersion = config.ApplicationVersion,
+                .WindowPlatform = config.WindowPlatform,
+                .VulkanConfig = config.GraphicsConfig.VulkanConfig
+            }
+        );
+    }
+
 #endif
-    m_Config(config) {
 }
 
 // ---- Public Headers ----
 
 AxrResult AxrGraphicsSystem::setup() {
-    switch (m_Config.GraphicsApi) {
+    switch (m_GraphicsApi) {
         case AXR_GRAPHICS_API_VULKAN: {
             return setupVulkan();
         }
@@ -45,7 +51,12 @@ AxrResult AxrGraphicsSystem::setup() {
 
 AxrResult AxrGraphicsSystem::setupVulkan() {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    return m_VulkanGraphicsSystem.setup();
+    if (m_VulkanGraphicsSystem == nullptr) {
+        axrLogErrorLocation("VulkanGraphicsSystem is null.");
+        return AXR_ERROR;
+    }
+
+    return m_VulkanGraphicsSystem->setup();
 #elif
     axrLogErrorLocation(
            "Vulkan not supported."

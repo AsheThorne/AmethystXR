@@ -10,7 +10,9 @@
 // ---- Special Functions ----
 
 AxrWin32WindowSystem::AxrWin32WindowSystem(const Config& config) :
-    m_Config(config),
+    m_ApplicationName(config.ApplicationName),
+    m_Width(config.Width),
+    m_Height(config.Height),
     m_WindowClassName(axrToWString((std::string(config.ApplicationName) + "_Class").c_str())),
     m_WindowHandle(nullptr) {
 }
@@ -58,7 +60,7 @@ AxrResult AxrWin32WindowSystem::openWindow() {
     }
 
     const HINSTANCE hInstance = GetModuleHandle(nullptr);
-    const std::wstring windowName = axrToWString(m_Config.ApplicationName);
+    const std::wstring windowName = axrToWString(m_ApplicationName);
 
     m_WindowHandle = CreateWindowEx(
         0,
@@ -70,8 +72,8 @@ AxrResult AxrWin32WindowSystem::openWindow() {
         CW_USEDEFAULT,
 
         // Window Size
-        static_cast<int>(m_Config.Width),
-        static_cast<int>(m_Config.Height),
+        static_cast<int>(m_Width),
+        static_cast<int>(m_Height),
 
         nullptr,
         nullptr,
