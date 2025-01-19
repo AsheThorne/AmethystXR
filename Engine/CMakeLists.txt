@@ -135,8 +135,7 @@ add_compile_definitions(UNICODE)
 add_compile_definitions(AXR_BUILD_DLL)
 
 if(WIN32)
-    # TODO: Change this to AXR_PLATFORM_WIN32
-    add_compile_definitions(AXR_PLATFORM_WINDOWS)
+    add_compile_definitions(AXR_PLATFORM_WIN32)
     add_compile_definitions(NOMINMAX)
 endif()
 

@@ -1,11 +1,10 @@
 #pragma once
-#ifdef AXR_PLATFORM_WINDOWS
+#ifdef AXR_PLATFORM_WIN32
 
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/common.h"
-#include "axr/windowSystem.h"
 
 // ----------------------------------------- //
 // C/C++ Headers

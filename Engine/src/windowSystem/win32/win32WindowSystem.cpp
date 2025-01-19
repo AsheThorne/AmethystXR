@@ -1,4 +1,4 @@
-#ifdef AXR_PLATFORM_WINDOWS
+#ifdef AXR_PLATFORM_WIN32
 
 // ----------------------------------------- //
 // AXR Headers

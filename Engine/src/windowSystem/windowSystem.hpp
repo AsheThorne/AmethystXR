@@ -78,7 +78,7 @@ private:
     // Private Variables
     // ----------------------------------------- //
 
-#ifdef AXR_PLATFORM_WINDOWS
+#ifdef AXR_PLATFORM_WIN32
     // ---- Win32 Variables ----
     std::unique_ptr<AxrWin32WindowSystem> m_Win32WindowSystem;
 #endif

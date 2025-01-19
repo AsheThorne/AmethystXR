@@ -59,7 +59,7 @@ const char* axrGetVulkanExtensionName(const AxrVulkanExtensionTypeEnum extension
         case AXR_VULKAN_EXTENSION_TYPE_SURFACE: {
             return VK_KHR_SURFACE_EXTENSION_NAME;
         }
-#ifdef AXR_PLATFORM_WINDOWS
+#ifdef AXR_PLATFORM_WIN32
         case AXR_VULKAN_EXTENSION_TYPE_WIN32_SURFACE: {
             return VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
         }

@@ -52,7 +52,7 @@ void axrWindowSystemProcessEvents(const AxrWindowSystem_T windowSystem) {
 
 AxrWindowSystem::AxrWindowSystem(const Config& config):
     m_Platform(config.WindowConfig.Platform) {
-#ifdef AXR_PLATFORM_WINDOWS
+#ifdef AXR_PLATFORM_WIN32
 
     if (config.WindowConfig.Platform == AXR_WINDOW_PLATFORM_WIN32) {
         m_Win32WindowSystem = std::make_unique<AxrWin32WindowSystem>(
@@ -139,7 +139,7 @@ void AxrWindowSystem::processEvents() {
 // ---- Private Functions ----
 
 AxrResult AxrWindowSystem::setupWin32Window() {
-#ifdef AXR_PLATFORM_WINDOWS
+#ifdef AXR_PLATFORM_WIN32
     if (m_Win32WindowSystem == nullptr) {
         axrLogErrorLocation("Win32WindowSystem is null.");
         return AXR_ERROR;
@@ -155,7 +155,7 @@ AxrResult AxrWindowSystem::setupWin32Window() {
 }
 
 bool AxrWindowSystem::isWin32WindowOpen() const {
-#ifdef AXR_PLATFORM_WINDOWS
+#ifdef AXR_PLATFORM_WIN32
     if (m_Win32WindowSystem == nullptr) {
         axrLogErrorLocation("Win32WindowSystem is null.");
         return false;
@@ -171,7 +171,7 @@ bool AxrWindowSystem::isWin32WindowOpen() const {
 }
 
 AxrResult AxrWindowSystem::openWin32Window() {
-#ifdef AXR_PLATFORM_WINDOWS
+#ifdef AXR_PLATFORM_WIN32
     if (m_Win32WindowSystem == nullptr) {
         axrLogErrorLocation("Win32WindowSystem is null.");
         return AXR_ERROR;
@@ -187,7 +187,7 @@ AxrResult AxrWindowSystem::openWin32Window() {
 }
 
 void AxrWindowSystem::closeWin32Window() {
-#ifdef AXR_PLATFORM_WINDOWS
+#ifdef AXR_PLATFORM_WIN32
     if (m_Win32WindowSystem == nullptr) {
         axrLogErrorLocation("Win32WindowSystem is null.");
         return;
@@ -203,7 +203,7 @@ void AxrWindowSystem::closeWin32Window() {
 }
 
 void AxrWindowSystem::processWin32Events() {
-#ifdef AXR_PLATFORM_WINDOWS
+#ifdef AXR_PLATFORM_WIN32
     if (m_Win32WindowSystem == nullptr) {
         axrLogErrorLocation("Win32WindowSystem is null.");
         return;
