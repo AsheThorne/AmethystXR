@@ -18,13 +18,16 @@
 // ----------------------------------------- //
 #include <vulkan/vulkan.hpp>
 
-// TODO: Remove from here or safe guard it with preprocessor
-#include <windows.h>
-#include <vulkan/vulkan_win32.h>
-
 /// Vulkan Graphics System
 class AxrVulkanGraphicsSystem {
 public:
+    // ----------------------------------------- //
+    // Types
+    // ----------------------------------------- //
+
+    /// The instance pNext structure chain type
+    using InstanceChain_T = vk::StructureChain<vk::InstanceCreateInfo, vk::DebugUtilsMessengerCreateInfoEXT>;
+
     // ----------------------------------------- //
     // Structs
     // ----------------------------------------- //
@@ -87,10 +90,12 @@ private:
     std::vector<AxrVulkanApiLayer_T> m_ApiLayers;
     std::vector<AxrVulkanExtension_T> m_Extensions;
 
+    vk::DispatchLoaderDynamic m_DynamicDispatchLoader;
     std::vector<std::string> m_SupportedInstanceApiLayers;
     std::vector<std::string> m_SupportedInstanceExtensions;
 
     vk::Instance m_Instance;
+    vk::DebugUtilsMessengerEXT m_DebugUtilsMessenger;
 
     // ----------------------------------------- //
     // Private Functions
@@ -104,10 +109,16 @@ private:
     /// Destroy the vulkan instance
     void destroyInstance();
 
+    /// Create the instance pNext chain using the given instance create info
+    /// @param instanceCreateInfo Instance create info to use
+    /// @returns The instance structure chain
+    [[nodiscard]] InstanceChain_T createInstanceChain(const vk::InstanceCreateInfo& instanceCreateInfo) const;
+
+    // ---- Api Layers / Extensions ----
+
     /// Find the supported instance api layers
     /// @returns The supported instance api layers
     std::vector<std::string> getSupportedInstanceApiLayers() const;
-
     /// Find the supported instance extensions
     /// @returns The supported instance extensions
     std::vector<std::string> getSupportedInstanceExtensions() const;
@@ -134,6 +145,40 @@ private:
     /// Add the given extension to m_Extensions if it is supported
     /// @param extension The extension to add
     void addExtension(AxrVulkanExtension_T extension);
+
+    /// Get the extension from the given extension type
+    /// @param type Extension type
+    /// @returns The extension of the given type or nullptr if it doesn't exist
+    [[nodiscard]] AxrVulkanExtension_T getExtension(AxrVulkanExtensionTypeEnum type) const;
+
+    // ---- Debug Utils ----
+
+    /// Create the debug utils messenger create info
+    /// @retrns The debug utils messenger create info
+    [[nodiscard]] vk::DebugUtilsMessengerCreateInfoEXT createDebugUtilsCreateInto() const;
+
+    /// Create the debug utils messenger
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createDebugUtils();
+    /// Destroy the debug utils messenger
+    void destroyDebugUtils();
+
+    // ----------------------------------------- //
+    // Private Static Functions
+    // ----------------------------------------- //
+
+    /// Debug utils messages callback function
+    /// @param messageSeverity The severity of the message
+    /// @param messageType The type of the message
+    /// @param pCallbackData Callback data
+    /// @param pUserData User data
+    /// @returns The application should always return VK_FALSE. VK_TRUE is typically only used in layer development
+    static VkBool32 VKAPI_CALL debugUtilsCallback(
+        VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+        VkDebugUtilsMessageTypeFlagsEXT messageType,
+        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+        void* pUserData
+    );
 };
 
 #endif

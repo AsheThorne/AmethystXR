@@ -14,11 +14,14 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     m_ApplicationName(config.ApplicationName),
     m_ApplicationVersion(config.ApplicationVersion),
     m_WindowPlatform(config.WindowPlatform),
-    m_Instance(nullptr) {
+    m_Instance(VK_NULL_HANDLE),
+    m_DebugUtilsMessenger(VK_NULL_HANDLE) {
     if (config.VulkanConfig == nullptr) {
         axrLogErrorLocation("Vulkan Config is null.");
         return;
     }
+
+    m_DynamicDispatchLoader.init();
 
     m_SupportedInstanceApiLayers = getSupportedInstanceApiLayers();
     m_SupportedInstanceExtensions = getSupportedInstanceExtensions();
@@ -38,6 +41,7 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
 }
 
 AxrVulkanGraphicsSystem::~AxrVulkanGraphicsSystem() {
+    destroyDebugUtils();
     destroyInstance();
     destroyExtensions();
     destroyApiLayers();
@@ -48,10 +52,10 @@ AxrVulkanGraphicsSystem::~AxrVulkanGraphicsSystem() {
 AxrResult AxrVulkanGraphicsSystem::setup() {
     AxrResult axrResult = AXR_SUCCESS;
 
-    // TODO...
-    // setupDebugUtilsCreateInfo();
-
     axrResult = createInstance();
+    if (AXR_FAILED(axrResult)) return axrResult;
+
+    axrResult = createDebugUtils();
     if (AXR_FAILED(axrResult)) return axrResult;
 
     return axrResult;
@@ -94,32 +98,50 @@ AxrResult AxrVulkanGraphicsSystem::createInstance() {
         instanceExtensions.data()
     );
 
-    const auto [vkResult, instance] = vk::createInstance(instanceCreateInfo, nullptr);
+    const vk::Result vkResult = vk::createInstance(
+        &createInstanceChain(instanceCreateInfo).get<vk::InstanceCreateInfo>(),
+        nullptr,
+        &m_Instance,
+        m_DynamicDispatchLoader
+    );
     axrLogVkResult(vkResult, "vk::createInstance");
 
-    if (axrVkFailed(vkResult)) {
-        return AXR_ERROR;
-    }
+    if (axrVkFailed(vkResult)) return AXR_ERROR;
 
-    m_Instance = instance;
+    m_DynamicDispatchLoader.init(m_Instance);
 
     return AXR_SUCCESS;
 }
 
 void AxrVulkanGraphicsSystem::destroyInstance() {
-    if (m_Instance != nullptr) {
-        m_Instance.destroy();
-        m_Instance = nullptr;
+    if (m_Instance != VK_NULL_HANDLE) {
+        m_Instance.destroy(nullptr, m_DynamicDispatchLoader);
+        m_Instance = VK_NULL_HANDLE;
     }
 }
 
+AxrVulkanGraphicsSystem::InstanceChain_T AxrVulkanGraphicsSystem::createInstanceChain(
+    const vk::InstanceCreateInfo& instanceCreateInfo
+) const {
+    InstanceChain_T chain{
+        instanceCreateInfo,
+        createDebugUtilsCreateInto()
+    };
+
+    if (!extensionExists(AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS)) {
+        chain.unlink<vk::DebugUtilsMessengerCreateInfoEXT>();
+    }
+
+    return chain;
+}
+
 std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedInstanceApiLayers() const {
-    auto instanceLayerProperties = vk::enumerateInstanceLayerProperties();
+    const auto instanceLayerProperties = vk::enumerateInstanceLayerProperties(
+        m_DynamicDispatchLoader
+    );
     axrLogVkResult(instanceLayerProperties.result, "vk::enumerateInstanceLayerProperties");
 
-    if (axrVkFailed(instanceLayerProperties.result)) {
-        return {};
-    }
+    if (axrVkFailed(instanceLayerProperties.result)) return {};
 
     std::vector<std::string> supportedApiLayers(instanceLayerProperties.value.size());
 
@@ -131,12 +153,13 @@ std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedInstanceApiLayers(
 }
 
 std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedInstanceExtensions() const {
-    auto instanceExtensionProperties = vk::enumerateInstanceExtensionProperties();
+    const auto instanceExtensionProperties = vk::enumerateInstanceExtensionProperties(
+        nullptr,
+        m_DynamicDispatchLoader
+    );
     axrLogVkResult(instanceExtensionProperties.result, "vk::enumerateInstanceExtensionProperties");
 
-    if (axrVkFailed(instanceExtensionProperties.result)) {
-        return {};
-    }
+    if (axrVkFailed(instanceExtensionProperties.result)) return {};
 
     std::vector<std::string> supportedExtensions(instanceExtensionProperties.value.size());
 
@@ -255,6 +278,152 @@ void AxrVulkanGraphicsSystem::addExtension(const AxrVulkanExtension_T extension)
     }
 
     m_Extensions.push_back(axrCloneVulkanExtension(extension));
+}
+
+AxrVulkanExtension_T AxrVulkanGraphicsSystem::getExtension(const AxrVulkanExtensionTypeEnum type) const {
+    for (const AxrVulkanExtension_T extension : m_Extensions) {
+        if (extension != nullptr && extension->Type == type) {
+            return extension;
+        }
+    }
+
+    return nullptr;
+}
+
+vk::DebugUtilsMessengerCreateInfoEXT AxrVulkanGraphicsSystem::createDebugUtilsCreateInto() const {
+    auto debugUtilsExtension = reinterpret_cast<AxrVulkanExtensionDebugUtils*>(
+        getExtension(AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS)
+    );
+
+    if (debugUtilsExtension == nullptr) {
+        axrLogErrorLocation("No debug utils extension found.");
+        return {};
+    }
+
+    return {
+        {},
+        static_cast<vk::DebugUtilsMessageSeverityFlagsEXT>(debugUtilsExtension->SeverityFlags),
+        static_cast<vk::DebugUtilsMessageTypeFlagBitsEXT>(debugUtilsExtension->TypeFlags),
+        debugUtilsCallback
+    };
+}
+
+AxrResult AxrVulkanGraphicsSystem::createDebugUtils() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!extensionExists(AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS)) {
+        // Debug utils aren't needed to be created
+        return AXR_SUCCESS;
+    }
+
+    if (m_DebugUtilsMessenger != VK_NULL_HANDLE) {
+        axrLogWarningLocation("Debug utils have already been created.");
+        return AXR_SUCCESS;
+    }
+
+    if (m_Instance == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Instance is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const vk::DebugUtilsMessengerCreateInfoEXT debugUtilsCreateInfo = createDebugUtilsCreateInto();
+    const vk::Result vkResult = m_Instance.createDebugUtilsMessengerEXT(
+        &debugUtilsCreateInfo,
+        nullptr,
+        &m_DebugUtilsMessenger,
+        m_DynamicDispatchLoader
+    );
+    axrLogVkResult(vkResult, "m_Instance.createDebugUtilsMessengerEXT");
+    if (axrVkFailed(vkResult)) return AXR_ERROR;
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanGraphicsSystem::destroyDebugUtils() {
+    if (m_DebugUtilsMessenger == VK_NULL_HANDLE) return;
+
+    m_Instance.destroyDebugUtilsMessengerEXT(m_DebugUtilsMessenger, nullptr, m_DynamicDispatchLoader);
+    m_DebugUtilsMessenger = VK_NULL_HANDLE;
+}
+
+VkBool32 AxrVulkanGraphicsSystem::debugUtilsCallback(
+    const VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    const VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+    void* pUserData
+) {
+    AxrLogLevelEnum logLevel = AXR_LOG_LEVEL_ERROR;
+    const char* messageSeverityString;
+    const char* messageTypeString;
+
+    switch (messageType) {
+        case VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT: {
+            messageTypeString = "General";
+            break;
+        }
+        case VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT: {
+            messageTypeString = "Validation";
+            break;
+        }
+        case VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT: {
+            messageTypeString = "Performance";
+            break;
+        }
+        case VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT: {
+            messageTypeString = "Device Address Binding";
+            break;
+        }
+        case VK_DEBUG_UTILS_MESSAGE_TYPE_FLAG_BITS_MAX_ENUM_EXT:
+        default: {
+            messageTypeString = "Unknown Type";
+            break;
+        }
+    }
+
+    switch (messageSeverity) {
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT: {
+            messageSeverityString = "Verbose";
+            logLevel = AXR_LOG_LEVEL_INFO;
+            break;
+        }
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT: {
+            messageSeverityString = "Info";
+            logLevel = AXR_LOG_LEVEL_INFO;
+            break;
+        }
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT: {
+            messageSeverityString = "Warning";
+            logLevel = AXR_LOG_LEVEL_WARNING;
+            break;
+        }
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT: {
+            messageSeverityString = "Error";
+            logLevel = AXR_LOG_LEVEL_ERROR;
+            break;
+        }
+        case VK_DEBUG_UTILS_MESSAGE_SEVERITY_FLAG_BITS_MAX_ENUM_EXT:
+        default: { // NOLINT(clang-diagnostic-covered-switch-default)
+            messageSeverityString = "Unknown Severity";
+            logLevel = AXR_LOG_LEVEL_ERROR;
+            break;
+        }
+    }
+
+    axrLog(
+        logLevel,
+        "[Vulkan | {0} | {1}] : {2}",
+        messageTypeString,
+        messageSeverityString,
+        pCallbackData->pMessage
+    );
+
+    return VK_FALSE;
 }
 
 #endif

@@ -12,10 +12,6 @@
 // Vulkan Headers
 // ----------------------------------------- //
 #include <vulkan/vulkan_core.h>
-
-#ifdef AXR_PLATFORM_WINDOWS
-#include <vulkan/vulkan_win32.h>
-#endif
     
 bool axrVkSucceeded(vk::Result result) {
     return VK_SUCCEEDED(static_cast<VkResult>(result));

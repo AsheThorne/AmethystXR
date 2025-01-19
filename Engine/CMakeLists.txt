@@ -145,4 +145,7 @@ if(Vulkan_FOUND)
     # This definition is for OpenXR
     add_compile_definitions(XR_USE_GRAPHICS_API_VULKAN)
     add_compile_definitions(VULKAN_HPP_NO_EXCEPTIONS)
+    if(WIN32)
+        add_compile_definitions(VK_USE_PLATFORM_WIN32_KHR)
+    endif()
 endif()

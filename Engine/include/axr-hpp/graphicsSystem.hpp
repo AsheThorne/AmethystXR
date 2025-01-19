@@ -34,9 +34,6 @@ namespace axr {
 
         /// Default Constructor
         GraphicsSystemConfig() :
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            VulkanApiConfig(nullptr),
-#endif
             GraphicsApi{} {
         }
 
@@ -55,10 +52,10 @@ namespace axr {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-        axr::VulkanApiConfig* VulkanApiConfig;
-#endif
         axr::GraphicsApiEnum GraphicsApi;
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+        axr::VulkanApiConfig* VulkanApiConfig = nullptr;
+#endif
 
         // ----------------------------------------- //
         // Public Functions

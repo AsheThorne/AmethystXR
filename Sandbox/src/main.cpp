@@ -20,9 +20,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         800,
         600
     );
-    
+
     axr::VulkanApiConfig vulkanApiConfig{};
-    
+
 #ifndef NDEBUG
     vulkanApiConfig.addApiLayerCoreValidation();
     vulkanApiConfig.addExtensionDebugUtils(
