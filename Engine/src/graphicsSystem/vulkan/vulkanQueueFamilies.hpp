@@ -56,6 +56,9 @@ public:
     std::optional<uint32_t> GraphicsQueueFamilyIndex;
     std::optional<uint32_t> PresentationQueueFamilyIndex;
     std::optional<uint32_t> TransferQueueFamilyIndex;
+    vk::Queue GraphicsQueue;
+    vk::Queue PresentationQueue;
+    vk::Queue TransferQueue;
 
     // ----------------------------------------- //
     // Public Functions
@@ -65,9 +68,18 @@ public:
     /// @param physicalDevice Physical device to use
     /// @param windowPlatform Window platform to use
     /// @param dispatch Dispatch to use
+    /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setQueueFamilyIndices(
         const vk::PhysicalDevice& physicalDevice,
         AxrWindowPlatformEnum windowPlatform,
+        const vk::DispatchLoaderDynamic& dispatch
+    );
+    /// Set the queue family queues
+    /// @param device Logical device to use
+    /// @param dispatch Dispatch to use
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setQueueFamilyQueues(
+        const vk::Device& device,
         const vk::DispatchLoaderDynamic& dispatch
     );
 

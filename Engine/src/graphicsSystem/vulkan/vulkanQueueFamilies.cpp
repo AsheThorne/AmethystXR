@@ -8,18 +8,30 @@
 
 // ---- Special Functions ----
 
-AxrVulkanQueueFamilies::AxrVulkanQueueFamilies() = default;
+AxrVulkanQueueFamilies::AxrVulkanQueueFamilies():
+    GraphicsQueue(VK_NULL_HANDLE),
+    PresentationQueue(VK_NULL_HANDLE),
+    TransferQueue(VK_NULL_HANDLE) {
+}
 
 AxrVulkanQueueFamilies::AxrVulkanQueueFamilies(const AxrVulkanQueueFamilies& src) {
     GraphicsQueueFamilyIndex = src.GraphicsQueueFamilyIndex;
     PresentationQueueFamilyIndex = src.PresentationQueueFamilyIndex;
     TransferQueueFamilyIndex = src.TransferQueueFamilyIndex;
+
+    GraphicsQueue = src.GraphicsQueue;
+    PresentationQueue = src.PresentationQueue;
+    TransferQueue = src.TransferQueue;
 }
 
 AxrVulkanQueueFamilies::AxrVulkanQueueFamilies(AxrVulkanQueueFamilies&& src) noexcept {
     GraphicsQueueFamilyIndex = std::move(src.GraphicsQueueFamilyIndex);
     PresentationQueueFamilyIndex = std::move(src.PresentationQueueFamilyIndex);
     TransferQueueFamilyIndex = std::move(src.TransferQueueFamilyIndex);
+
+    GraphicsQueue = std::move(src.GraphicsQueue);
+    PresentationQueue = std::move(src.PresentationQueue);
+    TransferQueue = std::move(src.TransferQueue);
 }
 
 AxrVulkanQueueFamilies::~AxrVulkanQueueFamilies() {
@@ -33,6 +45,10 @@ AxrVulkanQueueFamilies& AxrVulkanQueueFamilies::operator=(const AxrVulkanQueueFa
         GraphicsQueueFamilyIndex = src.GraphicsQueueFamilyIndex;
         PresentationQueueFamilyIndex = src.PresentationQueueFamilyIndex;
         TransferQueueFamilyIndex = src.TransferQueueFamilyIndex;
+
+        GraphicsQueue = src.GraphicsQueue;
+        PresentationQueue = src.PresentationQueue;
+        TransferQueue = src.TransferQueue;
     }
 
     return *this;
@@ -45,6 +61,10 @@ AxrVulkanQueueFamilies& AxrVulkanQueueFamilies::operator=(AxrVulkanQueueFamilies
         GraphicsQueueFamilyIndex = std::move(src.GraphicsQueueFamilyIndex);
         PresentationQueueFamilyIndex = std::move(src.PresentationQueueFamilyIndex);
         TransferQueueFamilyIndex = std::move(src.TransferQueueFamilyIndex);
+
+        GraphicsQueue = std::move(src.GraphicsQueue);
+        PresentationQueue = std::move(src.PresentationQueue);
+        TransferQueue = std::move(src.TransferQueue);
     }
 
     return *this;
@@ -124,6 +144,44 @@ AxrResult AxrVulkanQueueFamilies::setQueueFamilyIndices(
     return AXR_SUCCESS;
 }
 
+AxrResult AxrVulkanQueueFamilies::setQueueFamilyQueues(
+    const vk::Device& device,
+    const vk::DispatchLoaderDynamic& dispatch
+) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!GraphicsQueueFamilyIndex.has_value() ||
+        !TransferQueueFamilyIndex.has_value() ||
+        !PresentationQueueFamilyIndex.has_value()) {
+        axrLogErrorLocation("Queue family indices are not valid.");
+        return AXR_ERROR;
+    }
+
+    if (GraphicsQueue != VK_NULL_HANDLE ||
+        PresentationQueue != VK_NULL_HANDLE ||
+        TransferQueue != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Queue family queues are already set.");
+        return AXR_ERROR;
+    }
+
+    if (device == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Device is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    device.getQueue(GraphicsQueueFamilyIndex.value(), 0, &GraphicsQueue, dispatch);
+    device.getQueue(PresentationQueueFamilyIndex.value(), 0, &PresentationQueue, dispatch);
+    device.getQueue(TransferQueueFamilyIndex.value(), 0, &TransferQueue, dispatch);
+
+    return AXR_SUCCESS;
+}
+
 bool AxrVulkanQueueFamilies::areIndicesValid() const {
     return GraphicsQueueFamilyIndex.has_value() &&
         TransferQueueFamilyIndex.has_value() &&
@@ -142,7 +200,9 @@ bool AxrVulkanQueueFamilies::hasDedicatedTransferQueue() const {
 }
 
 std::vector<uint32_t> AxrVulkanQueueFamilies::getAllQueueFamilyIndices() const {
-    if (!areIndicesValid()) {
+    if (!GraphicsQueueFamilyIndex.has_value() ||
+        !TransferQueueFamilyIndex.has_value() ||
+        !PresentationQueueFamilyIndex.has_value()) {
         axrLogErrorLocation("Queue family indices are not valid");
         return {};
     }
@@ -175,6 +235,10 @@ void AxrVulkanQueueFamilies::cleanup() {
     GraphicsQueueFamilyIndex.reset();
     PresentationQueueFamilyIndex.reset();
     TransferQueueFamilyIndex.reset();
+
+    GraphicsQueue = VK_NULL_HANDLE;
+    PresentationQueue = VK_NULL_HANDLE;
+    TransferQueue = VK_NULL_HANDLE;
 }
 
 bool AxrVulkanQueueFamilies::doesQueueFamilyIndexSupportsPresentation(

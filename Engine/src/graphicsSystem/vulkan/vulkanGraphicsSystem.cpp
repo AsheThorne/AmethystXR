@@ -47,6 +47,8 @@ AxrVulkanGraphicsSystem::~AxrVulkanGraphicsSystem() {
 AxrResult AxrVulkanGraphicsSystem::setup() {
     AxrResult axrResult = AXR_SUCCESS;
 
+    // TODO: When something fails, we should cleanup all the objects that were already created.
+
     axrResult = createInstance();
     if (AXR_FAILED(axrResult)) return axrResult;
 
@@ -607,6 +609,13 @@ AxrResult AxrVulkanGraphicsSystem::createLogicalDevice() {
     );
     axrLogVkResult(vkResult, "m_PhysicalDevice.createDevice");
     if (axrVkFailed(vkResult)) return AXR_ERROR;
+
+    const AxrResult axrResult = m_QueueFamilies.setQueueFamilyQueues(m_Device, m_DynamicDispatchLoader);
+    if (AXR_FAILED(axrResult)) {
+        destroyLogicalDevice();
+        axrLogErrorLocation("Failed to set queue family queues.");
+        return AXR_ERROR;
+    }
 
     m_DynamicDispatchLoader.init(m_Device);
 
