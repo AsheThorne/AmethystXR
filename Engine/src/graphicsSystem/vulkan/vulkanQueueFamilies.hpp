@@ -4,7 +4,9 @@
 // ----------------------------------------- //
 // C/C++ Headers
 // ----------------------------------------- //
+#include <unordered_set>
 #include <optional>
+#include <vector>
 
 // ----------------------------------------- //
 // AXR Headers
@@ -75,6 +77,13 @@ public:
     /// Check if there is a dedicated transfer queue
     /// @returns True if there is a dedicated transfer queue
     [[nodiscard]] bool hasDedicatedTransferQueue() const;
+
+    /// Get a collection of all queue family indices
+    /// @returns A collection of all queue family indices
+    [[nodiscard]] std::vector<uint32_t> getAllQueueFamilyIndices() const;
+    /// Get a collection of all unique queue family indices
+    /// @returns A collection of all unique queue family indices
+    [[nodiscard]] std::unordered_set<uint32_t> getUniqueQueueFamilyIndices() const;
 
 private:
     // ----------------------------------------- //

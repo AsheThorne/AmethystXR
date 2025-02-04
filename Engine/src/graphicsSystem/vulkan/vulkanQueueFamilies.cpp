@@ -95,11 +95,11 @@ AxrResult AxrVulkanQueueFamilies::setQueueFamilyIndices(
 
         // Look for presentation queue family
         if (doesQueueFamilyIndexSupportsPresentation(
-                static_cast<uint32_t>(i),
-                physicalDevice,
-                windowPlatform,
-                dispatch
-            ) && !PresentationQueueFamilyIndex.has_value()) {
+            static_cast<uint32_t>(i),
+            physicalDevice,
+            windowPlatform,
+            dispatch
+        ) && !PresentationQueueFamilyIndex.has_value()) {
             PresentationQueueFamilyIndex = static_cast<uint32_t>(i);
         }
 
@@ -139,6 +139,34 @@ bool AxrVulkanQueueFamilies::hasDedicatedTransferQueue() const {
     // We use the graphics queue if we fail to find a dedicated transfer queue.
     // So if the indices are different, we must have found a dedicated transfer queue.
     return GraphicsQueueFamilyIndex != TransferQueueFamilyIndex;
+}
+
+std::vector<uint32_t> AxrVulkanQueueFamilies::getAllQueueFamilyIndices() const {
+    if (!areIndicesValid()) {
+        axrLogErrorLocation("Queue family indices are not valid");
+        return {};
+    }
+
+    return {
+        GraphicsQueueFamilyIndex.value(),
+        PresentationQueueFamilyIndex.value(),
+        TransferQueueFamilyIndex.value()
+    };
+}
+
+std::unordered_set<uint32_t> AxrVulkanQueueFamilies::getUniqueQueueFamilyIndices() const {
+    if (!areIndicesValid()) {
+        axrLogErrorLocation("Queue family indices are not valid");
+        return {};
+    }
+
+    std::unordered_set<uint32_t> uniqueQueueFamilyIndices;
+
+    for (uint32_t queueFamilyIndex : getAllQueueFamilyIndices()) {
+        uniqueQueueFamilyIndices.insert(queueFamilyIndex);
+    }
+
+    return uniqueQueueFamilyIndices;
 }
 
 // ---- Private Functions ----

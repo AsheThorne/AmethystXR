@@ -1,6 +1,11 @@
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 
 // ----------------------------------------- //
+// C/C++ Headers
+// ----------------------------------------- //
+#include <unordered_set>
+
+// ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/logger.h"
@@ -30,6 +35,7 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
 }
 
 AxrVulkanGraphicsSystem::~AxrVulkanGraphicsSystem() {
+    destroyLogicalDevice();
     destroyDebugUtils();
     destroyInstance();
     destroyExtensions();
@@ -48,6 +54,9 @@ AxrResult AxrVulkanGraphicsSystem::setup() {
     if (AXR_FAILED(axrResult)) return axrResult;
 
     axrResult = setupPhysicalDevice();
+    if (AXR_FAILED(axrResult)) return axrResult;
+
+    axrResult = createLogicalDevice();
     if (AXR_FAILED(axrResult)) return axrResult;
 
     return axrResult;
@@ -101,7 +110,6 @@ AxrResult AxrVulkanGraphicsSystem::createInstance() {
         m_DynamicDispatchLoader
     );
     axrLogVkResult(vkResult, "vk::createInstance");
-
     if (axrVkFailed(vkResult)) return AXR_ERROR;
 
     m_DynamicDispatchLoader.init(m_Instance);
@@ -268,7 +276,7 @@ void AxrVulkanGraphicsSystem::destroyExtensions() {
     m_Extensions.clear();
 }
 
-std::vector<const char*> AxrVulkanGraphicsSystem::getAllApiLayerNames() {
+std::vector<const char*> AxrVulkanGraphicsSystem::getAllApiLayerNames() const {
     std::vector<const char*> apiLayerNames;
 
     for (const AxrVulkanApiLayer_T apiLayer : m_ApiLayers) {
@@ -280,11 +288,23 @@ std::vector<const char*> AxrVulkanGraphicsSystem::getAllApiLayerNames() {
     return apiLayerNames;
 }
 
-std::vector<const char*> AxrVulkanGraphicsSystem::getAllInstanceExtensionNames() {
+std::vector<const char*> AxrVulkanGraphicsSystem::getAllInstanceExtensionNames() const {
     std::vector<const char*> extensionNames;
 
     for (AxrVulkanExtension_T extension : m_Extensions) {
         if (extension == nullptr || extension->Level != AXR_VULKAN_EXTENSION_LEVEL_INSTANCE) continue;
+
+        extensionNames.push_back(axrGetVulkanExtensionName(extension->Type));
+    }
+
+    return extensionNames;
+}
+
+std::vector<const char*> AxrVulkanGraphicsSystem::getAllDeviceExtensionNames() const {
+    std::vector<const char*> extensionNames;
+
+    for (AxrVulkanExtension_T extension : m_Extensions) {
+        if (extension == nullptr || extension->Level != AXR_VULKAN_EXTENSION_LEVEL_DEVICE) continue;
 
         extensionNames.push_back(axrGetVulkanExtensionName(extension->Type));
     }
@@ -442,10 +462,8 @@ AxrResult AxrVulkanGraphicsSystem::setupPhysicalDevice() {
         m_ApiLayers,
         m_DynamicDispatchLoader
     );
-    // TODO: Maybe, instead of returning an error. we just log a warning and provide no api layers to the device? it should still work unless they're using an old vulkan api version.
     if (!areApiLayersSupported) {
-        axrLogErrorLocation("Not all api layers are supported for the chosen physical device.");
-        return AXR_ERROR;
+        axrLogWarning("Not all api layers are supported for the chosen physical device.");
     }
 
     const AxrResult axrResult = m_QueueFamilies.setQueueFamilyIndices(
@@ -507,6 +525,111 @@ vk::PhysicalDevice AxrVulkanGraphicsSystem::pickPhysicalDevice() const {
     }
 
     return chosenPhysicalDevice;
+}
+
+AxrResult AxrVulkanGraphicsSystem::createLogicalDevice() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Device != VK_NULL_HANDLE) {
+        axrLogWarningLocation("Device already exists.");
+        return AXR_SUCCESS;
+    }
+
+    if (m_PhysicalDevice == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Physical device is null.");
+        return AXR_ERROR;
+    }
+
+    if (!m_QueueFamilies.areIndicesValid()) {
+        axrLogErrorLocation("Queue family indices are not valid.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const std::unordered_set<uint32_t> uniqueQueueFamilyIndices = m_QueueFamilies.getUniqueQueueFamilyIndices();
+    std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos(uniqueQueueFamilyIndices.size());
+
+    uint32_t index = 0;
+    constexpr float queuePriority = 1.0f;
+    for (uint32_t queueFamilyIndex : uniqueQueueFamilyIndices) {
+        vk::DeviceQueueCreateInfo queueCreateInfo(
+            {},
+            queueFamilyIndex,
+            1,
+            &queuePriority
+        );
+        queueCreateInfos[index] = queueCreateInfo;
+
+        ++index;
+    }
+
+    std::vector<const char*> deviceLayers;
+    const std::vector<const char*> deviceExtensions = getAllDeviceExtensionNames();
+
+    // If we're missing even one api layer, then pass none to the device create info.
+    // We need to either pass all api layers that were passed during instance creation, or none.
+    // Reference: "https://docs.vulkan.org/spec/latest/chapters/extensions.html#extendingvulkan-layers-devicelayerdeprecation"
+    //
+    // "The ppEnabledLayerNames and enabledLayerCount members of VkDeviceCreateInfo are deprecated and their values
+    // must be ignored by implementations.
+    // However, for compatibility, only an empty list of layers or a list that exactly matches the sequence enabled
+    // at instance creation time are valid"
+    if (axrAreApiLayersSupportedForPhysicalDevice(m_PhysicalDevice, m_ApiLayers, m_DynamicDispatchLoader)) {
+        deviceLayers = getAllApiLayerNames();
+    }
+
+    vk::PhysicalDeviceFeatures supportedDeviceFeatures = m_PhysicalDevice.getFeatures(m_DynamicDispatchLoader);
+    vk::PhysicalDeviceFeatures deviceFeatures{};
+    deviceFeatures.samplerAnisotropy = supportedDeviceFeatures.samplerAnisotropy;
+    deviceFeatures.sampleRateShading = supportedDeviceFeatures.sampleRateShading;
+
+    vk::DeviceCreateInfo deviceCreateInfo(
+        {},
+        static_cast<uint32_t>(queueCreateInfos.size()),
+        queueCreateInfos.data(),
+        static_cast<uint32_t>(deviceLayers.size()),
+        deviceLayers.data(),
+        static_cast<uint32_t>(deviceExtensions.size()),
+        deviceExtensions.data(),
+        &deviceFeatures
+    );
+
+    const vk::Result vkResult = m_PhysicalDevice.createDevice(
+        &createDeviceChain(deviceCreateInfo).get<vk::DeviceCreateInfo>(),
+        nullptr,
+        &m_Device,
+        m_DynamicDispatchLoader
+    );
+    axrLogVkResult(vkResult, "m_PhysicalDevice.createDevice");
+    if (axrVkFailed(vkResult)) return AXR_ERROR;
+
+    m_DynamicDispatchLoader.init(m_Device);
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanGraphicsSystem::destroyLogicalDevice() {
+    if (m_Device != VK_NULL_HANDLE) {
+        m_Device.destroy(nullptr, m_DynamicDispatchLoader);
+        m_Device = VK_NULL_HANDLE;
+    }
+}
+
+AxrVulkanGraphicsSystem::DeviceChain_T AxrVulkanGraphicsSystem::createDeviceChain(
+    const vk::DeviceCreateInfo& deviceCreateInfo
+) const {
+    DeviceChain_T chain{
+        deviceCreateInfo
+    };
+
+    // No structures exist for the device next chain at the moment
+
+    return chain;
 }
 
 VkBool32 AxrVulkanGraphicsSystem::debugUtilsCallback(

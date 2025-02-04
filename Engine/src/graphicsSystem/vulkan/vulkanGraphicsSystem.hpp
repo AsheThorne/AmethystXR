@@ -28,6 +28,8 @@ public:
 
     /// The instance pNext structure chain type
     using InstanceChain_T = vk::StructureChain<vk::InstanceCreateInfo, vk::DebugUtilsMessengerCreateInfoEXT>;
+    /// The device pNext structure chain type
+    using DeviceChain_T = vk::StructureChain<vk::DeviceCreateInfo>;
 
     // ----------------------------------------- //
     // Structs
@@ -132,10 +134,13 @@ private:
 
     /// Get a collection of all api layer names to use
     /// @returns A collection of api layer names
-    std::vector<const char*> getAllApiLayerNames();
+    std::vector<const char*> getAllApiLayerNames() const;
     /// Get a collection of all instance extension names to use
     /// @returns A collection of instance extension names
-    std::vector<const char*> getAllInstanceExtensionNames();
+    std::vector<const char*> getAllInstanceExtensionNames() const;
+    /// Get a collection of all device extension names to use
+    /// @returns A collection of device extension names
+    std::vector<const char*> getAllDeviceExtensionNames() const;
 
     /// Check if the given extension type exists in m_Extensions
     /// @param extensionType Extension type to check
@@ -177,6 +182,20 @@ private:
     /// If OpenXR is being used though, we need to use the one it selects for us
     /// @returns The physical device we should use
     [[nodiscard]] vk::PhysicalDevice pickPhysicalDevice() const;
+
+    // ---- Logical Device ----
+
+    /// Create the vulkan device
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createLogicalDevice();
+    /// Destroy the vulkan device
+    void destroyLogicalDevice();
+
+    /// Create the device pNext chain using the given device create info
+    /// @param deviceCreateInfo Device create info to use
+    /// @returns The device structure chain
+    [[nodiscard]] DeviceChain_T createDeviceChain(const vk::DeviceCreateInfo& deviceCreateInfo) const;
+
 
     // ----------------------------------------- //
     // Private Static Functions
