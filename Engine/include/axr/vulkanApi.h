@@ -16,14 +16,11 @@
 enum AxrVulkanApiLayerTypeEnum {
     AXR_VULKAN_API_LAYER_TYPE_UNDEFINED = 0,
     AXR_VULKAN_API_LAYER_TYPE_CORE_VALIDATION = 1,
+    /// This value is used to mark the end of the enum.
+    /// It's useful for knowing the max number of api layer types.
+    AXR_VULKAN_API_LAYER_TYPE_END
 };
 
-/// Vulkan Api Layer Level
-enum AxrVulkanApiLayerLevelEnum {
-    AXR_VULKAN_API_LAYER_LEVEL_UNDEFINED = 0,
-    AXR_VULKAN_API_LAYER_LEVEL_INSTANCE = 1,
-    AXR_VULKAN_API_LAYER_LEVEL_DEVICE = 2,
-};
 // ---- Extension Enums ----
 
 /// Vulkan Extension Type
@@ -33,6 +30,9 @@ enum AxrVulkanExtensionTypeEnum {
     AXR_VULKAN_EXTENSION_TYPE_SWAPCHAIN = 2,
     AXR_VULKAN_EXTENSION_TYPE_SURFACE = 3,
     AXR_VULKAN_EXTENSION_TYPE_WIN32_SURFACE = 4,
+    /// This value is used to mark the end of the enum.
+    /// It's useful for knowing the max number of extension types.
+    AXR_VULKAN_EXTENSION_TYPE_END
 };
 
 /// Vulkan Extension Level
@@ -75,7 +75,6 @@ typedef VkDebugUtilsMessageTypeFlagsEXT AxrVulkanDebugUtilsTypeFlags_T;
 /// Vulkan Api Layer Base Structure
 struct AxrVulkanApiLayerStructure {
     AxrVulkanApiLayerTypeEnum Type = AXR_VULKAN_API_LAYER_TYPE_UNDEFINED;
-    AxrVulkanApiLayerLevelEnum Level = AXR_VULKAN_API_LAYER_LEVEL_UNDEFINED;
 };
 
 /// AxrVulkanApiLayerStructure Handle Type
@@ -84,7 +83,6 @@ using AxrVulkanApiLayer_T = AxrVulkanApiLayerStructure*;
 /// Vulkan Api Layer Core Validation Structure
 struct AxrVulkanApiLayerCoreValidation {
     const AxrVulkanApiLayerTypeEnum Type = AXR_VULKAN_API_LAYER_TYPE_CORE_VALIDATION;
-    const AxrVulkanApiLayerLevelEnum Level = AXR_VULKAN_API_LAYER_LEVEL_INSTANCE;
 };
 
 // ---- Extension Structs ----

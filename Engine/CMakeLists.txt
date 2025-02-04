@@ -66,6 +66,7 @@ set(AXR_HEADER_FILES
     # ---- Graphics System - Vulkan ----
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanGraphicsSystem.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanUtils.hpp
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanQueueFamilies.hpp
 )
 
 # ---------------------------------------------
@@ -87,6 +88,7 @@ set(AXR_CPP_FILES
     # ---- Graphics System - Vulkan ----
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanGraphicsSystem.cpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanUtils.cpp
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanQueueFamilies.cpp
 )
 
 # ---------------------------------------------
@@ -144,6 +146,7 @@ if(Vulkan_FOUND)
     # This definition is for OpenXR
     add_compile_definitions(XR_USE_GRAPHICS_API_VULKAN)
     add_compile_definitions(VULKAN_HPP_NO_EXCEPTIONS)
+    add_compile_definitions(VULKAN_HPP_NO_DEFAULT_DISPATCHER)
     if(WIN32)
         add_compile_definitions(VK_USE_PLATFORM_WIN32_KHR)
     endif()

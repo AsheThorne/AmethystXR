@@ -1,0 +1,100 @@
+﻿#pragma once
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+
+// ----------------------------------------- //
+// C/C++ Headers
+// ----------------------------------------- //
+#include <optional>
+
+// ----------------------------------------- //
+// AXR Headers
+// ----------------------------------------- //
+#include "axr/common/result.h"
+#include "axr/windowSystem.h"
+
+// ----------------------------------------- //
+// Vulkan Headers
+// ----------------------------------------- //
+#include <vulkan/vulkan.hpp>
+
+class AxrVulkanQueueFamilies {
+public:
+    // ----------------------------------------- //
+    // Special Functions
+    // ----------------------------------------- //
+
+    // ---- Constructors ----
+
+    /// Constructor
+    AxrVulkanQueueFamilies();
+    /// Copy Constructor
+    /// @param src Source AxrVulkanQueueFamilies to copy from
+    AxrVulkanQueueFamilies(const AxrVulkanQueueFamilies& src);
+    /// Move Constructor
+    /// @param src Source AxrVulkanQueueFamilies to move from
+    AxrVulkanQueueFamilies(AxrVulkanQueueFamilies&& src) noexcept;
+
+    // ---- Destructor ----
+
+    /// Destructor
+    ~AxrVulkanQueueFamilies();
+
+    // ---- Operator Overloads ----
+
+    /// Copy Assignment Operator
+    /// @param src Source AxrVulkanQueueFamilies to copy from
+    AxrVulkanQueueFamilies& operator=(const AxrVulkanQueueFamilies& src);
+    /// Move Assignment Operator
+    /// @param src Source AxrVulkanQueueFamilies to move from
+    AxrVulkanQueueFamilies& operator=(AxrVulkanQueueFamilies&& src) noexcept;
+
+    // ----------------------------------------- //
+    // Public Variables
+    // ----------------------------------------- //
+    std::optional<uint32_t> GraphicsQueueFamilyIndex;
+    std::optional<uint32_t> PresentationQueueFamilyIndex;
+    std::optional<uint32_t> TransferQueueFamilyIndex;
+
+    // ----------------------------------------- //
+    // Public Functions
+    // ----------------------------------------- //
+
+    /// Set the queue family indices
+    /// @param physicalDevice Physical device to use
+    /// @param windowPlatform Window platform to use
+    /// @param dispatch Dispatch to use
+    [[nodiscard]] AxrResult setQueueFamilyIndices(
+        const vk::PhysicalDevice& physicalDevice,
+        AxrWindowPlatformEnum windowPlatform,
+        const vk::DispatchLoaderDynamic& dispatch
+    );
+
+    /// Check if the queue family indices are valid
+    /// @returns True if the queue family indices are valid
+    [[nodiscard]] bool areIndicesValid() const;
+    /// Check if there is a dedicated transfer queue
+    /// @returns True if there is a dedicated transfer queue
+    [[nodiscard]] bool hasDedicatedTransferQueue() const;
+
+private:
+    // ----------------------------------------- //
+    // Private Functions
+    // ----------------------------------------- //
+
+    /// Cleanup the AxrVulkanQueueFamilies
+    void cleanup();
+
+    /// Check if the given queue family index supports presentation
+    /// @param queueFamilyIndex Queue family index
+    /// @param physicalDevice Physical device to use
+    /// @param windowPlatform Window platform to use
+    /// @param dispatch Dispatch to use
+    [[nodiscard]] bool doesQueueFamilyIndexSupportsPresentation(
+        uint32_t queueFamilyIndex,
+        const vk::PhysicalDevice& physicalDevice,
+        AxrWindowPlatformEnum windowPlatform,
+        const vk::DispatchLoaderDynamic& dispatch
+    ) const;
+};
+
+#endif

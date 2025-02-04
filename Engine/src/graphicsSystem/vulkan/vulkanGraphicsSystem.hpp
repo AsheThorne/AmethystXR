@@ -9,9 +9,10 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/common.h"
+#include "axr/common/result.h"
 #include "axr/graphicsSystem.h"
 #include "axr/windowSystem.h"
+#include "vulkanQueueFamilies.hpp"
 
 // ----------------------------------------- //
 // Vulkan Headers
@@ -91,11 +92,12 @@ private:
     std::vector<AxrVulkanExtension_T> m_Extensions;
 
     vk::DispatchLoaderDynamic m_DynamicDispatchLoader;
-    std::vector<std::string> m_SupportedInstanceApiLayers;
-    std::vector<std::string> m_SupportedInstanceExtensions;
 
     vk::Instance m_Instance;
     vk::DebugUtilsMessengerEXT m_DebugUtilsMessenger;
+    vk::PhysicalDevice m_PhysicalDevice;
+    AxrVulkanQueueFamilies m_QueueFamilies;
+    vk::Device m_Device;
 
     // ----------------------------------------- //
     // Private Functions
@@ -116,21 +118,21 @@ private:
 
     // ---- Api Layers / Extensions ----
 
-    /// Find the supported instance api layers
-    /// @returns The supported instance api layers
-    std::vector<std::string> getSupportedInstanceApiLayers() const;
-    /// Find the supported instance extensions
-    /// @returns The supported instance extensions
-    std::vector<std::string> getSupportedInstanceExtensions() const;
+    /// Remove api layers from m_ApiLayers that aren't supported by the m_Instance
+    void removeUnsupportedApiLayers();
+    /// Remove instance level extensions from m_Extensions that aren't supported by the m_Instance 
+    void removeUnsupportedInstanceExtensions();
+    /// Remove device level extensions from m_Extensions that aren't supported by the m_PhysicalDevice 
+    void removeUnsupportedDeviceExtensions();
 
     /// Destroy the api layers
     void destroyApiLayers();
     /// Destroy the extensions
     void destroyExtensions();
 
-    /// Get a collection of all instance api layer names to use
-    /// @returns A collection of instance api layer names
-    std::vector<const char*> getAllInstanceApiLayerNames();
+    /// Get a collection of all api layer names to use
+    /// @returns A collection of api layer names
+    std::vector<const char*> getAllApiLayerNames();
     /// Get a collection of all instance extension names to use
     /// @returns A collection of instance extension names
     std::vector<const char*> getAllInstanceExtensionNames();
@@ -142,6 +144,8 @@ private:
 
     /// Add the required instance extensions to m_Extensions
     void addRequiredInstanceExtensions();
+    /// Add the required device extensions to m_Extensions
+    void addRequiredDeviceExtensions();
     /// Add the given extension to m_Extensions if it is supported
     /// @param extension The extension to add
     void addExtension(AxrVulkanExtension_T extension);
@@ -162,6 +166,17 @@ private:
     [[nodiscard]] AxrResult createDebugUtils();
     /// Destroy the debug utils messenger
     void destroyDebugUtils();
+
+    // ---- Physical Device ----
+
+    /// Set up the physical device
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setupPhysicalDevice();
+
+    /// Decide on which physical device we'd like to use.
+    /// If OpenXR is being used though, we need to use the one it selects for us
+    /// @returns The physical device we should use
+    [[nodiscard]] vk::PhysicalDevice pickPhysicalDevice() const;
 
     // ----------------------------------------- //
     // Private Static Functions

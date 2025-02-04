@@ -15,7 +15,9 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     m_ApplicationVersion(config.ApplicationVersion),
     m_WindowPlatform(config.WindowPlatform),
     m_Instance(VK_NULL_HANDLE),
-    m_DebugUtilsMessenger(VK_NULL_HANDLE) {
+    m_DebugUtilsMessenger(VK_NULL_HANDLE),
+    m_PhysicalDevice(VK_NULL_HANDLE),
+    m_Device(VK_NULL_HANDLE) {
     if (config.VulkanConfig == nullptr) {
         axrLogErrorLocation("Vulkan Config is null.");
         return;
@@ -23,21 +25,8 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
 
     m_DynamicDispatchLoader.init();
 
-    m_SupportedInstanceApiLayers = getSupportedInstanceApiLayers();
-    m_SupportedInstanceExtensions = getSupportedInstanceExtensions();
-
-    m_ApiLayers = axrCloneSupportedVulkanInstanceApiLayers(
-        config.VulkanConfig->ApiLayersCount,
-        config.VulkanConfig->ApiLayers,
-        m_SupportedInstanceApiLayers
-    );
-    m_Extensions = axrCloneSupportedVulkanInstanceExtensions(
-        config.VulkanConfig->ExtensionsCount,
-        config.VulkanConfig->Extensions,
-        m_SupportedInstanceExtensions
-    );
-
-    addRequiredInstanceExtensions();
+    m_ApiLayers = axrCloneVulkanApiLayers(config.VulkanConfig->ApiLayersCount, config.VulkanConfig->ApiLayers);
+    m_Extensions = axrCloneVulkanExtensions(config.VulkanConfig->ExtensionsCount, config.VulkanConfig->Extensions);
 }
 
 AxrVulkanGraphicsSystem::~AxrVulkanGraphicsSystem() {
@@ -58,6 +47,9 @@ AxrResult AxrVulkanGraphicsSystem::setup() {
     axrResult = createDebugUtils();
     if (AXR_FAILED(axrResult)) return axrResult;
 
+    axrResult = setupPhysicalDevice();
+    if (AXR_FAILED(axrResult)) return axrResult;
+
     return axrResult;
 }
 
@@ -68,9 +60,9 @@ AxrResult AxrVulkanGraphicsSystem::createInstance() {
     // Validation
     // ----------------------------------------- //
 
-    if (m_Instance != nullptr) {
-        axrLogErrorLocation("Instance already exists.");
-        return AXR_ERROR;
+    if (m_Instance != VK_NULL_HANDLE) {
+        axrLogWarningLocation("Instance already exists.");
+        return AXR_SUCCESS;
     }
 
     // ----------------------------------------- //
@@ -86,7 +78,11 @@ AxrResult AxrVulkanGraphicsSystem::createInstance() {
         vk::ApiVersion13
     );
 
-    const std::vector<const char*> instanceLayers = getAllInstanceApiLayerNames();
+    addRequiredInstanceExtensions();
+    removeUnsupportedApiLayers();
+    removeUnsupportedInstanceExtensions();
+
+    const std::vector<const char*> instanceLayers = getAllApiLayerNames();
     const std::vector<const char*> instanceExtensions = getAllInstanceExtensionNames();
 
     const vk::InstanceCreateInfo instanceCreateInfo(
@@ -135,39 +131,123 @@ AxrVulkanGraphicsSystem::InstanceChain_T AxrVulkanGraphicsSystem::createInstance
     return chain;
 }
 
-std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedInstanceApiLayers() const {
-    const auto instanceLayerProperties = vk::enumerateInstanceLayerProperties(
-        m_DynamicDispatchLoader
-    );
-    axrLogVkResult(instanceLayerProperties.result, "vk::enumerateInstanceLayerProperties");
+void AxrVulkanGraphicsSystem::removeUnsupportedApiLayers() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
 
-    if (axrVkFailed(instanceLayerProperties.result)) return {};
-
-    std::vector<std::string> supportedApiLayers(instanceLayerProperties.value.size());
-
-    for (size_t i = 0; i < instanceLayerProperties.value.size(); ++i) {
-        supportedApiLayers[i] = instanceLayerProperties.value[i].layerName.data();
+    if (m_Instance != VK_NULL_HANDLE) {
+        axrLogWarningLocation("Instance already exists. It's too late to remove api layers.");
+        return;
     }
 
-    return supportedApiLayers;
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const std::vector<std::string> supportedApiLayers = axrGetSupportedInstanceApiLayers(m_DynamicDispatchLoader);
+
+    for (AxrVulkanApiLayer_T& apiLayer : m_ApiLayers) {
+        if (apiLayer == nullptr) continue;
+
+        if (!axrContainsString(axrGetVulkanApiLayerName(apiLayer->Type), supportedApiLayers)) {
+            delete apiLayer;
+            apiLayer = nullptr;
+
+            axrLogWarning("Unsupported api layer: {0}", axrGetVulkanApiLayerName(apiLayer->Type));
+        }
+    }
+
+    std::erase_if(
+        m_ApiLayers,
+        [](const AxrVulkanApiLayer_T apiLayer) {
+            return apiLayer == nullptr;
+        }
+    );
+
+    m_ApiLayers.shrink_to_fit();
 }
 
-std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedInstanceExtensions() const {
-    const auto instanceExtensionProperties = vk::enumerateInstanceExtensionProperties(
-        nullptr,
-        m_DynamicDispatchLoader
-    );
-    axrLogVkResult(instanceExtensionProperties.result, "vk::enumerateInstanceExtensionProperties");
+void AxrVulkanGraphicsSystem::removeUnsupportedInstanceExtensions() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
 
-    if (axrVkFailed(instanceExtensionProperties.result)) return {};
-
-    std::vector<std::string> supportedExtensions(instanceExtensionProperties.value.size());
-
-    for (size_t i = 0; i < instanceExtensionProperties.value.size(); ++i) {
-        supportedExtensions[i] = instanceExtensionProperties.value[i].extensionName.data();
+    if (m_Instance != VK_NULL_HANDLE) {
+        axrLogWarningLocation("Instance already exists. It's too late to remove instance extensions.");
+        return;
     }
 
-    return supportedExtensions;
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const std::vector<std::string> supportedExtensions = axrGetSupportedInstanceExtensions(m_DynamicDispatchLoader);
+
+    for (AxrVulkanExtension_T& extension : m_Extensions) {
+        if (extension == nullptr || extension->Level != AXR_VULKAN_EXTENSION_LEVEL_INSTANCE) continue;
+
+        if (!axrContainsString(axrGetVulkanExtensionName(extension->Type), supportedExtensions)) {
+            delete extension;
+            extension = nullptr;
+
+            axrLogWarning("Unsupported instance extension: {0}", axrGetVulkanExtensionName(extension->Type));
+        }
+    }
+
+    std::erase_if(
+        m_Extensions,
+        [](const AxrVulkanExtension_T extension) {
+            return extension == nullptr;
+        }
+    );
+
+    m_Extensions.shrink_to_fit();
+}
+
+void AxrVulkanGraphicsSystem::removeUnsupportedDeviceExtensions() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Device != VK_NULL_HANDLE) {
+        axrLogWarningLocation("Device already exists. It's too late to remove device extensions.");
+        return;
+    }
+
+    if (m_PhysicalDevice == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Physical device is null.");
+        return;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const std::vector<std::string> supportedExtensions = axrGetSupportedDeviceExtensions(
+        m_PhysicalDevice,
+        m_DynamicDispatchLoader
+    );
+
+    for (AxrVulkanExtension_T& extension : m_Extensions) {
+        if (extension == nullptr || extension->Level != AXR_VULKAN_EXTENSION_LEVEL_DEVICE) continue;
+
+        if (!axrContainsString(axrGetVulkanExtensionName(extension->Type), supportedExtensions)) {
+            delete extension;
+            extension = nullptr;
+
+            axrLogWarning("Unsupported device extension: {0}", axrGetVulkanExtensionName(extension->Type));
+        }
+    }
+
+    std::erase_if(
+        m_Extensions,
+        [](const AxrVulkanExtension_T extension) {
+            return extension == nullptr;
+        }
+    );
+
+    m_Extensions.shrink_to_fit();
 }
 
 void AxrVulkanGraphicsSystem::destroyApiLayers() {
@@ -188,11 +268,11 @@ void AxrVulkanGraphicsSystem::destroyExtensions() {
     m_Extensions.clear();
 }
 
-std::vector<const char*> AxrVulkanGraphicsSystem::getAllInstanceApiLayerNames() {
+std::vector<const char*> AxrVulkanGraphicsSystem::getAllApiLayerNames() {
     std::vector<const char*> apiLayerNames;
 
-    for (AxrVulkanApiLayer_T apiLayer : m_ApiLayers) {
-        if (apiLayer == nullptr || apiLayer->Level != AXR_VULKAN_API_LAYER_LEVEL_INSTANCE) continue;
+    for (const AxrVulkanApiLayer_T apiLayer : m_ApiLayers) {
+        if (apiLayer == nullptr) continue;
 
         apiLayerNames.push_back(axrGetVulkanApiLayerName(apiLayer->Type));
     }
@@ -237,6 +317,11 @@ void AxrVulkanGraphicsSystem::addRequiredInstanceExtensions() {
     }
 }
 
+void AxrVulkanGraphicsSystem::addRequiredDeviceExtensions() {
+    auto swapchainExtension = AxrVulkanExtensionSwapchain{};
+    addExtension(reinterpret_cast<AxrVulkanExtension_T>(&swapchainExtension));
+}
+
 void AxrVulkanGraphicsSystem::addExtension(const AxrVulkanExtension_T extension) {
     if (extension == nullptr) return;
 
@@ -246,35 +331,13 @@ void AxrVulkanGraphicsSystem::addExtension(const AxrVulkanExtension_T extension)
         return;
     }
 
-    // TODO: Check if device has been created. If it has, it's too late to add a device extension
-
-    if (extensionExists(extension->Type)) {
+    if (extension->Level == AXR_VULKAN_EXTENSION_LEVEL_DEVICE && m_Device != VK_NULL_HANDLE) {
+        axrLogErrorLocation("VkDevice has already been created.");
         return;
     }
 
-    const char* extensionName = axrGetVulkanExtensionName(extension->Type);
-
-    switch (extension->Level) {
-        case AXR_VULKAN_EXTENSION_LEVEL_INSTANCE: {
-            if (!axrContainsString(extensionName, m_SupportedInstanceExtensions)) {
-                axrLogErrorLocation("{0} Extension is not supported.", extensionName);
-                return;
-            }
-            break;
-        }
-        case AXR_VULKAN_EXTENSION_LEVEL_DEVICE: {
-            //TODO...
-            // if (!axrContainsString(extensionName, m_SupportedDeviceExtensions)) {
-            //     axrLogErrorLocation("{0} Extension is not supported.", extensionName);
-            //     return;
-            // }
-            break;
-        }
-        case AXR_VULKAN_EXTENSION_LEVEL_UNDEFINED:
-        default: { // NOLINT(clang-diagnostic-covered-switch-default)
-            axrLogErrorLocation("Unknown extension level.");
-            break;
-        }
+    if (extensionExists(extension->Type)) {
+        return;
     }
 
     m_Extensions.push_back(axrCloneVulkanExtension(extension));
@@ -350,6 +413,100 @@ void AxrVulkanGraphicsSystem::destroyDebugUtils() {
 
     m_Instance.destroyDebugUtilsMessengerEXT(m_DebugUtilsMessenger, nullptr, m_DynamicDispatchLoader);
     m_DebugUtilsMessenger = VK_NULL_HANDLE;
+}
+
+AxrResult AxrVulkanGraphicsSystem::setupPhysicalDevice() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_PhysicalDevice != VK_NULL_HANDLE) {
+        axrLogWarningLocation("Physical device already setup.");
+        return AXR_SUCCESS;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    addRequiredDeviceExtensions();
+
+    m_PhysicalDevice = pickPhysicalDevice();
+    if (m_PhysicalDevice == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Failed to pick Physical device.");
+        return AXR_ERROR;
+    }
+
+    const bool areApiLayersSupported = axrAreApiLayersSupportedForPhysicalDevice(
+        m_PhysicalDevice,
+        m_ApiLayers,
+        m_DynamicDispatchLoader
+    );
+    // TODO: Maybe, instead of returning an error. we just log a warning and provide no api layers to the device? it should still work unless they're using an old vulkan api version.
+    if (!areApiLayersSupported) {
+        axrLogErrorLocation("Not all api layers are supported for the chosen physical device.");
+        return AXR_ERROR;
+    }
+
+    const AxrResult axrResult = m_QueueFamilies.setQueueFamilyIndices(
+        m_PhysicalDevice,
+        m_WindowPlatform,
+        m_DynamicDispatchLoader
+    );
+    if (AXR_FAILED(axrResult)) {
+        axrLogErrorLocation("Failed to set queue family indices.");
+        return axrResult;
+    }
+
+    removeUnsupportedDeviceExtensions();
+
+    return AXR_SUCCESS;
+}
+
+vk::PhysicalDevice AxrVulkanGraphicsSystem::pickPhysicalDevice() const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Instance == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Instance is null.");
+        return VK_NULL_HANDLE;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    // TODO: OpenXR chooses the physical device if that's set up.
+
+    const auto physicalDevices = m_Instance.enumeratePhysicalDevices(m_DynamicDispatchLoader);
+    axrLogVkResult(physicalDevices.result, "m_Instance.enumeratePhysicalDevices");
+    if (axrVkFailed(physicalDevices.result)) return VK_NULL_HANDLE;
+
+    vk::PhysicalDevice chosenPhysicalDevice = VK_NULL_HANDLE;
+    uint32_t chosenPhysicalDeviceScore = 0;
+
+    for (const vk::PhysicalDevice& physicalDevice : physicalDevices.value) {
+        const uint32_t currentScore = axrScorePhysicalDeviceSuitability(
+            physicalDevice,
+            m_WindowPlatform,
+            m_ApiLayers,
+            m_Extensions,
+            m_DynamicDispatchLoader
+        );
+
+        if (currentScore > chosenPhysicalDeviceScore) {
+            chosenPhysicalDeviceScore = currentScore;
+            chosenPhysicalDevice = physicalDevice;
+        }
+    }
+
+    if (chosenPhysicalDevice == VK_NULL_HANDLE) {
+        axrLogError("Failed to find a suitable physical device.");
+        return VK_NULL_HANDLE;
+    }
+
+    return chosenPhysicalDevice;
 }
 
 VkBool32 AxrVulkanGraphicsSystem::debugUtilsCallback(
