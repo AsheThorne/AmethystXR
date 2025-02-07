@@ -15,7 +15,7 @@
 /// Vulkan Api Layer Type
 enum AxrVulkanApiLayerTypeEnum {
     AXR_VULKAN_API_LAYER_TYPE_UNDEFINED = 0,
-    AXR_VULKAN_API_LAYER_TYPE_CORE_VALIDATION = 1,
+    AXR_VULKAN_API_LAYER_TYPE_CORE_VALIDATION,
     /// This value is used to mark the end of the enum.
     /// It's useful for knowing the max number of api layer types.
     AXR_VULKAN_API_LAYER_TYPE_END
@@ -26,10 +26,10 @@ enum AxrVulkanApiLayerTypeEnum {
 /// Vulkan Extension Type
 enum AxrVulkanExtensionTypeEnum {
     AXR_VULKAN_EXTENSION_TYPE_UNDEFINED = 0,
-    AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS = 1,
-    AXR_VULKAN_EXTENSION_TYPE_SWAPCHAIN = 2,
-    AXR_VULKAN_EXTENSION_TYPE_SURFACE = 3,
-    AXR_VULKAN_EXTENSION_TYPE_WIN32_SURFACE = 4,
+    AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS,
+    AXR_VULKAN_EXTENSION_TYPE_SWAPCHAIN,
+    AXR_VULKAN_EXTENSION_TYPE_SURFACE,
+    AXR_VULKAN_EXTENSION_TYPE_WIN32_SURFACE,
     /// This value is used to mark the end of the enum.
     /// It's useful for knowing the max number of extension types.
     AXR_VULKAN_EXTENSION_TYPE_END
