@@ -40,6 +40,7 @@ public:
         const char* ApplicationName;
         uint32_t ApplicationVersion;
         AxrWindowPlatformEnum WindowPlatform;
+        AxrWindowSystem_T WindowSystem;
         AxrVulkanApiConfig_T VulkanConfig;
     };
 
@@ -90,6 +91,7 @@ private:
     const char* m_ApplicationName;
     uint32_t m_ApplicationVersion;
     AxrWindowPlatformEnum m_WindowPlatform;
+    AxrWindowSystem_T m_WindowSystem;
     std::vector<AxrVulkanApiLayer_T> m_ApiLayers;
     std::vector<AxrVulkanExtension_T> m_Extensions;
 
@@ -196,6 +198,10 @@ private:
     /// @returns The device structure chain
     [[nodiscard]] DeviceChain_T createDeviceChain(const vk::DeviceCreateInfo& deviceCreateInfo) const;
 
+    // ---- Window ----
+
+    /// Set up window related graphics
+    void setupWindowGraphics();
 
     // ----------------------------------------- //
     // Private Static Functions
@@ -213,6 +219,11 @@ private:
         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
         void* pUserData
     );
+
+    /// 'On window opened' callback
+    /// @param userData User data passed to the function
+    /// @param windowSystem Window system handle
+    static void onWindowOpenedCallback(void* userData, AxrWindowSystem_T windowSystem);
 };
 
 #endif

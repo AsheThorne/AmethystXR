@@ -26,6 +26,13 @@ public:
     };
 
     // ----------------------------------------- //
+    // Types
+    // ----------------------------------------- //
+
+    /// On window opened event type
+    using OnWindowOpenedEvent_T = AxrEventHandler<AxrWindowSystem_T>;
+
+    // ----------------------------------------- //
     // Special Functions
     // ----------------------------------------- //
 
@@ -73,6 +80,14 @@ public:
     /// Process the window events
     void processEvents();
 
+    /// Add 'On window opened' event callback
+    /// @param userData User data
+    /// @param function Callback function
+    void addOnWindowOpenedCallback(void* userData, const OnWindowOpenedEvent_T::CallbackFunction_T& function);
+    /// Remove 'On window opened' event callback
+    /// @param function Callback function
+    void removeOnWindowOpenedCallback(const OnWindowOpenedEvent_T::CallbackFunction_T& function);
+
 private:
     // ----------------------------------------- //
     // Private Variables
@@ -86,9 +101,14 @@ private:
     // ---- Config Variables ----
     AxrWindowPlatformEnum m_Platform;
 
+    OnWindowOpenedEvent_T m_OnWindowOpenedEvent;
+
     // ----------------------------------------- //
     // Private Functions
     // ----------------------------------------- //
+
+    /// Invoke 'On window opened' event
+    void invokeOnWindowOpenedCallback();
 
     // ---- Win32 Functions ----
 

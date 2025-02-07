@@ -12,6 +12,7 @@
 #include "vulkanGraphicsSystem.hpp"
 #include "vulkanutils.hpp"
 #include "../../utils.hpp"
+#include "../../windowSystem/windowSystem.hpp"
 
 // ---- Special Functions ----
 
@@ -19,6 +20,7 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     m_ApplicationName(config.ApplicationName),
     m_ApplicationVersion(config.ApplicationVersion),
     m_WindowPlatform(config.WindowPlatform),
+    m_WindowSystem(config.WindowSystem),
     m_Instance(VK_NULL_HANDLE),
     m_DebugUtilsMessenger(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
@@ -35,6 +37,10 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
 }
 
 AxrVulkanGraphicsSystem::~AxrVulkanGraphicsSystem() {
+    if (m_WindowSystem != nullptr) {
+        m_WindowSystem->removeOnWindowOpenedCallback(onWindowOpenedCallback);
+    }
+    
     destroyLogicalDevice();
     destroyDebugUtils();
     destroyInstance();
@@ -60,6 +66,16 @@ AxrResult AxrVulkanGraphicsSystem::setup() {
 
     axrResult = createLogicalDevice();
     if (AXR_FAILED(axrResult)) return axrResult;
+
+    if (m_WindowSystem != nullptr) {
+        m_WindowSystem->addOnWindowOpenedCallback(this, onWindowOpenedCallback);
+
+        // If the window is already open, then invoke the callback function.
+        // Otherwise, it won't get called
+        if (m_WindowSystem->isWindowOpen()) {
+            onWindowOpenedCallback(this, m_WindowSystem);
+        }
+    }
 
     return axrResult;
 }
@@ -641,6 +657,12 @@ AxrVulkanGraphicsSystem::DeviceChain_T AxrVulkanGraphicsSystem::createDeviceChai
     return chain;
 }
 
+void AxrVulkanGraphicsSystem::setupWindowGraphics() {
+    axrLogInfo("Setting up window graphics.");
+}
+
+// ---- Private Static Functions ----
+
 VkBool32 AxrVulkanGraphicsSystem::debugUtilsCallback(
     const VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     const VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -713,6 +735,13 @@ VkBool32 AxrVulkanGraphicsSystem::debugUtilsCallback(
     );
 
     return VK_FALSE;
+}
+
+void AxrVulkanGraphicsSystem::onWindowOpenedCallback(void* userData, AxrWindowSystem_T windowSystem) {
+    if (userData == nullptr) return;
+
+    const auto self = static_cast<AxrVulkanGraphicsSystem*>(userData);
+    self->setupWindowGraphics();
 }
 
 #endif

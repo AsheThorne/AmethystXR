@@ -17,18 +17,17 @@
 AxrGraphicsSystem::AxrGraphicsSystem(const Config& config):
     m_GraphicsApi(config.GraphicsConfig.GraphicsApi) {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-
     if (config.GraphicsConfig.GraphicsApi == AXR_GRAPHICS_API_VULKAN) {
         m_VulkanGraphicsSystem = std::make_unique<AxrVulkanGraphicsSystem>(
             AxrVulkanGraphicsSystem::Config{
                 .ApplicationName = config.ApplicationName,
                 .ApplicationVersion = config.ApplicationVersion,
                 .WindowPlatform = config.WindowPlatform,
+                .WindowSystem = config.WindowSystem,
                 .VulkanConfig = config.GraphicsConfig.VulkanConfig
             }
         );
     }
-
 #endif
 }
 

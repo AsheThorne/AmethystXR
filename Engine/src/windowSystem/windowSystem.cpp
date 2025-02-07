@@ -53,7 +53,6 @@ void axrWindowSystemProcessEvents(const AxrWindowSystem_T windowSystem) {
 AxrWindowSystem::AxrWindowSystem(const Config& config):
     m_Platform(config.WindowConfig.Platform) {
 #ifdef AXR_PLATFORM_WIN32
-
     if (config.WindowConfig.Platform == AXR_WINDOW_PLATFORM_WIN32) {
         m_Win32WindowSystem = std::make_unique<AxrWin32WindowSystem>(
             AxrWin32WindowSystem::Config{
@@ -63,7 +62,6 @@ AxrWindowSystem::AxrWindowSystem(const Config& config):
             }
         );
     }
-
 #endif
 }
 
@@ -96,16 +94,28 @@ bool AxrWindowSystem::isWindowOpen() const {
 }
 
 AxrResult AxrWindowSystem::openWindow() {
+    AxrResult axrResult = AXR_ERROR;
+    
     switch (m_Platform) {
         case AXR_WINDOW_PLATFORM_WIN32: {
-            return openWin32Window();
+            axrResult = openWin32Window();
+            break;
         }
         case AXR_WINDOW_PLATFORM_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
             axrLogErrorLocation("Unknown platform.");
-            return AXR_ERROR;
+            axrResult = AXR_ERROR;
+            break;
         }
     }
+
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
+
+    invokeOnWindowOpenedCallback();
+
+    return axrResult;
 }
 
 void AxrWindowSystem::closeWindow() {
@@ -136,7 +146,22 @@ void AxrWindowSystem::processEvents() {
     }
 }
 
+void AxrWindowSystem::addOnWindowOpenedCallback(
+    void* userData,
+    const OnWindowOpenedEvent_T::CallbackFunction_T& function
+) {
+    m_OnWindowOpenedEvent.addCallback(userData, function);
+}
+
+void AxrWindowSystem::removeOnWindowOpenedCallback(const OnWindowOpenedEvent_T::CallbackFunction_T& function) {
+    m_OnWindowOpenedEvent.removeCallback(function);
+}
+
 // ---- Private Functions ----
+
+void AxrWindowSystem::invokeOnWindowOpenedCallback() {
+    m_OnWindowOpenedEvent.invoke(this);
+}
 
 AxrResult AxrWindowSystem::setupWin32Window() {
 #ifdef AXR_PLATFORM_WIN32

@@ -33,6 +33,7 @@ set(AXR_PUBLIC_HEADER_FILES
     ${AXR_INCLUDE_DIR}/axr/common/defines.h.in
     ${AXR_INCLUDE_DIR}/axr/common/defines.h
     ${AXR_INCLUDE_DIR}/axr/common/result.h
+    ${AXR_INCLUDE_DIR}/axr/common/eventHandler.h
 )
 
 set(AXR_PUBLIC_HEADER_HPP_FILES
@@ -50,6 +51,7 @@ set(AXR_PUBLIC_HEADER_HPP_FILES
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr-hpp/common/defines.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/common/result.hpp
+    ${AXR_INCLUDE_DIR}/axr-hpp/common/eventHandler.hpp
 )
 
 set(AXR_HEADER_FILES

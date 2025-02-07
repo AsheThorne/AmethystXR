@@ -3,7 +3,7 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/common.h"
+#include "axr/common/result.h"
 #include "axr/graphicsSystem.h"
 #include "axr/windowSystem.h"
 
@@ -23,6 +23,7 @@ public:
         const char* ApplicationName;
         uint32_t ApplicationVersion;
         AxrWindowPlatformEnum WindowPlatform;
+        AxrWindowSystem_T WindowSystem;
         AxrGraphicsSystemConfig GraphicsConfig;
     };
 
