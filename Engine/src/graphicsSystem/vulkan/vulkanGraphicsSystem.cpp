@@ -32,8 +32,8 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
 
     m_DynamicDispatchLoader.init();
 
-    m_ApiLayers = axrCloneVulkanApiLayers(config.VulkanConfig->ApiLayersCount, config.VulkanConfig->ApiLayers);
-    m_Extensions = axrCloneVulkanExtensions(config.VulkanConfig->ExtensionsCount, config.VulkanConfig->Extensions);
+    m_ApiLayers = axrCloneApiLayers(config.VulkanConfig->ApiLayersCount, config.VulkanConfig->ApiLayers);
+    m_Extensions = axrCloneExtensions(config.VulkanConfig->ExtensionsCount, config.VulkanConfig->Extensions);
 }
 
 AxrVulkanGraphicsSystem::~AxrVulkanGraphicsSystem() {
@@ -176,11 +176,11 @@ void AxrVulkanGraphicsSystem::removeUnsupportedApiLayers() {
     for (AxrVulkanApiLayer_T& apiLayer : m_ApiLayers) {
         if (apiLayer == nullptr) continue;
 
-        if (!axrContainsString(axrGetVulkanApiLayerName(apiLayer->Type), supportedApiLayers)) {
+        if (!axrContainsString(axrGetApiLayerName(apiLayer->Type), supportedApiLayers)) {
             delete apiLayer;
             apiLayer = nullptr;
 
-            axrLogWarning("Unsupported api layer: {0}", axrGetVulkanApiLayerName(apiLayer->Type));
+            axrLogWarning("Unsupported api layer: {0}", axrGetApiLayerName(apiLayer->Type));
         }
     }
 
@@ -213,11 +213,11 @@ void AxrVulkanGraphicsSystem::removeUnsupportedInstanceExtensions() {
     for (AxrVulkanExtension_T& extension : m_Extensions) {
         if (extension == nullptr || extension->Level != AXR_VULKAN_EXTENSION_LEVEL_INSTANCE) continue;
 
-        if (!axrContainsString(axrGetVulkanExtensionName(extension->Type), supportedExtensions)) {
+        if (!axrContainsString(axrGetExtensionName(extension->Type), supportedExtensions)) {
             delete extension;
             extension = nullptr;
 
-            axrLogWarning("Unsupported instance extension: {0}", axrGetVulkanExtensionName(extension->Type));
+            axrLogWarning("Unsupported instance extension: {0}", axrGetExtensionName(extension->Type));
         }
     }
 
@@ -258,11 +258,11 @@ void AxrVulkanGraphicsSystem::removeUnsupportedDeviceExtensions() {
     for (AxrVulkanExtension_T& extension : m_Extensions) {
         if (extension == nullptr || extension->Level != AXR_VULKAN_EXTENSION_LEVEL_DEVICE) continue;
 
-        if (!axrContainsString(axrGetVulkanExtensionName(extension->Type), supportedExtensions)) {
+        if (!axrContainsString(axrGetExtensionName(extension->Type), supportedExtensions)) {
             delete extension;
             extension = nullptr;
 
-            axrLogWarning("Unsupported device extension: {0}", axrGetVulkanExtensionName(extension->Type));
+            axrLogWarning("Unsupported device extension: {0}", axrGetExtensionName(extension->Type));
         }
     }
 
@@ -300,7 +300,7 @@ std::vector<const char*> AxrVulkanGraphicsSystem::getAllApiLayerNames() const {
     for (const AxrVulkanApiLayer_T apiLayer : m_ApiLayers) {
         if (apiLayer == nullptr) continue;
 
-        apiLayerNames.push_back(axrGetVulkanApiLayerName(apiLayer->Type));
+        apiLayerNames.push_back(axrGetApiLayerName(apiLayer->Type));
     }
 
     return apiLayerNames;
@@ -312,7 +312,7 @@ std::vector<const char*> AxrVulkanGraphicsSystem::getAllInstanceExtensionNames()
     for (AxrVulkanExtension_T extension : m_Extensions) {
         if (extension == nullptr || extension->Level != AXR_VULKAN_EXTENSION_LEVEL_INSTANCE) continue;
 
-        extensionNames.push_back(axrGetVulkanExtensionName(extension->Type));
+        extensionNames.push_back(axrGetExtensionName(extension->Type));
     }
 
     return extensionNames;
@@ -324,7 +324,7 @@ std::vector<const char*> AxrVulkanGraphicsSystem::getAllDeviceExtensionNames() c
     for (AxrVulkanExtension_T extension : m_Extensions) {
         if (extension == nullptr || extension->Level != AXR_VULKAN_EXTENSION_LEVEL_DEVICE) continue;
 
-        extensionNames.push_back(axrGetVulkanExtensionName(extension->Type));
+        extensionNames.push_back(axrGetExtensionName(extension->Type));
     }
 
     return extensionNames;
@@ -378,7 +378,7 @@ void AxrVulkanGraphicsSystem::addExtension(const AxrVulkanExtension_T extension)
         return;
     }
 
-    m_Extensions.push_back(axrCloneVulkanExtension(extension));
+    m_Extensions.push_back(axrCloneExtension(extension));
 }
 
 AxrVulkanExtension_T AxrVulkanGraphicsSystem::getExtension(const AxrVulkanExtensionTypeEnum type) const {

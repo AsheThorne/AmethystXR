@@ -48,17 +48,17 @@ void axrLogVkResult(
 /// Get the api layer name from the given vulkan api layer type
 /// @param apiLayerType Vulkan api layer type
 /// @returns The api layer name
-const char* axrGetVulkanApiLayerName(AxrVulkanApiLayerTypeEnum apiLayerType);
+const char* axrGetApiLayerName(AxrVulkanApiLayerTypeEnum apiLayerType);
 /// Get the extension name from the given vulkan extension type
 /// @param extensionType Vulkan extension type
 /// @returns The extension name
-const char* axrGetVulkanExtensionName(AxrVulkanExtensionTypeEnum extensionType);
+const char* axrGetExtensionName(AxrVulkanExtensionTypeEnum extensionType);
 
 /// Clone all the given vulkan api layers
 /// @param apiLayersCount Number of api layers in the given apiLayers pointer
 /// @param apiLayers Api layers to clone
 /// @returns A collection of cloned api layers
-[[nodiscard]] std::vector<AxrVulkanApiLayer_T> axrCloneVulkanApiLayers(
+[[nodiscard]] std::vector<AxrVulkanApiLayer_T> axrCloneApiLayers(
     uint32_t apiLayersCount,
     const AxrVulkanApiLayer_T* apiLayers
 );
@@ -66,7 +66,7 @@ const char* axrGetVulkanExtensionName(AxrVulkanExtensionTypeEnum extensionType);
 /// @param extensionsCount Number of extensions in the given extensions pointer
 /// @param extensions Extensions to clone
 /// @returns A collection of cloned extensions
-[[nodiscard]] std::vector<AxrVulkanExtension_T> axrCloneVulkanExtensions(
+[[nodiscard]] std::vector<AxrVulkanExtension_T> axrCloneExtensions(
     uint32_t extensionsCount,
     const AxrVulkanExtension_T* extensions
 );
@@ -74,11 +74,11 @@ const char* axrGetVulkanExtensionName(AxrVulkanExtensionTypeEnum extensionType);
 /// Clone the given api layer
 /// @param apiLayer  Api layer to clone
 /// @returns A clone of the api layer
-[[nodiscard]] AxrVulkanApiLayer_T axrCloneVulkanApiLayer(AxrVulkanApiLayer_T apiLayer);
+[[nodiscard]] AxrVulkanApiLayer_T axrCloneApiLayer(AxrVulkanApiLayer_T apiLayer);
 /// Clone the given extension
 /// @param extension Extension to clone
 /// @returns A clone of the extension
-[[nodiscard]] AxrVulkanExtension_T axrCloneVulkanExtension(AxrVulkanExtension_T extension);
+[[nodiscard]] AxrVulkanExtension_T axrCloneExtension(AxrVulkanExtension_T extension);
 
 /// Find the supported instance api layers
 /// @param dispatch Dispatch to use
