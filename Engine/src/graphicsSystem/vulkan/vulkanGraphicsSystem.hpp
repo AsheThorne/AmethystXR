@@ -96,7 +96,6 @@ private:
     std::vector<AxrVulkanExtension_T> m_Extensions;
 
     vk::DispatchLoaderDynamic m_DynamicDispatchLoader;
-
     vk::Instance m_Instance;
     vk::DebugUtilsMessengerEXT m_DebugUtilsMessenger;
     vk::PhysicalDevice m_PhysicalDevice;
@@ -121,6 +120,19 @@ private:
     [[nodiscard]] InstanceChain_T createInstanceChain(const vk::InstanceCreateInfo& instanceCreateInfo) const;
 
     // ---- Api Layers / Extensions ----
+
+    /// Find the supported instance api layers
+    /// @returns The supported instance api layers
+    std::vector<std::string> getSupportedInstanceApiLayers() const;
+    /// Find the supported device api layers for the given physical device
+    /// @returns The supported device api layers
+    std::vector<std::string> getSupportedDeviceApiLayers(const vk::PhysicalDevice& physicalDevice) const;
+    /// Find the supported instance extensions
+    /// @returns The supported instance extensions
+    std::vector<std::string> getSupportedInstanceExtensions() const;
+    /// Find the supported device extensions for the given physical device
+    /// @returns The supported device extensions
+    std::vector<std::string> getSupportedDeviceExtensions(const vk::PhysicalDevice& physicalDevice) const;
 
     /// Remove api layers from m_ApiLayers that aren't supported by the m_Instance
     void removeUnsupportedApiLayers();
@@ -184,6 +196,54 @@ private:
     /// If OpenXR is being used though, we need to use the one it selects for us
     /// @returns The physical device we should use
     [[nodiscard]] vk::PhysicalDevice pickPhysicalDevice() const;
+
+    /// Score the given physical device. The higher the number, the better.
+    /// 0 Means it is not suitable to use.
+    /// @param physicalDevice Physical device to score
+    /// @returns The physical device score
+    uint32_t scorePhysicalDeviceSuitability(const vk::PhysicalDevice& physicalDevice) const;
+    /// Score the given physical device on its available queue families.
+    /// @param physicalDevice Physical device to score
+    /// @returns 0 -> Not suitable at all.
+    /// @returns 1 -> Meets the minimum requirements.
+    /// @returns More than 1, has extra desired features.
+    uint32_t scorePhysicalDeviceQueueFamilies(const vk::PhysicalDevice& physicalDevice) const;
+    /// Score the given physical device on its available api layers.
+    /// @details
+    /// All api layers used by the instance should also be used for the device.
+    /// This is for compatibility with older version of vulkan.
+    /// "https://docs.vulkan.org/spec/latest/chapters/extensions.html#extendingvulkan-layers-devicelayerdeprecation"
+    /// If any of the api layers aren't supported, then it's still ok for more recent versions of vulkan.
+    /// So, a score of 1 indicates that not all api layers are supported, but it's not desirable.
+    /// A score of more than 1 means all api layers are supported.
+    /// @param physicalDevice Physical device to score
+    /// @returns 0 -> Not suitable at all.
+    /// @returns 1 -> Meets the minimum requirements.
+    /// @returns More than 1, supports all api layers
+    uint32_t scorePhysicalDeviceApiLayers(const vk::PhysicalDevice& physicalDevice) const;
+    /// Score the given physical device on its available extensions.
+    /// @param physicalDevice Physical device to score
+    /// @returns 0 -> Not suitable at all.
+    /// @returns 1 -> Meets the minimum requirements.
+    /// @returns More than 1, supports more than just the required extensions.
+    uint32_t scorePhysicalDeviceExtensions(const vk::PhysicalDevice& physicalDevice) const;
+    /// Score the given physical device on its available features.
+    /// @param physicalDevice Physical device to score
+    /// @returns 0 -> Not suitable at all.
+    /// @returns 1 -> Meets the minimum requirements.
+    /// @returns More than 1, has extra desired features.
+    uint32_t scorePhysicalDeviceFeatures(const vk::PhysicalDevice& physicalDevice) const;
+    /// Score the given physical device on its available properties.
+    /// @param physicalDevice Physical device to score
+    /// @returns 0 -> Not suitable at all.
+    /// @returns 1 -> Meets the minimum requirements.
+    /// @returns More than 1, has extra desired features.
+    uint32_t scorePhysicalDeviceProperties(const vk::PhysicalDevice& physicalDevice) const;
+
+    /// Check if all the api layers are supported for the given physical device
+    /// @param physicalDevice Physical device to check
+    /// @returns True if all the api layers are supported for the given physical device
+    bool areApiLayersSupportedForPhysicalDevice(const vk::PhysicalDevice& physicalDevice) const;
 
     // ---- Logical Device ----
 

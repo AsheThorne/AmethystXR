@@ -40,7 +40,7 @@ AxrVulkanGraphicsSystem::~AxrVulkanGraphicsSystem() {
     if (m_WindowSystem != nullptr) {
         m_WindowSystem->removeOnWindowOpenedCallback(onWindowOpenedCallback);
     }
-    
+
     destroyLogicalDevice();
     destroyDebugUtils();
     destroyInstance();
@@ -157,6 +157,96 @@ AxrVulkanGraphicsSystem::InstanceChain_T AxrVulkanGraphicsSystem::createInstance
     return chain;
 }
 
+std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedInstanceApiLayers() const {
+    const auto instanceLayerProperties =
+        vk::enumerateInstanceLayerProperties(m_DynamicDispatchLoader);
+    axrLogVkResult(instanceLayerProperties.result, "vk::enumerateInstanceLayerProperties");
+
+    if (axrVkFailed(instanceLayerProperties.result)) return {};
+
+    std::vector<std::string> supportedApiLayers(instanceLayerProperties.value.size());
+
+    for (size_t i = 0; i < instanceLayerProperties.value.size(); ++i) {
+        supportedApiLayers[i] = instanceLayerProperties.value[i].layerName.data();
+    }
+
+    return supportedApiLayers;
+}
+
+std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedDeviceApiLayers(const vk::PhysicalDevice& physicalDevice) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (physicalDevice == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Physical device is null.");
+        return {};
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const auto deviceLayerProperties =
+        physicalDevice.enumerateDeviceLayerProperties(m_DynamicDispatchLoader);
+    axrLogVkResult(deviceLayerProperties.result, "physicalDevice.enumerateDeviceLayerProperties");
+
+    if (axrVkFailed(deviceLayerProperties.result)) return {};
+
+    std::vector<std::string> supportedApiLayers(deviceLayerProperties.value.size());
+
+    for (size_t i = 0; i < deviceLayerProperties.value.size(); ++i) {
+        supportedApiLayers[i] = deviceLayerProperties.value[i].layerName.data();
+    }
+
+    return supportedApiLayers;
+}
+
+std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedInstanceExtensions() const {
+    const auto instanceExtensionProperties =
+        vk::enumerateInstanceExtensionProperties(nullptr, m_DynamicDispatchLoader);
+    axrLogVkResult(instanceExtensionProperties.result, "vk::enumerateInstanceExtensionProperties");
+
+    if (axrVkFailed(instanceExtensionProperties.result)) return {};
+
+    std::vector<std::string> supportedExtensions(instanceExtensionProperties.value.size());
+
+    for (size_t i = 0; i < instanceExtensionProperties.value.size(); ++i) {
+        supportedExtensions[i] = instanceExtensionProperties.value[i].extensionName.data();
+    }
+
+    return supportedExtensions;
+}
+
+std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedDeviceExtensions(const vk::PhysicalDevice& physicalDevice) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (physicalDevice == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Physical device is null.");
+        return {};
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const auto deviceExtensionProperties =
+        physicalDevice.enumerateDeviceExtensionProperties(nullptr, m_DynamicDispatchLoader);
+    axrLogVkResult(deviceExtensionProperties.result, "physicalDevice.enumerateDeviceExtensionProperties");
+
+    if (axrVkFailed(deviceExtensionProperties.result)) return {};
+
+    std::vector<std::string> supportedExtensions(deviceExtensionProperties.value.size());
+
+    for (size_t i = 0; i < deviceExtensionProperties.value.size(); ++i) {
+        supportedExtensions[i] = deviceExtensionProperties.value[i].extensionName.data();
+    }
+
+    return supportedExtensions;
+}
+
 void AxrVulkanGraphicsSystem::removeUnsupportedApiLayers() {
     // ----------------------------------------- //
     // Validation
@@ -171,7 +261,7 @@ void AxrVulkanGraphicsSystem::removeUnsupportedApiLayers() {
     // Process
     // ----------------------------------------- //
 
-    const std::vector<std::string> supportedApiLayers = axrGetSupportedInstanceApiLayers(m_DynamicDispatchLoader);
+    const std::vector<std::string> supportedApiLayers = getSupportedInstanceApiLayers();
 
     for (AxrVulkanApiLayer_T& apiLayer : m_ApiLayers) {
         if (apiLayer == nullptr) continue;
@@ -208,7 +298,7 @@ void AxrVulkanGraphicsSystem::removeUnsupportedInstanceExtensions() {
     // Process
     // ----------------------------------------- //
 
-    const std::vector<std::string> supportedExtensions = axrGetSupportedInstanceExtensions(m_DynamicDispatchLoader);
+    const std::vector<std::string> supportedExtensions = getSupportedInstanceExtensions();
 
     for (AxrVulkanExtension_T& extension : m_Extensions) {
         if (extension == nullptr || extension->Level != AXR_VULKAN_EXTENSION_LEVEL_INSTANCE) continue;
@@ -250,10 +340,7 @@ void AxrVulkanGraphicsSystem::removeUnsupportedDeviceExtensions() {
     // Process
     // ----------------------------------------- //
 
-    const std::vector<std::string> supportedExtensions = axrGetSupportedDeviceExtensions(
-        m_PhysicalDevice,
-        m_DynamicDispatchLoader
-    );
+    const std::vector<std::string> supportedExtensions = getSupportedDeviceExtensions(m_PhysicalDevice);
 
     for (AxrVulkanExtension_T& extension : m_Extensions) {
         if (extension == nullptr || extension->Level != AXR_VULKAN_EXTENSION_LEVEL_DEVICE) continue;
@@ -475,11 +562,7 @@ AxrResult AxrVulkanGraphicsSystem::setupPhysicalDevice() {
         return AXR_ERROR;
     }
 
-    const bool areApiLayersSupported = axrAreApiLayersSupportedForPhysicalDevice(
-        m_PhysicalDevice,
-        m_ApiLayers,
-        m_DynamicDispatchLoader
-    );
+    const bool areApiLayersSupported = areApiLayersSupportedForPhysicalDevice(m_PhysicalDevice);
     if (!areApiLayersSupported) {
         axrLogWarning("Not all api layers are supported for the chosen physical device.");
     }
@@ -523,13 +606,7 @@ vk::PhysicalDevice AxrVulkanGraphicsSystem::pickPhysicalDevice() const {
     uint32_t chosenPhysicalDeviceScore = 0;
 
     for (const vk::PhysicalDevice& physicalDevice : physicalDevices.value) {
-        const uint32_t currentScore = axrScorePhysicalDeviceSuitability(
-            physicalDevice,
-            m_WindowPlatform,
-            m_ApiLayers,
-            m_Extensions,
-            m_DynamicDispatchLoader
-        );
+        const uint32_t currentScore = scorePhysicalDeviceSuitability(physicalDevice);
 
         if (currentScore > chosenPhysicalDeviceScore) {
             chosenPhysicalDeviceScore = currentScore;
@@ -543,6 +620,190 @@ vk::PhysicalDevice AxrVulkanGraphicsSystem::pickPhysicalDevice() const {
     }
 
     return chosenPhysicalDevice;
+}
+
+uint32_t AxrVulkanGraphicsSystem::scorePhysicalDeviceSuitability(const vk::PhysicalDevice& physicalDevice) const {
+    const uint32_t queueFamiliesScore = scorePhysicalDeviceQueueFamilies(physicalDevice);
+    if (queueFamiliesScore == 0) {
+        return 0;
+    }
+
+    const uint32_t apiLayersScore = scorePhysicalDeviceApiLayers(physicalDevice);
+    if (apiLayersScore == 0) {
+        return 0;
+    }
+
+    const uint32_t extensionsScore = scorePhysicalDeviceExtensions(physicalDevice);
+    if (extensionsScore == 0) {
+        return 0;
+    }
+
+    const uint32_t featuresScore = scorePhysicalDeviceFeatures(physicalDevice);
+    if (featuresScore == 0) {
+        return 0;
+    }
+
+    const uint32_t propertiesScore = scorePhysicalDeviceProperties(physicalDevice);
+    if (featuresScore == 0) {
+        return 0;
+    }
+
+    return queueFamiliesScore + apiLayersScore + extensionsScore + featuresScore + propertiesScore;
+}
+
+uint32_t AxrVulkanGraphicsSystem::scorePhysicalDeviceQueueFamilies(const vk::PhysicalDevice& physicalDevice) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (physicalDevice == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Physical device is null.");
+        return 0;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+    AxrVulkanQueueFamilies queueFamilies;
+    const AxrResult axrResult = queueFamilies.setQueueFamilyIndices(
+        physicalDevice,
+        m_WindowPlatform,
+        m_DynamicDispatchLoader
+    );
+
+    if (AXR_FAILED(axrResult)) {
+        // Failed to find required queue families
+        return 0;
+    }
+
+    if (!queueFamilies.hasDedicatedTransferQueue()) {
+        // We met the minimum requirements.
+        // All queue families have been found, but it's not ideal without a dedicated transfer queue family.
+        return 1;
+    }
+
+    // The ideal case. We have all the queue families and a dedicated transfer queue.
+    // '5' is an arbitrary value currently.
+    return 5;
+}
+
+uint32_t AxrVulkanGraphicsSystem::scorePhysicalDeviceApiLayers(const vk::PhysicalDevice& physicalDevice) const {
+    constexpr uint32_t maxScore = 50;
+
+    if (m_ApiLayers.empty()) {
+        // All api layers are supported. Cos there are none. duhh.
+        return maxScore;
+    }
+
+    if (!areApiLayersSupportedForPhysicalDevice(physicalDevice)) {
+        // We met the minimum requirements.
+        // Missing api layer(s)
+        return 1;
+    }
+
+    // All api layers are supported
+    return maxScore;
+}
+
+uint32_t AxrVulkanGraphicsSystem::scorePhysicalDeviceExtensions(const vk::PhysicalDevice& physicalDevice) const {
+    // Isolate device level extensions
+    std::vector<AxrVulkanExtension_T> deviceExtensions = m_Extensions;
+    std::erase_if(
+        deviceExtensions,
+        [](const AxrVulkanExtension_T extension) {
+            return extension->Level != AXR_VULKAN_EXTENSION_LEVEL_DEVICE;
+        }
+    );
+
+    constexpr uint32_t maxScore = 50;
+
+    if (deviceExtensions.empty()) {
+        return maxScore;
+    }
+
+    const std::vector<std::string> supportedExtensions = getSupportedDeviceExtensions(physicalDevice);
+
+    // 50 is the max score if all extensions are supported.
+    // So the closer we get to 50 as the final score, the more extensions were found.
+    const float extensionWeightedScore = static_cast<float>(maxScore) / static_cast<float>(deviceExtensions.size());
+    float score = 0.0f;
+
+    for (const AxrVulkanExtension_T extension : deviceExtensions) {
+        // TODO: Some extensions may be required and this function should fail if it doesn't have it.
+        //  That isn't important for now though.
+        if (axrContainsString(axrGetExtensionName(extension->Type), supportedExtensions)) {
+            score += extensionWeightedScore;
+        }
+    }
+
+    // ---- We shouldn't return 0 beyond this point ----
+
+    // We need to return at least 1 to signal that we at least meet the minimum requirements.
+    return std::max(static_cast<uint32_t>(1), static_cast<uint32_t>(score));
+}
+
+uint32_t AxrVulkanGraphicsSystem::scorePhysicalDeviceFeatures(const vk::PhysicalDevice& physicalDevice) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (physicalDevice == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Physical device is null.");
+        return 0;
+    }
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    uint32_t score = 0;
+    const vk::PhysicalDeviceFeatures features = physicalDevice.getFeatures(m_DynamicDispatchLoader);
+
+    if (features.samplerAnisotropy) {
+        score += 5;
+    }
+    if (features.sampleRateShading) {
+        score += 5;
+    }
+
+    return score;
+}
+
+uint32_t AxrVulkanGraphicsSystem::scorePhysicalDeviceProperties(const vk::PhysicalDevice& physicalDevice) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (physicalDevice == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Physical device is null.");
+        return 0;
+    }
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    uint32_t score = 0;
+    const vk::PhysicalDeviceProperties properties = physicalDevice.getProperties(m_DynamicDispatchLoader);
+
+    if (properties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu) {
+        score += 1000;
+    } else {
+        score += 1;
+    }
+
+    return score;
+}
+
+bool AxrVulkanGraphicsSystem::areApiLayersSupportedForPhysicalDevice(const vk::PhysicalDevice& physicalDevice) const {
+    const std::vector<std::string> supportedApiLayers = getSupportedDeviceApiLayers(physicalDevice);
+
+    for (const AxrVulkanApiLayer_T apiLayer : m_ApiLayers) {
+        if (!axrContainsString(axrGetApiLayerName(apiLayer->Type), supportedApiLayers)) {
+            // Api layer isn't supported
+            return false;
+        }
+    }
+
+    return true;
 }
 
 AxrResult AxrVulkanGraphicsSystem::createLogicalDevice() {
@@ -597,7 +858,7 @@ AxrResult AxrVulkanGraphicsSystem::createLogicalDevice() {
     // must be ignored by implementations.
     // However, for compatibility, only an empty list of layers or a list that exactly matches the sequence enabled
     // at instance creation time are valid"
-    if (axrAreApiLayersSupportedForPhysicalDevice(m_PhysicalDevice, m_ApiLayers, m_DynamicDispatchLoader)) {
+    if (areApiLayersSupportedForPhysicalDevice(m_PhysicalDevice)) {
         deviceLayers = getAllApiLayerNames();
     }
 
