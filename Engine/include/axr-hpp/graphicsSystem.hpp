@@ -61,9 +61,6 @@ namespace axr {
         // Public Functions
         // ----------------------------------------- //
 
-        // TODO: When we write tests, we should make a test to make sure that this conversion works without issue.
-        //  Even though we have the static_assert below, there is still a chance for bugs if the order of the variables
-        //  differ
         /// Get a handle to the GraphicsSystemConfig as an AxrGraphicsSystemConfig
         /// @returns This as an AxrGraphicsSystemConfig
         const AxrGraphicsSystemConfig* toRaw() const {
