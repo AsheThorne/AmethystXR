@@ -58,11 +58,14 @@ const char* axrGetExtensionName(const AxrVulkanExtensionTypeEnum extensionType) 
         case AXR_VULKAN_EXTENSION_TYPE_SURFACE: {
             return VK_KHR_SURFACE_EXTENSION_NAME;
         }
-#ifdef AXR_USE_PLATFORM_WIN32
         case AXR_VULKAN_EXTENSION_TYPE_WIN32_SURFACE: {
+#ifdef AXR_USE_PLATFORM_WIN32
             return VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
-        }
+#else
+            axrLogErrorLocation("Win32 surface extension not supported.");
+            return "";
 #endif
+        }
         case AXR_VULKAN_EXTENSION_TYPE_END:
         case AXR_VULKAN_EXTENSION_TYPE_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
@@ -136,8 +139,13 @@ AxrVulkanExtension_T axrCloneExtension(const AxrVulkanExtension_T extension) {
             return reinterpret_cast<AxrVulkanExtension_T>(new AxrVulkanExtensionSurface(castExtension));
         }
         case AXR_VULKAN_EXTENSION_TYPE_WIN32_SURFACE: {
+#ifdef AXR_USE_PLATFORM_WIN32
             const auto castExtension = *reinterpret_cast<AxrVulkanExtensionWin32Surface*>(extension);
             return reinterpret_cast<AxrVulkanExtension_T>(new AxrVulkanExtensionWin32Surface(castExtension));
+#else
+            axrLogErrorLocation("Win32 surface extension is not supported.");
+            return nullptr;
+#endif
         }
         case AXR_VULKAN_EXTENSION_TYPE_END:
         case AXR_VULKAN_EXTENSION_TYPE_UNDEFINED:

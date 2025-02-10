@@ -211,11 +211,13 @@ namespace axr {
             addExtension(reinterpret_cast<AxrVulkanExtension_T>(extension));
         }
 
+#ifdef AXR_USE_PLATFORM_WIN32
         /// Add the Win32 Surface extension
         void addExtensionWin32Surface() {
             const auto extension = new AxrVulkanExtensionWin32Surface();
             addExtension(reinterpret_cast<AxrVulkanExtension_T>(extension));
         }
+#endif
 
     private:
         // ----------------------------------------- //

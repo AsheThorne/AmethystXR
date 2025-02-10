@@ -47,6 +47,7 @@ target_link_libraries(Sandbox
 add_compile_definitions(UNICODE)
 
 if(WIN32)
+    add_compile_definitions(AXR_USE_PLATFORM_WIN32)
     add_compile_definitions(NOMINMAX)
 endif()
 
