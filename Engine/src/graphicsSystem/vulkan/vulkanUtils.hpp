@@ -1,6 +1,9 @@
 ﻿#pragma once
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 
+#define VK_SUCCEEDED(result) ((result) >= 0)
+#define VK_FAILED(result) ((result) < 0)
+
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //

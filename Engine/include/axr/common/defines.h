@@ -22,14 +22,4 @@
 // ----------------------------------------- //
 // AXR Engine Data
 // ----------------------------------------- //
-// TODO: This string doesn't need to be public. Move it somewhere else
-inline const char* AxrEngineName = "AmethystXR";
 #define AXR_ENGINE_VERSION AXR_MAKE_VERSION(1, 0, 0)
-
-// ----------------------------------------- //
-// Vulkan Macros
-// ----------------------------------------- //
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-#define VK_SUCCEEDED(result) ((result) >= 0)
-#define VK_FAILED(result) ((result) < 0)
-#endif

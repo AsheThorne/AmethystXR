@@ -9,6 +9,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/logger.h"
+#include "../../common.hpp"
 #include "vulkanGraphicsSystem.hpp"
 #include "vulkanutils.hpp"
 #include "../../utils.hpp"

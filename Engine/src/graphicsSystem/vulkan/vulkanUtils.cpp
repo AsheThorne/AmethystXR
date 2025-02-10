@@ -4,7 +4,6 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "vulkanUtils.hpp"
-#include "axr/common/defines.h"
 #include "axr/logger.h"
 
 // ----------------------------------------- //

@@ -2,6 +2,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/setup.h"
+#include "common.hpp"
 
 // ----------------------------------------- //
 // External Functions

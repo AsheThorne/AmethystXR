@@ -56,6 +56,7 @@ set(AXR_PUBLIC_HEADER_HPP_FILES
 
 set(AXR_HEADER_FILES
     # ---- Root ----
+    ${AXR_SRC_DIR}/common.hpp
     ${AXR_SRC_DIR}/utils.hpp
     # ---- AXR Application ----
     ${AXR_SRC_DIR}/application/application.hpp
