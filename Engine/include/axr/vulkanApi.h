@@ -78,7 +78,7 @@ struct AxrVulkanApiLayerStructure {
 };
 
 /// AxrVulkanApiLayerStructure Handle Type
-using AxrVulkanApiLayer_T = AxrVulkanApiLayerStructure*;
+typedef AxrVulkanApiLayerStructure* AxrVulkanApiLayer_T;
 
 /// Vulkan Api Layer Core Validation Structure
 struct AxrVulkanApiLayerCoreValidation {
@@ -94,7 +94,7 @@ struct AxrVulkanExtensionStructure {
 };
 
 /// AxrVulkanExtensionStructure Handle Type
-using AxrVulkanExtension_T = AxrVulkanExtensionStructure*;
+typedef AxrVulkanExtensionStructure* AxrVulkanExtension_T;
 
 /// Vulkan Extension Debug Utils
 struct AxrVulkanExtensionDebugUtils {
@@ -133,7 +133,6 @@ struct AxrVulkanApiConfig {
     AxrVulkanExtension_T* Extensions;
 };
 
-// TODO: Change all `using` to `typedef` like this one in the plain c headers
 /// Vulkan Api Config Type
 typedef AxrVulkanApiConfig* AxrVulkanApiConfig_T;
 
