@@ -14,6 +14,12 @@ namespace axr {
     /// Config for the window system
     struct WindowSystemConfig {
         // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        uint32_t Width;
+        uint32_t Height;
+
+        // ----------------------------------------- //
         // Special Functions
         // ----------------------------------------- //
 
@@ -34,12 +40,6 @@ namespace axr {
         ) : Width(width),
             Height{height} {
         }
-
-        // ----------------------------------------- //
-        // Public Variables
-        // ----------------------------------------- //
-        uint32_t Width;
-        uint32_t Height;
 
         // ----------------------------------------- //
         // Public Functions

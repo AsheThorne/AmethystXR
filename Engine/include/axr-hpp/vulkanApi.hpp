@@ -93,6 +93,14 @@ namespace axr {
     /// Vulkan Api Graphics System Config
     struct VulkanApiConfig {
         // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        uint32_t ApiLayersCount;
+        AxrVulkanApiLayer_T* ApiLayers;
+        uint32_t ExtensionsCount;
+        AxrVulkanExtension_T* Extensions;
+
+        // ----------------------------------------- //
         // Special Functions
         // ----------------------------------------- //
 
@@ -100,12 +108,12 @@ namespace axr {
 
         /// Default Constructor
         VulkanApiConfig():
-            m_ApiLayersCount(0),
+            ApiLayersCount(0),
             // equal to the same number of available options in VulkanApiLayerTypeEnum
-            m_ApiLayers(new AxrVulkanApiLayer_T[static_cast<uint32_t>(VulkanApiLayerTypeEnum::End) - 1]{}),
-            m_ExtensionsCount(0),
+            ApiLayers(new AxrVulkanApiLayer_T[static_cast<uint32_t>(VulkanApiLayerTypeEnum::End) - 1]{}),
+            ExtensionsCount(0),
             // equal to the same number of available options in VulkanExtensionTypeEnum
-            m_Extensions(new AxrVulkanExtension_T[static_cast<uint32_t>(VulkanExtensionTypeEnum::End) - 1]{}) {
+            Extensions(new AxrVulkanExtension_T[static_cast<uint32_t>(VulkanExtensionTypeEnum::End) - 1]{}) {
         }
 
         /// Copy Constructor
@@ -120,12 +128,12 @@ namespace axr {
         /// Destructor
         ~VulkanApiConfig() {
             clearApiLayers();
-            delete[] m_ApiLayers;
-            m_ApiLayers = nullptr;
+            delete[] ApiLayers;
+            ApiLayers = nullptr;
 
             clearExtensions();
-            delete[] m_Extensions;
-            m_Extensions = nullptr;
+            delete[] Extensions;
+            Extensions = nullptr;
         }
 
         // ---- Operator Overloads ----
@@ -145,9 +153,9 @@ namespace axr {
         /// @param apiLayerType The api layer type
         /// @returns True if the given api layer exists
         [[nodiscard]] bool apiLayerExists(axr::VulkanApiLayerTypeEnum apiLayerType) const {
-            for (uint32_t i = 0; i < m_ApiLayersCount; ++i) {
-                if (m_ApiLayers[i] != nullptr &&
-                    m_ApiLayers[i]->Type == static_cast<AxrVulkanApiLayerTypeEnum>(apiLayerType)) {
+            for (uint32_t i = 0; i < ApiLayersCount; ++i) {
+                if (ApiLayers[i] != nullptr &&
+                    ApiLayers[i]->Type == static_cast<AxrVulkanApiLayerTypeEnum>(apiLayerType)) {
                     return true;
                 }
             }
@@ -159,9 +167,9 @@ namespace axr {
         /// @param extensionType The extension type
         /// @returns True if the given extension exists
         [[nodiscard]] bool extensionExists(axr::VulkanExtensionTypeEnum extensionType) const {
-            for (uint32_t i = 0; i < m_ExtensionsCount; ++i) {
-                if (m_Extensions[i] != nullptr &&
-                    m_Extensions[i]->Type == static_cast<AxrVulkanExtensionTypeEnum>(extensionType)) {
+            for (uint32_t i = 0; i < ExtensionsCount; ++i) {
+                if (Extensions[i] != nullptr &&
+                    Extensions[i]->Type == static_cast<AxrVulkanExtensionTypeEnum>(extensionType)) {
                     return true;
                 }
             }
@@ -211,14 +219,6 @@ namespace axr {
 
     private:
         // ----------------------------------------- //
-        // Private Variables
-        // ----------------------------------------- //
-        uint32_t m_ApiLayersCount;
-        AxrVulkanApiLayer_T* m_ApiLayers;
-        uint32_t m_ExtensionsCount;
-        AxrVulkanExtension_T* m_Extensions;
-
-        // ----------------------------------------- //
         // Private Functions
         // ----------------------------------------- //
 
@@ -235,18 +235,18 @@ namespace axr {
                 return;
             }
 
-            if (m_ApiLayersCount + 1 > static_cast<uint32_t>(VulkanApiLayerTypeEnum::End) - 1) {
+            if (ApiLayersCount + 1 > static_cast<uint32_t>(VulkanApiLayerTypeEnum::End) - 1) {
                 axrLogErrorLocation("Api Layers array is full.");
                 return;
             }
 
-            if (m_ApiLayers[m_ApiLayersCount] != nullptr) {
+            if (ApiLayers[ApiLayersCount] != nullptr) {
                 axrLogErrorLocation("This slot should be free. If this error triggered, something went really wrong.");
                 return;
             }
 
-            m_ApiLayers[m_ApiLayersCount] = apiLayer;
-            m_ApiLayersCount++;
+            ApiLayers[ApiLayersCount] = apiLayer;
+            ApiLayersCount++;
         }
 
         /// Add the given extension
@@ -262,42 +262,42 @@ namespace axr {
                 return;
             }
 
-            if (m_ExtensionsCount + 1 > static_cast<uint32_t>(VulkanExtensionTypeEnum::End) - 1) {
+            if (ExtensionsCount + 1 > static_cast<uint32_t>(VulkanExtensionTypeEnum::End) - 1) {
                 axrLogErrorLocation("Extensions array is full.");
                 return;
             }
 
-            if (m_Extensions[m_ExtensionsCount] != nullptr) {
+            if (Extensions[ExtensionsCount] != nullptr) {
                 axrLogErrorLocation("This slot should be free. If this error triggered, something went really wrong.");
                 return;
             }
 
-            m_Extensions[m_ExtensionsCount] = extension;
-            m_ExtensionsCount++;
+            Extensions[ExtensionsCount] = extension;
+            ExtensionsCount++;
         }
 
         /// Clear all the api layers
         void clearApiLayers() {
             for (uint32_t i = 0; i < static_cast<uint32_t>(VulkanApiLayerTypeEnum::End) - 1; ++i) {
-                if (m_ApiLayers[i] != nullptr) {
-                    delete m_ApiLayers[i];
-                    m_ApiLayers[i] = nullptr;
+                if (ApiLayers[i] != nullptr) {
+                    delete ApiLayers[i];
+                    ApiLayers[i] = nullptr;
                 }
             }
 
-            m_ApiLayersCount = 0;
+            ApiLayersCount = 0;
         }
 
         /// Clear all the extensions
         void clearExtensions() {
             for (uint32_t i = 0; i < static_cast<uint32_t>(VulkanExtensionTypeEnum::End) - 1; ++i) {
-                if (m_Extensions[i] != nullptr) {
-                    delete m_Extensions[i];
-                    m_Extensions[i] = nullptr;
+                if (Extensions[i] != nullptr) {
+                    delete Extensions[i];
+                    Extensions[i] = nullptr;
                 }
             }
 
-            m_ExtensionsCount = 0;
+            ExtensionsCount = 0;
         }
     };
 

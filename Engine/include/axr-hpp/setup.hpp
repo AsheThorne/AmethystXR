@@ -14,6 +14,11 @@ namespace axr {
     /// Config for Setup()
     struct SetupConfig {
         // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        axr::LogLevelEnum LogLevel;
+
+        // ----------------------------------------- //
         // Special Functions
         // ----------------------------------------- //
 
@@ -29,11 +34,6 @@ namespace axr {
         SetupConfig(const axr::LogLevelEnum logLevel) :
             LogLevel(logLevel) {
         }
-
-        // ----------------------------------------- //
-        // Public Variables
-        // ----------------------------------------- //
-        axr::LogLevelEnum LogLevel;
 
         // ----------------------------------------- //
         // Public Functions

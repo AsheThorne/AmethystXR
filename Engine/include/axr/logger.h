@@ -1,11 +1,6 @@
 #pragma once
 
 // ----------------------------------------- //
-// AXR Headers
-// ----------------------------------------- //
-#include <axr/common/defines.h>
-
-// ----------------------------------------- //
 // Spdlog Headers
 // ----------------------------------------- //
 #include <spdlog/spdlog.h>
@@ -47,7 +42,6 @@ enum AxrLogLevelEnum {
 
 /// Log message with a location
 struct AxrLogMessageWithLocation {
-    // TODO: Move public variables to the top of all structs (only structs)
     // ----------------------------------------- //
     // Public Variables
     // ----------------------------------------- //

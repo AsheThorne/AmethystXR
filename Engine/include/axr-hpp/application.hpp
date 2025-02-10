@@ -3,7 +3,6 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "common.hpp"
 #include "axr/application.h"
 #include "windowSystem.hpp"
 #include "graphicsSystem.hpp"
@@ -15,6 +14,14 @@ namespace axr {
 
     /// Config for the Application
     struct ApplicationConfig {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        const char* ApplicationName;
+        uint32_t ApplicationVersion;
+        axr::WindowSystemConfig WindowSystemConfig;
+        axr::GraphicsSystemConfig GraphicsSystemConfig;
+
         // ----------------------------------------- //
         // Special Functions
         // ----------------------------------------- //
@@ -44,14 +51,6 @@ namespace axr {
             WindowSystemConfig(windowSystemConfig),
             GraphicsSystemConfig(graphicsSystemConfig) {
         }
-
-        // ----------------------------------------- //
-        // Public Variables
-        // ----------------------------------------- //
-        const char* ApplicationName;
-        uint32_t ApplicationVersion;
-        axr::WindowSystemConfig WindowSystemConfig;
-        axr::GraphicsSystemConfig GraphicsSystemConfig;
 
         // ----------------------------------------- //
         // Public Functions

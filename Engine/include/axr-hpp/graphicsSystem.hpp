@@ -27,6 +27,14 @@ namespace axr {
     /// Config for the graphics system
     struct GraphicsSystemConfig {
         // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        axr::GraphicsApiEnum GraphicsApi;
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+        axr::VulkanApiConfig* VulkanApiConfig = nullptr;
+#endif
+
+        // ----------------------------------------- //
         // Special Functions
         // ----------------------------------------- //
 
@@ -47,14 +55,6 @@ namespace axr {
         ) : GraphicsApi(graphicsApi),
             VulkanApiConfig(vulkanApiConfig) {
         }
-#endif
-
-        // ----------------------------------------- //
-        // Public Variables
-        // ----------------------------------------- //
-        axr::GraphicsApiEnum GraphicsApi;
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-        axr::VulkanApiConfig* VulkanApiConfig = nullptr;
 #endif
 
         // ----------------------------------------- //
