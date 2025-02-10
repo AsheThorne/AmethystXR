@@ -12,7 +12,6 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/common/result.h"
-#include "axr/windowSystem.h"
 
 // ----------------------------------------- //
 // Vulkan Headers
@@ -66,12 +65,10 @@ public:
 
     /// Set the queue family indices
     /// @param physicalDevice Physical device to use
-    /// @param windowPlatform Window platform to use
     /// @param dispatch Dispatch to use
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setQueueFamilyIndices(
         const vk::PhysicalDevice& physicalDevice,
-        AxrWindowPlatformEnum windowPlatform,
         const vk::DispatchLoaderDynamic& dispatch
     );
     /// Set the queue family queues
@@ -108,12 +105,10 @@ private:
     /// Check if the given queue family index supports presentation
     /// @param queueFamilyIndex Queue family index
     /// @param physicalDevice Physical device to use
-    /// @param windowPlatform Window platform to use
     /// @param dispatch Dispatch to use
     [[nodiscard]] bool doesQueueFamilyIndexSupportsPresentation(
         uint32_t queueFamilyIndex,
         const vk::PhysicalDevice& physicalDevice,
-        AxrWindowPlatformEnum windowPlatform,
         const vk::DispatchLoaderDynamic& dispatch
     ) const;
 };

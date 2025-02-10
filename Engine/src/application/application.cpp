@@ -77,7 +77,6 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
         AxrGraphicsSystem::Config{
             .ApplicationName = config.ApplicationName,
             .ApplicationVersion = config.ApplicationVersion,
-            .WindowPlatform = config.WindowSystemConfig.Platform,
             .WindowSystem = &m_WindowSystem,
             .GraphicsConfig = config.GraphicsSystemConfig,
         }

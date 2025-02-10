@@ -69,6 +69,7 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanGraphicsSystem.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanUtils.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanQueueFamilies.hpp
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanWindowGraphics.hpp
 )
 
 # ---------------------------------------------
@@ -91,6 +92,7 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanGraphicsSystem.cpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanUtils.cpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanQueueFamilies.cpp
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanWindowGraphics.cpp
 )
 
 # ---------------------------------------------
@@ -139,7 +141,7 @@ add_compile_definitions(UNICODE)
 add_compile_definitions(AXR_BUILD_DLL)
 
 if(WIN32)
-    add_compile_definitions(AXR_PLATFORM_WIN32)
+    add_compile_definitions(AXR_USE_PLATFORM_WIN32)
     add_compile_definitions(NOMINMAX)
 endif()
 

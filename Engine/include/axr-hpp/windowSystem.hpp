@@ -8,16 +8,6 @@
 
 namespace axr {
     // ----------------------------------------- //
-    // Window Platform Enum Definition
-    // ----------------------------------------- //
-
-    /// Window platform enum
-    enum class WindowPlatformEnum {
-        Undefined = AXR_WINDOW_PLATFORM_UNDEFINED,
-        Win32 = AXR_WINDOW_PLATFORM_WIN32,
-    };
-
-    // ----------------------------------------- //
     // Window Config Definition
     // ----------------------------------------- //
 
@@ -31,28 +21,23 @@ namespace axr {
 
         /// Default Constructor
         WindowSystemConfig() :
-            Platform{},
             Width{},
             Height{} {
         }
 
         /// Constructor
-        /// @param platform The window platform
         /// @param width The window width
         /// @param height The window height
         WindowSystemConfig(
-            const axr::WindowPlatformEnum platform,
             const uint32_t width,
             const uint32_t height
-        ) : Platform(platform),
-            Width(width),
+        ) : Width(width),
             Height{height} {
         }
 
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-        axr::WindowPlatformEnum Platform;
         uint32_t Width;
         uint32_t Height;
 

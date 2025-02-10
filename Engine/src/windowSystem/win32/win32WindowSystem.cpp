@@ -1,4 +1,4 @@
-#ifdef AXR_PLATFORM_WIN32
+#ifdef AXR_USE_PLATFORM_WIN32
 
 // ----------------------------------------- //
 // AXR Headers
@@ -14,6 +14,7 @@ AxrWin32WindowSystem::AxrWin32WindowSystem(const Config& config) :
     m_Width(config.Width),
     m_Height(config.Height),
     m_WindowClassName(axrToWString((std::string(config.ApplicationName) + "_Class").c_str())),
+    m_Instance(nullptr),
     m_WindowHandle(nullptr) {
 }
 
@@ -24,11 +25,11 @@ AxrWin32WindowSystem::~AxrWin32WindowSystem() {
 // ---- Public Functions ----
 
 AxrResult AxrWin32WindowSystem::setup() {
-    const HINSTANCE hInstance = GetModuleHandle(nullptr);
+    m_Instance = GetModuleHandle(nullptr);
 
     // Check if window class is already registered
     WNDCLASSEX windowClassInfo;
-    if (GetClassInfoEx(hInstance, m_WindowClassName.c_str(), &windowClassInfo) != 0) {
+    if (GetClassInfoEx(m_Instance, m_WindowClassName.c_str(), &windowClassInfo) != 0) {
         axrLogErrorLocation("Window class is already registered.");
         return AXR_ERROR;
     }
@@ -37,7 +38,7 @@ AxrResult AxrWin32WindowSystem::setup() {
     WNDCLASSEX windowClass = {};
     windowClass.cbSize = sizeof(WNDCLASSEX);
     windowClass.lpfnWndProc = processWindowMessage;
-    windowClass.hInstance = hInstance;
+    windowClass.hInstance = m_Instance;
     windowClass.lpszClassName = m_WindowClassName.c_str();
     windowClass.hCursor = LoadCursor(nullptr, IDC_ARROW);
 
@@ -113,6 +114,14 @@ void AxrWin32WindowSystem::processEvents() {
         TranslateMessage(&message);
         DispatchMessage(&message);
     }
+}
+
+HINSTANCE AxrWin32WindowSystem::getInstance() const {
+    return m_Instance;
+}
+
+HWND AxrWin32WindowSystem::getWindowHandle() const {
+    return m_WindowHandle;
 }
 
 // ---- Private Functions ----

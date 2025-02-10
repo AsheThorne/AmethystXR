@@ -116,7 +116,7 @@ struct AxrVulkanExtensionSurface {
     const AxrVulkanExtensionLevelEnum Level = AXR_VULKAN_EXTENSION_LEVEL_INSTANCE;
 };
 
-// TODO: Should this be guarded by the AXR_PLATFORM_WIN32 preprocessor? 
+// TODO: Should this be guarded by the AXR_USE_PLATFORM_WIN32 preprocessor? 
 /// Vulkan Extension Win32 Surface
 struct AxrVulkanExtensionWin32Surface {
     const AxrVulkanExtensionTypeEnum Type = AXR_VULKAN_EXTENSION_TYPE_WIN32_SURFACE;

@@ -74,7 +74,6 @@ AxrVulkanQueueFamilies& AxrVulkanQueueFamilies::operator=(AxrVulkanQueueFamilies
 
 AxrResult AxrVulkanQueueFamilies::setQueueFamilyIndices(
     const vk::PhysicalDevice& physicalDevice,
-    const AxrWindowPlatformEnum windowPlatform,
     const vk::DispatchLoaderDynamic& dispatch
 ) {
     // ----------------------------------------- //
@@ -117,7 +116,6 @@ AxrResult AxrVulkanQueueFamilies::setQueueFamilyIndices(
         if (doesQueueFamilyIndexSupportsPresentation(
             static_cast<uint32_t>(i),
             physicalDevice,
-            windowPlatform,
             dispatch
         ) && !PresentationQueueFamilyIndex.has_value()) {
             PresentationQueueFamilyIndex = static_cast<uint32_t>(i);
@@ -244,28 +242,18 @@ void AxrVulkanQueueFamilies::cleanup() {
 bool AxrVulkanQueueFamilies::doesQueueFamilyIndexSupportsPresentation(
     const uint32_t queueFamilyIndex,
     const vk::PhysicalDevice& physicalDevice,
-    const AxrWindowPlatformEnum windowPlatform,
     const vk::DispatchLoaderDynamic& dispatch
 ) const {
-    switch (windowPlatform) {
-        case AXR_WINDOW_PLATFORM_WIN32: {
-#ifdef AXR_PLATFORM_WIN32
-            const vk::Bool32 presentationSupportExists = physicalDevice.getWin32PresentationSupportKHR(
-                queueFamilyIndex,
-                dispatch
-            );
-            return static_cast<bool>(presentationSupportExists);
+#ifdef AXR_USE_PLATFORM_WIN32
+    const vk::Bool32 presentationSupportExists = physicalDevice.getWin32PresentationSupportKHR(
+        queueFamilyIndex,
+        dispatch
+    );
+    return static_cast<bool>(presentationSupportExists);
 #else
-            axrLogErrorLocation("Window platform is not supported.");
-            return false;
+    axrLogErrorLocation("Unknown platform.");
+    return false;
 #endif
-        }
-        case AXR_WINDOW_PLATFORM_UNDEFINED:
-        default: { // NOLINT(clang-diagnostic-covered-switch-default)
-            axrLogErrorLocation("Unknown window platform.");
-            return false;
-        }
-    }
 }
 
 #endif

@@ -29,8 +29,11 @@ public:
     // Types
     // ----------------------------------------- //
 
-    /// On window opened event type
-    using OnWindowOpenedEvent_T = AxrEventHandler<AxrWindowSystem_T>;
+    /// ConfigureWindowGraphics callback function type
+    /// @param userData User data
+    /// @param isWindowOpen If true,the graphics should be set up. If false, the graphics should be cleaned up.
+    /// @returns AXR_SUCCESS if the function succeeded
+    using ConfigureWindowGraphicsCallback_T = AxrResult(*)(void* userData, bool isWindowOpen);
 
     // ----------------------------------------- //
     // Special Functions
@@ -66,9 +69,6 @@ public:
     // Public Functions
     // ----------------------------------------- //
 
-    /// Set up the window system
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setup();
     /// Check if the window is open
     /// @returns True if the window is open
     [[nodiscard]] bool isWindowOpen() const;
@@ -77,39 +77,51 @@ public:
     [[nodiscard]] AxrResult openWindow();
     /// Signal that we want to close the window
     void closeWindow();
+
+    // ---- For Internal Use ----
+    // These functions are only to be used internally in the AmethystXr engine.
+    // They should not be given a publicly accessible function in the 'include headers' to be used by an application.
+
+    /// Set up the window system
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setup();
     /// Process the window events
     void processEvents();
 
-    /// Add 'On window opened' event callback
+    /// Set the 'ConfigureWindowGraphics' callback function
     /// @param userData User data
     /// @param function Callback function
-    void addOnWindowOpenedCallback(void* userData, const OnWindowOpenedEvent_T::CallbackFunction_T& function);
-    /// Remove 'On window opened' event callback
-    /// @param function Callback function
-    void removeOnWindowOpenedCallback(const OnWindowOpenedEvent_T::CallbackFunction_T& function);
+    void setConfigureWindowGraphicsCallback(void* userData, ConfigureWindowGraphicsCallback_T function);
+    /// Reset the 'ConfigureWindowGraphics' callback function
+    void resetConfigureWindowGraphicsCallback();
+
+#ifdef AXR_USE_PLATFORM_WIN32
+    [[nodiscard]] AxrWin32WindowSystem* getWin32WindowSystem() const;
+#endif
 
 private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
 
-#ifdef AXR_PLATFORM_WIN32
+#ifdef AXR_USE_PLATFORM_WIN32
     // ---- Win32 Variables ----
     std::unique_ptr<AxrWin32WindowSystem> m_Win32WindowSystem;
 #endif
 
-    // ---- Config Variables ----
-    AxrWindowPlatformEnum m_Platform;
-
-    OnWindowOpenedEvent_T m_OnWindowOpenedEvent;
+    void* m_ConfigureWindowGraphicsCallbackUserData;
+    ConfigureWindowGraphicsCallback_T m_ConfigureWindowGraphicsCallback;
 
     // ----------------------------------------- //
     // Private Functions
     // ----------------------------------------- //
 
-    /// Invoke 'On window opened' event
-    void invokeOnWindowOpenedCallback();
+    /// Invoke 'Configure window graphics' callback
+    /// @param isWindowOpen Window open state
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult invokeConfigureWindowGraphicsCallback(bool isWindowOpen) const;
 
+#ifdef AXR_USE_PLATFORM_WIN32
     // ---- Win32 Functions ----
 
     /// Set up the win32 window
@@ -125,4 +137,5 @@ private:
     void closeWin32Window();
     /// Process the win32 window events
     void processWin32Events();
+#endif
 };

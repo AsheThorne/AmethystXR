@@ -18,22 +18,11 @@
 typedef class AxrWindowSystem* AxrWindowSystem_T;
 
 // ----------------------------------------- //
-// Enums
-// ----------------------------------------- //
-
-/// Window platform enum
-enum AxrWindowPlatformEnum {
-    AXR_WINDOW_PLATFORM_UNDEFINED = 0,
-    AXR_WINDOW_PLATFORM_WIN32 = 1,
-};
-
-// ----------------------------------------- //
 // Structs
 // ----------------------------------------- //
 
 /// Config for the window system
 struct AxrWindowSystemConfig {
-    AxrWindowPlatformEnum Platform;
     uint32_t Width;
     uint32_t Height;
 };

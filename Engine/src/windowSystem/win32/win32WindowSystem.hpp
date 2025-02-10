@@ -1,5 +1,5 @@
 #pragma once
-#ifdef AXR_PLATFORM_WIN32
+#ifdef AXR_USE_PLATFORM_WIN32
 
 // ----------------------------------------- //
 // AXR Headers
@@ -78,6 +78,13 @@ public:
     /// Process the window message queue
     void processEvents();
 
+    /// Get the win32 instance
+    /// @returns Win32 instance
+    [[nodiscard]] HINSTANCE getInstance() const;
+    /// Get the win32 window handle
+    /// @returns Win32 window handle
+    [[nodiscard]] HWND getWindowHandle() const;
+
 private:
     // ----------------------------------------- //
     // Private Variables
@@ -89,6 +96,7 @@ private:
     uint32_t m_Height;
 
     std::wstring m_WindowClassName;
+    HINSTANCE m_Instance;
     HWND m_WindowHandle;
 
     // ----------------------------------------- //

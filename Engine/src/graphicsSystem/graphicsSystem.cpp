@@ -22,7 +22,6 @@ AxrGraphicsSystem::AxrGraphicsSystem(const Config& config):
             AxrVulkanGraphicsSystem::Config{
                 .ApplicationName = config.ApplicationName,
                 .ApplicationVersion = config.ApplicationVersion,
-                .WindowPlatform = config.WindowPlatform,
                 .WindowSystem = config.WindowSystem,
                 .VulkanConfig = config.GraphicsConfig.VulkanConfig
             }

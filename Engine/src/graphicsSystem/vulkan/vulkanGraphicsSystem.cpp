@@ -12,33 +12,39 @@
 #include "vulkanGraphicsSystem.hpp"
 #include "vulkanutils.hpp"
 #include "../../utils.hpp"
-#include "../../windowSystem/windowSystem.hpp"
 
 // ---- Special Functions ----
 
 AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     m_ApplicationName(config.ApplicationName),
     m_ApplicationVersion(config.ApplicationVersion),
-    m_WindowPlatform(config.WindowPlatform),
-    m_WindowSystem(config.WindowSystem),
     m_Instance(VK_NULL_HANDLE),
     m_DebugUtilsMessenger(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE) {
-    if (config.VulkanConfig == nullptr) {
-        axrLogErrorLocation("Vulkan Config is null.");
-        return;
-    }
-
     m_DynamicDispatchLoader.init();
 
-    m_ApiLayers = axrCloneApiLayers(config.VulkanConfig->ApiLayersCount, config.VulkanConfig->ApiLayers);
-    m_Extensions = axrCloneExtensions(config.VulkanConfig->ExtensionsCount, config.VulkanConfig->Extensions);
+    if (config.VulkanConfig == nullptr) {
+        axrLogErrorLocation("Vulkan Config is null.");
+    } else {
+        m_ApiLayers = axrCloneApiLayers(config.VulkanConfig->ApiLayersCount, config.VulkanConfig->ApiLayers);
+        m_Extensions = axrCloneExtensions(config.VulkanConfig->ExtensionsCount, config.VulkanConfig->Extensions);
+    }
+
+    if (config.WindowSystem != nullptr) {
+        m_WindowGraphics = new AxrVulkanWindowGraphics(
+            {
+                .WindowSystem = *config.WindowSystem,
+                .Dispatch = m_DynamicDispatchLoader
+            }
+        );
+    }
 }
 
 AxrVulkanGraphicsSystem::~AxrVulkanGraphicsSystem() {
-    if (m_WindowSystem != nullptr) {
-        m_WindowSystem->removeOnWindowOpenedCallback(onWindowOpenedCallback);
+    if (m_WindowGraphics != nullptr) {
+        delete m_WindowGraphics;
+        m_WindowGraphics = nullptr;
     }
 
     destroyLogicalDevice();
@@ -67,14 +73,13 @@ AxrResult AxrVulkanGraphicsSystem::setup() {
     axrResult = createLogicalDevice();
     if (AXR_FAILED(axrResult)) return axrResult;
 
-    if (m_WindowSystem != nullptr) {
-        m_WindowSystem->addOnWindowOpenedCallback(this, onWindowOpenedCallback);
-
-        // If the window is already open, then invoke the callback function.
-        // Otherwise, it won't get called
-        if (m_WindowSystem->isWindowOpen()) {
-            onWindowOpenedCallback(this, m_WindowSystem);
-        }
+    if (m_WindowGraphics != nullptr) {
+        axrResult = m_WindowGraphics->setup(
+            {
+                .Instance = m_Instance
+            }
+        );
+        if (AXR_FAILED(axrResult)) return axrResult;
     }
 
     return axrResult;
@@ -173,7 +178,9 @@ std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedInstanceApiLayers(
     return supportedApiLayers;
 }
 
-std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedDeviceApiLayers(const vk::PhysicalDevice& physicalDevice) const {
+std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedDeviceApiLayers(
+    const vk::PhysicalDevice& physicalDevice
+) const {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -218,7 +225,9 @@ std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedInstanceExtensions
     return supportedExtensions;
 }
 
-std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedDeviceExtensions(const vk::PhysicalDevice& physicalDevice) const {
+std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedDeviceExtensions(
+    const vk::PhysicalDevice& physicalDevice
+) const {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -426,23 +435,19 @@ bool AxrVulkanGraphicsSystem::extensionExists(const AxrVulkanExtensionTypeEnum e
 }
 
 void AxrVulkanGraphicsSystem::addRequiredInstanceExtensions() {
+    // TODO: Move these 2 extensions to window graphics.
+    //  Should probably create some kind of AxrVulkanExtensionCollection class to manage cloning extensions and adding them
     auto surfaceExtension = AxrVulkanExtensionSurface{};
     addExtension(reinterpret_cast<AxrVulkanExtension_T>(&surfaceExtension));
 
-    switch (m_WindowPlatform) {
-        case AXR_WINDOW_PLATFORM_WIN32: {
-            auto win32SurfaceExtension = AxrVulkanExtensionWin32Surface{};
-            addExtension(reinterpret_cast<AxrVulkanExtension_T>(&win32SurfaceExtension));
-            break;
-        }
-        case AXR_WINDOW_PLATFORM_UNDEFINED: {
-            axrLogErrorLocation("Unknown window platform.");
-            break;
-        }
-    }
+#ifdef AXR_USE_PLATFORM_WIN32
+    auto win32SurfaceExtension = AxrVulkanExtensionWin32Surface{};
+    addExtension(reinterpret_cast<AxrVulkanExtension_T>(&win32SurfaceExtension));
+#endif
 }
 
 void AxrVulkanGraphicsSystem::addRequiredDeviceExtensions() {
+    // TODO: Move to window graphics.
     auto swapchainExtension = AxrVulkanExtensionSwapchain{};
     addExtension(reinterpret_cast<AxrVulkanExtension_T>(&swapchainExtension));
 }
@@ -569,7 +574,6 @@ AxrResult AxrVulkanGraphicsSystem::setupPhysicalDevice() {
 
     const AxrResult axrResult = m_QueueFamilies.setQueueFamilyIndices(
         m_PhysicalDevice,
-        m_WindowPlatform,
         m_DynamicDispatchLoader
     );
     if (AXR_FAILED(axrResult)) {
@@ -667,7 +671,6 @@ uint32_t AxrVulkanGraphicsSystem::scorePhysicalDeviceQueueFamilies(const vk::Phy
     AxrVulkanQueueFamilies queueFamilies;
     const AxrResult axrResult = queueFamilies.setQueueFamilyIndices(
         physicalDevice,
-        m_WindowPlatform,
         m_DynamicDispatchLoader
     );
 
@@ -918,10 +921,6 @@ AxrVulkanGraphicsSystem::DeviceChain_T AxrVulkanGraphicsSystem::createDeviceChai
     return chain;
 }
 
-void AxrVulkanGraphicsSystem::setupWindowGraphics() {
-    axrLogInfo("Setting up window graphics.");
-}
-
 // ---- Private Static Functions ----
 
 VkBool32 AxrVulkanGraphicsSystem::debugUtilsCallback(
@@ -996,13 +995,6 @@ VkBool32 AxrVulkanGraphicsSystem::debugUtilsCallback(
     );
 
     return VK_FALSE;
-}
-
-void AxrVulkanGraphicsSystem::onWindowOpenedCallback(void* userData, AxrWindowSystem_T windowSystem) {
-    if (userData == nullptr) return;
-
-    const auto self = static_cast<AxrVulkanGraphicsSystem*>(userData);
-    self->setupWindowGraphics();
 }
 
 #endif

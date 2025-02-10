@@ -22,7 +22,6 @@ public:
     struct Config {
         const char* ApplicationName;
         uint32_t ApplicationVersion;
-        AxrWindowPlatformEnum WindowPlatform;
         AxrWindowSystem_T WindowSystem;
         AxrGraphicsSystemConfig GraphicsConfig;
     };

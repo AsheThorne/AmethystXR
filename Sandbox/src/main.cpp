@@ -16,7 +16,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     axr::loggerSetup(applicationName);
 
     const axr::WindowSystemConfig windowSystemConfig(
-        axr::WindowPlatformEnum::Win32,
         800,
         600
     );
