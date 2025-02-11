@@ -21,6 +21,25 @@ AxrVulkanWindowGraphics::~AxrVulkanWindowGraphics() {
 
 // ---- Public Functions ----
 
+void AxrVulkanWindowGraphics::addRequiredInstanceExtensions(
+    AxrVulkanExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum>& extensions
+) const {
+    auto surfaceExtension = AxrVulkanExtensionSurface{};
+    extensions.add(reinterpret_cast<AxrVulkanExtension_T>(&surfaceExtension));
+
+#ifdef AXR_USE_PLATFORM_WIN32
+    auto win32SurfaceExtension = AxrVulkanExtensionWin32Surface{};
+    extensions.add(reinterpret_cast<AxrVulkanExtension_T>(&win32SurfaceExtension));
+#endif
+}
+
+void AxrVulkanWindowGraphics::addRequiredDeviceExtensions(
+    AxrVulkanExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum>& extensions
+) const {
+    auto swapchainExtension = AxrVulkanExtensionSwapchain{};
+    extensions.add(reinterpret_cast<AxrVulkanExtension_T>(&swapchainExtension));
+}
+
 AxrResult AxrVulkanWindowGraphics::setup(const SetupConfig& config) {
     AxrResult result = AXR_SUCCESS;
 

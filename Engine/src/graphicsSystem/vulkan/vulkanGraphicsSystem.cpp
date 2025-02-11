@@ -423,21 +423,19 @@ std::vector<const char*> AxrVulkanGraphicsSystem::getAllDeviceExtensionNames() c
 }
 
 void AxrVulkanGraphicsSystem::addRequiredInstanceExtensions() {
-    // TODO: Move these 2 extensions to window graphics.
-    //  Should probably create some kind of AxrVulkanExtensionCollection class to manage cloning extensions and adding them
-    auto surfaceExtension = AxrVulkanExtensionSurface{};
-    m_Extensions.add(reinterpret_cast<AxrVulkanExtension_T>(&surfaceExtension));
+    if (m_WindowGraphics != nullptr) {
+        m_WindowGraphics->addRequiredInstanceExtensions(m_Extensions);
+    }
 
-#ifdef AXR_USE_PLATFORM_WIN32
-    auto win32SurfaceExtension = AxrVulkanExtensionWin32Surface{};
-    m_Extensions.add(reinterpret_cast<AxrVulkanExtension_T>(&win32SurfaceExtension));
-#endif
+    // TODO: Add required instance extensions for OpenXR
 }
 
 void AxrVulkanGraphicsSystem::addRequiredDeviceExtensions() {
-    // TODO: Move to window graphics.
-    auto swapchainExtension = AxrVulkanExtensionSwapchain{};
-    m_Extensions.add(reinterpret_cast<AxrVulkanExtension_T>(&swapchainExtension));
+    if (m_WindowGraphics != nullptr) {
+        m_WindowGraphics->addRequiredDeviceExtensions(m_Extensions);
+    }
+
+    // TODO: Add required device extensions for OpenXR
 }
 
 vk::DebugUtilsMessengerCreateInfoEXT AxrVulkanGraphicsSystem::createDebugUtilsCreateInto() const {
