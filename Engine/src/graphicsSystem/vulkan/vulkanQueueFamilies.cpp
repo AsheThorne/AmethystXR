@@ -142,6 +142,14 @@ AxrResult AxrVulkanQueueFamilies::setQueueFamilyIndices(
     return AXR_SUCCESS;
 }
 
+void AxrVulkanQueueFamilies::resetQueueFamilyIndices() {
+    resetQueueFamilyQueues();
+    
+    GraphicsQueueFamilyIndex.reset();
+    PresentationQueueFamilyIndex.reset();
+    TransferQueueFamilyIndex.reset();
+}
+
 AxrResult AxrVulkanQueueFamilies::setQueueFamilyQueues(
     const vk::Device& device,
     const vk::DispatchLoaderDynamic& dispatch
@@ -178,6 +186,12 @@ AxrResult AxrVulkanQueueFamilies::setQueueFamilyQueues(
     device.getQueue(TransferQueueFamilyIndex.value(), 0, &TransferQueue, dispatch);
 
     return AXR_SUCCESS;
+}
+
+void AxrVulkanQueueFamilies::resetQueueFamilyQueues() {
+    GraphicsQueue = VK_NULL_HANDLE;
+    PresentationQueue = VK_NULL_HANDLE;
+    TransferQueue = VK_NULL_HANDLE;
 }
 
 bool AxrVulkanQueueFamilies::areIndicesValid() const {
@@ -230,13 +244,7 @@ std::unordered_set<uint32_t> AxrVulkanQueueFamilies::getUniqueQueueFamilyIndices
 // ---- Private Functions ----
 
 void AxrVulkanQueueFamilies::cleanup() {
-    GraphicsQueueFamilyIndex.reset();
-    PresentationQueueFamilyIndex.reset();
-    TransferQueueFamilyIndex.reset();
-
-    GraphicsQueue = VK_NULL_HANDLE;
-    PresentationQueue = VK_NULL_HANDLE;
-    TransferQueue = VK_NULL_HANDLE;
+    resetQueueFamilyIndices();
 }
 
 bool AxrVulkanQueueFamilies::doesQueueFamilyIndexSupportsPresentation(

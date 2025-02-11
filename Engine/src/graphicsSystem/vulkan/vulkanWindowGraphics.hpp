@@ -66,6 +66,8 @@ public:
     /// @param config Setup config
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setup(const SetupConfig& config);
+    /// Reset the setup() function
+    void resetSetup();
 
 private:
     // ----------------------------------------- //
@@ -85,9 +87,6 @@ private:
     // Private Functions
     // ----------------------------------------- //
 
-    /// Clean up the window graphics
-    void cleanup();
-
     /// Set the SetupConfig variables
     /// @param config Setup config
     /// @returns AXR_SUCCESS if the function succeeded
@@ -98,8 +97,8 @@ private:
     /// Prepare the window for rendering
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult prepareWindowForRendering();
-    /// Destroy everything that gets created in prepareWindowForRendering 
-    void destroyWindowRenderingConfig();
+    /// Reset the prepareWindowForRendering() function 
+    void resetPrepareWindowForRendering();
 
     // ---- Surface ----
 

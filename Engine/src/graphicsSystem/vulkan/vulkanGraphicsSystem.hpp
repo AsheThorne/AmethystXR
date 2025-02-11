@@ -106,6 +106,9 @@ private:
     // Private Functions
     // ----------------------------------------- //
 
+    /// Reset setup()
+    void resetSetup();
+
     // ---- Instance Functions ----
 
     /// Create the vulkan instance
@@ -191,6 +194,8 @@ private:
     /// Set up the physical device
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setupPhysicalDevice();
+    /// Reset setupPhysicalDevice()
+    void resetPhysicalDevice();
 
     /// Decide on which physical device we'd like to use.
     /// If OpenXR is being used though, we need to use the one it selects for us

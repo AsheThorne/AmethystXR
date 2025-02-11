@@ -32,6 +32,9 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
         m_Extensions = axrCloneExtensions(config.VulkanConfig->ExtensionsCount, config.VulkanConfig->Extensions);
     }
 
+    addRequiredInstanceExtensions();
+    addRequiredDeviceExtensions();
+
     if (config.WindowSystem != nullptr) {
         m_WindowGraphics = new AxrVulkanWindowGraphics(
             {
@@ -43,14 +46,12 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
 }
 
 AxrVulkanGraphicsSystem::~AxrVulkanGraphicsSystem() {
+    resetSetup();
+
     if (m_WindowGraphics != nullptr) {
         delete m_WindowGraphics;
         m_WindowGraphics = nullptr;
     }
-
-    destroyLogicalDevice();
-    destroyDebugUtils();
-    destroyInstance();
     destroyExtensions();
     destroyApiLayers();
 }
@@ -60,19 +61,29 @@ AxrVulkanGraphicsSystem::~AxrVulkanGraphicsSystem() {
 AxrResult AxrVulkanGraphicsSystem::setup() {
     AxrResult axrResult = AXR_SUCCESS;
 
-    // TODO: When something fails, we should cleanup all the objects that were already created.
-
     axrResult = createInstance();
-    if (AXR_FAILED(axrResult)) return axrResult;
+    if (AXR_FAILED(axrResult)) {
+        resetSetup();
+        return axrResult;
+    }
 
     axrResult = createDebugUtils();
-    if (AXR_FAILED(axrResult)) return axrResult;
+    if (AXR_FAILED(axrResult)) {
+        resetSetup();
+        return axrResult;
+    }
 
     axrResult = setupPhysicalDevice();
-    if (AXR_FAILED(axrResult)) return axrResult;
+    if (AXR_FAILED(axrResult)) {
+        resetSetup();
+        return axrResult;
+    }
 
     axrResult = createLogicalDevice();
-    if (AXR_FAILED(axrResult)) return axrResult;
+    if (AXR_FAILED(axrResult)) {
+        resetSetup();
+        return axrResult;
+    }
 
     if (m_WindowGraphics != nullptr) {
         axrResult = m_WindowGraphics->setup(
@@ -80,13 +91,27 @@ AxrResult AxrVulkanGraphicsSystem::setup() {
                 .Instance = m_Instance
             }
         );
-        if (AXR_FAILED(axrResult)) return axrResult;
+        if (AXR_FAILED(axrResult)) {
+            resetSetup();
+            return axrResult;
+        }
     }
 
     return axrResult;
 }
 
 // ---- Private Functions ----
+
+void AxrVulkanGraphicsSystem::resetSetup() {
+    if (m_WindowGraphics != nullptr) {
+        m_WindowGraphics->resetSetup();
+    }
+
+    destroyLogicalDevice();
+    resetPhysicalDevice();
+    destroyDebugUtils();
+    destroyInstance();
+}
 
 AxrResult AxrVulkanGraphicsSystem::createInstance() {
     // ----------------------------------------- //
@@ -111,7 +136,6 @@ AxrResult AxrVulkanGraphicsSystem::createInstance() {
         vk::ApiVersion13
     );
 
-    addRequiredInstanceExtensions();
     removeUnsupportedApiLayers();
     removeUnsupportedInstanceExtensions();
 
@@ -560,8 +584,6 @@ AxrResult AxrVulkanGraphicsSystem::setupPhysicalDevice() {
     // Process
     // ----------------------------------------- //
 
-    addRequiredDeviceExtensions();
-
     m_PhysicalDevice = pickPhysicalDevice();
     if (m_PhysicalDevice == VK_NULL_HANDLE) {
         axrLogErrorLocation("Failed to pick Physical device.");
@@ -585,6 +607,11 @@ AxrResult AxrVulkanGraphicsSystem::setupPhysicalDevice() {
     removeUnsupportedDeviceExtensions();
 
     return AXR_SUCCESS;
+}
+
+void AxrVulkanGraphicsSystem::resetPhysicalDevice() {
+    m_QueueFamilies.resetQueueFamilyIndices();
+    m_PhysicalDevice = VK_NULL_HANDLE;
 }
 
 vk::PhysicalDevice AxrVulkanGraphicsSystem::pickPhysicalDevice() const {
@@ -904,6 +931,8 @@ AxrResult AxrVulkanGraphicsSystem::createLogicalDevice() {
 }
 
 void AxrVulkanGraphicsSystem::destroyLogicalDevice() {
+    m_QueueFamilies.resetQueueFamilyQueues();
+
     if (m_Device != VK_NULL_HANDLE) {
         m_Device.destroy(nullptr, m_DynamicDispatchLoader);
         m_Device = VK_NULL_HANDLE;

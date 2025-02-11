@@ -16,7 +16,7 @@ AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
 }
 
 AxrVulkanWindowGraphics::~AxrVulkanWindowGraphics() {
-    cleanup();
+    resetSetup();
 }
 
 // ---- Public Functions ----
@@ -26,7 +26,7 @@ AxrResult AxrVulkanWindowGraphics::setup(const SetupConfig& config) {
 
     result = setSetupConfigVariables(config);
     if (AXR_FAILED(result)) {
-        cleanup();
+        resetSetup();
         return result;
     }
 
@@ -35,14 +35,14 @@ AxrResult AxrVulkanWindowGraphics::setup(const SetupConfig& config) {
     return result;
 }
 
-// ---- Private Functions ----
-
-void AxrVulkanWindowGraphics::cleanup() {
-    destroyWindowRenderingConfig();
+void AxrVulkanWindowGraphics::resetSetup() {
+    resetPrepareWindowForRendering();
 
     m_WindowSystem.resetConfigureWindowGraphicsCallback();
     resetSetupConfigVariables();
 }
+
+// ---- Private Functions ----
 
 AxrResult AxrVulkanWindowGraphics::setSetupConfigVariables(const SetupConfig& config) {
     // ----------------------------------------- //
@@ -76,14 +76,14 @@ AxrResult AxrVulkanWindowGraphics::prepareWindowForRendering() {
 
     result = createSurface();
     if (AXR_FAILED(result)) {
-        destroyWindowRenderingConfig();
+        resetPrepareWindowForRendering();
         return result;
     }
 
     return result;
 }
 
-void AxrVulkanWindowGraphics::destroyWindowRenderingConfig() {
+void AxrVulkanWindowGraphics::resetPrepareWindowForRendering() {
     destroySurface();
 }
 
@@ -100,6 +100,7 @@ void AxrVulkanWindowGraphics::destroySurface() {
     if (m_Surface == VK_NULL_HANDLE) return;
 
     m_Instance.destroySurfaceKHR(m_Surface, nullptr, m_Dispatch);
+    m_Surface = VK_NULL_HANDLE;
 }
 
 #ifdef AXR_USE_PLATFORM_WIN32
@@ -153,7 +154,7 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphicsCallback(void* userDat
     if (isWindowOpen) {
         return self->prepareWindowForRendering();
     } else {
-        self->destroyWindowRenderingConfig();
+        self->resetPrepareWindowForRendering();
         return AXR_SUCCESS;
     }
 }

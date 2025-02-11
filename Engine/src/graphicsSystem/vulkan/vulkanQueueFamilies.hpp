@@ -71,6 +71,9 @@ public:
         const vk::PhysicalDevice& physicalDevice,
         const vk::DispatchLoaderDynamic& dispatch
     );
+    /// Reset setQueueFamilyIndices()
+    void resetQueueFamilyIndices();
+    
     /// Set the queue family queues
     /// @param device Logical device to use
     /// @param dispatch Dispatch to use
@@ -79,6 +82,8 @@ public:
         const vk::Device& device,
         const vk::DispatchLoaderDynamic& dispatch
     );
+    /// Reset setQueueFamilyQueues()
+    void resetQueueFamilyQueues();
 
     /// Check if the queue family indices are valid
     /// @returns True if the queue family indices are valid

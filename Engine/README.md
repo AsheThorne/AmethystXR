@@ -18,4 +18,12 @@ Any header file which isn't accessed by the application, must go inside the `src
 
 - Avoid `dynamic_cast`
 - Minimal polymorphism. Only for small things with minimal impact on the engine
-- Try to avoid using std::string where possible
+
+### Definitions
+
+`cleanup` functions are reserved for cleaning up the entire class.
+These are typically only used in destructors, move and copy functions.
+
+`reset` functions are for resetting another function back to before it was called.
+For example, `resetSetup()` will destroy anything that was created in the `setup()` function and everything that
+relies on the objects created in the `setup()`.
