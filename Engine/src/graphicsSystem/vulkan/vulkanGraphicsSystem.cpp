@@ -28,8 +28,8 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     if (config.VulkanConfig == nullptr) {
         axrLogErrorLocation("Vulkan Config is null.");
     } else {
-        m_ApiLayers = axrCloneApiLayers(config.VulkanConfig->ApiLayersCount, config.VulkanConfig->ApiLayers);
-        m_Extensions = axrCloneExtensions(config.VulkanConfig->ExtensionsCount, config.VulkanConfig->Extensions);
+        m_ApiLayers.add(config.VulkanConfig->ApiLayersCount, config.VulkanConfig->ApiLayers);
+        m_Extensions.add(config.VulkanConfig->ExtensionsCount, config.VulkanConfig->Extensions);
     }
 
     addRequiredInstanceExtensions();
@@ -52,8 +52,8 @@ AxrVulkanGraphicsSystem::~AxrVulkanGraphicsSystem() {
         delete m_WindowGraphics;
         m_WindowGraphics = nullptr;
     }
-    destroyExtensions();
-    destroyApiLayers();
+    m_Extensions.clear();
+    m_ApiLayers.clear();
 }
 
 // ---- Public Functions ----
@@ -180,7 +180,7 @@ AxrVulkanGraphicsSystem::InstanceChain_T AxrVulkanGraphicsSystem::createInstance
         createDebugUtilsCreateInto()
     };
 
-    if (!extensionExists(AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS)) {
+    if (!m_Extensions.exists(AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS)) {
         chain.unlink<vk::DebugUtilsMessengerCreateInfoEXT>();
     }
 
@@ -297,25 +297,21 @@ void AxrVulkanGraphicsSystem::removeUnsupportedApiLayers() {
 
     const std::vector<std::string> supportedApiLayers = getSupportedInstanceApiLayers();
 
-    for (AxrVulkanApiLayer_T& apiLayer : m_ApiLayers) {
-        if (apiLayer == nullptr) continue;
+    for (auto it = m_ApiLayers.begin(); it != m_ApiLayers.end();) {
+        if (*it == nullptr) {
+            ++it;
+            continue;
+        }
 
-        if (!axrContainsString(axrGetApiLayerName(apiLayer->Type), supportedApiLayers)) {
-            delete apiLayer;
-            apiLayer = nullptr;
+        if (!axrContainsString(axrGetApiLayerName((*it)->Type), supportedApiLayers)) {
+            axrLogWarning("Unsupported api layer: {0}", axrGetApiLayerName((*it)->Type));
 
-            axrLogWarning("Unsupported api layer: {0}", axrGetApiLayerName(apiLayer->Type));
+            delete *it;
+            it = m_ApiLayers.erase(it);
+        } else {
+            ++it;
         }
     }
-
-    std::erase_if(
-        m_ApiLayers,
-        [](const AxrVulkanApiLayer_T apiLayer) {
-            return apiLayer == nullptr;
-        }
-    );
-
-    m_ApiLayers.shrink_to_fit();
 }
 
 void AxrVulkanGraphicsSystem::removeUnsupportedInstanceExtensions() {
@@ -334,25 +330,22 @@ void AxrVulkanGraphicsSystem::removeUnsupportedInstanceExtensions() {
 
     const std::vector<std::string> supportedExtensions = getSupportedInstanceExtensions();
 
-    for (AxrVulkanExtension_T& extension : m_Extensions) {
-        if (extension == nullptr || extension->Level != AXR_VULKAN_EXTENSION_LEVEL_INSTANCE) continue;
+    // TODO: Some extensions may be required and this function should fail if it doesn't have it.
+    for (auto it = m_Extensions.begin(); it != m_Extensions.end();) {
+        if (*it == nullptr || (*it)->Level != AXR_VULKAN_EXTENSION_LEVEL_INSTANCE) {
+            ++it;
+            continue;
+        }
 
-        if (!axrContainsString(axrGetExtensionName(extension->Type), supportedExtensions)) {
-            delete extension;
-            extension = nullptr;
+        if (!axrContainsString(axrGetExtensionName((*it)->Type), supportedExtensions)) {
+            axrLogWarning("Unsupported instance extension: {0}", axrGetExtensionName((*it)->Type));
 
-            axrLogWarning("Unsupported instance extension: {0}", axrGetExtensionName(extension->Type));
+            delete *it;
+            it = m_Extensions.erase(it);
+        } else {
+            ++it;
         }
     }
-
-    std::erase_if(
-        m_Extensions,
-        [](const AxrVulkanExtension_T extension) {
-            return extension == nullptr;
-        }
-    );
-
-    m_Extensions.shrink_to_fit();
 }
 
 void AxrVulkanGraphicsSystem::removeUnsupportedDeviceExtensions() {
@@ -376,43 +369,21 @@ void AxrVulkanGraphicsSystem::removeUnsupportedDeviceExtensions() {
 
     const std::vector<std::string> supportedExtensions = getSupportedDeviceExtensions(m_PhysicalDevice);
 
-    for (AxrVulkanExtension_T& extension : m_Extensions) {
-        if (extension == nullptr || extension->Level != AXR_VULKAN_EXTENSION_LEVEL_DEVICE) continue;
+    for (auto it = m_Extensions.begin(); it != m_Extensions.end();) {
+        if (*it == nullptr || (*it)->Level != AXR_VULKAN_EXTENSION_LEVEL_DEVICE) {
+            ++it;
+            continue;
+        }
 
-        if (!axrContainsString(axrGetExtensionName(extension->Type), supportedExtensions)) {
-            delete extension;
-            extension = nullptr;
+        if (!axrContainsString(axrGetExtensionName((*it)->Type), supportedExtensions)) {
+            axrLogWarning("Unsupported device extension: {0}", axrGetExtensionName((*it)->Type));
 
-            axrLogWarning("Unsupported device extension: {0}", axrGetExtensionName(extension->Type));
+            delete *it;
+            it = m_Extensions.erase(it);
+        } else {
+            ++it;
         }
     }
-
-    std::erase_if(
-        m_Extensions,
-        [](const AxrVulkanExtension_T extension) {
-            return extension == nullptr;
-        }
-    );
-
-    m_Extensions.shrink_to_fit();
-}
-
-void AxrVulkanGraphicsSystem::destroyApiLayers() {
-    for (AxrVulkanApiLayer_T& apiLayer : m_ApiLayers) {
-        delete apiLayer;
-        apiLayer = nullptr;
-    }
-
-    m_ApiLayers.clear();
-}
-
-void AxrVulkanGraphicsSystem::destroyExtensions() {
-    for (AxrVulkanExtension_T& extension : m_Extensions) {
-        delete extension;
-        extension = nullptr;
-    }
-
-    m_Extensions.clear();
 }
 
 std::vector<const char*> AxrVulkanGraphicsSystem::getAllApiLayerNames() const {
@@ -451,70 +422,30 @@ std::vector<const char*> AxrVulkanGraphicsSystem::getAllDeviceExtensionNames() c
     return extensionNames;
 }
 
-bool AxrVulkanGraphicsSystem::extensionExists(const AxrVulkanExtensionTypeEnum extensionType) const {
-    for (const AxrVulkanExtension_T extension : m_Extensions) {
-        if (extension != nullptr && extension->Type == extensionType) return true;
-    }
-
-    return false;
-}
-
 void AxrVulkanGraphicsSystem::addRequiredInstanceExtensions() {
     // TODO: Move these 2 extensions to window graphics.
     //  Should probably create some kind of AxrVulkanExtensionCollection class to manage cloning extensions and adding them
     auto surfaceExtension = AxrVulkanExtensionSurface{};
-    addExtension(reinterpret_cast<AxrVulkanExtension_T>(&surfaceExtension));
+    m_Extensions.add(reinterpret_cast<AxrVulkanExtension_T>(&surfaceExtension));
 
 #ifdef AXR_USE_PLATFORM_WIN32
     auto win32SurfaceExtension = AxrVulkanExtensionWin32Surface{};
-    addExtension(reinterpret_cast<AxrVulkanExtension_T>(&win32SurfaceExtension));
+    m_Extensions.add(reinterpret_cast<AxrVulkanExtension_T>(&win32SurfaceExtension));
 #endif
 }
 
 void AxrVulkanGraphicsSystem::addRequiredDeviceExtensions() {
     // TODO: Move to window graphics.
     auto swapchainExtension = AxrVulkanExtensionSwapchain{};
-    addExtension(reinterpret_cast<AxrVulkanExtension_T>(&swapchainExtension));
-}
-
-void AxrVulkanGraphicsSystem::addExtension(const AxrVulkanExtension_T extension) {
-    if (extension == nullptr) return;
-
-    // Check if instance has been created. If it has, it's too late to add an instance extension
-    if (extension->Level == AXR_VULKAN_EXTENSION_LEVEL_INSTANCE && m_Instance != VK_NULL_HANDLE) {
-        axrLogErrorLocation("VkInstance has already been created.");
-        return;
-    }
-
-    if (extension->Level == AXR_VULKAN_EXTENSION_LEVEL_DEVICE && m_Device != VK_NULL_HANDLE) {
-        axrLogErrorLocation("VkDevice has already been created.");
-        return;
-    }
-
-    if (extensionExists(extension->Type)) {
-        return;
-    }
-
-    m_Extensions.push_back(axrCloneExtension(extension));
-}
-
-AxrVulkanExtension_T AxrVulkanGraphicsSystem::getExtension(const AxrVulkanExtensionTypeEnum type) const {
-    for (const AxrVulkanExtension_T extension : m_Extensions) {
-        if (extension != nullptr && extension->Type == type) {
-            return extension;
-        }
-    }
-
-    return nullptr;
+    m_Extensions.add(reinterpret_cast<AxrVulkanExtension_T>(&swapchainExtension));
 }
 
 vk::DebugUtilsMessengerCreateInfoEXT AxrVulkanGraphicsSystem::createDebugUtilsCreateInto() const {
     auto debugUtilsExtension = reinterpret_cast<AxrVulkanExtensionDebugUtils*>(
-        getExtension(AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS)
+        m_Extensions.get(AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS)
     );
 
     if (debugUtilsExtension == nullptr) {
-        axrLogErrorLocation("No debug utils extension found.");
         return {};
     }
 
@@ -531,7 +462,7 @@ AxrResult AxrVulkanGraphicsSystem::createDebugUtils() {
     // Validation
     // ----------------------------------------- //
 
-    if (!extensionExists(AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS)) {
+    if (!m_Extensions.exists(AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS)) {
         // Debug utils aren't needed to be created
         return AXR_SUCCESS;
     }
@@ -738,7 +669,7 @@ uint32_t AxrVulkanGraphicsSystem::scorePhysicalDeviceApiLayers(const vk::Physica
 
 uint32_t AxrVulkanGraphicsSystem::scorePhysicalDeviceExtensions(const vk::PhysicalDevice& physicalDevice) const {
     // Isolate device level extensions
-    std::vector<AxrVulkanExtension_T> deviceExtensions = m_Extensions;
+    std::vector<AxrVulkanExtension_T> deviceExtensions = m_Extensions.getCollection();
     std::erase_if(
         deviceExtensions,
         [](const AxrVulkanExtension_T extension) {
@@ -761,7 +692,6 @@ uint32_t AxrVulkanGraphicsSystem::scorePhysicalDeviceExtensions(const vk::Physic
 
     for (const AxrVulkanExtension_T extension : deviceExtensions) {
         // TODO: Some extensions may be required and this function should fail if it doesn't have it.
-        //  That isn't important for now though.
         if (axrContainsString(axrGetExtensionName(extension->Type), supportedExtensions)) {
             score += extensionWeightedScore;
         }

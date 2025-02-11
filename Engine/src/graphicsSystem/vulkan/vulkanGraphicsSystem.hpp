@@ -10,10 +10,10 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/common/result.h"
-#include "axr/graphicsSystem.h"
 #include "axr/windowSystem.h"
 #include "vulkanQueueFamilies.hpp"
 #include "vulkanWindowGraphics.hpp"
+#include "vulkanExtensionCollection.hpp"
 
 // ----------------------------------------- //
 // Vulkan Headers
@@ -90,8 +90,8 @@ private:
     // ---- Config Variables ----
     const char* m_ApplicationName;
     uint32_t m_ApplicationVersion;
-    std::vector<AxrVulkanApiLayer_T> m_ApiLayers;
-    std::vector<AxrVulkanExtension_T> m_Extensions;
+    AxrVulkanExtensionCollection<AxrVulkanApiLayer_T, AxrVulkanApiLayerTypeEnum> m_ApiLayers;
+    AxrVulkanExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum> m_Extensions;
 
     vk::DispatchLoaderDynamic m_DynamicDispatchLoader;
     vk::Instance m_Instance;
@@ -144,11 +144,6 @@ private:
     /// Remove device level extensions from m_Extensions that aren't supported by the m_PhysicalDevice 
     void removeUnsupportedDeviceExtensions();
 
-    /// Destroy the api layers
-    void destroyApiLayers();
-    /// Destroy the extensions
-    void destroyExtensions();
-
     /// Get a collection of all api layer names to use
     /// @returns A collection of api layer names
     std::vector<const char*> getAllApiLayerNames() const;
@@ -159,23 +154,10 @@ private:
     /// @returns A collection of device extension names
     std::vector<const char*> getAllDeviceExtensionNames() const;
 
-    /// Check if the given extension type exists in m_Extensions
-    /// @param extensionType Extension type to check
-    /// @returns True if the given extension type exists in m_Extensions 
-    bool extensionExists(AxrVulkanExtensionTypeEnum extensionType) const;
-
     /// Add the required instance extensions to m_Extensions
     void addRequiredInstanceExtensions();
     /// Add the required device extensions to m_Extensions
     void addRequiredDeviceExtensions();
-    /// Add the given extension to m_Extensions if it is supported
-    /// @param extension The extension to add
-    void addExtension(AxrVulkanExtension_T extension);
-
-    /// Get the extension from the given extension type
-    /// @param type Extension type
-    /// @returns The extension of the given type or nullptr if it doesn't exist
-    [[nodiscard]] AxrVulkanExtension_T getExtension(AxrVulkanExtensionTypeEnum type) const;
 
     // ---- Debug Utils ----
 

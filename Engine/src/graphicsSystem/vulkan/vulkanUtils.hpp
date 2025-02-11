@@ -56,30 +56,4 @@ const char* axrGetApiLayerName(AxrVulkanApiLayerTypeEnum apiLayerType);
 /// @returns The extension name
 const char* axrGetExtensionName(AxrVulkanExtensionTypeEnum extensionType);
 
-/// Clone all the given vulkan api layers
-/// @param apiLayersCount Number of api layers in the given apiLayers pointer
-/// @param apiLayers Api layers to clone
-/// @returns A collection of cloned api layers
-[[nodiscard]] std::vector<AxrVulkanApiLayer_T> axrCloneApiLayers(
-    uint32_t apiLayersCount,
-    const AxrVulkanApiLayer_T* apiLayers
-);
-/// Clone all the given vulkan extensions
-/// @param extensionsCount Number of extensions in the given extensions pointer
-/// @param extensions Extensions to clone
-/// @returns A collection of cloned extensions
-[[nodiscard]] std::vector<AxrVulkanExtension_T> axrCloneExtensions(
-    uint32_t extensionsCount,
-    const AxrVulkanExtension_T* extensions
-);
-
-/// Clone the given api layer
-/// @param apiLayer  Api layer to clone
-/// @returns A clone of the api layer
-[[nodiscard]] AxrVulkanApiLayer_T axrCloneApiLayer(AxrVulkanApiLayer_T apiLayer);
-/// Clone the given extension
-/// @param extension Extension to clone
-/// @returns A clone of the extension
-[[nodiscard]] AxrVulkanExtension_T axrCloneExtension(AxrVulkanExtension_T extension);
-
 #endif
