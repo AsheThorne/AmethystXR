@@ -6,6 +6,7 @@
 // ----------------------------------------- //
 #include "axr/windowSystem.h"
 #include "vulkanExtensionCollection.hpp"
+#include "vulkanSurfaceDetails.hpp"
 
 // ----------------------------------------- //
 // Vulkan Headers
@@ -23,11 +24,17 @@ public:
     struct Config {
         AxrWindowSystem& WindowSystem;
         vk::DispatchLoaderDynamic& Dispatch;
+        vk::ColorSpaceKHR ColorSpace;
     };
 
     /// AxrVulkanWindowGraphics Setup Config
     struct SetupConfig {
         vk::Instance Instance;
+        vk::PhysicalDevice PhysicalDevice;
+        /// Ordered from most desired to the least desired
+        const std::vector<vk::Format>& SwapchainColorFormatOptions;
+        /// Ordered from most desired to the least desired
+        const std::vector<vk::Format>& SwapchainDepthFormatOptions;
     };
 
     // ----------------------------------------- //
@@ -89,11 +96,20 @@ private:
     // ---- Config ----
     AxrWindowSystem& m_WindowSystem;
     vk::DispatchLoaderDynamic& m_Dispatch;
+    vk::ColorSpaceKHR m_ColorSpace;
 
     // ---- Setup Config ----
     vk::Instance m_Instance;
+    vk::PhysicalDevice m_PhysicalDevice;
+    /// Ordered from most desired to the least desired
+    std::vector<vk::Format> m_SwapchainColorFormatOptions;
+    /// Ordered from most desired to the least desired
+    std::vector<vk::Format> m_SwapchainDepthFormatOptions;
 
     vk::SurfaceKHR m_Surface;
+    AxrVulkanSurfaceDetails m_SurfaceDetails;
+    vk::Format m_SwapchainColorFormat;
+    vk::Format m_SwapchainDepthFormat;
 
     // ----------------------------------------- //
     // Private Functions
@@ -106,11 +122,11 @@ private:
     /// Reset the SetupConfig variables
     void resetSetupConfigVariables();
 
-    /// Prepare the window for rendering
+    /// Configure window graphics
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult prepareWindowForRendering();
-    /// Reset the prepareWindowForRendering() function 
-    void resetPrepareWindowForRendering();
+    [[nodiscard]] AxrResult configureWindowGraphics();
+    /// Reset the configureWindowGraphics() function 
+    void resetWindowConfiguration();
 
     // ---- Surface ----
 
@@ -126,13 +142,21 @@ private:
     [[nodiscard]] AxrResult createWin32Surface();
 #endif
 
+    // ---- Swapchain ----
+
+    /// Set the swapchain color and depth formats
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setSwapchainFormats();
+    /// Reset the swapchain color and depth formats
+    void resetSwapchainFormats();
+
     // ----------------------------------------- //
     // Private Static Functions
     // ----------------------------------------- //
 
     /// 'Configure window graphics' callback function
     /// @param userData User data
-    /// @param isWindowOpen If true,the graphics should be set up. If false, the graphics should be cleaned up.
+    /// @param isWindowOpen If true, the graphics should be configured. If false, the graphics configuration should be reset.
     /// @returns AXR_SUCCESS if the function succeeded
     static AxrResult configureWindowGraphicsCallback(void* userData, bool isWindowOpen);
 };

@@ -19,6 +19,23 @@
 AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     m_ApplicationName(config.ApplicationName),
     m_ApplicationVersion(config.ApplicationVersion),
+    m_ColorSpace(vk::ColorSpaceKHR::eSrgbNonlinear),
+    m_SwapchainColorFormatOptions(
+        {
+            vk::Format::eR8G8B8A8Srgb,
+            vk::Format::eB8G8R8A8Srgb,
+            vk::Format::eR8G8B8Unorm,
+            vk::Format::eB8G8R8A8Unorm,
+        }
+    ),
+    m_SwapchainDepthFormatOptions(
+        {
+            vk::Format::eD32SfloatS8Uint,
+            vk::Format::eD24UnormS8Uint,
+            vk::Format::eD32Sfloat,
+            vk::Format::eD16Unorm,
+        }
+    ),
     m_Instance(VK_NULL_HANDLE),
     m_DebugUtilsMessenger(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
@@ -39,7 +56,8 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
         m_WindowGraphics = new AxrVulkanWindowGraphics(
             {
                 .WindowSystem = *config.WindowSystem,
-                .Dispatch = m_DynamicDispatchLoader
+                .Dispatch = m_DynamicDispatchLoader,
+                .ColorSpace = m_ColorSpace,
             }
         );
     }
@@ -88,7 +106,10 @@ AxrResult AxrVulkanGraphicsSystem::setup() {
     if (m_WindowGraphics != nullptr) {
         axrResult = m_WindowGraphics->setup(
             {
-                .Instance = m_Instance
+                .Instance = m_Instance,
+                .PhysicalDevice = m_PhysicalDevice,
+                .SwapchainColorFormatOptions = m_SupportedSwapchainColorFormatOptions,
+                .SwapchainDepthFormatOptions = m_SupportedSwapchainDepthFormatOptions,
             }
         );
         if (AXR_FAILED(axrResult)) {
@@ -534,11 +555,13 @@ AxrResult AxrVulkanGraphicsSystem::setupPhysicalDevice() {
     }
 
     removeUnsupportedDeviceExtensions();
+    findSupportedSwapchainFormats();
 
     return AXR_SUCCESS;
 }
 
 void AxrVulkanGraphicsSystem::resetPhysicalDevice() {
+    resetSupportedSwapchainFormats();
     m_QueueFamilies.resetQueueFamilyIndices();
     m_PhysicalDevice = VK_NULL_HANDLE;
 }
@@ -763,6 +786,89 @@ bool AxrVulkanGraphicsSystem::areApiLayersSupportedForPhysicalDevice(const vk::P
     }
 
     return true;
+}
+
+void AxrVulkanGraphicsSystem::findSupportedSwapchainFormats() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!m_SupportedSwapchainColorFormatOptions.empty()) {
+        axrLogErrorLocation("Supported swapchain color format options aren't empty.");
+        return;
+    }
+
+    if (!m_SupportedSwapchainDepthFormatOptions.empty()) {
+        axrLogErrorLocation("Supported swapchain depth format options aren't empty.");
+        return;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    for (const vk::Format format : m_SwapchainColorFormatOptions) {
+        if (areFormatFeaturesSupported(
+            format,
+            vk::ImageTiling::eOptimal,
+            vk::FormatFeatureFlagBits::eSampledImage &
+            vk::FormatFeatureFlagBits::eColorAttachment &
+            vk::FormatFeatureFlagBits::eBlitDst &
+            vk::FormatFeatureFlagBits::eTransferDst
+        )) {
+            m_SupportedSwapchainColorFormatOptions.push_back(format);
+        }
+    }
+
+    for (const vk::Format format : m_SwapchainDepthFormatOptions) {
+        if (areFormatFeaturesSupported(
+            format,
+            vk::ImageTiling::eOptimal,
+            vk::FormatFeatureFlagBits::eSampledImage &
+            vk::FormatFeatureFlagBits::eDepthStencilAttachment &
+            // TODO: Check that we need these last 2 for the depth format. It doesn't feel like we do
+            vk::FormatFeatureFlagBits::eBlitDst &
+            vk::FormatFeatureFlagBits::eTransferDst
+        )) {
+            m_SupportedSwapchainDepthFormatOptions.push_back(format);
+        }
+    }
+}
+
+void AxrVulkanGraphicsSystem::resetSupportedSwapchainFormats() {
+    m_SupportedSwapchainColorFormatOptions.clear();
+    m_SupportedSwapchainDepthFormatOptions.clear();
+}
+
+bool AxrVulkanGraphicsSystem::areFormatFeaturesSupported(
+    const vk::Format format,
+    const vk::ImageTiling tiling,
+    const vk::FormatFeatureFlags features
+) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_PhysicalDevice == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Physical device is null.");
+        return false;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    vk::FormatProperties formatProperties = m_PhysicalDevice.getFormatProperties(format, m_DynamicDispatchLoader);
+
+    if (tiling == vk::ImageTiling::eLinear && (formatProperties.linearTilingFeatures & features) == features) {
+        return true;
+    }
+
+    if (tiling == vk::ImageTiling::eOptimal && (formatProperties.optimalTilingFeatures & features) == features) {
+        return true;
+    }
+
+    return false;
 }
 
 AxrResult AxrVulkanGraphicsSystem::createLogicalDevice() {
