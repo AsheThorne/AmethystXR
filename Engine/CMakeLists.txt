@@ -71,6 +71,8 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanUtils.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanQueueFamilies.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanWindowGraphics.hpp
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanExtensionCollection.hpp
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanSurfaceDetails.hpp
 )
 
 # ---------------------------------------------
@@ -94,6 +96,7 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanUtils.cpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanQueueFamilies.cpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanWindowGraphics.cpp
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanSurfaceDetails.cpp
 )
 
 # ---------------------------------------------
