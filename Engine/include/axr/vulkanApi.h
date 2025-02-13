@@ -65,6 +65,16 @@ enum AxrVulkanDebugUtilsTypeFlagBits {
 /// Vulkan Extension Debug Utils Type Flags Type
 typedef VkDebugUtilsMessageTypeFlagsEXT AxrVulkanDebugUtilsTypeFlags_T;
 
+// ---- Vulkan Config Enums ----
+
+/// Vulkan Presentation Mode Enum
+enum AxrVulkanPresentationModeEnum {
+    AXR_VULKAN_PRESENTATION_MODE_UNDEFINED = 0,
+    AXR_VULKAN_PRESENTATION_MODE_IMMEDIATE,
+    AXR_VULKAN_PRESENTATION_MODE_MAILBOX,
+    AXR_VULKAN_PRESENTATION_MODE_FIFO,
+    AXR_VULKAN_PRESENTATION_MODE_FIFO_RELAXED,
+};
 
 // ----------------------------------------- //
 // Structs
@@ -125,12 +135,18 @@ struct AxrVulkanExtensionWin32Surface {
 
 // ---- Vulkan Config ----
 
+/// Vulkan Window Graphics Config
+struct AxrVulkanWindowConfig {
+    AxrVulkanPresentationModeEnum PresentationMode;
+};
+
 /// Vulkan Api Graphics System Config
 struct AxrVulkanApiConfig {
     uint32_t ApiLayersCount;
     AxrVulkanApiLayer_T* ApiLayers;
     uint32_t ExtensionsCount;
     AxrVulkanExtension_T* Extensions;
+    AxrVulkanWindowConfig* WindowConfig;
 };
 
 /// Vulkan Api Config Type

@@ -40,26 +40,32 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     m_DebugUtilsMessenger(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE) {
+    if (config.VulkanConfig == nullptr) {
+        axrLogErrorLocation("Vulkan config is null.");
+        return;
+    }
+
     m_DynamicDispatchLoader.init();
 
-    if (config.VulkanConfig == nullptr) {
-        axrLogErrorLocation("Vulkan Config is null.");
-    } else {
-        m_ApiLayers.add(config.VulkanConfig->ApiLayersCount, config.VulkanConfig->ApiLayers);
-        m_Extensions.add(config.VulkanConfig->ExtensionsCount, config.VulkanConfig->Extensions);
-    }
+    m_ApiLayers.add(config.VulkanConfig->ApiLayersCount, config.VulkanConfig->ApiLayers);
+    m_Extensions.add(config.VulkanConfig->ExtensionsCount, config.VulkanConfig->Extensions);
 
     addRequiredInstanceExtensions();
     addRequiredDeviceExtensions();
 
     if (config.WindowSystem != nullptr) {
-        m_WindowGraphics = new AxrVulkanWindowGraphics(
-            {
-                .WindowSystem = *config.WindowSystem,
-                .Dispatch = m_DynamicDispatchLoader,
-                .ColorSpace = m_ColorSpace,
-            }
-        );
+        if (config.VulkanConfig->WindowConfig != nullptr) {
+            m_WindowGraphics = new AxrVulkanWindowGraphics(
+                {
+                    .WindowSystem = *config.WindowSystem,
+                    .Dispatch = m_DynamicDispatchLoader,
+                    .ColorSpace = m_ColorSpace,
+                    .PresentationMode = config.VulkanConfig->WindowConfig->PresentationMode
+                }
+            );
+        } else {
+            axrLogErrorLocation("Vulkan window config is null.");
+        }
     }
 }
 

@@ -94,4 +94,25 @@ vk::Format axrChooseFormat(
     return vk::Format::eUndefined;
 }
 
+vk::PresentModeKHR axrToVkPresentMode(const AxrVulkanPresentationModeEnum presentationMode) {
+    switch (presentationMode) {
+        case AXR_VULKAN_PRESENTATION_MODE_IMMEDIATE: {
+            return vk::PresentModeKHR::eImmediate;
+        }
+        case AXR_VULKAN_PRESENTATION_MODE_MAILBOX: {
+            return vk::PresentModeKHR::eMailbox;
+        }
+        case AXR_VULKAN_PRESENTATION_MODE_FIFO: {
+            return vk::PresentModeKHR::eFifo;
+        }
+        case AXR_VULKAN_PRESENTATION_MODE_FIFO_RELAXED: {
+            return vk::PresentModeKHR::eFifoRelaxed;
+        }
+        case AXR_VULKAN_PRESENTATION_MODE_UNDEFINED:
+        default: { // NOLINT(clang-diagnostic-covered-switch-default)
+            return static_cast<vk::PresentModeKHR>(VK_PRESENT_MODE_MAX_ENUM_KHR);
+        }
+    }
+}
+
 #endif

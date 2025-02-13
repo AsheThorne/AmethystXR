@@ -66,6 +66,17 @@ namespace axr {
     /// Vulkan Extension Debug Utils Type Flags Type
     using VulkanDebugUtilsTypeFlags_T = axr::Flags<VulkanDebugUtilsTypeFlagBits>;
 
+    // ---- Vulkan Config Enums ----
+
+    /// Vulkan Presentation Mode Enum
+    enum class VulkanPresentationModeEnum {
+        Undefined = AXR_VULKAN_PRESENTATION_MODE_UNDEFINED,
+        Immediate = AXR_VULKAN_PRESENTATION_MODE_IMMEDIATE,
+        Mailbox = AXR_VULKAN_PRESENTATION_MODE_MAILBOX,
+        Fifo = AXR_VULKAN_PRESENTATION_MODE_FIFO,
+        FifoRelaxed = AXR_VULKAN_PRESENTATION_MODE_FIFO_RELAXED,
+    };
+
     // ----------------------------------------- //
     // Structs
     // ----------------------------------------- //
@@ -90,6 +101,50 @@ namespace axr {
 
     // ---- Vulkan Config ----
 
+    /// Vulkan Window Graphics Config
+    struct VulkanWindowConfig {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        axr::VulkanPresentationModeEnum PresentationMode;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        VulkanWindowConfig():
+            PresentationMode(axr::VulkanPresentationModeEnum::Fifo) {
+        }
+        /// Constructor
+        VulkanWindowConfig(const axr::VulkanPresentationModeEnum presentationMode):
+            PresentationMode(presentationMode) {
+        }
+        
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the VulkanWindowConfig as an AxrVulkanWindowConfig
+        /// @returns This as an AxrVulkanWindowConfig
+        const AxrVulkanWindowConfig* toRaw() const {
+            return reinterpret_cast<const AxrVulkanWindowConfig*>(this);
+        }
+
+        /// Get a handle to the VulkanWindowConfig as an AxrVulkanWindowConfig
+        /// @returns This as an AxrVulkanWindowConfig
+        AxrVulkanWindowConfig* toRaw() {
+            return reinterpret_cast<AxrVulkanWindowConfig*>(this);
+        }
+    };
+
+    static_assert(
+        sizeof(AxrVulkanWindowConfig) == sizeof(axr::VulkanWindowConfig),
+        "Original type and wrapper have different size!"
+    );
+
     /// Vulkan Api Graphics System Config
     struct VulkanApiConfig {
         // ----------------------------------------- //
@@ -99,6 +154,7 @@ namespace axr {
         AxrVulkanApiLayer_T* ApiLayers;
         uint32_t ExtensionsCount;
         AxrVulkanExtension_T* Extensions;
+        axr::VulkanWindowConfig* WindowConfig;
 
         // ----------------------------------------- //
         // Special Functions
@@ -113,7 +169,18 @@ namespace axr {
             ApiLayers(new AxrVulkanApiLayer_T[static_cast<uint32_t>(VulkanApiLayerTypeEnum::End) - 1]{}),
             ExtensionsCount(0),
             // equal to the same number of available options in VulkanExtensionTypeEnum
-            Extensions(new AxrVulkanExtension_T[static_cast<uint32_t>(VulkanExtensionTypeEnum::End) - 1]{}) {
+            Extensions(new AxrVulkanExtension_T[static_cast<uint32_t>(VulkanExtensionTypeEnum::End) - 1]{}),
+            WindowConfig(nullptr) {
+        }
+        /// Constructor
+        VulkanApiConfig(axr::VulkanWindowConfig* windowConfig):
+            ApiLayersCount(0),
+            // equal to the same number of available options in VulkanApiLayerTypeEnum
+            ApiLayers(new AxrVulkanApiLayer_T[static_cast<uint32_t>(VulkanApiLayerTypeEnum::End) - 1]{}),
+            ExtensionsCount(0),
+            // equal to the same number of available options in VulkanExtensionTypeEnum
+            Extensions(new AxrVulkanExtension_T[static_cast<uint32_t>(VulkanExtensionTypeEnum::End) - 1]{}),
+            WindowConfig(windowConfig) {
         }
 
         /// Copy Constructor
@@ -218,6 +285,18 @@ namespace axr {
             addExtension(reinterpret_cast<AxrVulkanExtension_T>(extension));
         }
 #endif
+
+        /// Get a handle to the VulkanApiConfig as an AxrVulkanApiConfig
+        /// @returns This as an AxrVulkanApiConfig
+        const AxrVulkanApiConfig* toRaw() const {
+            return reinterpret_cast<const AxrVulkanApiConfig*>(this);
+        }
+
+        /// Get a handle to the VulkanApiConfig as an AxrVulkanApiConfig
+        /// @returns This as an AxrVulkanApiConfig
+        AxrVulkanApiConfig* toRaw() {
+            return reinterpret_cast<AxrVulkanApiConfig*>(this);
+        }
 
     private:
         // ----------------------------------------- //

@@ -20,7 +20,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         600
     );
 
-    axr::VulkanApiConfig vulkanApiConfig{};
+    axr::VulkanWindowConfig vulkanWindowConfig(axr::VulkanPresentationModeEnum::Mailbox);
+
+    axr::VulkanApiConfig vulkanApiConfig(&vulkanWindowConfig);
 
 #ifndef NDEBUG
     vulkanApiConfig.addApiLayerCoreValidation();

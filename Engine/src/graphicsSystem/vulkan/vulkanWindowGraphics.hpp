@@ -25,6 +25,7 @@ public:
         AxrWindowSystem& WindowSystem;
         vk::DispatchLoaderDynamic& Dispatch;
         vk::ColorSpaceKHR ColorSpace;
+        AxrVulkanPresentationModeEnum PresentationMode;
     };
 
     /// AxrVulkanWindowGraphics Setup Config
@@ -97,6 +98,7 @@ private:
     AxrWindowSystem& m_WindowSystem;
     vk::DispatchLoaderDynamic& m_Dispatch;
     vk::ColorSpaceKHR m_ColorSpace;
+    AxrVulkanPresentationModeEnum m_PreferredPresentationMode;
 
     // ---- Setup Config ----
     vk::Instance m_Instance;
@@ -110,6 +112,7 @@ private:
     AxrVulkanSurfaceDetails m_SurfaceDetails;
     vk::Format m_SwapchainColorFormat;
     vk::Format m_SwapchainDepthFormat;
+    vk::PresentModeKHR m_SwapchainPresentationMode;
 
     // ----------------------------------------- //
     // Private Functions
@@ -149,6 +152,12 @@ private:
     [[nodiscard]] AxrResult setSwapchainFormats();
     /// Reset the swapchain color and depth formats
     void resetSwapchainFormats();
+
+    /// Set the swapchain presentation mode
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setSwapchainPresentationMode();
+    /// Reset the swapchain presentation mode
+    void resetSwapchainPresentationMode();
 
     // ----------------------------------------- //
     // Private Static Functions

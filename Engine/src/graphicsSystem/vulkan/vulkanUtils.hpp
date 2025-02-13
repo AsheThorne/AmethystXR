@@ -68,4 +68,9 @@ vk::Format axrChooseFormat(
     const std::vector<vk::Format>& availableFormats
 );
 
+/// Convert an AxrVulkanPresentationModeEnum to a vk::PresentModeKHR
+/// @param presentationMode Presentation mode to convert
+/// @returns The converted presentation mode
+vk::PresentModeKHR axrToVkPresentMode(AxrVulkanPresentationModeEnum presentationMode);
+
 #endif
