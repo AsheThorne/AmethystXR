@@ -616,10 +616,24 @@ AxrResult AxrVulkanWindowGraphics::getSwapchainImages() {
 
     m_SwapchainImages = swapchainImagesResult.value;
 
+    const AxrResult axrResult = axrCreateImageViews(
+        m_Device,
+        m_SwapchainImages,
+        m_SwapchainColorFormat.format,
+        vk::ImageAspectFlagBits::eColor,
+        1,
+        m_SwapchainImageViews,
+        m_Dispatch
+    );
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
+
     return AXR_SUCCESS;
 }
 
 void AxrVulkanWindowGraphics::resetSwapchainImages() {
+    axrDestroyImageViews(m_Device, m_SwapchainImageViews, m_Dispatch);
     m_SwapchainImages.clear();
 }
 

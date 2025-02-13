@@ -117,6 +117,7 @@ private:
     vk::Extent2D m_SwapchainExtent;
     vk::SwapchainKHR m_Swapchain;
     std::vector<vk::Image> m_SwapchainImages;
+    std::vector<vk::ImageView> m_SwapchainImageViews;
 
     // ----------------------------------------- //
     // Private Functions
