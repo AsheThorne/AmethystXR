@@ -6,6 +6,7 @@
 // ----------------------------------------- //
 #include "axr/windowSystem.h"
 #include "vulkanExtensionCollection.hpp"
+#include "vulkanQueueFamilies.hpp"
 
 // ----------------------------------------- //
 // Vulkan Headers
@@ -30,6 +31,8 @@ public:
     struct SetupConfig {
         vk::Instance Instance;
         vk::PhysicalDevice PhysicalDevice;
+        vk::Device Device;
+        const AxrVulkanQueueFamilies& QueueFamilies;
         /// Ordered from most desired to the least desired
         const std::vector<vk::SurfaceFormatKHR>& SwapchainColorFormatOptions;
         /// Ordered from most desired to the least desired
@@ -100,6 +103,8 @@ private:
     // ---- Setup Config ----
     vk::Instance m_Instance;
     vk::PhysicalDevice m_PhysicalDevice;
+    vk::Device m_Device;
+    AxrVulkanQueueFamilies m_QueueFamilies;
     /// Ordered from most desired to the least desired
     std::vector<vk::SurfaceFormatKHR> m_SwapchainColorFormatOptions;
     /// Ordered from most desired to the least desired
@@ -110,6 +115,7 @@ private:
     vk::Format m_SwapchainDepthFormat;
     vk::PresentModeKHR m_SwapchainPresentationMode;
     vk::Extent2D m_SwapchainExtent;
+    vk::SwapchainKHR m_Swapchain;
 
     // ----------------------------------------- //
     // Private Functions
@@ -166,6 +172,13 @@ private:
     [[nodiscard]] AxrResult setSwapchainExtent(const vk::SurfaceCapabilitiesKHR& surfaceCapabilities);
     /// Reset the swapchain extent
     void resetSwapchainExtent();
+
+    /// Create the vulkan swapchain
+    /// @param surfaceCapabilities Surface capabilities
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createSwapchain(const vk::SurfaceCapabilitiesKHR& surfaceCapabilities);
+    /// Destroy the vulkan swapchain
+    void destroySwapchain();
 
     // ----------------------------------------- //
     // Private Static Functions

@@ -17,11 +17,13 @@ AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
     m_PreferredPresentationMode(config.PresentationMode),
     m_Instance(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
+    m_Device(VK_NULL_HANDLE),
     m_Surface(VK_NULL_HANDLE),
     m_SwapchainColorFormat(vk::Format::eUndefined),
     m_SwapchainDepthFormat(vk::Format::eUndefined),
     m_SwapchainPresentationMode(static_cast<vk::PresentModeKHR>(VK_PRESENT_MODE_MAX_ENUM_KHR)),
-    m_SwapchainExtent(0, 0) {
+    m_SwapchainExtent(0, 0),
+    m_Swapchain(VK_NULL_HANDLE) {
 }
 
 AxrVulkanWindowGraphics::~AxrVulkanWindowGraphics() {
@@ -97,6 +99,26 @@ AxrResult AxrVulkanWindowGraphics::setSetupConfigVariables(const SetupConfig& co
         return AXR_ERROR;
     }
 
+    if (m_Device != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Logical device isn't null.");
+        return AXR_ERROR;
+    }
+
+    if (config.Device == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Config logical device is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_QueueFamilies.isValid()) {
+        axrLogErrorLocation("Queue families are already set.");
+        return AXR_ERROR;
+    }
+
+    if (!config.QueueFamilies.isValid()) {
+        axrLogErrorLocation("Config queue families aren't valid.");
+        return AXR_ERROR;
+    }
+
     if (!m_SwapchainColorFormatOptions.empty()) {
         axrLogErrorLocation("Swapchain color format options aren't empty.");
         return AXR_ERROR;
@@ -122,6 +144,8 @@ AxrResult AxrVulkanWindowGraphics::setSetupConfigVariables(const SetupConfig& co
     // ----------------------------------------- //
     m_Instance = config.Instance;
     m_PhysicalDevice = config.PhysicalDevice;
+    m_Device = config.Device;
+    m_QueueFamilies = config.QueueFamilies;
     m_SwapchainColorFormatOptions = config.SwapchainColorFormatOptions;
     m_SwapchainDepthFormatOptions = config.SwapchainDepthFormatOptions;
 
@@ -131,6 +155,8 @@ AxrResult AxrVulkanWindowGraphics::setSetupConfigVariables(const SetupConfig& co
 void AxrVulkanWindowGraphics::resetSetupConfigVariables() {
     m_Instance = VK_NULL_HANDLE;
     m_PhysicalDevice = VK_NULL_HANDLE;
+    m_Device = VK_NULL_HANDLE;
+    m_QueueFamilies.reset();
     m_SwapchainColorFormatOptions.clear();
     m_SwapchainDepthFormatOptions.clear();
 }
@@ -167,10 +193,17 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
         return result;
     }
 
+    result = createSwapchain(surfaceDetails.Capabilities);
+    if (AXR_FAILED(result)) {
+        resetWindowConfiguration();
+        return result;
+    }
+
     return result;
 }
 
 void AxrVulkanWindowGraphics::resetWindowConfiguration() {
+    destroySwapchain();
     resetSwapchainExtent();
     resetSwapchainPresentationMode();
     resetSwapchainFormats();
@@ -396,6 +429,103 @@ AxrResult AxrVulkanWindowGraphics::setSwapchainExtent(const vk::SurfaceCapabilit
 void AxrVulkanWindowGraphics::resetSwapchainExtent() {
     m_SwapchainExtent.width = 0;
     m_SwapchainExtent.height = 0;
+}
+
+AxrResult AxrVulkanWindowGraphics::createSwapchain(const vk::SurfaceCapabilitiesKHR& surfaceCapabilities) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Swapchain != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Swapchain already exists.");
+        return AXR_ERROR;
+    }
+
+    if (m_Device == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Logical device is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_Surface == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Surface is null.");
+        return AXR_ERROR;
+    }
+
+    if (!m_QueueFamilies.GraphicsQueueFamilyIndex.has_value()) {
+        axrLogErrorLocation("Graphics queue family index is undefined.");
+        return AXR_ERROR;
+    }
+
+    if (!m_QueueFamilies.PresentationQueueFamilyIndex.has_value()) {
+        axrLogErrorLocation("Presentation queue family index is undefined.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    uint32_t minImageCount = surfaceCapabilities.minImageCount + 1;
+
+    // 0 is a special value that indicates that there is no maximum
+    if (surfaceCapabilities.maxImageCount > 0 && minImageCount > surfaceCapabilities.maxImageCount) {
+        minImageCount = surfaceCapabilities.maxImageCount;
+    }
+
+    // TODO: Use vk::ImageUsageFlagBits::eTransferDst if we aren't rendering directly to the surface
+    constexpr vk::ImageUsageFlags imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
+
+    vk::SwapchainCreateInfoKHR swapchainCreateInfo(
+        {},
+        m_Surface,
+        minImageCount,
+        m_SwapchainColorFormat.format,
+        m_SwapchainColorFormat.colorSpace,
+        m_SwapchainExtent,
+        1,
+        imageUsage,
+        vk::SharingMode::eExclusive,
+        0,
+        nullptr,
+        surfaceCapabilities.currentTransform,
+        vk::CompositeAlphaFlagBitsKHR::eOpaque,
+        m_SwapchainPresentationMode,
+        vk::True,
+        // TODO: Add old swapchain if it's being recreated
+        // oldSwapchain
+        VK_NULL_HANDLE
+    );
+
+    const uint32_t graphicsFamilyIndex = m_QueueFamilies.GraphicsQueueFamilyIndex.value();
+    const uint32_t presentationFamilyIndex = m_QueueFamilies.PresentationQueueFamilyIndex.value();
+    const uint32_t queueFamilyIndices[] = {graphicsFamilyIndex, presentationFamilyIndex};
+
+    if (graphicsFamilyIndex != presentationFamilyIndex) {
+        swapchainCreateInfo.imageSharingMode = vk::SharingMode::eConcurrent;
+        swapchainCreateInfo.queueFamilyIndexCount = 2;
+        swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
+    }
+
+    const vk::Result vkResult = m_Device.createSwapchainKHR(
+        &swapchainCreateInfo,
+        nullptr,
+        &m_Swapchain,
+        m_Dispatch
+    );
+    axrLogVkResult(vkResult, "m_Device.createSwapchainKHR");
+
+    if (axrVkFailed(vkResult)) {
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanWindowGraphics::destroySwapchain() {
+    if (m_Swapchain != VK_NULL_HANDLE) {
+        m_Device.destroySwapchainKHR(m_Swapchain, nullptr, m_Dispatch);
+        m_Swapchain = VK_NULL_HANDLE;
+    }
 }
 
 // ---- Private Static Functions ----

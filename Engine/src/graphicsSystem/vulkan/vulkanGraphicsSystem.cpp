@@ -112,6 +112,8 @@ AxrResult AxrVulkanGraphicsSystem::setup() {
             {
                 .Instance = m_Instance,
                 .PhysicalDevice = m_PhysicalDevice,
+                .Device = m_Device,
+                .QueueFamilies = m_QueueFamilies,
                 .SwapchainColorFormatOptions = m_SupportedSwapchainColorFormatOptions,
                 .SwapchainDepthFormatOptions = m_SupportedSwapchainDepthFormatOptions,
             }
@@ -817,6 +819,8 @@ void AxrVulkanGraphicsSystem::findSupportedSwapchainFormats() {
             vk::ImageTiling::eOptimal,
             vk::FormatFeatureFlagBits::eSampledImage &
             vk::FormatFeatureFlagBits::eColorAttachment &
+            // TODO: Maybe we should check if we're rendering directly to the surface first for asking for these.
+            //  Actually, maybe this whole function should be moved to the window graphics. OpenXR might have different feature requirements
             vk::FormatFeatureFlagBits::eBlitDst &
             vk::FormatFeatureFlagBits::eTransferDst
         )) {

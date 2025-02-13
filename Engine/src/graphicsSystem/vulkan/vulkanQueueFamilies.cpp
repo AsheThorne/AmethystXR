@@ -72,6 +72,11 @@ AxrVulkanQueueFamilies& AxrVulkanQueueFamilies::operator=(AxrVulkanQueueFamilies
 
 // ---- Public Functions ----
 
+void AxrVulkanQueueFamilies::reset() {
+    resetQueueFamilyIndices();
+    resetQueueFamilyQueues();
+}
+
 AxrResult AxrVulkanQueueFamilies::setQueueFamilyIndices(
     const vk::PhysicalDevice& physicalDevice,
     const vk::DispatchLoaderDynamic& dispatch
@@ -144,7 +149,7 @@ AxrResult AxrVulkanQueueFamilies::setQueueFamilyIndices(
 
 void AxrVulkanQueueFamilies::resetQueueFamilyIndices() {
     resetQueueFamilyQueues();
-    
+
     GraphicsQueueFamilyIndex.reset();
     PresentationQueueFamilyIndex.reset();
     TransferQueueFamilyIndex.reset();
@@ -194,10 +199,20 @@ void AxrVulkanQueueFamilies::resetQueueFamilyQueues() {
     TransferQueue = VK_NULL_HANDLE;
 }
 
+bool AxrVulkanQueueFamilies::isValid() const {
+    return areIndicesValid() && areQueuesValid();
+}
+
 bool AxrVulkanQueueFamilies::areIndicesValid() const {
     return GraphicsQueueFamilyIndex.has_value() &&
         TransferQueueFamilyIndex.has_value() &&
         PresentationQueueFamilyIndex.has_value();
+}
+
+bool AxrVulkanQueueFamilies::areQueuesValid() const {
+    return GraphicsQueue != VK_NULL_HANDLE &&
+        PresentationQueue != VK_NULL_HANDLE &&
+        TransferQueue != VK_NULL_HANDLE;
 }
 
 bool AxrVulkanQueueFamilies::hasDedicatedTransferQueue() const {
@@ -244,7 +259,7 @@ std::unordered_set<uint32_t> AxrVulkanQueueFamilies::getUniqueQueueFamilyIndices
 // ---- Private Functions ----
 
 void AxrVulkanQueueFamilies::cleanup() {
-    resetQueueFamilyIndices();
+    reset();
 }
 
 bool AxrVulkanQueueFamilies::doesQueueFamilyIndexSupportsPresentation(

@@ -63,6 +63,9 @@ public:
     // Public Functions
     // ----------------------------------------- //
 
+    /// Reset the queue family indices and queues
+    void reset();
+
     /// Set the queue family indices
     /// @param physicalDevice Physical device to use
     /// @param dispatch Dispatch to use
@@ -85,9 +88,15 @@ public:
     /// Reset setQueueFamilyQueues()
     void resetQueueFamilyQueues();
 
+    /// Check if the queue family indices and queues are valid
+    /// @returns True if the queue family indices and queues are valid
+    [[nodiscard]] bool isValid() const;
     /// Check if the queue family indices are valid
     /// @returns True if the queue family indices are valid
     [[nodiscard]] bool areIndicesValid() const;
+    /// Check if the queue family queues are valid
+    /// @returns True if the queue family queues are valid
+    [[nodiscard]] bool areQueuesValid() const;
     /// Check if there is a dedicated transfer queue
     /// @returns True if there is a dedicated transfer queue
     [[nodiscard]] bool hasDedicatedTransferQueue() const;
