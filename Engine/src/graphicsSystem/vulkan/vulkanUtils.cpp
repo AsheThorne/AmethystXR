@@ -33,6 +33,27 @@ void axrLogVkResult(
     }
 }
 
+vk::PresentModeKHR axrToVkPresentMode(const AxrVulkanPresentationModeEnum presentationMode) {
+    switch (presentationMode) {
+        case AXR_VULKAN_PRESENTATION_MODE_IMMEDIATE: {
+            return vk::PresentModeKHR::eImmediate;
+        }
+        case AXR_VULKAN_PRESENTATION_MODE_MAILBOX: {
+            return vk::PresentModeKHR::eMailbox;
+        }
+        case AXR_VULKAN_PRESENTATION_MODE_FIFO: {
+            return vk::PresentModeKHR::eFifo;
+        }
+        case AXR_VULKAN_PRESENTATION_MODE_FIFO_RELAXED: {
+            return vk::PresentModeKHR::eFifoRelaxed;
+        }
+        case AXR_VULKAN_PRESENTATION_MODE_UNDEFINED:
+        default: { // NOLINT(clang-diagnostic-covered-switch-default)
+            return static_cast<vk::PresentModeKHR>(VK_PRESENT_MODE_MAX_ENUM_KHR);
+        }
+    }
+}
+
 const char* axrGetApiLayerName(const AxrVulkanApiLayerTypeEnum apiLayerType) {
     switch (apiLayerType) {
         case AXR_VULKAN_API_LAYER_TYPE_CORE_VALIDATION: {
@@ -71,27 +92,6 @@ const char* axrGetExtensionName(const AxrVulkanExtensionTypeEnum extensionType) 
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
             axrLogErrorLocation("Unknown extension type {0}.", static_cast<uint32_t>(extensionType));
             return "";
-        }
-    }
-}
-
-vk::PresentModeKHR axrToVkPresentMode(const AxrVulkanPresentationModeEnum presentationMode) {
-    switch (presentationMode) {
-        case AXR_VULKAN_PRESENTATION_MODE_IMMEDIATE: {
-            return vk::PresentModeKHR::eImmediate;
-        }
-        case AXR_VULKAN_PRESENTATION_MODE_MAILBOX: {
-            return vk::PresentModeKHR::eMailbox;
-        }
-        case AXR_VULKAN_PRESENTATION_MODE_FIFO: {
-            return vk::PresentModeKHR::eFifo;
-        }
-        case AXR_VULKAN_PRESENTATION_MODE_FIFO_RELAXED: {
-            return vk::PresentModeKHR::eFifoRelaxed;
-        }
-        case AXR_VULKAN_PRESENTATION_MODE_UNDEFINED:
-        default: { // NOLINT(clang-diagnostic-covered-switch-default)
-            return static_cast<vk::PresentModeKHR>(VK_PRESENT_MODE_MAX_ENUM_KHR);
         }
     }
 }

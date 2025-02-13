@@ -45,6 +45,13 @@ void axrLogVkResult(
     const std::source_location& location = std::source_location::current()
 );
 
+// ---- Enum Convertors ----
+
+/// Convert an AxrVulkanPresentationModeEnum to a vk::PresentModeKHR
+/// @param presentationMode Presentation mode to convert
+/// @returns The converted presentation mode
+vk::PresentModeKHR axrToVkPresentMode(AxrVulkanPresentationModeEnum presentationMode);
+
 // ---- Api Layers / Extensions ----
 
 /// Get the api layer name from the given vulkan api layer type
@@ -55,12 +62,5 @@ const char* axrGetApiLayerName(AxrVulkanApiLayerTypeEnum apiLayerType);
 /// @param extensionType Vulkan extension type
 /// @returns The extension name
 const char* axrGetExtensionName(AxrVulkanExtensionTypeEnum extensionType);
-
-// ---- Swapchain ----
-
-/// Convert an AxrVulkanPresentationModeEnum to a vk::PresentModeKHR
-/// @param presentationMode Presentation mode to convert
-/// @returns The converted presentation mode
-vk::PresentModeKHR axrToVkPresentMode(AxrVulkanPresentationModeEnum presentationMode);
 
 #endif
