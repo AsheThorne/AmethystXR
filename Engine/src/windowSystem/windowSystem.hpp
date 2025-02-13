@@ -99,6 +99,12 @@ public:
     [[nodiscard]] AxrWin32WindowSystem* getWin32WindowSystem() const;
 #endif
 
+    /// Get the window client size in pixels
+    /// @param width Output window client width
+    /// @param height Output window client height
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult getClientSize(uint32_t& width, uint32_t& height) const;
+
 private:
     // ----------------------------------------- //
     // Private Variables
@@ -137,5 +143,10 @@ private:
     void closeWin32Window();
     /// Process the win32 window events
     void processWin32Events();
+    /// Get the win32 window client size in pixels
+    /// @param width Output window client width
+    /// @param height Output window client height
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult getWin32ClientSize(uint32_t& width, uint32_t& height) const;
 #endif
 };

@@ -20,7 +20,8 @@ AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
     m_Surface(VK_NULL_HANDLE),
     m_SwapchainColorFormat(vk::Format::eUndefined),
     m_SwapchainDepthFormat(vk::Format::eUndefined),
-    m_SwapchainPresentationMode(static_cast<vk::PresentModeKHR>(VK_PRESENT_MODE_MAX_ENUM_KHR)) {
+    m_SwapchainPresentationMode(static_cast<vk::PresentModeKHR>(VK_PRESENT_MODE_MAX_ENUM_KHR)),
+    m_SwapchainExtent(0, 0) {
 }
 
 AxrVulkanWindowGraphics::~AxrVulkanWindowGraphics() {
@@ -160,10 +161,17 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
         return result;
     }
 
+    result = setSwapchainExtent(surfaceDetails.Capabilities);
+    if (AXR_FAILED(result)) {
+        resetWindowConfiguration();
+        return result;
+    }
+
     return result;
 }
 
 void AxrVulkanWindowGraphics::resetWindowConfiguration() {
+    resetSwapchainExtent();
     resetSwapchainPresentationMode();
     resetSwapchainFormats();
     destroySurface();
@@ -354,6 +362,40 @@ AxrResult AxrVulkanWindowGraphics::setSwapchainPresentationMode(
 
 void AxrVulkanWindowGraphics::resetSwapchainPresentationMode() {
     m_SwapchainPresentationMode = static_cast<vk::PresentModeKHR>(VK_PRESENT_MODE_MAX_ENUM_KHR);
+}
+
+AxrResult AxrVulkanWindowGraphics::setSwapchainExtent(const vk::SurfaceCapabilitiesKHR& surfaceCapabilities) {
+    // If the current extent width is the max uint32_t value, then we need to get the extent manually
+    if (surfaceCapabilities.currentExtent.width != UINT32_MAX) {
+        m_SwapchainExtent = surfaceCapabilities.currentExtent;
+        return AXR_SUCCESS;
+    }
+
+    uint32_t width;
+    uint32_t height;
+    const AxrResult axrResult = m_WindowSystem.getClientSize(width, height);
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
+
+    width = std::clamp(
+        width,
+        surfaceCapabilities.minImageExtent.width,
+        surfaceCapabilities.maxImageExtent.width
+    );
+    height = std::clamp(
+        height,
+        surfaceCapabilities.minImageExtent.height,
+        surfaceCapabilities.maxImageExtent.height
+    );
+
+    m_SwapchainExtent = vk::Extent2D(width, height);
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanWindowGraphics::resetSwapchainExtent() {
+    m_SwapchainExtent.width = 0;
+    m_SwapchainExtent.height = 0;
 }
 
 // ---- Private Static Functions ----

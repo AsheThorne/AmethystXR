@@ -77,6 +77,11 @@ public:
     void closeWindow();
     /// Process the window message queue
     void processEvents();
+    /// Get the window client size in pixels
+    /// @param width Output window client width
+    /// @param height Output window client height
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult getClientSize(uint32_t& width, uint32_t& height) const;
 
     /// Get the win32 instance
     /// @returns Win32 instance

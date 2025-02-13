@@ -109,6 +109,7 @@ private:
     vk::SurfaceFormatKHR m_SwapchainColorFormat;
     vk::Format m_SwapchainDepthFormat;
     vk::PresentModeKHR m_SwapchainPresentationMode;
+    vk::Extent2D m_SwapchainExtent;
 
     // ----------------------------------------- //
     // Private Functions
@@ -158,6 +159,13 @@ private:
     );
     /// Reset the swapchain presentation mode
     void resetSwapchainPresentationMode();
+
+    /// Set the swapchain extent
+    /// @param surfaceCapabilities Surface capabilities
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setSwapchainExtent(const vk::SurfaceCapabilitiesKHR& surfaceCapabilities);
+    /// Reset the swapchain extent
+    void resetSwapchainExtent();
 
     // ----------------------------------------- //
     // Private Static Functions

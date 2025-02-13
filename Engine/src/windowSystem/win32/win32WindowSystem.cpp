@@ -116,6 +116,18 @@ void AxrWin32WindowSystem::processEvents() {
     }
 }
 
+AxrResult AxrWin32WindowSystem::getClientSize(uint32_t& width, uint32_t& height) const {
+    RECT rect;
+    if (GetClientRect(m_WindowHandle, &rect)) {
+        width = static_cast<uint32_t>(rect.right - rect.left);
+        height = static_cast<uint32_t>(rect.bottom - rect.top);
+        return AXR_SUCCESS;
+    }
+
+    axrLogErrorLocation("Failed to retrieve client size.");
+    return AXR_ERROR;
+}
+
 HINSTANCE AxrWin32WindowSystem::getInstance() const {
     return m_Instance;
 }
