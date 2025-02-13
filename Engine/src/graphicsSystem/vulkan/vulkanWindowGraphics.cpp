@@ -143,13 +143,18 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
         return result;
     }
 
-    result = setSwapchainFormats();
+    const auto surfaceDetails = AxrVulkanSurfaceDetails(m_PhysicalDevice, m_Surface, m_Dispatch);
+    if (!surfaceDetails.isValid()) {
+        return AXR_ERROR;
+    }
+
+    result = setSwapchainFormats(surfaceDetails.Formats);
     if (AXR_FAILED(result)) {
         resetWindowConfiguration();
         return result;
     }
 
-    result = setSwapchainPresentationMode();
+    result = setSwapchainPresentationMode(surfaceDetails.PresentationModes);
     if (AXR_FAILED(result)) {
         resetWindowConfiguration();
         return result;
@@ -190,17 +195,10 @@ AxrResult AxrVulkanWindowGraphics::createSurface() {
         return axrResult;
     }
 
-    m_SurfaceDetails = AxrVulkanSurfaceDetails(m_PhysicalDevice, m_Surface, m_Dispatch);
-    if (!m_SurfaceDetails.isValid()) {
-        return AXR_ERROR;
-    }
-
     return AXR_SUCCESS;
 }
 
 void AxrVulkanWindowGraphics::destroySurface() {
-    m_SurfaceDetails = AxrVulkanSurfaceDetails();
-
     if (m_Surface != VK_NULL_HANDLE) {
         m_Instance.destroySurfaceKHR(m_Surface, nullptr, m_Dispatch);
         m_Surface = VK_NULL_HANDLE;
@@ -244,7 +242,7 @@ AxrResult AxrVulkanWindowGraphics::createWin32Surface() {
 }
 #endif
 
-AxrResult AxrVulkanWindowGraphics::setSwapchainFormats() {
+AxrResult AxrVulkanWindowGraphics::setSwapchainFormats(const std::vector<vk::SurfaceFormatKHR>& surfaceFormats) {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -269,7 +267,7 @@ AxrResult AxrVulkanWindowGraphics::setSwapchainFormats() {
         return AXR_ERROR;
     }
 
-    if (m_SurfaceDetails.Formats.empty()) {
+    if (surfaceFormats.empty()) {
         axrLogErrorLocation("Surface formats are empty.");
         return AXR_ERROR;
     }
@@ -279,7 +277,7 @@ AxrResult AxrVulkanWindowGraphics::setSwapchainFormats() {
     // ----------------------------------------- //
 
     std::vector<vk::Format> availableSwapchainFormats;
-    for (const vk::SurfaceFormatKHR& surfaceFormat : m_SurfaceDetails.Formats) {
+    for (const vk::SurfaceFormatKHR& surfaceFormat : surfaceFormats) {
         if (surfaceFormat.colorSpace == m_ColorSpace) {
             availableSwapchainFormats.push_back(surfaceFormat.format);
         }
@@ -306,7 +304,9 @@ void AxrVulkanWindowGraphics::resetSwapchainFormats() {
     m_SwapchainDepthFormat = vk::Format::eUndefined;
 }
 
-AxrResult AxrVulkanWindowGraphics::setSwapchainPresentationMode() {
+AxrResult AxrVulkanWindowGraphics::setSwapchainPresentationMode(
+    const std::vector<vk::PresentModeKHR>& surfacePresentationModes
+) {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -321,7 +321,7 @@ AxrResult AxrVulkanWindowGraphics::setSwapchainPresentationMode() {
         return AXR_ERROR;
     }
 
-    if (m_SurfaceDetails.PresentationModes.empty()) {
+    if (surfacePresentationModes.empty()) {
         axrLogErrorLocation("Surface presentation modes are empty.");
         return AXR_ERROR;
     }
@@ -331,7 +331,7 @@ AxrResult AxrVulkanWindowGraphics::setSwapchainPresentationMode() {
     // ----------------------------------------- //
 
     // Find the preferred presentation mode
-    for (const vk::PresentModeKHR presentationMode : m_SurfaceDetails.PresentationModes) {
+    for (const vk::PresentModeKHR presentationMode : surfacePresentationModes) {
         if (presentationMode == axrToVkPresentMode(m_PreferredPresentationMode)) {
             m_SwapchainPresentationMode = presentationMode;
             return AXR_SUCCESS;
@@ -339,7 +339,7 @@ AxrResult AxrVulkanWindowGraphics::setSwapchainPresentationMode() {
     }
 
     // Find FIFO presentation mode as a backup if preferred presentation mode isn't supported
-    for (const vk::PresentModeKHR presentationMode : m_SurfaceDetails.PresentationModes) {
+    for (const vk::PresentModeKHR presentationMode : surfacePresentationModes) {
         if (presentationMode == vk::PresentModeKHR::eFifo) {
             m_SwapchainPresentationMode = presentationMode;
             return AXR_SUCCESS;
@@ -347,7 +347,7 @@ AxrResult AxrVulkanWindowGraphics::setSwapchainPresentationMode() {
     }
 
     // Just use what ever we can that's supported
-    m_SwapchainPresentationMode = m_SurfaceDetails.PresentationModes[0];
+    m_SwapchainPresentationMode = surfacePresentationModes[0];
 
     return AXR_SUCCESS;
 }

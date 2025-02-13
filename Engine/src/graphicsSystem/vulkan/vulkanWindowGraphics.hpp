@@ -109,7 +109,6 @@ private:
     std::vector<vk::Format> m_SwapchainDepthFormatOptions;
 
     vk::SurfaceKHR m_Surface;
-    AxrVulkanSurfaceDetails m_SurfaceDetails;
     vk::Format m_SwapchainColorFormat;
     vk::Format m_SwapchainDepthFormat;
     vk::PresentModeKHR m_SwapchainPresentationMode;
@@ -148,14 +147,18 @@ private:
     // ---- Swapchain ----
 
     /// Set the swapchain color and depth formats
+    /// @param surfaceFormats Collection of surface formats that are available to us
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setSwapchainFormats();
+    [[nodiscard]] AxrResult setSwapchainFormats(const std::vector<vk::SurfaceFormatKHR>& surfaceFormats);
     /// Reset the swapchain color and depth formats
     void resetSwapchainFormats();
 
     /// Set the swapchain presentation mode
+    /// @param surfacePresentationModes Collection of surface presentation modes that are available to use
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setSwapchainPresentationMode();
+    [[nodiscard]] AxrResult setSwapchainPresentationMode(
+        const std::vector<vk::PresentModeKHR>& surfacePresentationModes
+    );
     /// Reset the swapchain presentation mode
     void resetSwapchainPresentationMode();
 
