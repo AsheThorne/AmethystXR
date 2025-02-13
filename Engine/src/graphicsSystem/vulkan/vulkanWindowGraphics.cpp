@@ -199,10 +199,17 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
         return result;
     }
 
+    result = getSwapchainImages();
+    if (AXR_FAILED(result)) {
+        resetWindowConfiguration();
+        return result;
+    }
+
     return result;
 }
 
 void AxrVulkanWindowGraphics::resetWindowConfiguration() {
+    resetSwapchainImages();
     destroySwapchain();
     resetSwapchainExtent();
     resetSwapchainPresentationMode();
@@ -526,6 +533,45 @@ void AxrVulkanWindowGraphics::destroySwapchain() {
         m_Device.destroySwapchainKHR(m_Swapchain, nullptr, m_Dispatch);
         m_Swapchain = VK_NULL_HANDLE;
     }
+}
+
+AxrResult AxrVulkanWindowGraphics::getSwapchainImages() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!m_SwapchainImages.empty()) {
+        axrLogErrorLocation("Swapchain images already exist.");
+        return AXR_ERROR;
+    }
+
+    if (m_Device == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Logical device is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_Swapchain == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Swapchain is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const auto swapchainImagesResult = m_Device.getSwapchainImagesKHR(m_Swapchain, m_Dispatch);
+    axrLogVkResult(swapchainImagesResult.result, "m_Device.getSwapchainImagesKHR");
+    if (axrVkFailed(swapchainImagesResult.result)) {
+        return AXR_ERROR;
+    }
+
+    m_SwapchainImages = swapchainImagesResult.value;
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanWindowGraphics::resetSwapchainImages() {
+    m_SwapchainImages.clear();
 }
 
 // ---- Private Static Functions ----

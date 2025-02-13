@@ -116,6 +116,7 @@ private:
     vk::PresentModeKHR m_SwapchainPresentationMode;
     vk::Extent2D m_SwapchainExtent;
     vk::SwapchainKHR m_Swapchain;
+    std::vector<vk::Image> m_SwapchainImages;
 
     // ----------------------------------------- //
     // Private Functions
@@ -154,7 +155,7 @@ private:
     /// @param surfaceFormats Collection of surface formats that are available to us
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setSwapchainFormats(const std::vector<vk::SurfaceFormatKHR>& surfaceFormats);
-    /// Reset the swapchain color and depth formats
+    /// Reset the setSwapchainFormats() function
     void resetSwapchainFormats();
 
     /// Set the swapchain presentation mode
@@ -163,22 +164,28 @@ private:
     [[nodiscard]] AxrResult setSwapchainPresentationMode(
         const std::vector<vk::PresentModeKHR>& surfacePresentationModes
     );
-    /// Reset the swapchain presentation mode
+    /// Reset the setSwapchainPresentationMode() function
     void resetSwapchainPresentationMode();
 
     /// Set the swapchain extent
     /// @param surfaceCapabilities Surface capabilities
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setSwapchainExtent(const vk::SurfaceCapabilitiesKHR& surfaceCapabilities);
-    /// Reset the swapchain extent
+    /// Reset the setSwapchainExtent() function
     void resetSwapchainExtent();
 
     /// Create the vulkan swapchain
     /// @param surfaceCapabilities Surface capabilities
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult createSwapchain(const vk::SurfaceCapabilitiesKHR& surfaceCapabilities);
-    /// Destroy the vulkan swapchain
+    /// Destroy the createSwapchain() function
     void destroySwapchain();
+
+    /// Get the swapchain images
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult getSwapchainImages();
+    /// Reset the getSwapchainImages() function
+    void resetSwapchainImages();
 
     // ----------------------------------------- //
     // Private Static Functions
