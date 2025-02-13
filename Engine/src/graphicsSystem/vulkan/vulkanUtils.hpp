@@ -58,16 +58,6 @@ const char* axrGetExtensionName(AxrVulkanExtensionTypeEnum extensionType);
 
 // ---- Swapchain ----
 
-/// Choose which format to use.
-/// We will choose the first available format from the format options list
-/// @param formatOptions Formats to choose from in order from most desired to least desired.
-/// @param availableFormats Available formats to use
-/// @returns The chosen format
-vk::Format axrChooseFormat(
-    const std::vector<vk::Format>& formatOptions,
-    const std::vector<vk::Format>& availableFormats
-);
-
 /// Convert an AxrVulkanPresentationModeEnum to a vk::PresentModeKHR
 /// @param presentationMode Presentation mode to convert
 /// @returns The converted presentation mode

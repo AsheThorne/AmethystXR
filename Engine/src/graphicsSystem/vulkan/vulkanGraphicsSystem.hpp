@@ -93,13 +93,12 @@ private:
     AxrVulkanExtensionCollection<AxrVulkanApiLayer_T, AxrVulkanApiLayerTypeEnum> m_ApiLayers;
     AxrVulkanExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum> m_Extensions;
 
-    vk::ColorSpaceKHR m_ColorSpace;
     /// Ordered from most desired to the least desired
-    std::vector<vk::Format> m_SwapchainColorFormatOptions;
+    std::vector<vk::SurfaceFormatKHR> m_SwapchainColorFormatOptions;
     /// Ordered from most desired to the least desired
     std::vector<vk::Format> m_SwapchainDepthFormatOptions;
     /// Ordered from most desired to the least desired
-    std::vector<vk::Format> m_SupportedSwapchainColorFormatOptions;
+    std::vector<vk::SurfaceFormatKHR> m_SupportedSwapchainColorFormatOptions;
     /// Ordered from most desired to the least desired
     std::vector<vk::Format> m_SupportedSwapchainDepthFormatOptions;
 

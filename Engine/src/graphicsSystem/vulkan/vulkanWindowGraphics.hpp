@@ -6,7 +6,6 @@
 // ----------------------------------------- //
 #include "axr/windowSystem.h"
 #include "vulkanExtensionCollection.hpp"
-#include "vulkanSurfaceDetails.hpp"
 
 // ----------------------------------------- //
 // Vulkan Headers
@@ -24,7 +23,6 @@ public:
     struct Config {
         AxrWindowSystem& WindowSystem;
         vk::DispatchLoaderDynamic& Dispatch;
-        vk::ColorSpaceKHR ColorSpace;
         AxrVulkanPresentationModeEnum PresentationMode;
     };
 
@@ -33,7 +31,7 @@ public:
         vk::Instance Instance;
         vk::PhysicalDevice PhysicalDevice;
         /// Ordered from most desired to the least desired
-        const std::vector<vk::Format>& SwapchainColorFormatOptions;
+        const std::vector<vk::SurfaceFormatKHR>& SwapchainColorFormatOptions;
         /// Ordered from most desired to the least desired
         const std::vector<vk::Format>& SwapchainDepthFormatOptions;
     };
@@ -97,19 +95,18 @@ private:
     // ---- Config ----
     AxrWindowSystem& m_WindowSystem;
     vk::DispatchLoaderDynamic& m_Dispatch;
-    vk::ColorSpaceKHR m_ColorSpace;
     AxrVulkanPresentationModeEnum m_PreferredPresentationMode;
 
     // ---- Setup Config ----
     vk::Instance m_Instance;
     vk::PhysicalDevice m_PhysicalDevice;
     /// Ordered from most desired to the least desired
-    std::vector<vk::Format> m_SwapchainColorFormatOptions;
+    std::vector<vk::SurfaceFormatKHR> m_SwapchainColorFormatOptions;
     /// Ordered from most desired to the least desired
     std::vector<vk::Format> m_SwapchainDepthFormatOptions;
 
     vk::SurfaceKHR m_Surface;
-    vk::Format m_SwapchainColorFormat;
+    vk::SurfaceFormatKHR m_SwapchainColorFormat;
     vk::Format m_SwapchainDepthFormat;
     vk::PresentModeKHR m_SwapchainPresentationMode;
 

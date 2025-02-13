@@ -19,13 +19,12 @@
 AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     m_ApplicationName(config.ApplicationName),
     m_ApplicationVersion(config.ApplicationVersion),
-    m_ColorSpace(vk::ColorSpaceKHR::eSrgbNonlinear),
     m_SwapchainColorFormatOptions(
         {
-            vk::Format::eR8G8B8A8Srgb,
-            vk::Format::eB8G8R8A8Srgb,
-            vk::Format::eR8G8B8Unorm,
-            vk::Format::eB8G8R8A8Unorm,
+            vk::SurfaceFormatKHR(vk::Format::eR8G8B8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear),
+            vk::SurfaceFormatKHR(vk::Format::eB8G8R8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear),
+            vk::SurfaceFormatKHR(vk::Format::eR8G8B8Unorm, vk::ColorSpaceKHR::eSrgbNonlinear),
+            vk::SurfaceFormatKHR(vk::Format::eB8G8R8A8Unorm, vk::ColorSpaceKHR::eSrgbNonlinear),
         }
     ),
     m_SwapchainDepthFormatOptions(
@@ -59,7 +58,6 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
                 {
                     .WindowSystem = *config.WindowSystem,
                     .Dispatch = m_DynamicDispatchLoader,
-                    .ColorSpace = m_ColorSpace,
                     .PresentationMode = config.VulkanConfig->WindowConfig->PresentationMode
                 }
             );
@@ -813,16 +811,16 @@ void AxrVulkanGraphicsSystem::findSupportedSwapchainFormats() {
     // Process
     // ----------------------------------------- //
 
-    for (const vk::Format format : m_SwapchainColorFormatOptions) {
+    for (const vk::SurfaceFormatKHR surfaceFormat : m_SwapchainColorFormatOptions) {
         if (areFormatFeaturesSupported(
-            format,
+            surfaceFormat.format,
             vk::ImageTiling::eOptimal,
             vk::FormatFeatureFlagBits::eSampledImage &
             vk::FormatFeatureFlagBits::eColorAttachment &
             vk::FormatFeatureFlagBits::eBlitDst &
             vk::FormatFeatureFlagBits::eTransferDst
         )) {
-            m_SupportedSwapchainColorFormatOptions.push_back(format);
+            m_SupportedSwapchainColorFormatOptions.push_back(surfaceFormat);
         }
     }
 

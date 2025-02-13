@@ -7,13 +7,13 @@
 #include "axr/logger.h"
 #include "vulkanUtils.hpp"
 #include "../../windowSystem/windowSystem.hpp"
+#include "vulkanSurfaceDetails.hpp"
 
 // ---- Special Functions ----
 
 AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
     m_WindowSystem(config.WindowSystem),
     m_Dispatch(config.Dispatch),
-    m_ColorSpace(config.ColorSpace),
     m_PreferredPresentationMode(config.PresentationMode),
     m_Instance(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
@@ -276,19 +276,19 @@ AxrResult AxrVulkanWindowGraphics::setSwapchainFormats(const std::vector<vk::Sur
     // Process
     // ----------------------------------------- //
 
-    std::vector<vk::Format> availableSwapchainFormats;
-    for (const vk::SurfaceFormatKHR& surfaceFormat : surfaceFormats) {
-        if (surfaceFormat.colorSpace == m_ColorSpace) {
-            availableSwapchainFormats.push_back(surfaceFormat.format);
-        }
-    }
-
-    m_SwapchainColorFormat = axrChooseFormat(
-        m_SwapchainColorFormatOptions,
-        availableSwapchainFormats
+    const auto foundFormatIt = std::find_first_of(
+        m_SwapchainColorFormatOptions.begin(),
+        m_SwapchainColorFormatOptions.end(),
+        surfaceFormats.begin(),
+        surfaceFormats.end()
     );
-    if (m_SwapchainColorFormat == vk::Format::eUndefined) {
-        return AXR_ERROR;
+
+    if (foundFormatIt != m_SwapchainColorFormatOptions.end()) {
+        m_SwapchainColorFormat = *foundFormatIt;
+    } else {
+        // None of our ideal swapchain color formats could be found.
+        // It should still be ok to just pick what ever the first supported surface format is but there may be issues.
+        m_SwapchainColorFormat = surfaceFormats[0];
     }
 
     // We don't need to check surface compatibility for the depth format.

@@ -75,25 +75,6 @@ const char* axrGetExtensionName(const AxrVulkanExtensionTypeEnum extensionType) 
     }
 }
 
-vk::Format axrChooseFormat(
-    const std::vector<vk::Format>& formatOptions,
-    const std::vector<vk::Format>& availableFormats
-) {
-    const auto fallbackFormatIt = std::find_first_of(
-        formatOptions.begin(),
-        formatOptions.end(),
-        availableFormats.begin(),
-        availableFormats.end()
-    );
-
-    if (fallbackFormatIt != formatOptions.end()) {
-        return *fallbackFormatIt;
-    }
-
-    axrLogErrorLocation("Failed to find an available format to use.");
-    return vk::Format::eUndefined;
-}
-
 vk::PresentModeKHR axrToVkPresentMode(const AxrVulkanPresentationModeEnum presentationMode) {
     switch (presentationMode) {
         case AXR_VULKAN_PRESENTATION_MODE_IMMEDIATE: {
