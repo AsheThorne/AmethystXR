@@ -68,7 +68,12 @@ AxrWindowSystem::AxrWindowSystem(const Config& config):
 
 bool AxrWindowSystem::isWindowOpen() const {
 #ifdef AXR_USE_PLATFORM_WIN32
-    return isWin32WindowOpen();
+    if (m_Win32WindowSystem == nullptr) {
+        axrLogErrorLocation("Win32WindowSystem is null.");
+        return false;
+    }
+
+    return m_Win32WindowSystem->isWindowOpen();
 #else
     axrLogErrorLocation("Unknown platform.");
     return false;
@@ -79,7 +84,11 @@ AxrResult AxrWindowSystem::openWindow() {
     AxrResult axrResult = AXR_ERROR;
 
 #ifdef AXR_USE_PLATFORM_WIN32
-    axrResult = openWin32Window();
+    if (m_Win32WindowSystem == nullptr) {
+        axrLogErrorLocation("Win32WindowSystem is null.");
+    } else {
+        axrResult = m_Win32WindowSystem->openWindow();
+    }
 #else
     axrLogErrorLocation("Unknown platform.");
 #endif
@@ -98,9 +107,15 @@ AxrResult AxrWindowSystem::openWindow() {
 
 void AxrWindowSystem::closeWindow() {
 #ifdef AXR_USE_PLATFORM_WIN32
-    closeWin32Window();
+    if (m_Win32WindowSystem == nullptr) {
+        axrLogErrorLocation("Win32WindowSystem is null.");
+        return;
+    }
+
+    m_Win32WindowSystem->closeWindow();
 #else
     axrLogErrorLocation("Unknown platform.");
+    return;
 #endif
 
     if (AXR_FAILED(invokeConfigureWindowGraphicsCallback(false))) {
@@ -110,7 +125,12 @@ void AxrWindowSystem::closeWindow() {
 
 AxrResult AxrWindowSystem::setup() {
 #ifdef AXR_USE_PLATFORM_WIN32
-    return setupWin32Window();
+    if (m_Win32WindowSystem == nullptr) {
+        axrLogErrorLocation("Win32WindowSystem is null.");
+        return AXR_ERROR;
+    }
+
+    return m_Win32WindowSystem->setup();
 #else
     axrLogErrorLocation("Unknown platform.");
     return AXR_ERROR;
@@ -119,7 +139,12 @@ AxrResult AxrWindowSystem::setup() {
 
 void AxrWindowSystem::processEvents() {
 #ifdef AXR_USE_PLATFORM_WIN32
-    processWin32Events();
+    if (m_Win32WindowSystem == nullptr) {
+        axrLogErrorLocation("Win32WindowSystem is null.");
+        return;
+    }
+
+    m_Win32WindowSystem->processEvents();
 #else
     axrLogErrorLocation("Unknown platform.");
 #endif
@@ -151,7 +176,12 @@ AxrWin32WindowSystem* AxrWindowSystem::getWin32WindowSystem() const {
 
 AxrResult AxrWindowSystem::getClientSize(uint32_t& width, uint32_t& height) const {
 #ifdef AXR_USE_PLATFORM_WIN32
-    return getWin32ClientSize(width, height);
+    if (m_Win32WindowSystem == nullptr) {
+        axrLogErrorLocation("Win32WindowSystem is null.");
+        return AXR_ERROR;
+    }
+
+    return m_Win32WindowSystem->getClientSize(width, height);
 #else
     axrLogErrorLocation("Unknown platform.");
     return AXR_ERROR;
@@ -163,59 +193,3 @@ AxrResult AxrWindowSystem::getClientSize(uint32_t& width, uint32_t& height) cons
 AxrResult AxrWindowSystem::invokeConfigureWindowGraphicsCallback(const bool isWindowOpen) const {
     return m_ConfigureWindowGraphicsCallback(m_ConfigureWindowGraphicsCallbackUserData, isWindowOpen);
 }
-
-#ifdef AXR_USE_PLATFORM_WIN32
-AxrResult AxrWindowSystem::setupWin32Window() {
-    if (m_Win32WindowSystem == nullptr) {
-        axrLogErrorLocation("Win32WindowSystem is null.");
-        return AXR_ERROR;
-    }
-
-    return m_Win32WindowSystem->setup();
-}
-
-bool AxrWindowSystem::isWin32WindowOpen() const {
-    if (m_Win32WindowSystem == nullptr) {
-        axrLogErrorLocation("Win32WindowSystem is null.");
-        return false;
-    }
-
-    return m_Win32WindowSystem->isWindowOpen();
-}
-
-AxrResult AxrWindowSystem::openWin32Window() {
-    if (m_Win32WindowSystem == nullptr) {
-        axrLogErrorLocation("Win32WindowSystem is null.");
-        return AXR_ERROR;
-    }
-
-    return m_Win32WindowSystem->openWindow();
-}
-
-void AxrWindowSystem::closeWin32Window() {
-    if (m_Win32WindowSystem == nullptr) {
-        axrLogErrorLocation("Win32WindowSystem is null.");
-        return;
-    }
-
-    m_Win32WindowSystem->closeWindow();
-}
-
-void AxrWindowSystem::processWin32Events() {
-    if (m_Win32WindowSystem == nullptr) {
-        axrLogErrorLocation("Win32WindowSystem is null.");
-        return;
-    }
-
-    m_Win32WindowSystem->processEvents();
-}
-
-AxrResult AxrWindowSystem::getWin32ClientSize(uint32_t& width, uint32_t& height) const {
-    if (m_Win32WindowSystem == nullptr) {
-        axrLogErrorLocation("Win32WindowSystem is null.");
-        return AXR_ERROR;
-    }
-
-    return m_Win32WindowSystem->getClientSize(width, height);
-}
-#endif

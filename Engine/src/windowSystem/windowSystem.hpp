@@ -126,27 +126,4 @@ private:
     /// @param isWindowOpen Window open state
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult invokeConfigureWindowGraphicsCallback(bool isWindowOpen) const;
-
-#ifdef AXR_USE_PLATFORM_WIN32
-    // ---- Win32 Functions ----
-
-    /// Set up the win32 window
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setupWin32Window();
-    /// Check if the win32 window is open
-    /// @returns True if the win32 window is open
-    [[nodiscard]] bool isWin32WindowOpen() const;
-    /// Open the win32 window
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult openWin32Window();
-    /// Signal that we want to close the win32 window
-    void closeWin32Window();
-    /// Process the win32 window events
-    void processWin32Events();
-    /// Get the win32 window client size in pixels
-    /// @param width Output window client width
-    /// @param height Output window client height
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult getWin32ClientSize(uint32_t& width, uint32_t& height) const;
-#endif
 };

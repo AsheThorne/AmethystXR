@@ -76,14 +76,4 @@ private:
 
     // ---- Config Variables ----
     AxrGraphicsApiEnum m_GraphicsApi;
-
-    // ----------------------------------------- //
-    // Private Functions
-    // ----------------------------------------- //
-
-    // ---- Vulkan Functions ----
-    
-    /// Set up the vulkan graphics
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setupVulkan();
 };

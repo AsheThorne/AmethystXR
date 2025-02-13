@@ -35,7 +35,17 @@ AxrGraphicsSystem::AxrGraphicsSystem(const Config& config):
 AxrResult AxrGraphicsSystem::setup() {
     switch (m_GraphicsApi) {
         case AXR_GRAPHICS_API_VULKAN: {
-            return setupVulkan();
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+            if (m_VulkanGraphicsSystem == nullptr) {
+                axrLogErrorLocation("VulkanGraphicsSystem is null.");
+                return AXR_ERROR;
+            }
+
+            return m_VulkanGraphicsSystem->setup();
+#elif
+            axrLogErrorLocation("Vulkan not supported.");
+            return AXR_ERROR;
+#endif
         }
         case AXR_GRAPHICS_API_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
@@ -43,22 +53,4 @@ AxrResult AxrGraphicsSystem::setup() {
             return AXR_ERROR;
         }
     }
-}
-
-// ---- Private Functions ----
-
-AxrResult AxrGraphicsSystem::setupVulkan() {
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    if (m_VulkanGraphicsSystem == nullptr) {
-        axrLogErrorLocation("VulkanGraphicsSystem is null.");
-        return AXR_ERROR;
-    }
-
-    return m_VulkanGraphicsSystem->setup();
-#elif
-    axrLogErrorLocation(
-           "Vulkan not supported."
-       );
-    return AXR_ERROR;
-#endif
 }
