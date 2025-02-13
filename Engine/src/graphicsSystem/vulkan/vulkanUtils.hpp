@@ -63,4 +63,21 @@ const char* axrGetApiLayerName(AxrVulkanApiLayerTypeEnum apiLayerType);
 /// @returns The extension name
 const char* axrGetExtensionName(AxrVulkanExtensionTypeEnum extensionType);
 
+// ---- Format ----
+
+/// Check if the given format supports the given features
+/// @param format Format to check against
+/// @param tiling Image tiling option
+/// @param features Features to check
+/// @param physicalDevice Physical device to use
+/// @param dispatch Dispatch to use
+/// @returns True if the given format supports the given features
+[[nodiscard]] bool axrAreFormatFeaturesSupported(
+    vk::Format format,
+    vk::ImageTiling tiling,
+    vk::FormatFeatureFlags features,
+    const vk::PhysicalDevice& physicalDevice,
+    const vk::DispatchLoaderDynamic& dispatch
+);
+
 #endif

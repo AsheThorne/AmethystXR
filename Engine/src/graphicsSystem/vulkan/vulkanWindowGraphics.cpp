@@ -119,18 +119,48 @@ AxrResult AxrVulkanWindowGraphics::setSetupConfigVariables(const SetupConfig& co
         return AXR_ERROR;
     }
 
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+    m_Instance = config.Instance;
+    m_PhysicalDevice = config.PhysicalDevice;
+    m_Device = config.Device;
+    m_QueueFamilies = config.QueueFamilies;
+
+    const AxrResult axrResult = setSwapchainFormatOptions(config);
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanWindowGraphics::resetSetupConfigVariables() {
+    resetSwapchainFormatOptions();
+
+    m_Instance = VK_NULL_HANDLE;
+    m_PhysicalDevice = VK_NULL_HANDLE;
+    m_Device = VK_NULL_HANDLE;
+    m_QueueFamilies.reset();
+}
+
+AxrResult AxrVulkanWindowGraphics::setSwapchainFormatOptions(const SetupConfig& config) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
     if (!m_SwapchainColorFormatOptions.empty()) {
         axrLogErrorLocation("Swapchain color format options aren't empty.");
         return AXR_ERROR;
     }
 
-    if (config.SwapchainColorFormatOptions.empty()) {
-        axrLogErrorLocation("Config swapchain color format options are empty.");
+    if (!m_SwapchainDepthFormatOptions.empty()) {
+        axrLogErrorLocation("Swapchain depth format options aren't empty.");
         return AXR_ERROR;
     }
 
-    if (!m_SwapchainDepthFormatOptions.empty()) {
-        axrLogErrorLocation("Swapchain depth format options aren't empty.");
+    if (config.SwapchainColorFormatOptions.empty()) {
+        axrLogErrorLocation("Config swapchain color format options are empty.");
         return AXR_ERROR;
     }
 
@@ -142,21 +172,40 @@ AxrResult AxrVulkanWindowGraphics::setSetupConfigVariables(const SetupConfig& co
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //
-    m_Instance = config.Instance;
-    m_PhysicalDevice = config.PhysicalDevice;
-    m_Device = config.Device;
-    m_QueueFamilies = config.QueueFamilies;
-    m_SwapchainColorFormatOptions = config.SwapchainColorFormatOptions;
-    m_SwapchainDepthFormatOptions = config.SwapchainDepthFormatOptions;
+
+    for (const vk::SurfaceFormatKHR surfaceFormat : config.SwapchainColorFormatOptions) {
+        if (axrAreFormatFeaturesSupported(
+            surfaceFormat.format,
+            vk::ImageTiling::eOptimal,
+            vk::FormatFeatureFlagBits::eSampledImage &
+            vk::FormatFeatureFlagBits::eColorAttachment,
+            // TODO: Check if we're rendering directly to the surface first for asking for these.
+            // vk::FormatFeatureFlagBits::eBlitDst &
+            // vk::FormatFeatureFlagBits::eTransferDst,
+            config.PhysicalDevice,
+            m_Dispatch
+        )) {
+            m_SwapchainColorFormatOptions.push_back(surfaceFormat);
+        }
+    }
+
+    for (const vk::Format format : config.SwapchainDepthFormatOptions) {
+        if (axrAreFormatFeaturesSupported(
+            format,
+            vk::ImageTiling::eOptimal,
+            vk::FormatFeatureFlagBits::eSampledImage &
+            vk::FormatFeatureFlagBits::eDepthStencilAttachment,
+            config.PhysicalDevice,
+            m_Dispatch
+        )) {
+            m_SwapchainDepthFormatOptions.push_back(format);
+        }
+    }
 
     return AXR_SUCCESS;
 }
 
-void AxrVulkanWindowGraphics::resetSetupConfigVariables() {
-    m_Instance = VK_NULL_HANDLE;
-    m_PhysicalDevice = VK_NULL_HANDLE;
-    m_Device = VK_NULL_HANDLE;
-    m_QueueFamilies.reset();
+void AxrVulkanWindowGraphics::resetSwapchainFormatOptions() {
     m_SwapchainColorFormatOptions.clear();
     m_SwapchainDepthFormatOptions.clear();
 }

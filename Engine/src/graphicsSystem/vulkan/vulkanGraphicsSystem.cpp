@@ -114,8 +114,8 @@ AxrResult AxrVulkanGraphicsSystem::setup() {
                 .PhysicalDevice = m_PhysicalDevice,
                 .Device = m_Device,
                 .QueueFamilies = m_QueueFamilies,
-                .SwapchainColorFormatOptions = m_SupportedSwapchainColorFormatOptions,
-                .SwapchainDepthFormatOptions = m_SupportedSwapchainDepthFormatOptions,
+                .SwapchainColorFormatOptions = m_SwapchainColorFormatOptions,
+                .SwapchainDepthFormatOptions = m_SwapchainDepthFormatOptions,
             }
         );
         if (AXR_FAILED(axrResult)) {
@@ -561,13 +561,11 @@ AxrResult AxrVulkanGraphicsSystem::setupPhysicalDevice() {
     }
 
     removeUnsupportedDeviceExtensions();
-    findSupportedSwapchainFormats();
 
     return AXR_SUCCESS;
 }
 
 void AxrVulkanGraphicsSystem::resetPhysicalDevice() {
-    resetSupportedSwapchainFormats();
     m_QueueFamilies.resetQueueFamilyIndices();
     m_PhysicalDevice = VK_NULL_HANDLE;
 }
@@ -792,91 +790,6 @@ bool AxrVulkanGraphicsSystem::areApiLayersSupportedForPhysicalDevice(const vk::P
     }
 
     return true;
-}
-
-void AxrVulkanGraphicsSystem::findSupportedSwapchainFormats() {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
-
-    if (!m_SupportedSwapchainColorFormatOptions.empty()) {
-        axrLogErrorLocation("Supported swapchain color format options aren't empty.");
-        return;
-    }
-
-    if (!m_SupportedSwapchainDepthFormatOptions.empty()) {
-        axrLogErrorLocation("Supported swapchain depth format options aren't empty.");
-        return;
-    }
-
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
-
-    for (const vk::SurfaceFormatKHR surfaceFormat : m_SwapchainColorFormatOptions) {
-        if (areFormatFeaturesSupported(
-            surfaceFormat.format,
-            vk::ImageTiling::eOptimal,
-            vk::FormatFeatureFlagBits::eSampledImage &
-            vk::FormatFeatureFlagBits::eColorAttachment &
-            // TODO: Maybe we should check if we're rendering directly to the surface first for asking for these.
-            //  Actually, maybe this whole function should be moved to the window graphics. OpenXR might have different feature requirements
-            vk::FormatFeatureFlagBits::eBlitDst &
-            vk::FormatFeatureFlagBits::eTransferDst
-        )) {
-            m_SupportedSwapchainColorFormatOptions.push_back(surfaceFormat);
-        }
-    }
-
-    for (const vk::Format format : m_SwapchainDepthFormatOptions) {
-        if (areFormatFeaturesSupported(
-            format,
-            vk::ImageTiling::eOptimal,
-            vk::FormatFeatureFlagBits::eSampledImage &
-            vk::FormatFeatureFlagBits::eDepthStencilAttachment &
-            // TODO: Check that we need these last 2 for the depth format. It doesn't feel like we do
-            vk::FormatFeatureFlagBits::eBlitDst &
-            vk::FormatFeatureFlagBits::eTransferDst
-        )) {
-            m_SupportedSwapchainDepthFormatOptions.push_back(format);
-        }
-    }
-}
-
-void AxrVulkanGraphicsSystem::resetSupportedSwapchainFormats() {
-    m_SupportedSwapchainColorFormatOptions.clear();
-    m_SupportedSwapchainDepthFormatOptions.clear();
-}
-
-bool AxrVulkanGraphicsSystem::areFormatFeaturesSupported(
-    const vk::Format format,
-    const vk::ImageTiling tiling,
-    const vk::FormatFeatureFlags features
-) const {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
-
-    if (m_PhysicalDevice == VK_NULL_HANDLE) {
-        axrLogErrorLocation("Physical device is null.");
-        return false;
-    }
-
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
-
-    vk::FormatProperties formatProperties = m_PhysicalDevice.getFormatProperties(format, m_DynamicDispatchLoader);
-
-    if (tiling == vk::ImageTiling::eLinear && (formatProperties.linearTilingFeatures & features) == features) {
-        return true;
-    }
-
-    if (tiling == vk::ImageTiling::eOptimal && (formatProperties.optimalTilingFeatures & features) == features) {
-        return true;
-    }
-
-    return false;
 }
 
 AxrResult AxrVulkanGraphicsSystem::createLogicalDevice() {

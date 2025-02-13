@@ -129,6 +129,13 @@ private:
     /// Reset the SetupConfig variables
     void resetSetupConfigVariables();
 
+    /// Set the swapchain color and depth format options
+    /// @param config Setup config
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setSwapchainFormatOptions(const SetupConfig& config);
+    /// Reset the setSwapchainFormatOptions() function 
+    void resetSwapchainFormatOptions();
+
     /// Configure window graphics
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult configureWindowGraphics();

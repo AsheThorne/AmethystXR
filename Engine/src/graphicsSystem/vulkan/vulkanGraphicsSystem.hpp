@@ -97,10 +97,6 @@ private:
     std::vector<vk::SurfaceFormatKHR> m_SwapchainColorFormatOptions;
     /// Ordered from most desired to the least desired
     std::vector<vk::Format> m_SwapchainDepthFormatOptions;
-    /// Ordered from most desired to the least desired
-    std::vector<vk::SurfaceFormatKHR> m_SupportedSwapchainColorFormatOptions;
-    /// Ordered from most desired to the least desired
-    std::vector<vk::Format> m_SupportedSwapchainDepthFormatOptions;
 
     vk::DispatchLoaderDynamic m_DynamicDispatchLoader;
     vk::Instance m_Instance;
@@ -240,21 +236,6 @@ private:
     /// @param physicalDevice Physical device to check
     /// @returns True if all the api layers are supported for the given physical device
     bool areApiLayersSupportedForPhysicalDevice(const vk::PhysicalDevice& physicalDevice) const;
-
-    /// Find supported swapchain formats from our list of swapchain format options
-    void findSupportedSwapchainFormats();
-    /// Reset the findSupportedSwapchainFormats() function
-    void resetSupportedSwapchainFormats();
-    /// Check if the given format supports the given features
-    /// @param format Format to check against
-    /// @param tiling Image tiling option
-    /// @param features Features to check
-    /// @returns True if the given format supports the given features
-    [[nodiscard]] bool areFormatFeaturesSupported(
-        vk::Format format,
-        vk::ImageTiling tiling,
-        vk::FormatFeatureFlags features
-    ) const;
 
     // ---- Logical Device ----
 

@@ -96,4 +96,35 @@ const char* axrGetExtensionName(const AxrVulkanExtensionTypeEnum extensionType) 
     }
 }
 
+bool axrAreFormatFeaturesSupported(
+    const vk::Format format,
+    const vk::ImageTiling tiling,
+    const vk::FormatFeatureFlags features,
+    const vk::PhysicalDevice& physicalDevice,
+    const vk::DispatchLoaderDynamic& dispatch
+) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (physicalDevice == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Physical device is null.");
+        return false;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const vk::FormatProperties formatProperties = physicalDevice.getFormatProperties(format, dispatch);
+    if (tiling == vk::ImageTiling::eLinear && (formatProperties.linearTilingFeatures & features) == features) {
+        return true;
+    }
+    if (tiling == vk::ImageTiling::eOptimal && (formatProperties.optimalTilingFeatures & features) == features) {
+        return true;
+    }
+
+    return false;
+}
+
 #endif
