@@ -4,6 +4,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/common/result.h"
+#include <compare>
 
 namespace axr {
     // ----------------------------------------- //
@@ -11,7 +12,7 @@ namespace axr {
     // ----------------------------------------- //
 
     /// Result enum
-    enum Result {
+    enum class Result {
         // ---- Failed----
         Error = AXR_ERROR,
 
@@ -23,4 +24,8 @@ namespace axr {
         sizeof(AxrResult) == sizeof(axr::Result),
         "Original type and wrapper have different size!"
     );
+
+    inline std::strong_ordering operator<=>(const axr::Result& result, const int number) noexcept {
+        return static_cast<AxrResult>(result) <=> number;
+    }
 }
