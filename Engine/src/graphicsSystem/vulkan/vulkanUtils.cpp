@@ -12,20 +12,12 @@
 // ----------------------------------------- //
 #include <vulkan/vulkan_core.h>
 
-bool axrVkSucceeded(vk::Result result) {
-    return VK_SUCCEEDED(static_cast<VkResult>(result));
-}
-
-bool axrVkFailed(vk::Result result) {
-    return VK_FAILED(static_cast<VkResult>(result));
-}
-
 void axrLogVkResult(
     const vk::Result result,
     const char* functionName,
     const std::source_location& location
 ) {
-    if (axrVkFailed(result)) {
+    if (VK_FAILED(result)) {
         axrLogErrorLocation(
             {"{0} failed with a result of {1}.", location},
             functionName,
@@ -246,7 +238,7 @@ AxrResult axrCreateImageView(
 
     const auto imageViewResult = device.createImageView(imageViewCreateInfo, nullptr, dispatch);
     axrLogVkResult(imageViewResult.result, "device.createImageView");
-    if (axrVkFailed(imageViewResult.result)) {
+    if (VK_FAILED(imageViewResult.result)) {
         return AXR_ERROR;
     }
 

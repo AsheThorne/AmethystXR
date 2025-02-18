@@ -331,7 +331,7 @@ AxrResult AxrVulkanWindowGraphics::createWin32Surface() {
     const vk::Result vkResult = m_Instance.createWin32SurfaceKHR(&createInfo, nullptr, &m_Surface, m_Dispatch);
     axrLogVkResult(vkResult, "m_Instance.createWin32SurfaceKHR");
 
-    if (axrVkFailed(vkResult)) {
+    if (VK_FAILED(vkResult)) {
         return AXR_ERROR;
     }
 
@@ -570,7 +570,7 @@ AxrResult AxrVulkanWindowGraphics::createSwapchain(const vk::SurfaceCapabilities
     );
     axrLogVkResult(vkResult, "m_Device.createSwapchainKHR");
 
-    if (axrVkFailed(vkResult)) {
+    if (VK_FAILED(vkResult)) {
         return AXR_ERROR;
     }
 
@@ -610,7 +610,7 @@ AxrResult AxrVulkanWindowGraphics::getSwapchainImages() {
 
     const auto swapchainImagesResult = m_Device.getSwapchainImagesKHR(m_Swapchain, m_Dispatch);
     axrLogVkResult(swapchainImagesResult.result, "m_Device.getSwapchainImagesKHR");
-    if (axrVkFailed(swapchainImagesResult.result)) {
+    if (VK_FAILED(swapchainImagesResult.result)) {
         return AXR_ERROR;
     }
 

@@ -21,20 +21,18 @@
 #include <vulkan/vulkan.hpp>
 
 // ----------------------------------------- //
+// Enum Extensions
+// ----------------------------------------- //
+
+inline auto operator<=>(const vk::Result& result, const int number) noexcept {
+    return static_cast<VkResult>(result) <=> number;
+}
+
+// ----------------------------------------- //
 // Function Definitions
 // ----------------------------------------- //
 
 // ---- Logging ----
-
-/// Check if the vulkan result succeeded
-/// @param result Vulkan result
-/// @returns True if the result succeeded
-bool axrVkSucceeded(vk::Result result);
-
-/// Check if the vulkan result failed
-/// @param result Vulkan result
-/// @returns True if the result failed
-bool axrVkFailed(vk::Result result);
 
 /// Log a vulkan result if it failed
 /// @param result Vulkan result

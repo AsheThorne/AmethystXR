@@ -185,7 +185,7 @@ AxrResult AxrVulkanGraphicsSystem::createInstance() {
         m_DynamicDispatchLoader
     );
     axrLogVkResult(vkResult, "vk::createInstance");
-    if (axrVkFailed(vkResult)) return AXR_ERROR;
+    if (VK_FAILED(vkResult)) return AXR_ERROR;
 
     m_DynamicDispatchLoader.init(m_Instance);
 
@@ -219,7 +219,7 @@ std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedInstanceApiLayers(
         vk::enumerateInstanceLayerProperties(m_DynamicDispatchLoader);
     axrLogVkResult(instanceLayerProperties.result, "vk::enumerateInstanceLayerProperties");
 
-    if (axrVkFailed(instanceLayerProperties.result)) return {};
+    if (VK_FAILED(instanceLayerProperties.result)) return {};
 
     std::vector<std::string> supportedApiLayers(instanceLayerProperties.value.size());
 
@@ -250,7 +250,7 @@ std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedDeviceApiLayers(
         physicalDevice.enumerateDeviceLayerProperties(m_DynamicDispatchLoader);
     axrLogVkResult(deviceLayerProperties.result, "physicalDevice.enumerateDeviceLayerProperties");
 
-    if (axrVkFailed(deviceLayerProperties.result)) return {};
+    if (VK_FAILED(deviceLayerProperties.result)) return {};
 
     std::vector<std::string> supportedApiLayers(deviceLayerProperties.value.size());
 
@@ -266,7 +266,7 @@ std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedInstanceExtensions
         vk::enumerateInstanceExtensionProperties(nullptr, m_DynamicDispatchLoader);
     axrLogVkResult(instanceExtensionProperties.result, "vk::enumerateInstanceExtensionProperties");
 
-    if (axrVkFailed(instanceExtensionProperties.result)) return {};
+    if (VK_FAILED(instanceExtensionProperties.result)) return {};
 
     std::vector<std::string> supportedExtensions(instanceExtensionProperties.value.size());
 
@@ -297,7 +297,7 @@ std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedDeviceExtensions(
         physicalDevice.enumerateDeviceExtensionProperties(nullptr, m_DynamicDispatchLoader);
     axrLogVkResult(deviceExtensionProperties.result, "physicalDevice.enumerateDeviceExtensionProperties");
 
-    if (axrVkFailed(deviceExtensionProperties.result)) return {};
+    if (VK_FAILED(deviceExtensionProperties.result)) return {};
 
     std::vector<std::string> supportedExtensions(deviceExtensionProperties.value.size());
 
@@ -514,7 +514,7 @@ AxrResult AxrVulkanGraphicsSystem::createDebugUtils() {
         m_DynamicDispatchLoader
     );
     axrLogVkResult(vkResult, "m_Instance.createDebugUtilsMessengerEXT");
-    if (axrVkFailed(vkResult)) return AXR_ERROR;
+    if (VK_FAILED(vkResult)) return AXR_ERROR;
 
     return AXR_SUCCESS;
 }
@@ -588,7 +588,7 @@ vk::PhysicalDevice AxrVulkanGraphicsSystem::pickPhysicalDevice() const {
 
     const auto physicalDevices = m_Instance.enumeratePhysicalDevices(m_DynamicDispatchLoader);
     axrLogVkResult(physicalDevices.result, "m_Instance.enumeratePhysicalDevices");
-    if (axrVkFailed(physicalDevices.result)) return VK_NULL_HANDLE;
+    if (VK_FAILED(physicalDevices.result)) return VK_NULL_HANDLE;
 
     vk::PhysicalDevice chosenPhysicalDevice = VK_NULL_HANDLE;
     uint32_t chosenPhysicalDeviceScore = 0;
@@ -871,7 +871,7 @@ AxrResult AxrVulkanGraphicsSystem::createLogicalDevice() {
         m_DynamicDispatchLoader
     );
     axrLogVkResult(vkResult, "m_PhysicalDevice.createDevice");
-    if (axrVkFailed(vkResult)) return AXR_ERROR;
+    if (VK_FAILED(vkResult)) return AXR_ERROR;
 
     const AxrResult axrResult = m_QueueFamilies.setQueueFamilyQueues(m_Device, m_DynamicDispatchLoader);
     if (AXR_FAILED(axrResult)) {

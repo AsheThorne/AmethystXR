@@ -36,14 +36,14 @@ AxrVulkanSurfaceDetails::AxrVulkanSurfaceDetails(
 
     const vk::Result vkResult = physicalDevice.getSurfaceCapabilitiesKHR(surface, &Capabilities, dispatch);
     axrLogVkResult(vkResult, "physicalDevice.getSurfaceCapabilitiesKHR");
-    if (axrVkFailed(vkResult)) {
+    if (VK_FAILED(vkResult)) {
         cleanup();
         return;
     }
 
     const auto surfaceFormatsResult = physicalDevice.getSurfaceFormatsKHR(surface, dispatch);
     axrLogVkResult(surfaceFormatsResult.result, "physicalDevice.getSurfaceFormatsKHR");
-    if (axrVkFailed(surfaceFormatsResult.result)) {
+    if (VK_FAILED(surfaceFormatsResult.result)) {
         cleanup();
         return;
     }
@@ -52,7 +52,7 @@ AxrVulkanSurfaceDetails::AxrVulkanSurfaceDetails(
 
     const auto surfacePresentationModsResult = physicalDevice.getSurfacePresentModesKHR(surface, dispatch);
     axrLogVkResult(surfacePresentationModsResult.result, "physicalDevice.getSurfacePresentModesKHR");
-    if (axrVkFailed(surfacePresentationModsResult.result)) {
+    if (VK_FAILED(surfacePresentationModsResult.result)) {
         cleanup();
         return;
     }
