@@ -7,16 +7,14 @@
 #include "axr/vulkanApi.h"
 #include "flags.hpp"
 
-// ----------------------------------------- //
-// Defines
-// ----------------------------------------- //
-
 namespace axr {
+    // ---------------------------------------------------------------------------------- //
+    //                                     Api Layers                                     //
+    // ---------------------------------------------------------------------------------- //
+
     // ----------------------------------------- //
     // Enums
     // ----------------------------------------- //
-
-    // ---- Api Layer Enums ----
 
     /// Vulkan Api Layer Type
     enum class VulkanApiLayerTypeEnum {
@@ -25,7 +23,13 @@ namespace axr {
         End = AXR_VULKAN_API_LAYER_TYPE_END,
     };
 
-    // ---- Extension Enums ----
+    // ---------------------------------------------------------------------------------- //
+    //                                     Extensions                                     //
+    // ---------------------------------------------------------------------------------- //
+
+    // ----------------------------------------- //
+    // Enums
+    // ----------------------------------------- //
 
     /// Vulkan Extension Type
     enum class VulkanExtensionTypeEnum {
@@ -66,22 +70,9 @@ namespace axr {
     /// Vulkan Extension Debug Utils Type Flags Type
     using VulkanDebugUtilsTypeFlags_T = axr::Flags<VulkanDebugUtilsTypeFlagBits>;
 
-    // ---- Vulkan Config Enums ----
-
-    /// Vulkan Presentation Mode Enum
-    enum class VulkanPresentationModeEnum {
-        Undefined = AXR_VULKAN_PRESENTATION_MODE_UNDEFINED,
-        Immediate = AXR_VULKAN_PRESENTATION_MODE_IMMEDIATE,
-        Mailbox = AXR_VULKAN_PRESENTATION_MODE_MAILBOX,
-        Fifo = AXR_VULKAN_PRESENTATION_MODE_FIFO,
-        FifoRelaxed = AXR_VULKAN_PRESENTATION_MODE_FIFO_RELAXED,
-    };
-
     // ----------------------------------------- //
     // Structs
     // ----------------------------------------- //
-
-    // ---- Extension Structs ----
 
     template <>
     struct axr::FlagTraits<axr::VulkanDebugUtilsSeverityFlagBits> {
@@ -99,7 +90,26 @@ namespace axr {
             VulkanDebugUtilsTypeFlagBits::Performance | VulkanDebugUtilsTypeFlagBits::DeviceAddressBinding;
     };
 
-    // ---- Vulkan Config ----
+    // ---------------------------------------------------------------------------------- //
+    //                                   Vulkan Config                                    //
+    // ---------------------------------------------------------------------------------- //
+
+    // ----------------------------------------- //
+    // Enums
+    // ----------------------------------------- //
+
+    /// Vulkan Presentation Mode Enum
+    enum class VulkanPresentationModeEnum {
+        Undefined = AXR_VULKAN_PRESENTATION_MODE_UNDEFINED,
+        Immediate = AXR_VULKAN_PRESENTATION_MODE_IMMEDIATE,
+        Mailbox = AXR_VULKAN_PRESENTATION_MODE_MAILBOX,
+        Fifo = AXR_VULKAN_PRESENTATION_MODE_FIFO,
+        FifoRelaxed = AXR_VULKAN_PRESENTATION_MODE_FIFO_RELAXED,
+    };
+
+    // ----------------------------------------- //
+    // Structs
+    // ----------------------------------------- //
 
     /// Vulkan Window Graphics Config
     struct VulkanWindowConfig {
@@ -118,11 +128,12 @@ namespace axr {
         VulkanWindowConfig():
             PresentationMode(axr::VulkanPresentationModeEnum::Fifo) {
         }
+
         /// Constructor
         VulkanWindowConfig(const axr::VulkanPresentationModeEnum presentationMode):
             PresentationMode(presentationMode) {
         }
-        
+
         // ----------------------------------------- //
         // Public Functions
         // ----------------------------------------- //
@@ -150,10 +161,10 @@ namespace axr {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-        uint32_t ApiLayersCount;
         AxrVulkanApiLayer_T* ApiLayers;
-        uint32_t ExtensionsCount;
+        uint32_t ApiLayersCount;
         AxrVulkanExtension_T* Extensions;
+        uint32_t ExtensionsCount;
         axr::VulkanWindowConfig* WindowConfig;
 
         // ----------------------------------------- //
@@ -172,6 +183,7 @@ namespace axr {
             Extensions(new AxrVulkanExtension_T[static_cast<uint32_t>(VulkanExtensionTypeEnum::End) - 1]{}),
             WindowConfig(nullptr) {
         }
+
         /// Constructor
         VulkanApiConfig(axr::VulkanWindowConfig* windowConfig):
             ApiLayersCount(0),
@@ -207,7 +219,7 @@ namespace axr {
 
         /// Copy Assignment Operator
         /// @param src Source VulkanApiConfig to copy from
-        VulkanApiConfig& operator=(const VulkanApiConfig& src) = default;
+        VulkanApiConfig& operator=(const VulkanApiConfig& src) = delete;
         /// Move Assignment Operator
         /// @param src Source VulkanApiConfig to move from
         VulkanApiConfig& operator=(VulkanApiConfig&& src) noexcept = delete;

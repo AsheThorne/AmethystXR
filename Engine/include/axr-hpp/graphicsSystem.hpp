@@ -15,7 +15,7 @@ namespace axr {
     // ----------------------------------------- //
 
     /// Graphics api enum
-    enum GraphicsApiEnum {
+    enum class GraphicsApiEnum {
         Undefined = AXR_GRAPHICS_API_UNDEFINED,
         Vulkan = AXR_GRAPHICS_API_VULKAN,
     };

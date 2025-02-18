@@ -7,4 +7,7 @@
 #include "axr-hpp/windowSystem.hpp"
 #include "axr-hpp/graphicsSystem.hpp"
 #include "axr-hpp/flags.hpp"
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 #include "axr-hpp/vulkanApi.hpp"
+#endif

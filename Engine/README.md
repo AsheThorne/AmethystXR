@@ -19,6 +19,9 @@ Any header file which isn't accessed by the application, must go inside the `src
 - Avoid `dynamic_cast`
 - Minimal polymorphism. Only for small things with minimal impact on the engine
 
+Avoid putting `#ifdef` preprocessors around enum values. The available enums shouldn't change depending on platform or
+graphics api or anything else really.
+
 ### Definitions
 
 `cleanup` functions are reserved for cleaning up the entire class.

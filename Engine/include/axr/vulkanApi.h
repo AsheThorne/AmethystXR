@@ -6,11 +6,13 @@
 // ----------------------------------------- //
 #include <vulkan/vulkan_core.h>
 
+// ---------------------------------------------------------------------------------- //
+//                                     Api Layers                                     //
+// ---------------------------------------------------------------------------------- //
+
 // ----------------------------------------- //
 // Enums
 // ----------------------------------------- //
-
-// ---- Api Layer Enums ----
 
 /// Vulkan Api Layer Type
 enum AxrVulkanApiLayerTypeEnum {
@@ -21,7 +23,30 @@ enum AxrVulkanApiLayerTypeEnum {
     AXR_VULKAN_API_LAYER_TYPE_END
 };
 
-// ---- Extension Enums ----
+// ----------------------------------------- //
+// Structs
+// ----------------------------------------- //
+
+/// Vulkan Api Layer Base Structure
+struct AxrVulkanApiLayerStructure {
+    AxrVulkanApiLayerTypeEnum Type = AXR_VULKAN_API_LAYER_TYPE_UNDEFINED;
+};
+
+/// AxrVulkanApiLayerStructure Handle Type
+typedef AxrVulkanApiLayerStructure* AxrVulkanApiLayer_T;
+
+/// Vulkan Api Layer Core Validation Structure
+struct AxrVulkanApiLayerCoreValidation {
+    const AxrVulkanApiLayerTypeEnum Type = AXR_VULKAN_API_LAYER_TYPE_CORE_VALIDATION;
+};
+
+// ---------------------------------------------------------------------------------- //
+//                                     Extensions                                     //
+// ---------------------------------------------------------------------------------- //
+
+// ----------------------------------------- //
+// Enums
+// ----------------------------------------- //
 
 /// Vulkan Extension Type
 enum AxrVulkanExtensionTypeEnum {
@@ -65,37 +90,9 @@ enum AxrVulkanDebugUtilsTypeFlagBits {
 /// Vulkan Extension Debug Utils Type Flags Type
 typedef VkDebugUtilsMessageTypeFlagsEXT AxrVulkanDebugUtilsTypeFlags_T;
 
-// ---- Vulkan Config Enums ----
-
-/// Vulkan Presentation Mode Enum
-enum AxrVulkanPresentationModeEnum {
-    AXR_VULKAN_PRESENTATION_MODE_UNDEFINED = 0,
-    AXR_VULKAN_PRESENTATION_MODE_IMMEDIATE,
-    AXR_VULKAN_PRESENTATION_MODE_MAILBOX,
-    AXR_VULKAN_PRESENTATION_MODE_FIFO,
-    AXR_VULKAN_PRESENTATION_MODE_FIFO_RELAXED,
-};
-
 // ----------------------------------------- //
 // Structs
 // ----------------------------------------- //
-
-// ---- Api Layer Structs ----
-
-/// Vulkan Api Layer Base Structure
-struct AxrVulkanApiLayerStructure {
-    AxrVulkanApiLayerTypeEnum Type = AXR_VULKAN_API_LAYER_TYPE_UNDEFINED;
-};
-
-/// AxrVulkanApiLayerStructure Handle Type
-typedef AxrVulkanApiLayerStructure* AxrVulkanApiLayer_T;
-
-/// Vulkan Api Layer Core Validation Structure
-struct AxrVulkanApiLayerCoreValidation {
-    const AxrVulkanApiLayerTypeEnum Type = AXR_VULKAN_API_LAYER_TYPE_CORE_VALIDATION;
-};
-
-// ---- Extension Structs ----
 
 /// Vulkan Extension Base Structure
 struct AxrVulkanExtensionStructure {
@@ -133,7 +130,26 @@ struct AxrVulkanExtensionWin32Surface {
 };
 #endif
 
-// ---- Vulkan Config ----
+// ---------------------------------------------------------------------------------- //
+//                                   Vulkan Config                                    //
+// ---------------------------------------------------------------------------------- //
+
+// ----------------------------------------- //
+// Enums
+// ----------------------------------------- //
+
+/// Vulkan Presentation Mode Enum
+enum AxrVulkanPresentationModeEnum {
+    AXR_VULKAN_PRESENTATION_MODE_UNDEFINED = 0,
+    AXR_VULKAN_PRESENTATION_MODE_IMMEDIATE,
+    AXR_VULKAN_PRESENTATION_MODE_MAILBOX,
+    AXR_VULKAN_PRESENTATION_MODE_FIFO,
+    AXR_VULKAN_PRESENTATION_MODE_FIFO_RELAXED,
+};
+
+// ----------------------------------------- //
+// Structs
+// ----------------------------------------- //
 
 /// Vulkan Window Graphics Config
 struct AxrVulkanWindowConfig {
@@ -142,14 +158,14 @@ struct AxrVulkanWindowConfig {
 
 /// Vulkan Api Graphics System Config
 struct AxrVulkanApiConfig {
-    uint32_t ApiLayersCount;
     AxrVulkanApiLayer_T* ApiLayers;
-    uint32_t ExtensionsCount;
+    uint32_t ApiLayersCount;
     AxrVulkanExtension_T* Extensions;
+    uint32_t ExtensionsCount;
     AxrVulkanWindowConfig* WindowConfig;
 };
 
-/// Vulkan Api Config Type
+/// AxrVulkanApiConfig Handle
 typedef AxrVulkanApiConfig* AxrVulkanApiConfig_T;
 
 #endif
