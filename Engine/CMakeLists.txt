@@ -29,6 +29,7 @@ set(AXR_PUBLIC_HEADER_FILES
     ${AXR_INCLUDE_DIR}/axr/windowSystem.h
     ${AXR_INCLUDE_DIR}/axr/graphicsSystem.h
     ${AXR_INCLUDE_DIR}/axr/vulkanApi.h
+    ${AXR_INCLUDE_DIR}/axr/assets.h
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr/common/defines.h.in
     ${AXR_INCLUDE_DIR}/axr/common/defines.h
@@ -48,6 +49,7 @@ set(AXR_PUBLIC_HEADER_HPP_FILES
     ${AXR_INCLUDE_DIR}/axr-hpp/graphicsSystem.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/vulkanApi.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/flags.hpp
+    ${AXR_INCLUDE_DIR}/axr-hpp/assets.hpp
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr-hpp/common/defines.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/common/result.hpp
@@ -73,6 +75,11 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanWindowGraphics.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanExtensionCollection.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanSurfaceDetails.hpp
+    # ---- Assets ----
+    ${AXR_SRC_DIR}/assets/assetCollection.hpp
+    ${AXR_SRC_DIR}/assets/shader.hpp
+    ${AXR_SRC_DIR}/assets/shaderEngineAssets.hpp
+    ${AXR_SRC_DIR}/assets/shaderProperties.hpp
 )
 
 # ---------------------------------------------
@@ -97,6 +104,11 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanQueueFamilies.cpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanWindowGraphics.cpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanSurfaceDetails.cpp
+    # ---- Assets ----
+    ${AXR_SRC_DIR}/assets/assetCollection.cpp
+    ${AXR_SRC_DIR}/assets/shader.cpp
+    ${AXR_SRC_DIR}/assets/shaderEngineAssets.cpp
+    ${AXR_SRC_DIR}/assets/shaderProperties.cpp
 )
 
 # ---------------------------------------------

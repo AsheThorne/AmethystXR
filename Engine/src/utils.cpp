@@ -37,7 +37,7 @@ bool axrContainsString(
     const std::vector<std::string>& stringCollection
 ) {
     for (const std::string& str : stringCollection) {
-        if (strcmp(string, str.c_str()) == 0) {
+        if (std::strcmp(string, str.c_str()) == 0) {
             return true;
         }
     }

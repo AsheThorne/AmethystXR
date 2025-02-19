@@ -11,6 +11,7 @@
 #include "axr/common.h"
 #include "axr/windowSystem.h"
 #include "axr/graphicsSystem.h"
+#include "axr/assets.h"
 
 // ----------------------------------------- //
 // Forward Declared Handles
@@ -59,4 +60,12 @@ extern "C" {
     /// @param app The AxrApplication to use
     /// @returns A handle to the window system
     AXR_API AxrWindowSystem_T axrApplicationGetWindowSystem(AxrApplication_T app);
+    /// Get the axrApplication graphics system
+    /// @param app The AxrApplication to use
+    /// @returns A handle to the graphics system
+    AXR_API AxrGraphicsSystem_T axrApplicationGetGraphicsSystem(AxrApplication_T app);
+    /// Get the axrApplication global asset collection
+    /// @param app The AxrApplication to use
+    /// @returns A handle to the global asset collection
+    AXR_API AxrAssetCollection_T axrApplicationGetGlobalAssetCollection(AxrApplication_T app);
 }

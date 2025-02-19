@@ -6,6 +6,7 @@
 #include "axr/application.h"
 #include "windowSystem.hpp"
 #include "graphicsSystem.hpp"
+#include "assets.hpp"
 
 namespace axr {
     // ----------------------------------------- //
@@ -138,8 +139,20 @@ namespace axr {
 
         /// Get the window system
         /// @returns A handle to the window system
-        [[nodiscard]] axr::WindowSystem getWindowSystem() {
+        [[nodiscard]] axr::WindowSystem getWindowSystem() const {
             return axrApplicationGetWindowSystem(m_Application);
+        }
+
+        /// Get the graphics system
+        /// @returns A handle to the graphics system
+        [[nodiscard]] axr::GraphicsSystem getGraphicsSystem() const {
+            return axrApplicationGetGraphicsSystem(m_Application);
+        }
+
+        /// Get the global asset collection
+        /// @returns A handle to the global asset collection
+        [[nodiscard]] axr::AssetCollection getGlobalAssetCollection() const {
+            return axrApplicationGetGlobalAssetCollection(m_Application);
         }
 
     private:

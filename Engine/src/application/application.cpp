@@ -12,6 +12,11 @@
 // ----------------------------------------- //
 
 AxrApplication_T axrCreateApplication(const AxrApplicationConfig* config) {
+    if (config == nullptr) {
+        axrLogErrorLocation("`config` is null.");
+        return nullptr;
+    }
+
     return new AxrApplication(*config);
 }
 
@@ -56,6 +61,24 @@ AxrWindowSystem_T axrApplicationGetWindowSystem(const AxrApplication_T app) {
     }
 
     return app->getWindowSystem();
+}
+
+AxrGraphicsSystem_T axrApplicationGetGraphicsSystem(const AxrApplication_T app) {
+    if (app == nullptr) {
+        axrLogErrorLocation("`app` is null.");
+        return nullptr;
+    }
+
+    return app->getGraphicsSystem();
+}
+
+AxrAssetCollection_T axrApplicationGetGlobalAssetCollection(const AxrApplication_T app) {
+    if (app == nullptr) {
+        axrLogErrorLocation("`app` is null.");
+        return nullptr;
+    }
+
+    return app->getGlobalAssetCollection();
 }
 
 // ----------------------------------------- //
@@ -113,4 +136,8 @@ AxrWindowSystem_T AxrApplication::getWindowSystem() {
 
 AxrGraphicsSystem_T AxrApplication::getGraphicsSystem() {
     return &m_GraphicsSystem;
+}
+
+AxrAssetCollection_T AxrApplication::getGlobalAssetCollection() {
+    return &m_GlobalAssetCollection;
 }
