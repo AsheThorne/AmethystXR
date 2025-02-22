@@ -1,8 +1,14 @@
 ﻿// ----------------------------------------- //
+// C/C++ Headers
+// ----------------------------------------- //
+#include <filesystem>
+
+// ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
 #include "shader.hpp"
 #include "axr/logger.h"
+#include "assetsUtils.hpp"
 
 // ----------------------------------------- //
 // External Functions
@@ -15,15 +21,6 @@ const char* axrShaderGetName(const AxrShader_T shader) {
     }
 
     return shader->getName();
-}
-
-const char* axrShaderGetFilePath(const AxrShader_T shader) {
-    if (shader == nullptr) {
-        axrLogErrorLocation("`shader` is null.");
-        return "";
-    }
-
-    return shader->getFilePath();
 }
 
 // ----------------------------------------- //
@@ -47,12 +44,14 @@ AxrShader::AxrShader(const AxrShader& src) {
     m_Name = src.m_Name;
     m_FilePath = src.m_FilePath;
     m_Properties = src.m_Properties;
+    m_FileData = src.m_FileData;
 }
 
 AxrShader::AxrShader(AxrShader&& src) noexcept {
     m_Name = std::move(src.m_Name);
     m_FilePath = std::move(src.m_FilePath);
     m_Properties = std::move(src.m_Properties);
+    m_FileData = std::move(src.m_FileData);
 }
 
 AxrShader::~AxrShader() {
@@ -66,6 +65,7 @@ AxrShader& AxrShader::operator=(const AxrShader& src) {
         m_Name = src.m_Name;
         m_FilePath = src.m_FilePath;
         m_Properties = src.m_Properties;
+        m_FileData = src.m_FileData;
     }
 
     return *this;
@@ -78,6 +78,7 @@ AxrShader& AxrShader::operator=(AxrShader&& src) noexcept {
         m_Name = std::move(src.m_Name);
         m_FilePath = std::move(src.m_FilePath);
         m_Properties = std::move(src.m_Properties);
+        m_FileData = std::move(src.m_FileData);
     }
 
     return *this;
@@ -89,13 +90,47 @@ const char* AxrShader::getName() const {
     return m_Name;
 }
 
-const char* AxrShader::getFilePath() const {
-    return m_FilePath;
+bool AxrShader::isLoaded() const {
+    return !m_FileData.empty();
+}
+
+AxrResult AxrShader::loadFile(const AxrGraphicsApiEnum graphicsApi) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (isLoaded()) {
+        return AXR_SUCCESS;
+    }
+
+    if (std::strcmp(m_FilePath, "") == 0) {
+        axrLogErrorLocation("File path is empty.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    std::filesystem::path path(m_FilePath);
+    const std::string extension = path.extension().string();
+
+    if (graphicsApi == AXR_GRAPHICS_API_VULKAN && extension != ".spv") {
+        path.replace_extension(extension + ".spv");
+    }
+
+    return axrReadFileBytes(path, m_FileData);
+}
+
+void AxrShader::unloadFile() {
+    m_FileData.clear();
 }
 
 // ---- Private Functions ----
 
 void AxrShader::cleanup() {
+    unloadFile();
+
     m_Name = "";
     m_FilePath = "";
     m_Properties.cleanup();

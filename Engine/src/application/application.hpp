@@ -53,7 +53,7 @@ public:
     [[nodiscard]] bool isRunning() const;
     /// Process application events
     void processEvents();
-    
+
     /// Get the window system
     /// @returns A handle to the window system
     [[nodiscard]] AxrWindowSystem_T getWindowSystem();
@@ -68,11 +68,11 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
-    
+
     // ---- Config Variables ----
     const char* m_ApplicationName;
     uint32_t m_ApplicationVersion;
-    
+
     AxrWindowSystem m_WindowSystem;
     AxrGraphicsSystem m_GraphicsSystem;
     AxrAssetCollection m_GlobalAssetCollection;

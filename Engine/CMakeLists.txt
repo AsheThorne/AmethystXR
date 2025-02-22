@@ -5,6 +5,8 @@ project(AXR_Engine VERSION 1.0.0)
 
 set(AXR_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/include)
 set(AXR_SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/src)
+set(AXR_ASSETS_DIR ${CMAKE_CURRENT_LIST_DIR}/assets)
+set(AXR_SHADERS_DIR ${AXR_ASSETS_DIR}/shaders)
 
 # ---------------------------------------------
 # Generate defines.h from defines.h.in
@@ -80,6 +82,7 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/assets/shader.hpp
     ${AXR_SRC_DIR}/assets/shaderEngineAssets.hpp
     ${AXR_SRC_DIR}/assets/shaderProperties.hpp
+    ${AXR_SRC_DIR}/assets/assetsUtils.hpp
 )
 
 # ---------------------------------------------
@@ -109,16 +112,26 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/assets/shader.cpp
     ${AXR_SRC_DIR}/assets/shaderEngineAssets.cpp
     ${AXR_SRC_DIR}/assets/shaderProperties.cpp
+    ${AXR_SRC_DIR}/assets/assetsUtils.cpp
+)
+
+# ---------------------------------------------
+# Set Asset Files
+# ---------------------------------------------
+
+set(AXR_ASSET_FILES
+    # ---- Shaders ----
 )
 
 # ---------------------------------------------
 # Create AXR_Engine library
 # ---------------------------------------------
 
-# ---- Combine cpp and header files into one list called AXR_SOURCE_FILES ----
+# ---- Combine cpp, header and asset files into one list called AXR_FILES ----
 list(APPEND AXR_SOURCE_FILES ${AXR_CPP_FILES} ${AXR_HEADER_FILES} ${AXR_PUBLIC_HEADER_FILES} ${AXR_PUBLIC_HEADER_HPP_FILES})
+list(APPEND AXR_FILES ${AXR_SOURCE_FILES} ${AXR_ASSET_FILES})
 
-add_library(AXR_Engine SHARED ${AXR_SOURCE_FILES})
+add_library(AXR_Engine SHARED ${AXR_FILES})
 
 set_target_properties(AXR_Engine PROPERTIES LINKER_LANGUAGE CXX)
 
@@ -138,7 +151,6 @@ target_include_directories(AXR_Engine
     PUBLIC ${AXR_INCLUDE_DIR} 
     ${SPDLOG_DIRECTORY}/include
     # ${EnTT_DIRECTORY}/single_include
-    # ${Vulkan_INCLUDE_DIR}
     # ${STB_DIRECTORY}/include
     # ${TINY_GLTF_DIRECTORY}/include
     # ${JSON_DIRECTORY}/include
@@ -171,3 +183,25 @@ if(Vulkan_FOUND)
         add_compile_definitions(VK_USE_PLATFORM_WIN32_KHR)
     endif()
 endif()
+
+# ---------------------------------------------
+# Generate vulkan shaders
+# ---------------------------------------------
+
+generate_vulkan_shaders(${AXR_SHADERS_DIR} AXR_Engine)
+
+# ---------------------------------------------
+# Copy Axr engine assets to output folder
+# ---------------------------------------------
+
+set(AXR_OUTPUT_ASSETS_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/axr-assets)
+
+# Delete old axr assets folder
+add_custom_command(TARGET AXR_Engine POST_BUILD COMMAND
+    ${CMAKE_COMMAND} -E remove_directory ${AXR_OUTPUT_ASSETS_DIR}
+)
+
+# Copy axr assets folder to output directory
+add_custom_command(TARGET AXR_Engine POST_BUILD COMMAND
+    ${CMAKE_COMMAND} -E copy_directory ${AXR_ASSETS_DIR} ${AXR_OUTPUT_ASSETS_DIR}
+)

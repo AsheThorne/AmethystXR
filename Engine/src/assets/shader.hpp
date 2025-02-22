@@ -5,6 +5,7 @@
 // ----------------------------------------- //
 #include "axr/assets.h"
 #include "shaderProperties.hpp"
+#include "axr/graphicsSystem.h"
 
 /// Axr Shader
 class AxrShader {
@@ -48,9 +49,20 @@ public:
     /// Get the shader's name
     /// @returns The shader's name
     const char* getName() const;
-    /// Get the shader's file path
-    /// @returns The shader's file path
-    const char* getFilePath() const;
+
+    // ---- For Internal Use ----
+    // These functions are only to be used internally in the AmethystXr engine.
+    // They should not be given a publicly accessible function in the 'include headers' to be used by an application.
+
+    /// Check if this shader is loaded
+    /// @returns True if this shader is loaded
+    bool isLoaded() const;
+    /// Load this shader file
+    /// @param graphicsApi The graphics api to use this shader with
+    /// @returns AXR_SUCCESS if the function succeeded
+    AxrResult loadFile(AxrGraphicsApiEnum graphicsApi);
+    /// Unload this shader file
+    void unloadFile();
 
 private:
     // ----------------------------------------- //
@@ -61,6 +73,7 @@ private:
     const char* m_Name;
     const char* m_FilePath;
     AxrShaderPropertiesRAII m_Properties;
+    std::vector<char> m_FileData;
 
     // ----------------------------------------- //
     // Private Functions

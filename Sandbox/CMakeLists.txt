@@ -4,6 +4,8 @@
 project(Sandbox VERSION 1.0.0)
 
 set(AXR_SANDBOX_SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/src)
+set(AXR_SANDBOX_ASSETS_DIR ${CMAKE_CURRENT_LIST_DIR}/assets)
+set(AXR_SANDBOX_SHADERS_DIR ${AXR_SANDBOX_ASSETS_DIR}/shaders)
 
 # ---------------------------------------------
 # Set Header Files
@@ -21,13 +23,24 @@ set(AXR_SANDBOX_CPP_FILES
 )
 
 # ---------------------------------------------
+# Set Asset Files
+# ---------------------------------------------
+
+set(AXR_SANDBOX_ASSET_FILES
+    # ---- Shaders ----
+    ${AXR_SANDBOX_SHADERS_DIR}/shader.vert
+    ${AXR_SANDBOX_SHADERS_DIR}/shader.frag
+)
+
+# ---------------------------------------------
 # Create Sandbox Executable
 # ---------------------------------------------
 
-# ---- Combine cpp and header files into one list called AXR_SANDBOX_SOURCE_FILES ----
+# ---- Combine cpp, header and asset files into one list called AXR_SANDBOX_FILES ----
 list(APPEND AXR_SANDBOX_SOURCE_FILES ${AXR_SANDBOX_HEADER_FILES} ${AXR_SANDBOX_CPP_FILES})
+list(APPEND AXR_SANDBOX_FILES ${AXR_SANDBOX_SOURCE_FILES} ${AXR_SANDBOX_ASSET_FILES})
 
-add_executable(Sandbox WIN32 ${AXR_SANDBOX_SOURCE_FILES})
+add_executable(Sandbox WIN32 ${AXR_SANDBOX_FILES})
 
 set_target_properties(Sandbox PROPERTIES LINKER_LANGUAGE CXX)
 
@@ -54,3 +67,25 @@ endif()
 if(Vulkan_FOUND)
     add_compile_definitions(AXR_SUPPORTED_GRAPHICS_VULKAN)
 endif()
+
+# ---------------------------------------------
+# Generate vulkan shaders
+# ---------------------------------------------
+
+generate_vulkan_shaders(${AXR_SANDBOX_SHADERS_DIR} Sandbox)
+
+# ---------------------------------------------
+# Copy assets to output folder
+# ---------------------------------------------
+
+set(AXR_SANDBOX_OUTPUT_ASSETS_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets)
+
+# Delete old assets folder
+add_custom_command(TARGET Sandbox POST_BUILD COMMAND
+    ${CMAKE_COMMAND} -E remove_directory ${AXR_SANDBOX_OUTPUT_ASSETS_DIR}
+)
+
+# Copy assets folder to output directory
+add_custom_command(TARGET Sandbox POST_BUILD COMMAND
+    ${CMAKE_COMMAND} -E copy_directory ${AXR_SANDBOX_ASSETS_DIR} ${AXR_SANDBOX_OUTPUT_ASSETS_DIR}
+)

@@ -19,6 +19,38 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 find_package(OpenXR REQUIRED)
 find_package(Vulkan)
 
+find_program(GLSLC glslc)
+
+# ---------------------------------------------
+# Define Functions
+# ---------------------------------------------
+
+# Generate vulkan shaders
+function (generate_vulkan_shaders shaders_directory target)
+    if (Vulkan_FOUND)
+        file(GLOB SHADERS
+            "${shaders_directory}/*.vert"
+            "${shaders_directory}/*.frag"
+            "${shaders_directory}/*.comp"
+            "${shaders_directory}/*.geom"
+            "${shaders_directory}/*.tesc"
+            "${shaders_directory}/*.tese"
+            "${shaders_directory}/*.mesh"
+            "${shaders_directory}/*.task"
+            "${shaders_directory}/*.rgen"
+            "${shaders_directory}/*.rchit"
+            "${shaders_directory}/*.rmiss"
+        )
+
+        foreach(shader ${SHADERS})
+            get_filename_component(SHADER_NAME ${shader} NAME)
+            add_custom_command(TARGET ${target} POST_BUILD COMMAND 
+                ${GLSLC} ${shader} -o ${shaders_directory}/${SHADER_NAME}.spv
+            )
+        endforeach()
+    endif()
+endfunction()
+
 # ---------------------------------------------
 # Set Global Variables/Properties
 # ---------------------------------------------

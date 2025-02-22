@@ -270,10 +270,6 @@ extern "C" {
     /// @param shader Shader to use
     /// @returns The shader's name
     AXR_API const char* axrShaderGetName(AxrShader_T shader);
-    /// Get the shader's file path
-    /// @param shader Shader to use
-    /// @returns The shader's file path
-    AXR_API const char* axrShaderGetFilePath(AxrShader_T shader);
 }
 
 // ---------------------------------------------------------------------------------- //

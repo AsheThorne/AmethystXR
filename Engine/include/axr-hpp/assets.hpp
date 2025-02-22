@@ -624,12 +624,6 @@ namespace axr {
             return axrShaderGetName(m_Shader);
         }
 
-        /// Get the shader's file path
-        /// @returns The shader's file path
-        [[nodiscard]] const char* getFilePath() const {
-            return axrShaderGetFilePath(m_Shader);
-        }
-
     private:
         // ----------------------------------------- //
         // Private Variables
