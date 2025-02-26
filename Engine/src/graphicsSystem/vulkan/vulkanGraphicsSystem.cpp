@@ -124,7 +124,7 @@ AxrResult AxrVulkanGraphicsSystem::setup() {
         }
     }
 
-    return axrResult;
+    return AXR_SUCCESS;
 }
 
 // ---- Private Functions ----

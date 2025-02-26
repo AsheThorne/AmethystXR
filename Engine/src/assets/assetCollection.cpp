@@ -50,7 +50,7 @@ AxrAssetCollection::~AxrAssetCollection() = default;
 
 // ---- Public Functions ----
 
-AxrResult AxrAssetCollection::createShader(AxrShaderConfig shaderConfig) {
+AxrResult AxrAssetCollection::createShader(const AxrShaderConfig& shaderConfig) {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //

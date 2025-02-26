@@ -117,7 +117,7 @@ AxrResult AxrApplication::setup() {
     axrResult = m_GraphicsSystem.setup();
     if (AXR_FAILED(axrResult)) return axrResult;
 
-    return axrResult;
+    return AXR_SUCCESS;
 }
 
 bool AxrApplication::isRunning() const {

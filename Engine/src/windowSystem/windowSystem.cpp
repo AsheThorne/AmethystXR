@@ -102,7 +102,7 @@ AxrResult AxrWindowSystem::openWindow() {
         return axrResult;
     }
 
-    return axrResult;
+    return AXR_SUCCESS;
 }
 
 void AxrWindowSystem::closeWindow() {

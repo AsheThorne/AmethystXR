@@ -62,7 +62,7 @@ AxrResult AxrVulkanWindowGraphics::setup(const SetupConfig& config) {
 
     m_WindowSystem.setConfigureWindowGraphicsCallback(this, configureWindowGraphicsCallback);
 
-    return result;
+    return AXR_SUCCESS;
 }
 
 void AxrVulkanWindowGraphics::resetSetup() {
@@ -254,7 +254,7 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
         return result;
     }
 
-    return result;
+    return AXR_SUCCESS;
 }
 
 void AxrVulkanWindowGraphics::resetWindowConfiguration() {
