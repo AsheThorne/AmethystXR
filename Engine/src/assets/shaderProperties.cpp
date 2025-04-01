@@ -196,6 +196,85 @@ AxrShaderPropertiesRAII& AxrShaderPropertiesRAII::operator=(AxrShaderPropertiesR
 
 // ---- Public Functions ----
 
+bool AxrShaderPropertiesRAII::isValid() const {
+    return isValid(m_RawProperties);
+}
+
+std::vector<AxrShaderUniformBufferLayoutConst_T> AxrShaderPropertiesRAII::getUniformBufferLayouts() const {
+    if (m_RawProperties == nullptr) {
+        axrLogErrorLocation("Raw properties are null.");
+        return {};
+    }
+
+    switch (m_RawProperties->Type) {
+        case AXR_SHADER_STAGE_VERTEX: {
+            const auto vertexProperties = reinterpret_cast<AxrVertexShaderPropertiesConst_T>(m_RawProperties);
+            return getUniformBufferLayouts(vertexProperties->BufferLayouts, vertexProperties->BufferLayoutsCount);
+        }
+        case AXR_SHADER_STAGE_FRAGMENT: {
+            const auto fragmentProperties = reinterpret_cast<AxrFragmentShaderPropertiesConst_T>(m_RawProperties);
+            return getUniformBufferLayouts(fragmentProperties->BufferLayouts, fragmentProperties->BufferLayoutsCount);
+        }
+        case AXR_SHADER_STAGE_UNDEFINED:
+        default: { // NOLINT(clang-diagnostic-covered-switch-default)
+            axrLogErrorLocation("Unknown shader properties type.");
+            return {};
+        }
+    }
+}
+
+std::vector<AxrShaderImageSamplerBufferLayoutConst_T> AxrShaderPropertiesRAII::getImageSamplerBufferLayouts() const {
+    if (m_RawProperties == nullptr) {
+        axrLogErrorLocation("Raw properties are null.");
+        return {};
+    }
+
+    switch (m_RawProperties->Type) {
+        case AXR_SHADER_STAGE_VERTEX: {
+            const auto vertexProperties = reinterpret_cast<AxrVertexShaderPropertiesConst_T>(m_RawProperties);
+            return getImageSamplerBufferLayouts(vertexProperties->BufferLayouts, vertexProperties->BufferLayoutsCount);
+        }
+        case AXR_SHADER_STAGE_FRAGMENT: {
+            const auto fragmentProperties = reinterpret_cast<AxrFragmentShaderPropertiesConst_T>(m_RawProperties);
+            return getImageSamplerBufferLayouts(
+                fragmentProperties->BufferLayouts,
+                fragmentProperties->BufferLayoutsCount
+            );
+        }
+        case AXR_SHADER_STAGE_UNDEFINED:
+        default: { // NOLINT(clang-diagnostic-covered-switch-default)
+            axrLogErrorLocation("Unknown shader properties type.");
+            return {};
+        }
+    }
+}
+
+AxrShaderPushConstantsBufferLayoutConst_T AxrShaderPropertiesRAII::getPushConstantsBufferLayout() const {
+    if (m_RawProperties == nullptr) {
+        axrLogErrorLocation("Raw properties are null.");
+        return {};
+    }
+
+    switch (m_RawProperties->Type) {
+        case AXR_SHADER_STAGE_VERTEX: {
+            const auto vertexProperties = reinterpret_cast<AxrVertexShaderPropertiesConst_T>(m_RawProperties);
+            return getPushConstantsBufferLayout(vertexProperties->BufferLayouts, vertexProperties->BufferLayoutsCount);
+        }
+        case AXR_SHADER_STAGE_FRAGMENT: {
+            const auto fragmentProperties = reinterpret_cast<AxrFragmentShaderPropertiesConst_T>(m_RawProperties);
+            return getPushConstantsBufferLayout(
+                fragmentProperties->BufferLayouts,
+                fragmentProperties->BufferLayoutsCount
+            );
+        }
+        case AXR_SHADER_STAGE_UNDEFINED:
+        default: { // NOLINT(clang-diagnostic-covered-switch-default)
+            axrLogErrorLocation("Unknown shader properties type.");
+            return {};
+        }
+    }
+}
+
 void AxrShaderPropertiesRAII::cleanup() {
     destroy(m_RawProperties);
 }
@@ -503,8 +582,7 @@ bool AxrShaderPropertiesRAII::isValid(const AxrVertexShaderPropertiesConst_T pro
         return false;
     }
 
-    // TODO: Shouldn't we check to make sure vertex properties and buffer layouts don't share any bindings??
-
+    // TODO: Rename vertexProperties to vertexAttributes. and all other related stuff
     return isValid(properties->VertexProperties, properties->VertexPropertiesCount) &&
         isValid(properties->BufferLayouts, properties->BufferLayoutsCount);
 }
@@ -624,6 +702,183 @@ bool AxrShaderPropertiesRAII::isValid(
                 )
             );
         }
+    }
+
+    return true;
+}
+
+bool AxrShaderPropertiesRAII::areCompatible(
+    const AxrShaderPropertiesRAII& properties1,
+    const AxrShaderPropertiesRAII& properties2
+) {
+    if (properties1.m_RawProperties == nullptr) {
+        axrLogError("Validation for shader properties failed. `properties1` is null.");
+        return false;
+    }
+
+    if (properties2.m_RawProperties == nullptr) {
+        axrLogError("Validation for shader properties failed. `properties2` is null.");
+        return false;
+    }
+
+    // ---- Uniform Buffers ----
+    // Check that there aren't uniform buffers that share the same binding but have different buffer sizes. 
+
+    const std::vector<AxrShaderUniformBufferLayoutConst_T> uniformBufferLayouts1 = properties1.
+        getUniformBufferLayouts();
+    const std::vector<AxrShaderUniformBufferLayoutConst_T> uniformBufferLayouts2 = properties2.
+        getUniformBufferLayouts();
+
+    // Key is binding, Value is buffer size
+    std::unordered_map<uint32_t, uint64_t> uniformBufferBindings;
+    bool isUniformBufferValid = true;
+
+    for (const AxrShaderUniformBufferLayoutConst_T bufferLayout : uniformBufferLayouts1) {
+        isUniformBufferValid = isUniformBufferLayoutBindingValid(bufferLayout, uniformBufferBindings);
+        if (!isUniformBufferValid) {
+            break;
+        }
+
+        uniformBufferBindings.insert(std::pair(bufferLayout->Binding, bufferLayout->BufferSize));
+    }
+
+    if (isUniformBufferValid) {
+        for (const AxrShaderUniformBufferLayoutConst_T bufferLayout : uniformBufferLayouts2) {
+            isUniformBufferValid = isUniformBufferLayoutBindingValid(bufferLayout, uniformBufferBindings);
+            if (!isUniformBufferValid) {
+                break;
+            }
+
+            uniformBufferBindings.insert(std::pair(bufferLayout->Binding, bufferLayout->BufferSize));
+        }
+    }
+
+    if (!isUniformBufferValid) {
+        axrLogError(
+            "Validation for shader compatibility failed. Incompatibility found within the uniform buffers."
+        );
+        return false;
+    }
+
+    // ---- Image Samplers ----
+    // Check that image samplers don't share a binding with the uniform buffers
+
+    const std::vector<AxrShaderImageSamplerBufferLayoutConst_T> imageSamplerBufferLayouts1 = properties1.
+        getImageSamplerBufferLayouts();
+    const std::vector<AxrShaderImageSamplerBufferLayoutConst_T> imageSamplerBufferLayouts2 = properties2.
+        getImageSamplerBufferLayouts();
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    for (const AxrShaderImageSamplerBufferLayoutConst_T bufferLayout : imageSamplerBufferLayouts1) {
+        if (uniformBufferBindings.contains(bufferLayout->Binding)) {
+            axrResult = AXR_ERROR;
+            break;
+        }
+    }
+
+    if (AXR_SUCCEEDED(axrResult)) {
+        for (const AxrShaderImageSamplerBufferLayoutConst_T bufferLayout : imageSamplerBufferLayouts2) {
+            if (uniformBufferBindings.contains(bufferLayout->Binding)) {
+                axrResult = AXR_ERROR;
+                break;
+            }
+        }
+    }
+
+    if (AXR_FAILED(axrResult)) {
+        axrLogError(
+            "Validation for shader compatibility failed. Duplicate bindings with different buffer types were found."
+        );
+        return false;
+    }
+
+    return true;
+}
+
+std::vector<AxrShaderUniformBufferLayoutConst_T> AxrShaderPropertiesRAII::getUniformBufferLayouts(
+    const AxrShaderBufferLayoutConst_T* bufferLayouts,
+    const uint32_t bufferLayoutsCount
+) {
+    if (bufferLayouts == nullptr) {
+        return {};
+    }
+
+    std::vector<AxrShaderUniformBufferLayoutConst_T> uniformBufferLayouts;
+
+    for (uint32_t i = 0; i < bufferLayoutsCount; ++i) {
+        if (bufferLayouts[i] == nullptr) {
+            continue;
+        }
+
+        if (bufferLayouts[i]->Type == AXR_SHADER_BUFFER_LAYOUT_UNIFORM_BUFFER) {
+            uniformBufferLayouts.push_back(reinterpret_cast<AxrShaderUniformBufferLayoutConst_T>(bufferLayouts[i]));
+        }
+    }
+
+    return uniformBufferLayouts;
+}
+
+std::vector<AxrShaderImageSamplerBufferLayoutConst_T> AxrShaderPropertiesRAII::getImageSamplerBufferLayouts(
+    const AxrShaderBufferLayoutConst_T* bufferLayouts,
+    const uint32_t bufferLayoutsCount
+) {
+    if (bufferLayouts == nullptr) {
+        return {};
+    }
+
+    std::vector<AxrShaderImageSamplerBufferLayoutConst_T> imageSamplerBufferLayouts;
+
+    for (uint32_t i = 0; i < bufferLayoutsCount; ++i) {
+        if (bufferLayouts[i] == nullptr) {
+            continue;
+        }
+
+        if (bufferLayouts[i]->Type == AXR_SHADER_BUFFER_LAYOUT_IMAGE_SAMPLER_BUFFER) {
+            imageSamplerBufferLayouts.push_back(
+                reinterpret_cast<AxrShaderImageSamplerBufferLayoutConst_T>(bufferLayouts[i])
+            );
+        }
+    }
+
+    return imageSamplerBufferLayouts;
+}
+
+AxrShaderPushConstantsBufferLayoutConst_T AxrShaderPropertiesRAII::getPushConstantsBufferLayout(
+    const AxrShaderBufferLayoutConst_T* bufferLayouts,
+    const uint32_t bufferLayoutsCount
+) {
+    if (bufferLayouts == nullptr) {
+        return {};
+    }
+
+    for (uint32_t i = 0; i < bufferLayoutsCount; ++i) {
+        if (bufferLayouts[i] == nullptr) {
+            continue;
+        }
+
+        if (bufferLayouts[i]->Type == AXR_SHADER_BUFFER_LAYOUT_PUSH_CONSTANTS_BUFFER) {
+            return reinterpret_cast<AxrShaderPushConstantsBufferLayoutConst_T>(bufferLayouts[i]);
+        }
+    }
+
+    return nullptr;
+}
+
+// ---- Static Private Functions ----
+
+bool AxrShaderPropertiesRAII::isUniformBufferLayoutBindingValid(
+    const AxrShaderUniformBufferLayoutConst_T uniformBufferLayout,
+    std::unordered_map<uint32_t, uint64_t>& uniformBufferBindings
+) {
+    if (uniformBufferLayout == nullptr) return false;
+
+    const auto foundUniformBufferBindingSize = uniformBufferBindings.find(uniformBufferLayout->Binding);
+    // If a duplicate uniform buffer is found with a different size...
+    if (foundUniformBufferBindingSize != uniformBufferBindings.end() &&
+        foundUniformBufferBindingSize->second != uniformBufferLayout->BufferSize) {
+        axrLogErrorLocation("Duplicate bindings with different buffer sizes were found.");
+        return false;
     }
 
     return true;

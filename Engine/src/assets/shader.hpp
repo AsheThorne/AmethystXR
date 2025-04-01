@@ -48,7 +48,7 @@ public:
 
     /// Get the shader's name
     /// @returns The shader's name
-    const char* getName() const;
+    [[nodiscard]] const char* getName() const;
 
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
@@ -56,13 +56,31 @@ public:
 
     /// Check if this shader is loaded
     /// @returns True if this shader is loaded
-    bool isLoaded() const;
+    [[nodiscard]] bool isLoaded() const;
     /// Load this shader file
     /// @param graphicsApi The graphics api to use this shader with
     /// @returns AXR_SUCCESS if the function succeeded
-    AxrResult loadFile(AxrGraphicsApiEnum graphicsApi);
+    [[nodiscard]] AxrResult loadFile(AxrGraphicsApiEnum graphicsApi);
     /// Unload this shader file
     void unloadFile();
+
+    /// Get the shader properties
+    /// @returns The shader properties
+    [[nodiscard]] const AxrShaderPropertiesRAII& getProperties() const;
+
+    /// Check if this shader is valid
+    /// @returns True if this shader is valid
+    [[nodiscard]] bool isValid() const;
+
+    // ----------------------------------------- //
+    // Public Static Functions
+    // ----------------------------------------- //
+
+    /// Check if the given shaders are compatible and can be used together
+    /// @param shader1 First shader to check
+    /// @param shader2 Second shader to check
+    /// @returns True if the given shaders are compatible
+    [[nodiscard]] static bool areCompatible(const AxrShader& shader1, const AxrShader& shader2);
 
 private:
     // ----------------------------------------- //

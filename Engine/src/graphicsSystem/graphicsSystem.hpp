@@ -6,6 +6,7 @@
 #include "axr/common/result.h"
 #include "axr/graphicsSystem.h"
 #include "axr/windowSystem.h"
+#include "axr/assets.h"
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 #include "vulkan/vulkanGraphicsSystem.hpp"
@@ -23,6 +24,7 @@ public:
         const char* ApplicationName;
         uint32_t ApplicationVersion;
         AxrWindowSystem_T WindowSystem;
+        AxrAssetCollection_T GlobalAssetCollection;
         AxrGraphicsSystemConfig GraphicsConfig;
     };
 

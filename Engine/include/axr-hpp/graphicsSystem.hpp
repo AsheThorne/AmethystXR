@@ -47,12 +47,10 @@ namespace axr {
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
         /// Vulkan Graphics Constructor
-        /// @param graphicsApi The graphics api
         /// @param vulkanApiConfig The vulkan api config
         GraphicsSystemConfig(
-            const axr::GraphicsApiEnum graphicsApi,
             axr::VulkanApiConfig* vulkanApiConfig
-        ) : GraphicsApi(graphicsApi),
+        ) : GraphicsApi(axr::GraphicsApiEnum::Vulkan),
             VulkanApiConfig(vulkanApiConfig) {
         }
 #endif

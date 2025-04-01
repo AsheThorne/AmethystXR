@@ -101,6 +101,7 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
             .ApplicationName = config.ApplicationName,
             .ApplicationVersion = config.ApplicationVersion,
             .WindowSystem = &m_WindowSystem,
+            .GlobalAssetCollection = &m_GlobalAssetCollection,
             .GraphicsConfig = config.GraphicsSystemConfig,
         }
     ) {

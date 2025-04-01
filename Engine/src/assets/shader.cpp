@@ -48,10 +48,14 @@ AxrShader::AxrShader(const AxrShader& src) {
 }
 
 AxrShader::AxrShader(AxrShader&& src) noexcept {
-    m_Name = std::move(src.m_Name);
-    m_FilePath = std::move(src.m_FilePath);
     m_Properties = std::move(src.m_Properties);
     m_FileData = std::move(src.m_FileData);
+
+    m_Name = src.m_Name;
+    m_FilePath = src.m_FilePath;
+
+    src.m_Name = "";
+    src.m_FilePath = "";
 }
 
 AxrShader::~AxrShader() {
@@ -75,10 +79,14 @@ AxrShader& AxrShader::operator=(AxrShader&& src) noexcept {
     if (this != &src) {
         cleanup();
 
-        m_Name = std::move(src.m_Name);
-        m_FilePath = std::move(src.m_FilePath);
         m_Properties = std::move(src.m_Properties);
         m_FileData = std::move(src.m_FileData);
+
+        m_Name = src.m_Name;
+        m_FilePath = src.m_FilePath;
+
+        src.m_Name = "";
+        src.m_FilePath = "";
     }
 
     return *this;
@@ -124,6 +132,20 @@ AxrResult AxrShader::loadFile(const AxrGraphicsApiEnum graphicsApi) {
 
 void AxrShader::unloadFile() {
     m_FileData.clear();
+}
+
+const AxrShaderPropertiesRAII& AxrShader::getProperties() const {
+    return m_Properties;
+}
+
+bool AxrShader::isValid() const {
+    return m_Properties.isValid();
+}
+
+// ---- Public Static Functions ----
+
+bool AxrShader::areCompatible(const AxrShader& shader1, const AxrShader& shader2) {
+    return AxrShaderPropertiesRAII::areCompatible(shader1.getProperties(), shader2.getProperties());
 }
 
 // ---- Private Functions ----

@@ -39,7 +39,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 #endif
 
     const axr::GraphicsSystemConfig graphicsSystemConfig(
-        axr::GraphicsApiEnum::Vulkan,
         &vulkanApiConfig
     );
 
@@ -51,19 +50,32 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     );
 
     auto app = axr::Application(appConfig);
-    if (AXR_FAILED(app.setup())) return 0;
 
     axr::AssetCollection globalAssetCollection = app.getGlobalAssetCollection();
 
-    axr::VertexShaderProperties vertexShaderProperties;
-    const axr::ShaderConfig shader1Config("VertexShader", "shaders/shader.vert", vertexShaderProperties);
-    if (!shader1Config.isValid()) return 0;
-    if (AXR_FAILED(globalAssetCollection.createShader(shader1Config))) return 0;
+    const axr::VertexShaderProperties vertexShaderProperties;
+    const axr::ShaderConfig vertexShaderConfig("VertexShader", "shaders/shader.vert", vertexShaderProperties);
+    if (!vertexShaderConfig.isValid()) return 0;
+    if (AXR_FAILED(globalAssetCollection.createShader(vertexShaderConfig))) return 0;
 
-    axr::FragmentShaderProperties fragmentShaderProperties;
-    const axr::ShaderConfig shader2Config("FragmentShader", "shaders/shader.frag", fragmentShaderProperties);
-    if (!shader2Config.isValid()) return 0;
-    if (AXR_FAILED(globalAssetCollection.createShader(shader2Config))) return 0;
+    const axr::FragmentShaderProperties fragmentShaderProperties;
+    const axr::ShaderConfig fragmentShaderConfig("FragmentShader", "shaders/shader.frag", fragmentShaderProperties);
+    if (!fragmentShaderConfig.isValid()) return 0;
+    if (AXR_FAILED(globalAssetCollection.createShader(fragmentShaderConfig))) return 0;
+
+    const axr::ShaderValues vertexShaderValues;
+    const axr::ShaderValues fragmentShaderValues;
+    const axr::MaterialConfig materialConfig(
+        "MyMaterial",
+        vertexShaderConfig.Name,
+        fragmentShaderConfig.Name,
+        vertexShaderValues,
+        fragmentShaderValues
+    );
+    if (!materialConfig.isValid()) return 0;
+    if (AXR_FAILED(globalAssetCollection.createMaterial(materialConfig))) return 0;
+
+    if (AXR_FAILED(app.setup())) return 0;
 
     axr::WindowSystem windowSystem = app.getWindowSystem();
     if (AXR_FAILED(windowSystem.openWindow())) return 0;

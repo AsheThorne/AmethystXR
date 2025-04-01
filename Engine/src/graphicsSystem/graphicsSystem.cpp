@@ -23,6 +23,7 @@ AxrGraphicsSystem::AxrGraphicsSystem(const Config& config):
                 .ApplicationName = config.ApplicationName,
                 .ApplicationVersion = config.ApplicationVersion,
                 .WindowSystem = config.WindowSystem,
+                .GlobalAssetCollection = config.GlobalAssetCollection,
                 .VulkanConfig = config.GraphicsConfig.VulkanConfig
             }
         );

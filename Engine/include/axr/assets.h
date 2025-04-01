@@ -4,6 +4,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/common.h"
+#include "axr/graphicsSystem.h"
 
 // ---------------------------------------------------------------------------------- //
 //                                  Shader Properties                                 //
@@ -273,6 +274,182 @@ extern "C" {
 }
 
 // ---------------------------------------------------------------------------------- //
+//                                   Shader Values                                    //
+// ---------------------------------------------------------------------------------- //
+
+// ----------------------------------------- //
+// Enums
+// ----------------------------------------- //
+
+// TODO: Maybe remove the 'Type' and just have AxrShaderBufferLinkEnum, and AXR_SHADER_BUFFER_LINK_*
+/// Shader buffer link type enum
+enum AxrShaderBufferLinkTypeEnum {
+    AXR_SHADER_BUFFER_LINK_TYPE_UNDEFINED = 0,
+    AXR_SHADER_BUFFER_LINK_TYPE_UNIFORM_BUFFER,
+    AXR_SHADER_BUFFER_LINK_TYPE_IMAGE_SAMPLER_BUFFER,
+    AXR_SHADER_BUFFER_LINK_TYPE_PUSH_CONSTANTS_BUFFER,
+};
+
+// ----------------------------------------- //
+// Structs
+// ----------------------------------------- //
+
+/// Shader Buffer Link Base Structure
+struct AxrShaderBufferLinkStructure {
+    AxrShaderBufferLinkTypeEnum Type = AXR_SHADER_BUFFER_LINK_TYPE_UNDEFINED;
+};
+
+/// AxrShaderBufferLinkStructure Handle Type
+typedef AxrShaderBufferLinkStructure* AxrShaderBufferLink_T;
+/// Const AxrShaderBufferLinkStructure Handle Type
+typedef const AxrShaderBufferLinkStructure* AxrShaderBufferLinkConst_T;
+
+/// Shader Uniform Buffer Link
+struct AxrShaderUniformBufferLink {
+    const AxrShaderBufferLinkTypeEnum Type = AXR_SHADER_BUFFER_LINK_TYPE_UNIFORM_BUFFER;
+    uint32_t Binding;
+    const char* BufferName;
+};
+
+/// AxrShaderUniformBufferLink Handle Type
+typedef AxrShaderUniformBufferLink* AxrShaderUniformBufferLink_T;
+/// Const AxrShaderUniformBufferLink Handle Type
+typedef const AxrShaderUniformBufferLink* AxrShaderUniformBufferLinkConst_T;
+
+/// Shader Image Sampler Buffer Link
+struct AxrShaderImageSamplerBufferLink {
+    const AxrShaderBufferLinkTypeEnum Type = AXR_SHADER_BUFFER_LINK_TYPE_IMAGE_SAMPLER_BUFFER;
+    uint32_t Binding;
+    const char* ImageName;
+};
+
+/// AxrShaderImageSamplerBufferLink Handle Type
+typedef AxrShaderImageSamplerBufferLink* AxrShaderImageSamplerBufferLink_T;
+/// Const AxrShaderImageSamplerBufferLink Handle Type
+typedef const AxrShaderImageSamplerBufferLink* AxrShaderImageSamplerBufferLinkConst_T;
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+/// Shader Push Constants Buffer Link
+struct AxrShaderPushConstantsBufferLink {
+    const AxrShaderBufferLinkTypeEnum Type = AXR_SHADER_BUFFER_LINK_TYPE_PUSH_CONSTANTS_BUFFER;
+    const char* BufferName;
+};
+
+/// AxrShaderPushConstantsBufferLink Handle Type
+typedef AxrShaderPushConstantsBufferLink* AxrShaderPushConstantsBufferLink_T;
+/// Const AxrShaderPushConstantsBufferLink Handle Type
+typedef const AxrShaderPushConstantsBufferLink* AxrShaderPushConstantsBufferLinkConst_T;
+#endif
+
+/// Shader Values
+struct AxrShaderValues {
+    AxrShaderBufferLink_T* BufferLinks;
+    uint32_t BufferLinksCount;
+};
+
+// TODO: Check if we actually need handles like this.
+//  Since we aren't using `reinterpret_cast` on these structs, we might not need handles like the AxrShaderProperties struct 
+/// AxrShaderValues Handle Type
+typedef AxrShaderValues* AxrShaderValues_T;
+/// Const AxrShaderValues Handle Type
+typedef const AxrShaderValues* AxrShaderValuesConst_T;
+
+// ----------------------------------------- //
+// External Function Definitions
+// ----------------------------------------- //
+extern "C" {
+    // ---- Shader Buffer Links ----
+
+    /// Clone the given shader buffer link
+    /// @param bufferLink Shader buffer link to clone
+    /// @returns The cloned shader buffer link
+    AXR_API AxrShaderBufferLink_T axrShaderBufferLinkClone(AxrShaderBufferLinkConst_T bufferLink);
+    /// Destroy the given shader buffer link
+    /// @param bufferLink Shader buffer link to destroy
+    AXR_API void axrShaderBufferLinkDestroy(AxrShaderBufferLink_T* bufferLink);
+
+    /// Clone the given shader uniform buffer link
+    /// @param bufferLink Shader buffer link to clone
+    /// @returns The cloned shader buffer link
+    AXR_API AxrShaderUniformBufferLink_T axrShaderUniformBufferLinkClone(
+        AxrShaderUniformBufferLinkConst_T bufferLink
+    );
+    /// Destroy the given shader uniform buffer link
+    /// @param bufferLink Shader buffer link to destroy
+    AXR_API void axrShaderUniformBufferLinkDestroy(AxrShaderUniformBufferLink_T* bufferLink);
+
+    /// Clone the given shader image sampler buffer link
+    /// @param bufferLink Shader buffer link to clone
+    /// @returns The cloned shader buffer link
+    AXR_API AxrShaderImageSamplerBufferLink_T axrShaderImageSamplerBufferLinkClone(
+        AxrShaderImageSamplerBufferLinkConst_T bufferLink
+    );
+    /// Destroy the given shader image sampler buffer link
+    /// @param bufferLink Shader buffer link to destroy
+    AXR_API void axrShaderImageSamplerBufferLinkDestroy(AxrShaderImageSamplerBufferLink_T* bufferLink);
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    /// Clone the given shader push constants buffer link
+    /// @param bufferLink Shader buffer link to clone
+    /// @returns The cloned shader buffer link
+    AXR_API AxrShaderPushConstantsBufferLink_T axrShaderPushConstantsBufferLinkClone(
+        AxrShaderPushConstantsBufferLinkConst_T bufferLink
+    );
+    /// Destroy the given shader push constants buffer link
+    /// @param bufferLink Shader buffer link to destroy
+    AXR_API void axrShaderPushConstantsBufferLinkDestroy(AxrShaderPushConstantsBufferLink_T* bufferLink);
+#endif
+
+    // ---- Shader Values ----
+
+    /// Check if the given shader values are valid
+    /// @param values Shader values to check
+    /// @returns True if the given shader values are valid
+    AXR_API bool axrShaderValuesIsValid(AxrShaderValuesConst_T values);
+    /// Clone the given shader values
+    /// @param values Shader values to clone
+    /// @returns The cloned shader values
+    AXR_API AxrShaderValues_T axrShaderValuesClone(AxrShaderValuesConst_T values);
+    /// Destroy the given shader values
+    /// @param values Shader values to destroy
+    AXR_API void axrShaderValuesDestroy(AxrShaderValues_T* values);
+}
+
+// ---------------------------------------------------------------------------------- //
+//                                  Material Assets                                   //
+// ---------------------------------------------------------------------------------- //
+
+// ----------------------------------------- //
+// Structs
+// ----------------------------------------- //
+
+/// Material Config
+struct AxrMaterialConfig {
+    const char* Name;
+    const char* VertexShaderName;
+    const char* FragmentShaderName;
+    AxrShaderValues_T VertexShaderValues;
+    AxrShaderValues_T FragmentShaderValues;
+};
+
+// ----------------------------------------- //
+// Forward Declared Handles
+// ----------------------------------------- //
+
+/// AxrMaterial Handle
+typedef class AxrMaterial* AxrMaterial_T;
+
+// ----------------------------------------- //
+// External Function Definitions
+// ----------------------------------------- //
+extern "C" {
+    /// Get the material's name
+    /// @param material Material to use
+    /// @returns The material's name
+    AXR_API const char* axrMaterialGetName(AxrMaterial_T material);
+}
+
+// ---------------------------------------------------------------------------------- //
 //                               Engine Defined Assets                                //
 // ---------------------------------------------------------------------------------- //
 
@@ -280,17 +457,44 @@ extern "C" {
 // Enums
 // ----------------------------------------- //
 
-/// Axr Engine defined shader enums
+// ---- Shaders ----
+
+/// Axr engine defined shader enum
 enum AxrShaderEngineAssetEnum {
     AXR_SHADER_ENGINE_ASSET_UNDEFINED = 0,
     AXR_SHADER_ENGINE_ASSET_DEFAULT_VERT,
     AXR_SHADER_ENGINE_ASSET_DEFAULT_FRAG,
 };
 
+// ---- Buffers ----
+
+/// Axr engine defined uniform buffer enum
+enum AxrUniformBufferEngineAssetEnum {
+    AXR_UNIFORM_BUFFER_ENGINE_ASSET_UNDEFINED = 0,
+    AXR_UNIFORM_BUFFER_ENGINE_ASSET_VIEW_PROJ_MATRICES,
+};
+
+/// Axr engine defined push constants buffer enum
+enum AxrPushConstantsBufferEngineAssetEnum {
+    AXR_PUSH_CONSTANTS_BUFFER_ENGINE_ASSET_UNDEFINED = 0,
+    AXR_PUSH_CONSTANTS_BUFFER_ENGINE_ASSET_MODEL_MATRIX,
+};
+
+// ----------------------------------------- //
+// Structs
+// ----------------------------------------- //
+
+/// Engine asset material named 'Default Material' values
+struct AxrMaterialEngineAsset_DefaultMaterial {
+    const char* ImageName;
+};
+
 // ----------------------------------------- //
 // External Function Definitions
 // ----------------------------------------- //
 extern "C" {
+    // ---- Shaders ----
+
     /// Check if the given name is reserved as a shader engine asset name
     /// @param name Name to check
     /// @returns True if the given name is reserved as a shader engine asset name
@@ -299,6 +503,26 @@ extern "C" {
     /// @param engineAssetEnum Engine asset to get the name of
     /// @returns The name of the given engine asset
     AXR_API const char* axrGetShaderEngineAssetName(AxrShaderEngineAssetEnum engineAssetEnum);
+
+    // ---- Buffers ----
+
+    /// Check if the given name is reserved as a uniform buffer engine asset name
+    /// @param name Name to check
+    /// @returns True if the given name is reserved as a uniform buffer engine asset name
+    AXR_API bool axrIsUniformBufferNameReserved(const char* name);
+    /// Get the name for the given uniform buffer engine asset
+    /// @param engineAssetEnum Engine asset to get the name of
+    /// @returns The name of the given engine asset
+    AXR_API const char* axrGetUniformBufferEngineAssetName(AxrUniformBufferEngineAssetEnum engineAssetEnum);
+
+    /// Check if the given name is reserved as a push constants buffer engine asset name
+    /// @param name Name to check
+    /// @returns True if the given name is reserved as a push constants buffer engine asset name
+    AXR_API bool axrIsPushConstantsBufferNameReserved(const char* name);
+    /// Get the name for the given push constants buffer engine asset
+    /// @param engineAssetEnum Engine asset to get the name of
+    /// @returns The name of the given engine asset
+    AXR_API const char* axrGetPushConstantsBufferEngineAssetName(AxrPushConstantsBufferEngineAssetEnum engineAssetEnum);
 }
 
 // ---------------------------------------------------------------------------------- //
@@ -316,6 +540,26 @@ typedef class AxrAssetCollection* AxrAssetCollection_T;
 // External Function Definitions
 // ----------------------------------------- //
 extern "C" {
+    // ---- All Assets ----
+
+    /// Check if all the assets in the collection have been loaded
+    /// @param assetCollection Asset collection to use
+    /// @returns True if all assets in the collection have been loaded
+    AXR_API bool axrAssetCollectionIsLoaded(AxrAssetCollection_T assetCollection);
+    /// Load all assets in the collection
+    /// @param assetCollection Asset collection to use
+    /// @param graphicsApi Graphics api to use with these assets
+    /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrAssetCollectionLoadAssets(
+        AxrAssetCollection_T assetCollection,
+        AxrGraphicsApiEnum graphicsApi
+    );
+    /// Unload all assets in the collection
+    /// @param assetCollection Asset collection to use
+    AXR_API void axrAssetCollectionUnloadAssets(AxrAssetCollection_T assetCollection);
+
+    // ---- Shader ----
+
     /// Create a new shader
     /// @param assetCollection Asset collection to use
     /// @param shaderConfig Shader config to use
@@ -331,5 +575,26 @@ extern "C" {
     AXR_API AxrResult axrAssetCollectionCreateEngineAssetShader(
         AxrAssetCollection_T assetCollection,
         AxrShaderEngineAssetEnum engineAssetEnum
+    );
+
+    // ---- Material ----
+
+    /// Create a new material
+    /// @param assetCollection Asset collection to use
+    /// @param materialConfig Material config
+    /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrAssetCollectionCreateMaterial(
+        AxrAssetCollection_T assetCollection,
+        const AxrMaterialConfig* materialConfig
+    );
+    /// Create a material using the engine defined material named 'Default Material'
+    /// @param assetCollection Asset collection to use
+    /// @param materialName Material name
+    /// @param materialValues Material values
+    /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrAssetCollectionCreateEngineAssetMaterial_DefaultMaterial(
+        AxrAssetCollection_T assetCollection,
+        const char* materialName,
+        AxrMaterialEngineAsset_DefaultMaterial materialValues
     );
 }

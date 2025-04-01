@@ -11,9 +11,11 @@
 // ----------------------------------------- //
 #include "axr/common/result.h"
 #include "axr/windowSystem.h"
+#include "axr/assets.h"
 #include "vulkanQueueFamilies.hpp"
 #include "vulkanWindowGraphics.hpp"
 #include "vulkanExtensionCollection.hpp"
+#include "sceneAssets/vulkanSceneAssets.hpp"
 
 // ----------------------------------------- //
 // Vulkan Headers
@@ -41,6 +43,7 @@ public:
         const char* ApplicationName;
         uint32_t ApplicationVersion;
         AxrWindowSystem_T WindowSystem;
+        AxrAssetCollection_T GlobalAssetCollection;
         AxrVulkanApiConfig_T VulkanConfig;
     };
 
@@ -105,6 +108,7 @@ private:
     AxrVulkanQueueFamilies m_QueueFamilies;
     vk::Device m_Device;
 
+    AxrVulkanSceneAssets m_GlobalSceneAssets;
     AxrVulkanWindowGraphics* m_WindowGraphics;
 
     // ----------------------------------------- //

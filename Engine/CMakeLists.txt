@@ -77,11 +77,17 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanWindowGraphics.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanExtensionCollection.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanSurfaceDetails.hpp
+    # ---- Graphics System - Vulkan - Scene Assets ----
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneAssets/vulkanSceneAssets.hpp
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneAssets/vulkanMaterialLayoutAssets.hpp
     # ---- Assets ----
     ${AXR_SRC_DIR}/assets/assetCollection.hpp
     ${AXR_SRC_DIR}/assets/shader.hpp
+    ${AXR_SRC_DIR}/assets/material.hpp
     ${AXR_SRC_DIR}/assets/shaderEngineAssets.hpp
+    ${AXR_SRC_DIR}/assets/materialEngineAssets.hpp
     ${AXR_SRC_DIR}/assets/shaderProperties.hpp
+    ${AXR_SRC_DIR}/assets/shaderValues.hpp
     ${AXR_SRC_DIR}/assets/assetsUtils.hpp
 )
 
@@ -107,11 +113,18 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanQueueFamilies.cpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanWindowGraphics.cpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanSurfaceDetails.cpp
+    # ---- Graphics System - Vulkan - Scene Assets ----
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneAssets/vulkanSceneAssets.cpp
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneAssets/vulkanMaterialLayoutAssets.cpp
     # ---- Assets ----
     ${AXR_SRC_DIR}/assets/assetCollection.cpp
     ${AXR_SRC_DIR}/assets/shader.cpp
+    ${AXR_SRC_DIR}/assets/material.cpp
     ${AXR_SRC_DIR}/assets/shaderEngineAssets.cpp
+    ${AXR_SRC_DIR}/assets/materialEngineAssets.cpp
+    ${AXR_SRC_DIR}/assets/bufferEngineAssets.cpp
     ${AXR_SRC_DIR}/assets/shaderProperties.cpp
+    ${AXR_SRC_DIR}/assets/shaderValues.cpp
     ${AXR_SRC_DIR}/assets/assetsUtils.cpp
 )
 
