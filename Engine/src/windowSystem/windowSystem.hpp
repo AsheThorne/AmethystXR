@@ -80,7 +80,7 @@ public:
 
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
-    // They should not be given a publicly accessible function in the 'include headers' to be used by an application.
+    // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
 
     /// Set up the window system
     /// @returns AXR_SUCCESS if the function succeeded
