@@ -54,7 +54,7 @@ AxrWindowSystem::AxrWindowSystem(const Config& config):
     m_ConfigureWindowGraphicsCallbackUserData(nullptr),
     m_ConfigureWindowGraphicsCallback(nullptr) {
 #ifdef AXR_USE_PLATFORM_WIN32
-    m_Win32WindowSystem = std::make_unique<AxrWin32WindowSystem>(
+    m_Win32WindowSystem = new AxrWin32WindowSystem(
         AxrWin32WindowSystem::Config{
             .ApplicationName = config.ApplicationName,
             .Width = config.WindowConfig.Width,
@@ -62,6 +62,10 @@ AxrWindowSystem::AxrWindowSystem(const Config& config):
         }
     );
 #endif
+}
+
+AxrWindowSystem::~AxrWindowSystem() {
+    cleanup();
 }
 
 // ---- Public Functions ----
@@ -137,6 +141,18 @@ AxrResult AxrWindowSystem::setup() {
 #endif
 }
 
+void AxrWindowSystem::cleanup() {
+#ifdef AXR_USE_PLATFORM_WIN32
+    if (m_Win32WindowSystem != nullptr) {
+        delete m_Win32WindowSystem;
+        m_Win32WindowSystem = nullptr;
+    }
+#endif
+
+    m_ConfigureWindowGraphicsCallback = nullptr;
+    m_ConfigureWindowGraphicsCallbackUserData = nullptr;
+}
+
 void AxrWindowSystem::processEvents() {
 #ifdef AXR_USE_PLATFORM_WIN32
     if (m_Win32WindowSystem == nullptr) {
@@ -170,7 +186,7 @@ void AxrWindowSystem::resetConfigureWindowGraphicsCallback() {
 
 #ifdef AXR_USE_PLATFORM_WIN32
 AxrWin32WindowSystem* AxrWindowSystem::getWin32WindowSystem() const {
-    return m_Win32WindowSystem.get();
+    return m_Win32WindowSystem;
 }
 #endif
 

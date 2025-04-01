@@ -46,9 +46,15 @@ AxrResult axrAssetCollectionCreateEngineAssetShader(
 
 AxrAssetCollection::AxrAssetCollection() = default;
 
-AxrAssetCollection::~AxrAssetCollection() = default;
+AxrAssetCollection::~AxrAssetCollection() {
+    cleanup();
+}
 
 // ---- Public Functions ----
+
+void AxrAssetCollection::cleanup() {
+    m_Shaders.clear();
+}
 
 AxrResult AxrAssetCollection::createShader(const AxrShaderConfig& shaderConfig) {
     // ----------------------------------------- //

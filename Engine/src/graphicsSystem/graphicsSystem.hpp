@@ -45,7 +45,7 @@ public:
     // ---- Destructor ----
 
     /// Destructor
-    ~AxrGraphicsSystem() = default;
+    ~AxrGraphicsSystem();
 
     // ---- Operator Overloads ----
 
@@ -67,6 +67,8 @@ public:
     /// Set up the graphics system
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setup();
+    /// Clean up this class
+    void cleanup();
 
 private:
     // ----------------------------------------- //
@@ -75,7 +77,7 @@ private:
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     // ---- Vulkan Variables ----
-    std::unique_ptr<AxrVulkanGraphicsSystem> m_VulkanGraphicsSystem;
+    AxrVulkanGraphicsSystem* m_VulkanGraphicsSystem;
 #endif
 
     // ---- Config Variables ----

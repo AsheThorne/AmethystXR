@@ -106,6 +106,12 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
     ) {
 }
 
+AxrApplication::~AxrApplication() {
+    m_GraphicsSystem.cleanup();
+    m_WindowSystem.cleanup();
+    m_GlobalAssetCollection.cleanup();
+}
+
 // ---- Public Functions ----
 
 AxrResult AxrApplication::setup() {

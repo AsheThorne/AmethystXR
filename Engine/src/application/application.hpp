@@ -30,7 +30,7 @@ public:
     // ---- Destructor ----
 
     /// Destructor
-    ~AxrApplication() = default;
+    ~AxrApplication();
 
     // ---- Operator Overloads ----
 

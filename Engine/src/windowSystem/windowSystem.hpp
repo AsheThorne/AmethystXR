@@ -7,11 +7,6 @@
 #include "axr/windowSystem.h"
 #include "win32/win32WindowSystem.hpp"
 
-// ----------------------------------------- //
-// C/C++ Headers
-// ----------------------------------------- //
-#include <memory>
-
 /// Axr Window System
 class AxrWindowSystem {
 public:
@@ -54,7 +49,7 @@ public:
     // ---- Destructor ----
 
     /// Destructor
-    ~AxrWindowSystem() = default;
+    ~AxrWindowSystem();
 
     // ---- Operator Overloads ----
 
@@ -85,6 +80,9 @@ public:
     /// Set up the window system
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setup();
+    /// Clean up this class
+    void cleanup();
+
     /// Process the window events
     void processEvents();
 
@@ -112,7 +110,7 @@ private:
 
 #ifdef AXR_USE_PLATFORM_WIN32
     // ---- Win32 Variables ----
-    std::unique_ptr<AxrWin32WindowSystem> m_Win32WindowSystem;
+    AxrWin32WindowSystem* m_Win32WindowSystem;
 #endif
 
     void* m_ConfigureWindowGraphicsCallbackUserData;

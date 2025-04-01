@@ -48,6 +48,9 @@ public:
     // Public Functions
     // ----------------------------------------- //
 
+    /// Clean up this class
+    void cleanup();
+
     /// Create a new shader
     /// @param shaderConfig Shader config
     /// @returns AXR_SUCCESS if the function succeeded

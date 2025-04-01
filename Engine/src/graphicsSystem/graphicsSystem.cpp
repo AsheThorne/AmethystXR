@@ -18,7 +18,7 @@ AxrGraphicsSystem::AxrGraphicsSystem(const Config& config):
     m_GraphicsApi(config.GraphicsConfig.GraphicsApi) {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     if (config.GraphicsConfig.GraphicsApi == AXR_GRAPHICS_API_VULKAN) {
-        m_VulkanGraphicsSystem = std::make_unique<AxrVulkanGraphicsSystem>(
+        m_VulkanGraphicsSystem = new AxrVulkanGraphicsSystem(
             AxrVulkanGraphicsSystem::Config{
                 .ApplicationName = config.ApplicationName,
                 .ApplicationVersion = config.ApplicationVersion,
@@ -28,6 +28,10 @@ AxrGraphicsSystem::AxrGraphicsSystem(const Config& config):
         );
     }
 #endif
+}
+
+AxrGraphicsSystem::~AxrGraphicsSystem() {
+    cleanup();
 }
 
 // ---- Public Headers ----
@@ -53,4 +57,15 @@ AxrResult AxrGraphicsSystem::setup() {
             return AXR_ERROR;
         }
     }
+}
+
+void AxrGraphicsSystem::cleanup() {
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    if (m_VulkanGraphicsSystem != nullptr) {
+        delete m_VulkanGraphicsSystem;
+        m_VulkanGraphicsSystem = nullptr;
+    }
+#endif
+
+    m_GraphicsApi = AXR_GRAPHICS_API_UNDEFINED;
 }
