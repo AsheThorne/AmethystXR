@@ -162,6 +162,8 @@ AxrResult AxrAssetCollection::createShader(const AxrShaderConfig& shaderConfig) 
         return AXR_ERROR;
     }
 
+    // TODO: create a isShaderConfigValid function and move this
+    //  use it in the AxrShader class too when creating a material
     if (!AxrShaderPropertiesRAII::isValid(shaderConfig.Properties)) {
         axrLogError("Unable to create shader. Shader properties are invalid.");
         return AXR_ERROR;
@@ -197,13 +199,16 @@ AxrResult AxrAssetCollection::createShader(const AxrShaderEngineAssetEnum engine
         return AXR_ERROR;
     }
 
-    // TODO: Check that the shader is valid??
-
     AxrShader shader;
     const AxrResult axrResult = axrCreateEngineAssetShader(engineAssetEnum, shader);
     if (AXR_FAILED(axrResult)) {
         axrLogErrorLocation("Failed to create shader engine asset.");
         return axrResult;
+    }
+
+    if (!shader.isValid()) {
+        axrLogError("Unable to create shader. Shader is invalid.");
+        return AXR_ERROR;
     }
 
     // ----------------------------------------- //
@@ -231,6 +236,8 @@ AxrResult AxrAssetCollection::createMaterial(const AxrMaterialConfig& materialCo
         return AXR_ERROR;
     }
 
+    // TODO: create a isMaterialConfigValid function and move these here
+    //  use it in the AxrMaterial class too when creating a material
     if (!AxrShaderValuesRAII::isValid(materialConfig.VertexShaderValues)) {
         axrLogError("Unable to create material. Vertex shader values are invalid.");
         return AXR_ERROR;
@@ -241,7 +248,21 @@ AxrResult AxrAssetCollection::createMaterial(const AxrMaterialConfig& materialCo
         return AXR_ERROR;
     }
 
-    // TODO: Check that the shaders this material uses have been registered
+    if (!m_Shaders.contains(materialConfig.VertexShaderName)) {
+        axrLogError(
+            "Unable to create material. The shader named: {0} doesn't exist.",
+            materialConfig.VertexShaderName
+        );
+        return AXR_ERROR;
+    }
+
+    if (!m_Shaders.contains(materialConfig.FragmentShaderName)) {
+        axrLogError(
+            "Unable to create material. The shader named: {0} doesn't exist.",
+            materialConfig.FragmentShaderName
+        );
+        return AXR_ERROR;
+    }
 
     // ----------------------------------------- //
     // Process
@@ -271,13 +292,16 @@ AxrResult AxrAssetCollection::createMaterial(
         return AXR_ERROR;
     }
 
-    // TODO: Check that the material is valid??
-
     AxrMaterial material;
     const AxrResult axrResult = axrCreateEngineAssetMaterial_DefaultMaterial(materialName, materialValues, material);
     if (AXR_FAILED(axrResult)) {
         axrLogErrorLocation("Failed to create material engine asset.");
         return axrResult;
+    }
+
+    if (!material.isValid()) {
+        axrLogError("Unable to create material. Material is invalid.");
+        return AXR_ERROR;
     }
 
     if (!m_Shaders.contains(material.getVertexShaderName())) {
