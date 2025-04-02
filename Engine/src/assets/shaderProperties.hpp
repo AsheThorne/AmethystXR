@@ -163,27 +163,27 @@ public:
     static void destroy(AxrShaderPushConstantsBufferLayout_T& shaderBufferLayout);
 #endif
 
-    // ---- Vertex Property ----
+    // ---- Vertex Attribute ----
 
-    /// Clone the given shader vertex properties
-    /// @param vertexProperties Shader vertex properties to clone
-    /// @param vertexPropertiesCount Number of shader vertex properties
-    /// @returns The cloned shader vertex properties
-    [[nodiscard]] static AxrShaderVertexProperty* clone(
-        const AxrShaderVertexProperty* vertexProperties,
-        uint32_t vertexPropertiesCount
+    /// Clone the given shader vertex attributes
+    /// @param vertexAttributes Shader vertex attributes to clone
+    /// @param vertexAttributesCount Number of shader vertex attributes
+    /// @returns The cloned shader vertex attributes
+    [[nodiscard]] static AxrShaderVertexAttribute* clone(
+        const AxrShaderVertexAttribute* vertexAttributes,
+        uint32_t vertexAttributesCount
     );
-    /// Destroy the given shader vertex properties
-    /// @param vertexProperties Shader vertex properties to destroy
-    /// @param vertexPropertiesCount Number of shader vertex properties
-    static void destroy(AxrShaderVertexProperty*& vertexProperties, uint32_t& vertexPropertiesCount);
-    /// Clone the given shader vertex property
-    /// @param vertexProperty Shader vertex property to clone
-    /// @returns The cloned shader vertex property
-    [[nodiscard]] static AxrShaderVertexProperty clone(AxrShaderVertexProperty vertexProperty);
-    /// Destroy the given shader vertex property
-    /// @param vertexProperty Shader vertex property to destroy
-    static void destroy(AxrShaderVertexProperty& vertexProperty);
+    /// Destroy the given shader vertex attributes
+    /// @param vertexAttributes Shader vertex attributes to destroy
+    /// @param vertexAttributesCount Number of shader vertex attributes
+    static void destroy(AxrShaderVertexAttribute*& vertexAttributes, uint32_t& vertexAttributesCount);
+    /// Clone the given shader vertex attribute
+    /// @param vertexAttribute Shader vertex attribute to clone
+    /// @returns The cloned shader vertex attribute
+    [[nodiscard]] static AxrShaderVertexAttribute clone(AxrShaderVertexAttribute vertexAttribute);
+    /// Destroy the given shader vertex attribute
+    /// @param vertexAttribute Shader vertex attribute to destroy
+    static void destroy(AxrShaderVertexAttribute& vertexAttribute);
 
     // ----------------- Property Validation -----------------
 
@@ -209,13 +209,13 @@ public:
         uint32_t bufferLayoutsCount
     );
 
-    /// Check if the given shader vertex properties are valid
-    /// @param vertexProperties Shader vertex properties to check
-    /// @param vertexPropertiesCount Number of shader vertex properties
-    /// @returns True if the shader vertex properties are valid
+    /// Check if the given shader vertex attributes are valid
+    /// @param vertexAttributes Shader vertex attributes to check
+    /// @param vertexAttributesCount Number of shader vertex attributes
+    /// @returns True if the shader vertex attributes are valid
     [[nodiscard]] static bool isValid(
-        const AxrShaderVertexProperty* vertexProperties,
-        uint32_t vertexPropertiesCount
+        const AxrShaderVertexAttribute* vertexAttributes,
+        uint32_t vertexAttributesCount
     );
 
     /// Check if the given shader properties are compatible and can be used together

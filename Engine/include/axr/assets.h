@@ -33,14 +33,14 @@ enum AxrShaderBufferLayoutEnum {
     AXR_SHADER_BUFFER_LAYOUT_PUSH_CONSTANTS_BUFFER,
 };
 
-// ---- Vertex Property ----
+// ---- Vertex Attributes ----
 
-/// Shader vertex property enum
-enum AxrShaderVertexPropertyEnum {
-    AXR_SHADER_VERTEX_PROPERTY_UNKNOWN = 0,
-    AXR_SHADER_VERTEX_PROPERTY_POSITION,
-    AXR_SHADER_VERTEX_PROPERTY_COLOR,
-    AXR_SHADER_VERTEX_PROPERTY_TEX_COORDS,
+/// Shader vertex attribute enum
+enum AxrShaderVertexAttributeEnum {
+    AXR_SHADER_VERTEX_ATTRIBUTE_UNKNOWN = 0,
+    AXR_SHADER_VERTEX_ATTRIBUTE_POSITION,
+    AXR_SHADER_VERTEX_ATTRIBUTE_COLOR,
+    AXR_SHADER_VERTEX_ATTRIBUTE_TEX_COORDS,
 };
 
 // ----------------------------------------- //
@@ -95,11 +95,11 @@ typedef AxrShaderPushConstantsBufferLayout* AxrShaderPushConstantsBufferLayout_T
 typedef const AxrShaderPushConstantsBufferLayout* AxrShaderPushConstantsBufferLayoutConst_T;
 #endif
 
-// ---- Shader Vertex Property ----
+// ---- Shader Vertex Attribute ----
 
-/// Shader Vertex Property
-struct AxrShaderVertexProperty {
-    AxrShaderVertexPropertyEnum Type;
+/// Shader Vertex Attribute
+struct AxrShaderVertexAttribute {
+    AxrShaderVertexAttributeEnum Type;
     uint32_t Binding;
     uint32_t Location;
 };
@@ -119,8 +119,8 @@ typedef const AxrShaderPropertiesStructure* AxrShaderPropertiesConst_T;
 /// Vertex shader properties
 struct AxrVertexShaderProperties {
     const AxrShaderStageEnum Type = AXR_SHADER_STAGE_VERTEX;
-    AxrShaderVertexProperty* VertexProperties;
-    uint32_t VertexPropertiesCount;
+    AxrShaderVertexAttribute* VertexAttributes;
+    uint32_t VertexAttributesCount;
     AxrShaderBufferLayout_T* BufferLayouts;
     uint32_t BufferLayoutsCount;
 };
@@ -188,15 +188,15 @@ extern "C" {
     AXR_API void axrShaderPushConstantsBufferLayoutDestroy(AxrShaderPushConstantsBufferLayout_T* bufferLayout);
 #endif
 
-    // ---- Shader Vertex Properties ----
+    // ---- Shader Vertex Attributes ----
 
-    /// Clone the given shader vertex property
-    /// @param vertexProperty Shader vertex property to clone
-    /// @returns The cloned shader vertex property
-    AXR_API AxrShaderVertexProperty axrShaderVertexPropertyClone(AxrShaderVertexProperty vertexProperty);
-    /// Destroy the given shader vertex property
-    /// @param vertexProperty Shader vertex property to destroy
-    AXR_API void axrShaderVertexPropertyDestroy(AxrShaderVertexProperty* vertexProperty);
+    /// Clone the given shader vertex attribute
+    /// @param vertexAttribute Shader vertex attribute to clone
+    /// @returns The cloned shader vertex attribute
+    AXR_API AxrShaderVertexAttribute axrShaderVertexAttributeClone(AxrShaderVertexAttribute vertexAttribute);
+    /// Destroy the given shader vertex attribute
+    /// @param vertexAttribute Shader vertex attribute to destroy
+    AXR_API void axrShaderVertexAttributeDestroy(AxrShaderVertexAttribute* vertexAttribute);
 
     // ---- Shader Properties ----
 
@@ -346,8 +346,6 @@ struct AxrShaderValues {
     uint32_t BufferLinksCount;
 };
 
-// TODO: Check if we actually need handles like this.
-//  Since we aren't using `reinterpret_cast` on these structs, we might not need handles like the AxrShaderProperties struct 
 /// AxrShaderValues Handle Type
 typedef AxrShaderValues* AxrShaderValues_T;
 /// Const AxrShaderValues Handle Type

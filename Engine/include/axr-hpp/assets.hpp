@@ -34,14 +34,14 @@ namespace axr {
         PushConstantsBuffer = AXR_SHADER_BUFFER_LAYOUT_PUSH_CONSTANTS_BUFFER,
     };
 
-    // ---- Vertex Property ----
+    // ---- Vertex Attribute ----
 
-    /// Shader vertex property enum
-    enum class ShaderVertexPropertyEnum {
-        Undefined = AXR_SHADER_VERTEX_PROPERTY_UNKNOWN,
-        Position = AXR_SHADER_VERTEX_PROPERTY_POSITION,
-        Color = AXR_SHADER_VERTEX_PROPERTY_COLOR,
-        TexCoords = AXR_SHADER_VERTEX_PROPERTY_TEX_COORDS,
+    /// Shader vertex attribute enum
+    enum class ShaderVertexAttributeEnum {
+        Undefined = AXR_SHADER_VERTEX_ATTRIBUTE_UNKNOWN,
+        Position = AXR_SHADER_VERTEX_ATTRIBUTE_POSITION,
+        Color = AXR_SHADER_VERTEX_ATTRIBUTE_COLOR,
+        TexCoords = AXR_SHADER_VERTEX_ATTRIBUTE_TEX_COORDS,
     };
 
     // ----------------------------------------- //
@@ -56,8 +56,8 @@ namespace axr {
         // Public Variables
         // ----------------------------------------- //
         const AxrShaderStageEnum Type = AXR_SHADER_STAGE_VERTEX;
-        AxrShaderVertexProperty* VertexProperties;
-        uint32_t VertexPropertiesCount;
+        AxrShaderVertexAttribute* VertexAttributes;
+        uint32_t VertexAttributesCount;
         AxrShaderBufferLayout_T* BufferLayouts;
         uint32_t BufferLayoutsCount;
 
@@ -69,8 +69,8 @@ namespace axr {
 
         /// Default Constructor
         VertexShaderProperties():
-            VertexProperties(nullptr),
-            VertexPropertiesCount(0),
+            VertexAttributes(nullptr),
+            VertexAttributesCount(0),
             BufferLayouts(nullptr),
             BufferLayoutsCount(0) {
         }
@@ -86,7 +86,7 @@ namespace axr {
 
         /// Destructor
         ~VertexShaderProperties() {
-            clearVertexProperties();
+            clearVertexAttributes();
             clearBufferLayouts();
         }
 
@@ -127,38 +127,38 @@ namespace axr {
             return reinterpret_cast<AxrVertexShaderProperties*>(this);
         }
 
-        // ---- Vertex Properties ----
+        // ---- Vertex Attributes ----
 
-        /// Add a vertex property
-        /// @param type Vertex property type
-        /// @param binding Vertex property binding
-        /// @param location Vertex property location
-        void addVertexProperty(
-            const axr::ShaderVertexPropertyEnum type,
+        /// Add a vertex attribute
+        /// @param type Vertex attribute type
+        /// @param binding Vertex attribute binding
+        /// @param location Vertex attribute location
+        void addVertexAttribute(
+            const axr::ShaderVertexAttributeEnum type,
             const uint32_t binding,
             const uint32_t location
         ) {
-            resizeVertexProperties(VertexPropertiesCount + 1);
+            resizeVertexAttributes(VertexAttributesCount + 1);
 
-            const AxrShaderVertexProperty vertexProperty{
-                .Type = static_cast<AxrShaderVertexPropertyEnum>(type),
+            const AxrShaderVertexAttribute vertexAttribute{
+                .Type = static_cast<AxrShaderVertexAttributeEnum>(type),
                 .Binding = binding,
                 .Location = location
             };
-            VertexProperties[VertexPropertiesCount - 1] = axrShaderVertexPropertyClone(vertexProperty);
+            VertexAttributes[VertexAttributesCount - 1] = axrShaderVertexAttributeClone(vertexAttribute);
         }
 
-        /// Clear the vertex properties
-        void clearVertexProperties() {
-            if (VertexProperties == nullptr) return;
+        /// Clear the vertex attributes
+        void clearVertexAttributes() {
+            if (VertexAttributes == nullptr) return;
 
-            for (uint32_t i = 0; i < VertexPropertiesCount; ++i) {
-                axrShaderVertexPropertyDestroy(&VertexProperties[i]);
+            for (uint32_t i = 0; i < VertexAttributesCount; ++i) {
+                axrShaderVertexAttributeDestroy(&VertexAttributes[i]);
             }
 
-            delete[] VertexProperties;
-            VertexProperties = nullptr;
-            VertexPropertiesCount = 0;
+            delete[] VertexAttributes;
+            VertexAttributes = nullptr;
+            VertexAttributesCount = 0;
         }
 
         // ---- Buffer Layouts ----
@@ -226,21 +226,21 @@ namespace axr {
         // Private Functions
         // ----------------------------------------- //
 
-        // ---- Vertex Properties ----
+        // ---- Vertex Attributes ----
 
-        /// Resize the vertex properties
+        /// Resize the vertex attributes
         /// @param size New size
-        void resizeVertexProperties(const uint32_t size) {
-            auto newVertexProperties = new AxrShaderVertexProperty[size]{};
-            for (uint32_t i = 0; i < std::min(VertexPropertiesCount, size); ++i) {
-                // Move vertex properties to new array
-                newVertexProperties[i] = VertexProperties[i];
-                VertexProperties[i] = {};
+        void resizeVertexAttributes(const uint32_t size) {
+            auto newVertexAttributes = new AxrShaderVertexAttribute[size]{};
+            for (uint32_t i = 0; i < std::min(VertexAttributesCount, size); ++i) {
+                // Move vertex attributes to new array
+                newVertexAttributes[i] = VertexAttributes[i];
+                VertexAttributes[i] = {};
             }
 
-            clearVertexProperties();
-            VertexProperties = newVertexProperties;
-            VertexPropertiesCount = size;
+            clearVertexAttributes();
+            VertexAttributes = newVertexAttributes;
+            VertexAttributesCount = size;
         }
 
         // ---- Buffer Layouts ----

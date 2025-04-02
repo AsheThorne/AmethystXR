@@ -68,16 +68,16 @@ void axrShaderPushConstantsBufferLayoutDestroy(AxrShaderPushConstantsBufferLayou
 #endif
 
 
-// ---- Shader Vertex Property ----
+// ---- Shader Vertex Attribute ----
 
-AxrShaderVertexProperty axrShaderVertexPropertyClone(const AxrShaderVertexProperty vertexProperty) {
-    return AxrShaderPropertiesRAII::clone(vertexProperty);
+AxrShaderVertexAttribute axrShaderVertexAttributeClone(const AxrShaderVertexAttribute vertexAttribute) {
+    return AxrShaderPropertiesRAII::clone(vertexAttribute);
 }
 
-void axrShaderVertexPropertyDestroy(AxrShaderVertexProperty* vertexProperty) {
-    if (vertexProperty == nullptr) return;
+void axrShaderVertexAttributeDestroy(AxrShaderVertexAttribute* vertexAttribute) {
+    if (vertexAttribute == nullptr) return;
 
-    AxrShaderPropertiesRAII::destroy(*vertexProperty);
+    AxrShaderPropertiesRAII::destroy(*vertexAttribute);
 }
 
 // ---- Shader Properties ----
@@ -329,11 +329,11 @@ AxrVertexShaderProperties_T AxrShaderPropertiesRAII::clone(const AxrVertexShader
     if (properties == nullptr) return nullptr;
 
     return new AxrVertexShaderProperties{
-        .VertexProperties = clone(
-            properties->VertexProperties,
-            properties->VertexPropertiesCount
+        .VertexAttributes = clone(
+            properties->VertexAttributes,
+            properties->VertexAttributesCount
         ),
-        .VertexPropertiesCount = properties->VertexPropertiesCount,
+        .VertexAttributesCount = properties->VertexAttributesCount,
         .BufferLayouts = clone(
             properties->BufferLayouts,
             properties->BufferLayoutsCount
@@ -345,7 +345,7 @@ AxrVertexShaderProperties_T AxrShaderPropertiesRAII::clone(const AxrVertexShader
 void AxrShaderPropertiesRAII::destroy(AxrVertexShaderProperties_T& properties) {
     if (properties == nullptr) return;
 
-    destroy(properties->VertexProperties, properties->VertexPropertiesCount);
+    destroy(properties->VertexAttributes, properties->VertexAttributesCount);
     destroy(properties->BufferLayouts, properties->BufferLayoutsCount);
 
     delete properties;
@@ -514,45 +514,45 @@ void AxrShaderPropertiesRAII::destroy(AxrShaderPushConstantsBufferLayout_T& shad
 }
 #endif
 
-AxrShaderVertexProperty* AxrShaderPropertiesRAII::clone(
-    const AxrShaderVertexProperty* vertexProperties,
-    const uint32_t vertexPropertiesCount
+AxrShaderVertexAttribute* AxrShaderPropertiesRAII::clone(
+    const AxrShaderVertexAttribute* vertexAttributes,
+    const uint32_t vertexAttributesCount
 ) {
-    if (vertexProperties == nullptr) return nullptr;
+    if (vertexAttributes == nullptr) return nullptr;
 
-    const auto newVertexProperties = new AxrShaderVertexProperty[vertexPropertiesCount]{};
-    for (uint32_t i = 0; i < vertexPropertiesCount; ++i) {
-        newVertexProperties[i] = clone(vertexProperties[i]);
+    const auto newVertexAttributes = new AxrShaderVertexAttribute[vertexAttributesCount]{};
+    for (uint32_t i = 0; i < vertexAttributesCount; ++i) {
+        newVertexAttributes[i] = clone(vertexAttributes[i]);
     }
 
-    return newVertexProperties;
+    return newVertexAttributes;
 }
 
 void AxrShaderPropertiesRAII::destroy(
-    AxrShaderVertexProperty*& vertexProperties,
-    uint32_t& vertexPropertiesCount
+    AxrShaderVertexAttribute*& vertexAttributes,
+    uint32_t& vertexAttributesCount
 ) {
-    if (vertexProperties == nullptr) return;
+    if (vertexAttributes == nullptr) return;
 
-    for (uint32_t i = 0; i < vertexPropertiesCount; ++i) {
-        destroy(vertexProperties[i]);
+    for (uint32_t i = 0; i < vertexAttributesCount; ++i) {
+        destroy(vertexAttributes[i]);
     }
 
-    delete[] vertexProperties;
-    vertexProperties = nullptr;
-    vertexPropertiesCount = 0;
+    delete[] vertexAttributes;
+    vertexAttributes = nullptr;
+    vertexAttributesCount = 0;
 }
 
-AxrShaderVertexProperty AxrShaderPropertiesRAII::clone(const AxrShaderVertexProperty vertexProperty) {
-    return AxrShaderVertexProperty{
-        .Type = vertexProperty.Type,
-        .Binding = vertexProperty.Binding,
-        .Location = vertexProperty.Location,
+AxrShaderVertexAttribute AxrShaderPropertiesRAII::clone(const AxrShaderVertexAttribute vertexAttribute) {
+    return AxrShaderVertexAttribute{
+        .Type = vertexAttribute.Type,
+        .Binding = vertexAttribute.Binding,
+        .Location = vertexAttribute.Location,
     };
 }
 
-void AxrShaderPropertiesRAII::destroy(AxrShaderVertexProperty& vertexProperty) {
-    vertexProperty = {};
+void AxrShaderPropertiesRAII::destroy(AxrShaderVertexAttribute& vertexAttribute) {
+    vertexAttribute = {};
 }
 
 bool AxrShaderPropertiesRAII::isValid(const AxrShaderPropertiesConst_T properties) {
@@ -582,8 +582,7 @@ bool AxrShaderPropertiesRAII::isValid(const AxrVertexShaderPropertiesConst_T pro
         return false;
     }
 
-    // TODO: Rename vertexProperties to vertexAttributes. and all other related stuff
-    return isValid(properties->VertexProperties, properties->VertexPropertiesCount) &&
+    return isValid(properties->VertexAttributes, properties->VertexAttributesCount) &&
         isValid(properties->BufferLayouts, properties->BufferLayoutsCount);
 }
 
@@ -667,38 +666,38 @@ bool AxrShaderPropertiesRAII::isValid(
 }
 
 bool AxrShaderPropertiesRAII::isValid(
-    const AxrShaderVertexProperty* vertexProperties,
-    const uint32_t vertexPropertiesCount
+    const AxrShaderVertexAttribute* vertexAttributes,
+    const uint32_t vertexAttributesCount
 ) {
-    if (vertexProperties == nullptr) {
-        // Vertex properties aren't required
+    if (vertexAttributes == nullptr) {
+        // Vertex attributes aren't required
         return true;
     }
 
-    std::unordered_set<AxrShaderVertexPropertyEnum> vertexPropertyTypes;
-    std::unordered_map<uint32_t, std::unordered_set<uint32_t>> vertexPropertiesBindingsLocation;
+    std::unordered_set<AxrShaderVertexAttributeEnum> vertexAttributeTypes;
+    std::unordered_map<uint32_t, std::unordered_set<uint32_t>> vertexAttributesBindingsLocation;
 
-    for (uint32_t i = 0; i < vertexPropertiesCount; ++i) {
-        if (vertexPropertyTypes.contains(vertexProperties[i].Type)) {
-            axrLogError("Validation for shader vertex properties failed. Vertex properties have a duplicate type.");
+    for (uint32_t i = 0; i < vertexAttributesCount; ++i) {
+        if (vertexAttributeTypes.contains(vertexAttributes[i].Type)) {
+            axrLogError("Validation for shader vertex attributes failed. Vertex attributes have a duplicate type.");
             return false;
         }
-        vertexPropertyTypes.insert(vertexProperties[i].Type);
+        vertexAttributeTypes.insert(vertexAttributes[i].Type);
 
-        auto foundVertexPropertyBindingIt = vertexPropertiesBindingsLocation.find(vertexProperties[i].Binding);
-        if (foundVertexPropertyBindingIt != vertexPropertiesBindingsLocation.end()) {
-            if (foundVertexPropertyBindingIt->second.contains(vertexProperties[i].Location)) {
+        auto foundVertexAttributeBindingIt = vertexAttributesBindingsLocation.find(vertexAttributes[i].Binding);
+        if (foundVertexAttributeBindingIt != vertexAttributesBindingsLocation.end()) {
+            if (foundVertexAttributeBindingIt->second.contains(vertexAttributes[i].Location)) {
                 axrLogError(
-                    "Validation for shader vertex properties failed. Vertex properties have a duplicate binding and location."
+                    "Validation for shader vertex attributes failed. Vertex attributes have a duplicate binding and location."
                 );
                 return false;
             }
-            foundVertexPropertyBindingIt->second.insert(vertexProperties[i].Location);
+            foundVertexAttributeBindingIt->second.insert(vertexAttributes[i].Location);
         } else {
-            vertexPropertiesBindingsLocation.insert(
+            vertexAttributesBindingsLocation.insert(
                 std::pair(
-                    vertexProperties[i].Binding,
-                    std::unordered_set({vertexProperties[i].Location})
+                    vertexAttributes[i].Binding,
+                    std::unordered_set({vertexAttributes[i].Location})
                 )
             );
         }
