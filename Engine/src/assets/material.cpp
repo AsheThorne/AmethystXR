@@ -3,10 +3,24 @@
 // ----------------------------------------- //
 #include "material.hpp"
 #include "axr/logger.h"
+#include "../utils.hpp"
 
 // ----------------------------------------- //
 // External Functions
 // ----------------------------------------- //
+
+bool axrMaterialConfigIsValid(const AxrMaterialConfig* materialConfig) {
+    if (materialConfig == nullptr) {
+        axrLogErrorLocation("`materialConfig` is null.");
+        return false;
+    }
+
+    return !axrStringIsEmpty(materialConfig->Name) &&
+        !axrStringIsEmpty(materialConfig->VertexShaderName) &&
+        !axrStringIsEmpty(materialConfig->FragmentShaderName) &&
+        AxrShaderValuesRAII::isValid(materialConfig->VertexShaderValues) &&
+        AxrShaderValuesRAII::isValid(materialConfig->FragmentShaderValues);
+}
 
 const char* axrMaterialGetName(const AxrMaterial_T material) {
     if (material == nullptr) {
@@ -35,6 +49,9 @@ AxrMaterial::AxrMaterial(const AxrMaterialConfig& config):
     m_FragmentShaderName(config.FragmentShaderName),
     m_VertexShaderValues(config.VertexShaderValues),
     m_FragmentShaderValues(config.FragmentShaderValues) {
+    if (!axrMaterialConfigIsValid(&config)) {
+        axrLogErrorLocation("Material config is invalid.");
+    }
 }
 
 AxrMaterial::AxrMaterial(const AxrMaterial& src) {
@@ -114,7 +131,11 @@ std::string AxrMaterial::getMaterialLayoutName() const {
 }
 
 bool AxrMaterial::isValid() const {
-    return m_VertexShaderValues.isValid() && m_FragmentShaderValues.isValid();
+    return !axrStringIsEmpty(m_Name) &&
+        !axrStringIsEmpty(m_VertexShaderName) &&
+        !axrStringIsEmpty(m_FragmentShaderName) &&
+        m_VertexShaderValues.isValid() &&
+        m_FragmentShaderValues.isValid();
 }
 
 void AxrMaterial::cleanup() {

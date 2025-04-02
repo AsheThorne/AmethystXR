@@ -162,10 +162,8 @@ AxrResult AxrAssetCollection::createShader(const AxrShaderConfig& shaderConfig) 
         return AXR_ERROR;
     }
 
-    // TODO: create a isShaderConfigValid function and move this
-    //  use it in the AxrShader class too when creating a material
-    if (!AxrShaderPropertiesRAII::isValid(shaderConfig.Properties)) {
-        axrLogError("Unable to create shader. Shader properties are invalid.");
+    if (!axrShaderConfigIsValid(&shaderConfig)) {
+        axrLogError("Unable to create shader. Shader config is invalid.");
         return AXR_ERROR;
     }
 
@@ -236,15 +234,8 @@ AxrResult AxrAssetCollection::createMaterial(const AxrMaterialConfig& materialCo
         return AXR_ERROR;
     }
 
-    // TODO: create a isMaterialConfigValid function and move these here
-    //  use it in the AxrMaterial class too when creating a material
-    if (!AxrShaderValuesRAII::isValid(materialConfig.VertexShaderValues)) {
-        axrLogError("Unable to create material. Vertex shader values are invalid.");
-        return AXR_ERROR;
-    }
-
-    if (!AxrShaderValuesRAII::isValid(materialConfig.FragmentShaderValues)) {
-        axrLogError("Unable to create material. Fragment shader values are invalid.");
+    if (!axrMaterialConfigIsValid(&materialConfig)) {
+        axrLogError("Unable to create material. Material config is invalid.");
         return AXR_ERROR;
     }
 

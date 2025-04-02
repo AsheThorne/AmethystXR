@@ -558,8 +558,7 @@ namespace axr {
         /// Check if this shader config is valid
         /// @returns True if this shader config is valid
         [[nodiscard]] bool isValid() const {
-            // TODO: Maybe check that the file path is valid too
-            return axrShaderPropertiesIsValid(Properties);
+            return axrShaderConfigIsValid(toRaw());
         }
 
         /// Get a handle to the ShaderConfig as an AxrShaderConfig
@@ -965,10 +964,7 @@ namespace axr {
         /// Check if this material config is valid
         /// @returns True if this material config is valid
         [[nodiscard]] bool isValid() const {
-            // TODO: Replace with a materialConfigIsValid function instead of these 2?
-            //  If we do, then replace the isValid functions in the assetCollection too with it
-            return axrShaderValuesIsValid(VertexShaderValues) &&
-                axrShaderValuesIsValid(FragmentShaderValues);
+            return axrMaterialConfigIsValid(toRaw());
         }
 
         /// Get a handle to the MaterialConfig as an AxrMaterialConfig

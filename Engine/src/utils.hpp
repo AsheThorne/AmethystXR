@@ -24,3 +24,8 @@ bool axrContainsString(
     const char* string,
     const std::vector<std::string>& stringCollection
 );
+
+/// Check if the given string is empty
+/// @param string String to check
+/// @returns True if the given string is empty
+bool axrStringIsEmpty(const char* string);

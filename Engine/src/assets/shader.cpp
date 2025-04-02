@@ -9,10 +9,23 @@
 #include "shader.hpp"
 #include "axr/logger.h"
 #include "assetsUtils.hpp"
+#include "../utils.hpp"
 
 // ----------------------------------------- //
 // External Functions
 // ----------------------------------------- //
+
+bool axrShaderConfigIsValid(const AxrShaderConfig* shaderConfig) {
+    if (shaderConfig == nullptr) {
+        axrLogErrorLocation("`shaderConfig` is null.");
+        return false;
+    }
+
+    // TODO: Maybe check that the file path is a valid path and the file exists
+    return !axrStringIsEmpty(shaderConfig->Name) &&
+        !axrStringIsEmpty(shaderConfig->FilePath) &&
+        AxrShaderPropertiesRAII::isValid(shaderConfig->Properties);
+}
 
 const char* axrShaderGetName(const AxrShader_T shader) {
     if (shader == nullptr) {
@@ -38,6 +51,9 @@ AxrShader::AxrShader(const AxrShaderConfig& config):
     m_Name(config.Name),
     m_FilePath(config.FilePath),
     m_Properties(config.Properties) {
+    if (!axrShaderConfigIsValid(&config)) {
+        axrLogErrorLocation("Shader config is invalid.");
+    }
 }
 
 AxrShader::AxrShader(const AxrShader& src) {
@@ -139,7 +155,10 @@ const AxrShaderPropertiesRAII& AxrShader::getProperties() const {
 }
 
 bool AxrShader::isValid() const {
-    return m_Properties.isValid();
+    // TODO: Maybe check that the file path is a valid path and the file exists
+    return !axrStringIsEmpty(m_Name) &&
+        !axrStringIsEmpty(m_FilePath) &&
+        m_Properties.isValid();
 }
 
 // ---- Public Static Functions ----

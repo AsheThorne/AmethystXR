@@ -267,6 +267,10 @@ typedef class AxrShader* AxrShader_T;
 // External Function Definitions
 // ----------------------------------------- //
 extern "C" {
+    /// Check if the given shader config is valid
+    /// @param shaderConfig Shader config to check
+    /// @returns True if the given shader config is valid
+    AXR_API bool axrShaderConfigIsValid(const AxrShaderConfig* shaderConfig);
     /// Get the shader's name
     /// @param shader Shader to use
     /// @returns The shader's name
@@ -440,6 +444,10 @@ typedef class AxrMaterial* AxrMaterial_T;
 // External Function Definitions
 // ----------------------------------------- //
 extern "C" {
+    /// Check if the given material config is valid
+    /// @param materialConfig Material config to check
+    /// @returns True if the given material config is valid
+    AXR_API bool axrMaterialConfigIsValid(const AxrMaterialConfig* materialConfig);
     /// Get the material's name
     /// @param material Material to use
     /// @returns The material's name

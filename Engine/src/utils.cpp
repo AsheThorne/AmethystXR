@@ -44,3 +44,7 @@ bool axrContainsString(
 
     return false;
 }
+
+bool axrStringIsEmpty(const char* string) {
+    return string == nullptr || strcmp(string, "") == 0;
+}
