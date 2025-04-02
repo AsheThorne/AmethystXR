@@ -208,17 +208,17 @@ AxrShaderBufferLink_T AxrShaderValuesRAII::clone(const AxrShaderBufferLinkConst_
     if (shaderBufferLink == nullptr) return nullptr;
 
     switch (shaderBufferLink->Type) {
-        case AXR_SHADER_BUFFER_LINK_TYPE_UNIFORM_BUFFER: {
+        case AXR_SHADER_BUFFER_LINK_UNIFORM_BUFFER: {
             return reinterpret_cast<AxrShaderBufferLink_T>(clone(
                 reinterpret_cast<AxrShaderUniformBufferLinkConst_T>(shaderBufferLink)
             ));
         }
-        case AXR_SHADER_BUFFER_LINK_TYPE_IMAGE_SAMPLER_BUFFER: {
+        case AXR_SHADER_BUFFER_LINK_IMAGE_SAMPLER_BUFFER: {
             return reinterpret_cast<AxrShaderBufferLink_T>(clone(
                 reinterpret_cast<AxrShaderImageSamplerBufferLinkConst_T>(shaderBufferLink)
             ));
         }
-        case AXR_SHADER_BUFFER_LINK_TYPE_PUSH_CONSTANTS_BUFFER: {
+        case AXR_SHADER_BUFFER_LINK_PUSH_CONSTANTS_BUFFER: {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
             return reinterpret_cast<AxrShaderBufferLink_T>(clone(
                 reinterpret_cast<AxrShaderPushConstantsBufferLinkConst_T>(shaderBufferLink)
@@ -228,7 +228,7 @@ AxrShaderBufferLink_T AxrShaderValuesRAII::clone(const AxrShaderBufferLinkConst_
             return nullptr;
 #endif
         }
-        case AXR_SHADER_BUFFER_LINK_TYPE_UNDEFINED:
+        case AXR_SHADER_BUFFER_LINK_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
             axrLogErrorLocation("Unknown shader buffer link type.");
             return nullptr;
@@ -240,17 +240,17 @@ void AxrShaderValuesRAII::destroy(AxrShaderBufferLink_T& shaderBufferLink) {
     if (shaderBufferLink == nullptr) return;
 
     switch (shaderBufferLink->Type) {
-        case AXR_SHADER_BUFFER_LINK_TYPE_UNIFORM_BUFFER: {
+        case AXR_SHADER_BUFFER_LINK_UNIFORM_BUFFER: {
             // NOLINTNEXTLINE(clang-diagnostic-undefined-reinterpret-cast)
             destroy(reinterpret_cast<AxrShaderUniformBufferLink_T&>(shaderBufferLink));
             break;
         }
-        case AXR_SHADER_BUFFER_LINK_TYPE_IMAGE_SAMPLER_BUFFER: {
+        case AXR_SHADER_BUFFER_LINK_IMAGE_SAMPLER_BUFFER: {
             // NOLINTNEXTLINE(clang-diagnostic-undefined-reinterpret-cast)
             destroy(reinterpret_cast<AxrShaderImageSamplerBufferLink_T&>(shaderBufferLink));
             break;
         }
-        case AXR_SHADER_BUFFER_LINK_TYPE_PUSH_CONSTANTS_BUFFER: {
+        case AXR_SHADER_BUFFER_LINK_PUSH_CONSTANTS_BUFFER: {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
             // NOLINTNEXTLINE(clang-diagnostic-undefined-reinterpret-cast)
             destroy(reinterpret_cast<AxrShaderPushConstantsBufferLink_T&>(shaderBufferLink));
@@ -260,7 +260,7 @@ void AxrShaderValuesRAII::destroy(AxrShaderBufferLink_T& shaderBufferLink) {
             break;
 #endif
         }
-        case AXR_SHADER_BUFFER_LINK_TYPE_UNDEFINED:
+        case AXR_SHADER_BUFFER_LINK_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
             axrLogErrorLocation("Unknown shader buffer link type.");
             break;
@@ -345,7 +345,7 @@ bool AxrShaderValuesRAII::isValid(
         }
 
         switch (bufferLinks[i]->Type) {
-            case AXR_SHADER_BUFFER_LINK_TYPE_UNIFORM_BUFFER: {
+            case AXR_SHADER_BUFFER_LINK_UNIFORM_BUFFER: {
                 const auto uniformBufferLink = reinterpret_cast<AxrShaderUniformBufferLinkConst_T>(bufferLinks[
                     i]);
                 if (bufferBindings.contains(uniformBufferLink->Binding)) {
@@ -357,7 +357,7 @@ bool AxrShaderValuesRAII::isValid(
                 bufferBindings.insert(uniformBufferLink->Binding);
                 break;
             }
-            case AXR_SHADER_BUFFER_LINK_TYPE_IMAGE_SAMPLER_BUFFER: {
+            case AXR_SHADER_BUFFER_LINK_IMAGE_SAMPLER_BUFFER: {
                 const auto imageSamplerBufferLink = reinterpret_cast<AxrShaderImageSamplerBufferLinkConst_T>(
                     bufferLinks[i]);
                 if (bufferBindings.contains(imageSamplerBufferLink->Binding)) {
@@ -369,7 +369,7 @@ bool AxrShaderValuesRAII::isValid(
                 bufferBindings.insert(imageSamplerBufferLink->Binding);
                 break;
             }
-            case AXR_SHADER_BUFFER_LINK_TYPE_PUSH_CONSTANTS_BUFFER: {
+            case AXR_SHADER_BUFFER_LINK_PUSH_CONSTANTS_BUFFER: {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
                 pushConstantsCount++;
                 break;
@@ -378,7 +378,7 @@ bool AxrShaderValuesRAII::isValid(
                 return false;
 #endif
             }
-            case AXR_SHADER_BUFFER_LINK_TYPE_UNDEFINED:
+            case AXR_SHADER_BUFFER_LINK_UNDEFINED:
             default: { // NOLINT(clang-diagnostic-covered-switch-default)
                 axrLogErrorLocation("Unknown Shader buffer link.");
                 return false;

@@ -640,11 +640,11 @@ namespace axr {
     // ----------------------------------------- //
 
     /// Shader buffer link type enum
-    enum class ShaderBufferLinkTypeEnum {
-        Undefined = AXR_SHADER_BUFFER_LINK_TYPE_UNDEFINED,
-        UniformBuffer = AXR_SHADER_BUFFER_LINK_TYPE_UNIFORM_BUFFER,
-        ImageSamplerBuffer = AXR_SHADER_BUFFER_LINK_TYPE_IMAGE_SAMPLER_BUFFER,
-        PushConstantsBuffer = AXR_SHADER_BUFFER_LINK_TYPE_PUSH_CONSTANTS_BUFFER,
+    enum class ShaderBufferLinkEnum {
+        Undefined = AXR_SHADER_BUFFER_LINK_UNDEFINED,
+        UniformBuffer = AXR_SHADER_BUFFER_LINK_UNIFORM_BUFFER,
+        ImageSamplerBuffer = AXR_SHADER_BUFFER_LINK_IMAGE_SAMPLER_BUFFER,
+        PushConstantsBuffer = AXR_SHADER_BUFFER_LINK_PUSH_CONSTANTS_BUFFER,
     };
 
     // ----------------------------------------- //

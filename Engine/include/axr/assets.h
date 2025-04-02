@@ -281,13 +281,12 @@ extern "C" {
 // Enums
 // ----------------------------------------- //
 
-// TODO: Maybe remove the 'Type' and just have AxrShaderBufferLinkEnum, and AXR_SHADER_BUFFER_LINK_*
 /// Shader buffer link type enum
-enum AxrShaderBufferLinkTypeEnum {
-    AXR_SHADER_BUFFER_LINK_TYPE_UNDEFINED = 0,
-    AXR_SHADER_BUFFER_LINK_TYPE_UNIFORM_BUFFER,
-    AXR_SHADER_BUFFER_LINK_TYPE_IMAGE_SAMPLER_BUFFER,
-    AXR_SHADER_BUFFER_LINK_TYPE_PUSH_CONSTANTS_BUFFER,
+enum AxrShaderBufferLinkEnum {
+    AXR_SHADER_BUFFER_LINK_UNDEFINED = 0,
+    AXR_SHADER_BUFFER_LINK_UNIFORM_BUFFER,
+    AXR_SHADER_BUFFER_LINK_IMAGE_SAMPLER_BUFFER,
+    AXR_SHADER_BUFFER_LINK_PUSH_CONSTANTS_BUFFER,
 };
 
 // ----------------------------------------- //
@@ -296,7 +295,7 @@ enum AxrShaderBufferLinkTypeEnum {
 
 /// Shader Buffer Link Base Structure
 struct AxrShaderBufferLinkStructure {
-    AxrShaderBufferLinkTypeEnum Type = AXR_SHADER_BUFFER_LINK_TYPE_UNDEFINED;
+    AxrShaderBufferLinkEnum Type = AXR_SHADER_BUFFER_LINK_UNDEFINED;
 };
 
 /// AxrShaderBufferLinkStructure Handle Type
@@ -306,7 +305,7 @@ typedef const AxrShaderBufferLinkStructure* AxrShaderBufferLinkConst_T;
 
 /// Shader Uniform Buffer Link
 struct AxrShaderUniformBufferLink {
-    const AxrShaderBufferLinkTypeEnum Type = AXR_SHADER_BUFFER_LINK_TYPE_UNIFORM_BUFFER;
+    const AxrShaderBufferLinkEnum Type = AXR_SHADER_BUFFER_LINK_UNIFORM_BUFFER;
     uint32_t Binding;
     const char* BufferName;
 };
@@ -318,7 +317,7 @@ typedef const AxrShaderUniformBufferLink* AxrShaderUniformBufferLinkConst_T;
 
 /// Shader Image Sampler Buffer Link
 struct AxrShaderImageSamplerBufferLink {
-    const AxrShaderBufferLinkTypeEnum Type = AXR_SHADER_BUFFER_LINK_TYPE_IMAGE_SAMPLER_BUFFER;
+    const AxrShaderBufferLinkEnum Type = AXR_SHADER_BUFFER_LINK_IMAGE_SAMPLER_BUFFER;
     uint32_t Binding;
     const char* ImageName;
 };
@@ -331,7 +330,7 @@ typedef const AxrShaderImageSamplerBufferLink* AxrShaderImageSamplerBufferLinkCo
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 /// Shader Push Constants Buffer Link
 struct AxrShaderPushConstantsBufferLink {
-    const AxrShaderBufferLinkTypeEnum Type = AXR_SHADER_BUFFER_LINK_TYPE_PUSH_CONSTANTS_BUFFER;
+    const AxrShaderBufferLinkEnum Type = AXR_SHADER_BUFFER_LINK_PUSH_CONSTANTS_BUFFER;
     const char* BufferName;
 };
 
