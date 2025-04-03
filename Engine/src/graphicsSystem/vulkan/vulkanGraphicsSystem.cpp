@@ -930,7 +930,7 @@ AxrResult AxrVulkanGraphicsSystem::createGlobalSceneData() {
 
     // TODO: Set this scene name somewhere else and forbid an actual scene from being created with the same name
     m_GlobalSceneData = createSceneData(
-        "Axr:GlobalScene",
+        "AXR:SceneGlobal",
         m_GlobalAssetCollection,
         nullptr
     );
