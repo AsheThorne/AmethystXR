@@ -114,11 +114,15 @@ const char* AxrShader::getName() const {
     return m_Name;
 }
 
+const std::vector<char>& AxrShader::getFileData() const {
+    return m_FileData;
+}
+
 bool AxrShader::isLoaded() const {
     return !m_FileData.empty();
 }
 
-AxrResult AxrShader::loadFile(const AxrGraphicsApiEnum graphicsApi) {
+AxrResult AxrShader::loadFile(const AxrGraphicsApiEnum graphicsApi) const {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -146,7 +150,7 @@ AxrResult AxrShader::loadFile(const AxrGraphicsApiEnum graphicsApi) {
     return axrReadFileBytes(path, m_FileData);
 }
 
-void AxrShader::unloadFile() {
+void AxrShader::unloadFile() const {
     m_FileData.clear();
 }
 

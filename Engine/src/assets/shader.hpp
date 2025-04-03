@@ -54,15 +54,19 @@ public:
     // These functions are only to be used internally in the AmethystXr engine.
     // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
 
+    /// Get the shader file data
+    /// @returns The shader file data
+    [[nodiscard]] const std::vector<char>& getFileData() const;
+
     /// Check if this shader is loaded
     /// @returns True if this shader is loaded
     [[nodiscard]] bool isLoaded() const;
     /// Load this shader file
     /// @param graphicsApi The graphics api to use this shader with
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult loadFile(AxrGraphicsApiEnum graphicsApi);
+    [[nodiscard]] AxrResult loadFile(AxrGraphicsApiEnum graphicsApi) const;
     /// Unload this shader file
-    void unloadFile();
+    void unloadFile() const;
 
     /// Get the shader properties
     /// @returns The shader properties
@@ -91,7 +95,7 @@ private:
     const char* m_Name;
     const char* m_FilePath;
     AxrShaderPropertiesRAII m_Properties;
-    std::vector<char> m_FileData;
+    mutable std::vector<char> m_FileData;
 
     // ----------------------------------------- //
     // Private Functions

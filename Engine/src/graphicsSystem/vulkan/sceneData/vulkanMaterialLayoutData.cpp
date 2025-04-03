@@ -563,6 +563,55 @@ AxrResult AxrVulkanMaterialLayoutData::createPipeline(
     // Process
     // ----------------------------------------- //
 
+    AxrResult axrResult = AXR_SUCCESS;
+
+    // ---- Shader Stage ----
+
+    std::vector<vk::PipelineShaderStageCreateInfo> shaderStageCreateInfos(2);
+    std::vector<vk::ShaderModule> shaderModules(2);
+
+    if (!vertexShader.isLoaded()) {
+        axrResult = vertexShader.loadFile(AXR_GRAPHICS_API_VULKAN);
+        if (AXR_FAILED(axrResult)) {
+            cleanupPipelineCreationData(shaderModules);
+            return axrResult;
+        }
+    }
+
+    axrResult = createShaderModule(vertexShader.getFileData(), shaderModules[0]);
+    if (AXR_FAILED(axrResult)) {
+        cleanupPipelineCreationData(shaderModules);
+        return axrResult;
+    }
+
+    shaderStageCreateInfos[0] = vk::PipelineShaderStageCreateInfo(
+        {},
+        vk::ShaderStageFlagBits::eVertex,
+        shaderModules[0],
+        "main"
+    );
+
+    if (!fragmentShader.isLoaded()) {
+        axrResult = fragmentShader.loadFile(AXR_GRAPHICS_API_VULKAN);
+        if (AXR_FAILED(axrResult)) {
+            cleanupPipelineCreationData(shaderModules);
+            return axrResult;
+        }
+    }
+
+    axrResult = createShaderModule(fragmentShader.getFileData(), shaderModules[1]);
+    if (AXR_FAILED(axrResult)) {
+        cleanupPipelineCreationData(shaderModules);
+        return axrResult;
+    }
+
+    shaderStageCreateInfos[1] = vk::PipelineShaderStageCreateInfo(
+        {},
+        vk::ShaderStageFlagBits::eFragment,
+        shaderModules[1],
+        "main"
+    );
+
     const vk::GraphicsPipelineCreateInfo pipelineCreateInfo(
         {},
         static_cast<uint32_t>(shaderStageCreateInfos.size()),
@@ -592,6 +641,9 @@ AxrResult AxrVulkanMaterialLayoutData::createPipeline(
         *m_DispatchHandle
     );
     axrLogVkResult(vkResult, "m_Device.createGraphicsPipelines");
+
+    cleanupPipelineCreationData(shaderModules);
+
     if (VK_FAILED(vkResult)) {
         return AXR_ERROR;
     }
@@ -604,6 +656,57 @@ void AxrVulkanMaterialLayoutData::destroyPipeline(vk::Pipeline& pipeline) {
 
     m_Device.destroyPipeline(pipeline, nullptr, *m_DispatchHandle);
     pipeline = VK_NULL_HANDLE;
+}
+
+void AxrVulkanMaterialLayoutData::cleanupPipelineCreationData(std::vector<vk::ShaderModule>& shaderModules) const {
+    for (vk::ShaderModule& shaderModule : shaderModules) {
+        destroyShaderModule(shaderModule);
+    }
+    shaderModules.clear();
+}
+
+AxrResult AxrVulkanMaterialLayoutData::createShaderModule(
+    const std::vector<char>& shaderFileData,
+    vk::ShaderModule& shaderModule
+) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Device == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Device is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const vk::ShaderModuleCreateInfo shaderModuleCreateInfo(
+        {},
+        shaderFileData.size(),
+        reinterpret_cast<const uint32_t*>(shaderFileData.data())
+    );
+
+    const vk::Result vkResult = m_Device.createShaderModule(
+        &shaderModuleCreateInfo,
+        nullptr,
+        &shaderModule,
+        *m_DispatchHandle
+    );
+    axrLogVkResult(vkResult, "m_Device.createShaderModule");
+    if (VK_FAILED(vkResult)) {
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanMaterialLayoutData::destroyShaderModule(vk::ShaderModule& shaderModule) const {
+    if (shaderModule == VK_NULL_HANDLE) return;
+
+    m_Device.destroyShaderModule(shaderModule, nullptr, *m_DispatchHandle);
+    shaderModule = VK_NULL_HANDLE;
 }
 
 #endif

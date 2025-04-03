@@ -202,6 +202,22 @@ private:
     /// Destroy the given pipeline
     /// @param pipeline Pipeline to destroy
     void destroyPipeline(vk::Pipeline& pipeline);
+
+    /// Clean up the data that's used in a pipeline's creation
+    /// @param shaderModules Shader modules
+    void cleanupPipelineCreationData(std::vector<vk::ShaderModule>& shaderModules) const;
+
+    /// Create a shader module
+    /// @param shaderFileData Shader file data
+    /// @param shaderModule Output created shader module
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createShaderModule(
+        const std::vector<char>& shaderFileData,
+        vk::ShaderModule& shaderModule
+    ) const;
+    /// Destroy the given shader module
+    /// @param shaderModule Shader module to destroy
+    void destroyShaderModule(vk::ShaderModule& shaderModule) const;
 };
 
 #endif

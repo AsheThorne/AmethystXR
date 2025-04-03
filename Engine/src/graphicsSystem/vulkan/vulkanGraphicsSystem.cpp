@@ -39,7 +39,8 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     m_Instance(VK_NULL_HANDLE),
     m_DebugUtilsMessenger(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
-    m_Device(VK_NULL_HANDLE) {
+    m_Device(VK_NULL_HANDLE),
+    m_GlobalSceneData(nullptr) {
     if (config.VulkanConfig == nullptr) {
         axrLogErrorLocation("Vulkan config is null.");
         return;

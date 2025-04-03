@@ -127,6 +127,7 @@ AxrResult AxrVulkanWindowGraphics::setSetupConfigVariables(const SetupConfig& co
     m_Device = config.Device;
     m_QueueFamilies = config.QueueFamilies;
 
+    // TODO: Don't take the whole config object. only take what it needs
     const AxrResult axrResult = setSwapchainFormatOptions(config);
     if (AXR_FAILED(axrResult)) {
         return axrResult;
@@ -253,6 +254,8 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
         resetWindowConfiguration();
         return result;
     }
+    
+    // TODO: Load window scene data
 
     return AXR_SUCCESS;
 }
