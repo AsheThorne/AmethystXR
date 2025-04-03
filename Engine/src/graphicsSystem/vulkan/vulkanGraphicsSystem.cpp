@@ -19,6 +19,7 @@
 AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     m_ApplicationName(config.ApplicationName),
     m_ApplicationVersion(config.ApplicationVersion),
+    m_GlobalAssetCollection(config.GlobalAssetCollection),
     m_SwapchainColorFormatOptions(
         {
             vk::SurfaceFormatKHR(vk::Format::eR8G8B8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear),
@@ -38,13 +39,7 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     m_Instance(VK_NULL_HANDLE),
     m_DebugUtilsMessenger(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
-    m_Device(VK_NULL_HANDLE),
-    m_GlobalSceneData(
-        {
-            .AssetCollection = config.GlobalAssetCollection,
-            .SharedVulkanSceneData = nullptr,
-        }
-    ) {
+    m_Device(VK_NULL_HANDLE) {
     if (config.VulkanConfig == nullptr) {
         axrLogErrorLocation("Vulkan config is null.");
         return;
@@ -113,18 +108,7 @@ AxrResult AxrVulkanGraphicsSystem::setup() {
         return axrResult;
     }
 
-    axrResult = m_GlobalSceneData.setup(
-        {
-            .Device = m_Device,
-            .DispatchHandle = &m_DynamicDispatchLoader
-        }
-    );
-    if (AXR_FAILED(axrResult)) {
-        resetSetup();
-        return axrResult;
-    }
-
-    axrResult = m_GlobalSceneData.loadScene();
+    axrResult = createGlobalSceneData();
     if (AXR_FAILED(axrResult)) {
         resetSetup();
         return axrResult;
@@ -157,8 +141,7 @@ void AxrVulkanGraphicsSystem::resetSetup() {
         m_WindowGraphics->resetSetup();
     }
 
-    m_GlobalSceneData.unloadScene();
-    m_GlobalSceneData.resetSetup();
+    destroyGlobalSceneData();
     destroyLogicalDevice();
     resetPhysicalDevice();
     destroyDebugUtils();
@@ -929,6 +912,64 @@ AxrVulkanGraphicsSystem::DeviceChain_T AxrVulkanGraphicsSystem::createDeviceChai
     // No structures exist for the device next chain at the moment
 
     return chain;
+}
+
+AxrResult AxrVulkanGraphicsSystem::createGlobalSceneData() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_GlobalSceneData != nullptr) {
+        axrLogErrorLocation("Global scene data already exists.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    // TODO: Set this scene name somewhere else and forbid an actual scene from being created with the same name
+    m_GlobalSceneData = createSceneData(
+        "Axr:GlobalScene",
+        m_GlobalAssetCollection,
+        nullptr
+    );
+
+    const AxrResult axrResult = m_GlobalSceneData->loadScene();
+    if (AXR_FAILED(axrResult)) {
+        resetSetup();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanGraphicsSystem::destroyGlobalSceneData() {
+    destroySceneData(m_GlobalSceneData);
+}
+
+AxrVulkanSceneData* AxrVulkanGraphicsSystem::createSceneData(
+    const char* sceneName,
+    const AxrAssetCollection_T assetCollection,
+    AxrVulkanSceneData* sharedSceneData
+) {
+    return new AxrVulkanSceneData(
+        {
+            .SceneName = sceneName,
+            .AssetCollection = assetCollection,
+            .SharedVulkanSceneData = sharedSceneData,
+            .Device = m_Device,
+            .DispatchHandle = &m_DynamicDispatchLoader
+        }
+    );
+}
+
+void AxrVulkanGraphicsSystem::destroySceneData(AxrVulkanSceneData*& sceneData) {
+    if (sceneData == nullptr) return;
+
+    sceneData->unloadScene();
+    delete sceneData;
+    sceneData = nullptr;
 }
 
 // ---- Private Static Functions ----

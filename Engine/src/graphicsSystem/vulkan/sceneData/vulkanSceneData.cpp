@@ -11,46 +11,21 @@
 // ---- Special Functions ----
 
 AxrVulkanSceneData::AxrVulkanSceneData(const Config& config):
+    m_SceneName(config.SceneName),
     m_AssetCollection(config.AssetCollection),
     m_SharedVulkanSceneData(config.SharedVulkanSceneData),
-    m_Device(VK_NULL_HANDLE),
-    m_DispatchHandle(nullptr) {
+    m_Device(config.Device),
+    m_DispatchHandle(config.DispatchHandle) {
 }
 
 AxrVulkanSceneData::~AxrVulkanSceneData() {
     unloadScene();
-    resetSetup();
 }
 
 // ---- Public Functions ----
 
-AxrResult AxrVulkanSceneData::setup(const SetupConfig& config) {
-    if (isSetup()) {
-        axrLogErrorLocation("Vulkan scene is already set up.");
-        return AXR_ERROR;
-    }
-
-    if (config.Device == VK_NULL_HANDLE) {
-        axrLogErrorLocation("Device is null.");
-        return AXR_ERROR;
-    }
-
-    if (config.DispatchHandle == nullptr) {
-        axrLogErrorLocation("Dispatch Handle is null.");
-        return AXR_ERROR;
-    }
-
-    m_Device = config.Device;
-    m_DispatchHandle = config.DispatchHandle;
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanSceneData::resetSetup() {
-    unloadScene();
-
-    m_Device = VK_NULL_HANDLE;
-    m_DispatchHandle = nullptr;
+const char* AxrVulkanSceneData::getSceneName() {
+    return m_SceneName;
 }
 
 AxrResult AxrVulkanSceneData::loadScene() {
@@ -134,10 +109,6 @@ const AxrShader* AxrVulkanSceneData::findShader_shared(const std::string& name) 
 }
 
 // ---- Private Functions ----
-
-bool AxrVulkanSceneData::isSetup() {
-    return m_Device != VK_NULL_HANDLE && m_DispatchHandle != nullptr;
-}
 
 AxrResult AxrVulkanSceneData::createAllMaterialLayoutData() {
     // ----------------------------------------- //

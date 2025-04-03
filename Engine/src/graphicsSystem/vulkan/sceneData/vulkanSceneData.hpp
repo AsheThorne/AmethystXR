@@ -22,12 +22,9 @@ public:
 
     /// Vulkan scene data config
     struct Config {
+        const char* SceneName;
         AxrAssetCollection_T AssetCollection;
         AxrVulkanSceneData* SharedVulkanSceneData;
-    };
-
-    /// Vulkan scene data setup config
-    struct SetupConfig {
         vk::Device Device;
         vk::DispatchLoaderDynamic* DispatchHandle;
     };
@@ -66,15 +63,9 @@ public:
     // Public Functions
     // ----------------------------------------- //
 
-    /// Check if the scene data is set up
-    /// @returns True if the scene data is set up
-    [[nodiscard]] bool isSetup();
-    /// Set up the scene data
-    /// @param config Scene data setup config
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setup(const SetupConfig& config);
-    /// Reset the setup() function
-    void resetSetup();
+    /// Get the scene name
+    /// @returns The scene name
+    [[nodiscard]] const char* getSceneName();
 
     /// Load the scene data
     /// @returns AXR_SUCCESS if the function succeeded
@@ -101,10 +92,9 @@ private:
     // ----------------------------------------- //
 
     // ---- Config Variables ----
+    const char* m_SceneName;
     AxrAssetCollection_T m_AssetCollection;
     AxrVulkanSceneData* m_SharedVulkanSceneData;
-
-    // ---- Setup Config Variables ----
     vk::Device m_Device;
     vk::DispatchLoaderDynamic* m_DispatchHandle;
 
@@ -113,7 +103,7 @@ private:
     // ----------------------------------------- //
     // Private Functions
     // ----------------------------------------- //
-    
+
     // ---- Material Layout ----
 
     /// Create all material layouts data

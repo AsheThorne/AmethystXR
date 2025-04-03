@@ -93,6 +93,7 @@ private:
     // ---- Config Variables ----
     const char* m_ApplicationName;
     uint32_t m_ApplicationVersion;
+    AxrAssetCollection_T m_GlobalAssetCollection;
     AxrVulkanExtensionCollection<AxrVulkanApiLayer_T, AxrVulkanApiLayerTypeEnum> m_ApiLayers;
     AxrVulkanExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum> m_Extensions;
 
@@ -108,7 +109,7 @@ private:
     AxrVulkanQueueFamilies m_QueueFamilies;
     vk::Device m_Device;
 
-    AxrVulkanSceneData m_GlobalSceneData;
+    AxrVulkanSceneData* m_GlobalSceneData;
     AxrVulkanWindowGraphics* m_WindowGraphics;
 
     // ----------------------------------------- //
@@ -253,6 +254,27 @@ private:
     /// @param deviceCreateInfo Device create info to use
     /// @returns The device structure chain
     [[nodiscard]] DeviceChain_T createDeviceChain(const vk::DeviceCreateInfo& deviceCreateInfo) const;
+
+    // ---- Scene Data ----
+
+    /// Create and load the global scene data
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createGlobalSceneData();
+    /// Destroy the global scene data
+    void destroyGlobalSceneData();
+
+    /// Create vulkan scene data
+    /// @param sceneName Name of the scene
+    /// @param assetCollection Asset collection to use
+    /// @param sharedSceneData Shared scene data
+    /// @returns A handle to the created vulkan scene data
+    [[nodiscard]] AxrVulkanSceneData* createSceneData(
+        const char* sceneName,
+        AxrAssetCollection_T assetCollection,
+        AxrVulkanSceneData* sharedSceneData
+    );
+    /// Destroy the given vulkan scene data
+    void destroySceneData(AxrVulkanSceneData*& sceneData);
 
     // ----------------------------------------- //
     // Private Static Functions
