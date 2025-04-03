@@ -145,7 +145,7 @@ AxrResult AxrVulkanSceneData::createAllMaterialLayoutData() {
     // ----------------------------------------- //
 
     if (!m_MaterialLayoutData.empty()) {
-        axrLogErrorLocation("Material layout data already exist.");
+        axrLogErrorLocation("Material layout data already exists.");
         return AXR_ERROR;
     }
 
@@ -189,7 +189,7 @@ AxrResult AxrVulkanSceneData::initializeAllMaterialLayoutData() {
     // ----------------------------------------- //
 
     if (!m_MaterialLayoutData.empty()) {
-        axrLogErrorLocation("Material layout data already exist.");
+        axrLogErrorLocation("Material layout data already exists.");
         return AXR_ERROR;
     }
 
@@ -264,12 +264,60 @@ void AxrVulkanSceneData::destroyMaterialLayoutData(AxrVulkanMaterialLayoutData& 
 }
 
 AxrResult AxrVulkanSceneData::createAllWindowMaterialLayoutData() {
-    // TODO...
-    return AXR_ERROR;
+    AxrResult axrResult = AXR_SUCCESS;
+
+    for (auto& [name, data] : m_MaterialLayoutData) {
+        axrResult = createWindowMaterialLayoutData(data);
+        if (AXR_FAILED(axrResult)) {
+            break;
+        }
+    }
+
+    if (AXR_FAILED(axrResult)) {
+        destroyAllWindowMaterialLayoutData();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
 }
 
 void AxrVulkanSceneData::destroyAllWindowMaterialLayoutData() {
-    // TODO...
+    for (auto& [name, data] : m_MaterialLayoutData) {
+        destroyWindowMaterialLayoutData(data);
+    }
+}
+
+AxrResult AxrVulkanSceneData::createWindowMaterialLayoutData(AxrVulkanMaterialLayoutData& materialLayoutData) {
+    const AxrShader* foundVertexShader = findShader_shared(materialLayoutData.getVertexShaderName());
+    if (foundVertexShader == nullptr) {
+        axrLogErrorLocation(
+            "Failed to find vertex shader named: {0}.",
+            materialLayoutData.getVertexShaderName()
+        );
+        return AXR_ERROR;
+    }
+
+    const AxrShader* foundFragmentShader = findShader_shared(materialLayoutData.getFragmentShaderName());
+    if (foundFragmentShader == nullptr) {
+        axrLogErrorLocation(
+            "Failed to find fragment shader named: {0}.",
+            materialLayoutData.getFragmentShaderName()
+        );
+        return AXR_ERROR;
+    }
+
+    const AxrResult axrResult = materialLayoutData.createWindowData(*foundVertexShader, *foundFragmentShader);
+
+    if (AXR_FAILED(axrResult)) {
+        destroyWindowMaterialLayoutData(materialLayoutData);
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanSceneData::destroyWindowMaterialLayoutData(AxrVulkanMaterialLayoutData& materialLayoutData) {
+    materialLayoutData.destroyWindowData();
 }
 
 #endif

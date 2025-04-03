@@ -143,6 +143,12 @@ private:
     [[nodiscard]] AxrResult createAllWindowMaterialLayoutData();
     /// Destroy all window specific material layout data
     void destroyAllWindowMaterialLayoutData();
+
+    /// Create the given window specific material layout data
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createWindowMaterialLayoutData(AxrVulkanMaterialLayoutData& materialLayoutData);
+    /// Destroy the given window specific material layout data
+    void destroyWindowMaterialLayoutData(AxrVulkanMaterialLayoutData& materialLayoutData);
 };
 
 #endif

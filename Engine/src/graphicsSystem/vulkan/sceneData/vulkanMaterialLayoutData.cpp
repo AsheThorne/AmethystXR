@@ -113,7 +113,7 @@ AxrResult AxrVulkanMaterialLayoutData::createData(
     // ----------------------------------------- //
 
     if (doesDataExist()) {
-        axrLogErrorLocation("Material layout data already exist.");
+        axrLogErrorLocation("Material layout data already exists.");
         return AXR_ERROR;
     }
 
