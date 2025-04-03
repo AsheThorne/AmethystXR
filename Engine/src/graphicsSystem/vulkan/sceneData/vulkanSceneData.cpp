@@ -3,30 +3,30 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "vulkanSceneAssets.hpp"
+#include "vulkanSceneData.hpp"
 #include "axr/logger.h"
 #include "../../../assets/assetCollection.hpp"
 #include "../../../assets/material.hpp"
 
 // ---- Special Functions ----
 
-AxrVulkanSceneAssets::AxrVulkanSceneAssets(const Config& config):
+AxrVulkanSceneData::AxrVulkanSceneData(const Config& config):
     m_AssetCollection(config.AssetCollection),
-    m_SharedVulkanSceneAssets(config.SharedVulkanSceneAssets),
+    m_SharedVulkanSceneData(config.SharedVulkanSceneData),
     m_Device(VK_NULL_HANDLE),
     m_DispatchHandle(nullptr) {
 }
 
-AxrVulkanSceneAssets::~AxrVulkanSceneAssets() {
-    unloadAssets();
+AxrVulkanSceneData::~AxrVulkanSceneData() {
+    unloadScene();
     resetSetup();
 }
 
 // ---- Public Functions ----
 
-AxrResult AxrVulkanSceneAssets::setup(const SetupConfig& config) {
+AxrResult AxrVulkanSceneData::setup(const SetupConfig& config) {
     if (isSetup()) {
-        axrLogErrorLocation("Vulkan scene assets are already set up.");
+        axrLogErrorLocation("Vulkan scene is already set up.");
         return AXR_ERROR;
     }
 
@@ -46,14 +46,14 @@ AxrResult AxrVulkanSceneAssets::setup(const SetupConfig& config) {
     return AXR_SUCCESS;
 }
 
-void AxrVulkanSceneAssets::resetSetup() {
-    unloadAssets();
+void AxrVulkanSceneData::resetSetup() {
+    unloadScene();
 
     m_Device = VK_NULL_HANDLE;
     m_DispatchHandle = nullptr;
 }
 
-AxrResult AxrVulkanSceneAssets::loadAssets() {
+AxrResult AxrVulkanSceneData::loadScene() {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -70,46 +70,46 @@ AxrResult AxrVulkanSceneAssets::loadAssets() {
 
     axrResult = m_AssetCollection->loadAssets(AXR_GRAPHICS_API_VULKAN);
     if (AXR_FAILED(axrResult)) {
-        unloadAssets();
+        unloadScene();
         return axrResult;
     }
 
-    axrResult = loadMaterialLayoutAssets();
+    axrResult = createAllMaterialLayoutData();
     if (AXR_FAILED(axrResult)) {
-        unloadAssets();
+        unloadScene();
         return axrResult;
     }
 
     return AXR_SUCCESS;
 }
 
-void AxrVulkanSceneAssets::unloadAssets() {
-    // TODO: Unload OpenXR assets
-    unloadWindowAssets();
+void AxrVulkanSceneData::unloadScene() {
+    // TODO: Unload OpenXR data
+    unloadWindowData();
 
-    unloadMaterialLayoutAssets();
+    destroyAllMaterialLayoutData();
     if (m_AssetCollection != nullptr) {
         m_AssetCollection->unloadAssets();
     }
 }
 
-AxrResult AxrVulkanSceneAssets::loadWindowAssets() {
+AxrResult AxrVulkanSceneData::loadWindowData() {
     AxrResult axrResult = AXR_SUCCESS;
 
-    axrResult = loadWindowMaterialLayoutAssets();
+    axrResult = createAllWindowMaterialLayoutData();
     if (AXR_FAILED(axrResult)) {
-        unloadWindowAssets();
+        unloadWindowData();
         return axrResult;
     }
 
     return AXR_SUCCESS;
 }
 
-void AxrVulkanSceneAssets::unloadWindowAssets() {
-    unloadWindowMaterialLayoutAssets();
+void AxrVulkanSceneData::unloadWindowData() {
+    destroyAllWindowMaterialLayoutData();
 }
 
-const AxrShader* AxrVulkanSceneAssets::findShader_shared(const std::string& name) const {
+const AxrShader* AxrVulkanSceneData::findShader_shared(const std::string& name) const {
     if (m_AssetCollection == nullptr) {
         axrLogErrorLocation("Asset collection is null.");
         return nullptr;
@@ -121,8 +121,8 @@ const AxrShader* AxrVulkanSceneAssets::findShader_shared(const std::string& name
         return foundShader;
     }
 
-    if (m_SharedVulkanSceneAssets != nullptr) {
-        foundShader = m_SharedVulkanSceneAssets->findShader_shared(name);
+    if (m_SharedVulkanSceneData != nullptr) {
+        foundShader = m_SharedVulkanSceneData->findShader_shared(name);
 
         if (foundShader != nullptr) {
             return foundShader;
@@ -135,17 +135,17 @@ const AxrShader* AxrVulkanSceneAssets::findShader_shared(const std::string& name
 
 // ---- Private Functions ----
 
-bool AxrVulkanSceneAssets::isSetup() {
+bool AxrVulkanSceneData::isSetup() {
     return m_Device != VK_NULL_HANDLE && m_DispatchHandle != nullptr;
 }
 
-AxrResult AxrVulkanSceneAssets::loadMaterialLayoutAssets() {
+AxrResult AxrVulkanSceneData::createAllMaterialLayoutData() {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
 
-    if (!m_MaterialLayoutAssets.empty()) {
-        axrLogErrorLocation("Material layout assets already exist.");
+    if (!m_MaterialLayoutData.empty()) {
+        axrLogErrorLocation("Material layout data already exist.");
         return AXR_ERROR;
     }
 
@@ -155,41 +155,41 @@ AxrResult AxrVulkanSceneAssets::loadMaterialLayoutAssets() {
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    axrResult = initializeMaterialLayoutAssets();
+    axrResult = initializeAllMaterialLayoutData();
     if (AXR_FAILED(axrResult)) {
-        unloadMaterialLayoutAssets();
+        destroyAllMaterialLayoutData();
         return axrResult;
     }
 
-    for (auto& [materialLayoutName, materialLayoutAssets] : m_MaterialLayoutAssets) {
-        axrResult = loadMaterialLayoutAsset(materialLayoutAssets);
+    for (auto& [name, data] : m_MaterialLayoutData) {
+        axrResult = createMaterialLayoutData(data);
         if (AXR_FAILED(axrResult)) {
             break;
         }
     }
 
     if (AXR_FAILED(axrResult)) {
-        unloadMaterialLayoutAssets();
+        destroyAllMaterialLayoutData();
         return axrResult;
     }
 
     return AXR_SUCCESS;
 }
 
-void AxrVulkanSceneAssets::unloadMaterialLayoutAssets() {
-    for (auto& [materialLayoutName, materialLayoutAssets] : m_MaterialLayoutAssets) {
-        unloadMaterialLayoutAsset(materialLayoutAssets);
+void AxrVulkanSceneData::destroyAllMaterialLayoutData() {
+    for (auto& [name, data] : m_MaterialLayoutData) {
+        destroyMaterialLayoutData(data);
     }
-    m_MaterialLayoutAssets.clear();
+    m_MaterialLayoutData.clear();
 }
 
-AxrResult AxrVulkanSceneAssets::initializeMaterialLayoutAssets() {
+AxrResult AxrVulkanSceneData::initializeAllMaterialLayoutData() {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
 
-    if (!m_MaterialLayoutAssets.empty()) {
-        axrLogErrorLocation("Material layout assets already exist.");
+    if (!m_MaterialLayoutData.empty()) {
+        axrLogErrorLocation("Material layout data already exist.");
         return AXR_ERROR;
     }
 
@@ -203,18 +203,18 @@ AxrResult AxrVulkanSceneAssets::initializeMaterialLayoutAssets() {
     // ----------------------------------------- //
 
     for (auto& [materialName, material] : m_AssetCollection->getMaterials()) {
-        initializeMaterialLayoutAsset(material);
+        initializeMaterialLayoutData(material);
     }
 
     return AXR_SUCCESS;
 }
 
-void AxrVulkanSceneAssets::initializeMaterialLayoutAsset(const AxrMaterial& material) {
+void AxrVulkanSceneData::initializeMaterialLayoutData(const AxrMaterial& material) {
     const std::string materialLayoutName = material.getMaterialLayoutName();
 
-    if (m_MaterialLayoutAssets.contains(materialLayoutName)) return;
+    if (m_MaterialLayoutData.contains(materialLayoutName)) return;
 
-    const AxrVulkanMaterialLayoutAssets::Config materialLayoutAssetsConfig{
+    const AxrVulkanMaterialLayoutData::Config materialLayoutDataConfig{
         .Name = materialLayoutName,
         .VertexShaderName = material.getVertexShaderName(),
         .FragmentShaderName = material.getFragmentShaderName(),
@@ -222,53 +222,53 @@ void AxrVulkanSceneAssets::initializeMaterialLayoutAsset(const AxrMaterial& mate
         .DispatchHandle = m_DispatchHandle,
     };
 
-    m_MaterialLayoutAssets.insert(
+    m_MaterialLayoutData.insert(
         std::pair(
             materialLayoutName,
-            AxrVulkanMaterialLayoutAssets(materialLayoutAssetsConfig)
+            AxrVulkanMaterialLayoutData(materialLayoutDataConfig)
         )
     );
 }
 
-AxrResult AxrVulkanSceneAssets::loadMaterialLayoutAsset(AxrVulkanMaterialLayoutAssets& materialLayoutAssets) {
-    const AxrShader* foundVertexShader = findShader_shared(materialLayoutAssets.getVertexShaderName());
+AxrResult AxrVulkanSceneData::createMaterialLayoutData(AxrVulkanMaterialLayoutData& materialLayoutData) {
+    const AxrShader* foundVertexShader = findShader_shared(materialLayoutData.getVertexShaderName());
     if (foundVertexShader == nullptr) {
         axrLogErrorLocation(
             "Failed to find vertex shader named: {0}.",
-            materialLayoutAssets.getVertexShaderName()
+            materialLayoutData.getVertexShaderName()
         );
         return AXR_ERROR;
     }
 
-    const AxrShader* foundFragmentShader = findShader_shared(materialLayoutAssets.getFragmentShaderName());
+    const AxrShader* foundFragmentShader = findShader_shared(materialLayoutData.getFragmentShaderName());
     if (foundFragmentShader == nullptr) {
         axrLogErrorLocation(
             "Failed to find fragment shader named: {0}.",
-            materialLayoutAssets.getFragmentShaderName()
+            materialLayoutData.getFragmentShaderName()
         );
         return AXR_ERROR;
     }
 
-    const AxrResult axrResult = materialLayoutAssets.createAssets(*foundVertexShader, *foundFragmentShader);
+    const AxrResult axrResult = materialLayoutData.createData(*foundVertexShader, *foundFragmentShader);
 
     if (AXR_FAILED(axrResult)) {
-        unloadMaterialLayoutAsset(materialLayoutAssets);
+        destroyMaterialLayoutData(materialLayoutData);
         return axrResult;
     }
 
     return AXR_SUCCESS;
 }
 
-void AxrVulkanSceneAssets::unloadMaterialLayoutAsset(AxrVulkanMaterialLayoutAssets& materialLayoutAssets) {
-    materialLayoutAssets.destroyAssets();
+void AxrVulkanSceneData::destroyMaterialLayoutData(AxrVulkanMaterialLayoutData& materialLayoutData) {
+    materialLayoutData.destroyData();
 }
 
-AxrResult AxrVulkanSceneAssets::loadWindowMaterialLayoutAssets() {
+AxrResult AxrVulkanSceneData::createAllWindowMaterialLayoutData() {
     // TODO...
     return AXR_ERROR;
 }
 
-void AxrVulkanSceneAssets::unloadWindowMaterialLayoutAssets() {
+void AxrVulkanSceneData::destroyAllWindowMaterialLayoutData() {
     // TODO...
 }
 

@@ -17,8 +17,8 @@
 // ----------------------------------------- //
 #include <vulkan/vulkan.hpp>
 
-/// Vulkan material layout assets
-class AxrVulkanMaterialLayoutAssets {
+/// Vulkan material layout data
+class AxrVulkanMaterialLayoutData {
 public:
     // ----------------------------------------- //
     // Structs
@@ -31,7 +31,7 @@ public:
         uint32_t ItemIndex;
     };
 
-    /// Material layout assets config
+    /// Material layout data config
     struct Config {
         std::string Name;
         std::string VertexShaderName;
@@ -47,30 +47,30 @@ public:
     // ---- Constructors ----
 
     /// Default Constructor
-    AxrVulkanMaterialLayoutAssets();
+    AxrVulkanMaterialLayoutData();
     /// Constructor
-    /// @param config Material layout assets config
-    AxrVulkanMaterialLayoutAssets(const Config& config);
+    /// @param config Material layout data config
+    AxrVulkanMaterialLayoutData(const Config& config);
     /// Copy Constructor
-    /// @param src Source AxrVulkanMaterialLayoutAssets to copy from
-    AxrVulkanMaterialLayoutAssets(const AxrVulkanMaterialLayoutAssets& src) = delete;
+    /// @param src Source AxrVulkanMaterialLayoutData to copy from
+    AxrVulkanMaterialLayoutData(const AxrVulkanMaterialLayoutData& src) = delete;
     /// Move Constructor
-    /// @param src Source AxrVulkanMaterialLayoutAssets to move from
-    AxrVulkanMaterialLayoutAssets(AxrVulkanMaterialLayoutAssets&& src) noexcept;
+    /// @param src Source AxrVulkanMaterialLayoutData to move from
+    AxrVulkanMaterialLayoutData(AxrVulkanMaterialLayoutData&& src) noexcept;
 
     // ---- Destructor ----
 
     /// Destructor
-    ~AxrVulkanMaterialLayoutAssets();
+    ~AxrVulkanMaterialLayoutData();
 
     // ---- Operator Overloads ----
 
     /// Copy Assignment Operator
-    /// @param src Source AxrVulkanMaterialLayoutAssets to copy from
-    AxrVulkanMaterialLayoutAssets& operator=(const AxrVulkanMaterialLayoutAssets& src) = delete;
+    /// @param src Source AxrVulkanMaterialLayoutData to copy from
+    AxrVulkanMaterialLayoutData& operator=(const AxrVulkanMaterialLayoutData& src) = delete;
     /// Move Assignment Operator
-    /// @param src Source AxrVulkanMaterialLayoutAssets to move from
-    AxrVulkanMaterialLayoutAssets& operator=(AxrVulkanMaterialLayoutAssets&& src) noexcept;
+    /// @param src Source AxrVulkanMaterialLayoutData to move from
+    AxrVulkanMaterialLayoutData& operator=(AxrVulkanMaterialLayoutData&& src) noexcept;
 
     // ----------------------------------------- //
     // Public Functions
@@ -86,32 +86,32 @@ public:
     /// @returns The fragment shader name
     [[nodiscard]] const std::string& getFragmentShaderName() const;
 
-    /// Check if the assets are empty
-    /// @returns True if the assets are empty
-    [[nodiscard]] bool areAssetsEmpty() const;
-    /// Check if the window specific assets are empty
-    /// @returns True if the window specific assets are empty
-    [[nodiscard]] bool areWindowAssetsEmpty() const;
+    /// Check if the data exists
+    /// @returns True if the data exists
+    [[nodiscard]] bool doesDataExist() const;
+    /// Check if the window specific data exists
+    /// @returns True if the window specific data exists
+    [[nodiscard]] bool doesWindowDataExist() const;
 
-    /// Create the material layout assets
+    /// Create the material layout data
     /// @param vertexShader Vertex shader to use
     /// @param fragmentShader Fragment shader to use
-    [[nodiscard]] AxrResult createAssets(
+    [[nodiscard]] AxrResult createData(
         const AxrShader& vertexShader,
         const AxrShader& fragmentShader
     );
-    /// Destroy the material layout assets
-    void destroyAssets();
+    /// Destroy the material layout data
+    void destroyData();
 
-    /// Create the window specific material layout assets
+    /// Create the window specific material layout data
     /// @param vertexShader Vertex shader to use
     /// @param fragmentShader Fragment shader to use
-    [[nodiscard]] AxrResult createWindowAssets(
+    [[nodiscard]] AxrResult createWindowData(
         const AxrShader& vertexShader,
         const AxrShader& fragmentShader
     );
-    /// Destroy the window specific material layout assets
-    void destroyWindowAssets();
+    /// Destroy the window specific material layout data
+    void destroyWindowData();
 
 private:
     // ----------------------------------------- //
@@ -125,12 +125,12 @@ private:
     vk::Device m_Device;
     vk::DispatchLoaderDynamic* m_DispatchHandle;
 
-    // ---- Assets ----
+    // ---- Data ----
     std::vector<DescriptorSetItemLocation> m_DescriptorSetItemLocations;
     vk::DescriptorSetLayout m_DescriptorSetLayout;
     vk::PipelineLayout m_PipelineLayout;
 
-    // ---- Window Assets ----
+    // ---- Window Data ----
     vk::Pipeline m_WindowPipeline;
 
     // ----------------------------------------- //
@@ -140,7 +140,7 @@ private:
     /// Clean up this class
     void cleanup();
 
-    // ---- Assets ----
+    // ---- Data ----
 
     /// Validate the material layout shaders
     /// @param vertexShader Vertex shader to check
@@ -187,7 +187,7 @@ private:
     /// Destroy the pipeline layout
     void destroyPipelineLayout();
 
-    // ---- Window assets ----
+    // ---- Window Data ----
 
     /// Create a pipeline
     /// @param vertexShader Vertex shader to use

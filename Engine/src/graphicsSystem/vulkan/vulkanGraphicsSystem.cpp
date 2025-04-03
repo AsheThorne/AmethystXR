@@ -39,10 +39,10 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     m_DebugUtilsMessenger(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
-    m_GlobalSceneAssets(
+    m_GlobalSceneData(
         {
             .AssetCollection = config.GlobalAssetCollection,
-            .SharedVulkanSceneAssets = nullptr,
+            .SharedVulkanSceneData = nullptr,
         }
     ) {
     if (config.VulkanConfig == nullptr) {
@@ -113,7 +113,7 @@ AxrResult AxrVulkanGraphicsSystem::setup() {
         return axrResult;
     }
 
-    axrResult = m_GlobalSceneAssets.setup(
+    axrResult = m_GlobalSceneData.setup(
         {
             .Device = m_Device,
             .DispatchHandle = &m_DynamicDispatchLoader
@@ -124,7 +124,7 @@ AxrResult AxrVulkanGraphicsSystem::setup() {
         return axrResult;
     }
 
-    axrResult = m_GlobalSceneAssets.loadAssets();
+    axrResult = m_GlobalSceneData.loadScene();
     if (AXR_FAILED(axrResult)) {
         resetSetup();
         return axrResult;
@@ -157,8 +157,8 @@ void AxrVulkanGraphicsSystem::resetSetup() {
         m_WindowGraphics->resetSetup();
     }
 
-    m_GlobalSceneAssets.unloadAssets();
-    m_GlobalSceneAssets.resetSetup();
+    m_GlobalSceneData.unloadScene();
+    m_GlobalSceneData.resetSetup();
     destroyLogicalDevice();
     resetPhysicalDevice();
     destroyDebugUtils();

@@ -15,7 +15,7 @@
 #include "vulkanQueueFamilies.hpp"
 #include "vulkanWindowGraphics.hpp"
 #include "vulkanExtensionCollection.hpp"
-#include "sceneAssets/vulkanSceneAssets.hpp"
+#include "sceneData/vulkanSceneData.hpp"
 
 // ----------------------------------------- //
 // Vulkan Headers
@@ -108,7 +108,7 @@ private:
     AxrVulkanQueueFamilies m_QueueFamilies;
     vk::Device m_Device;
 
-    AxrVulkanSceneAssets m_GlobalSceneAssets;
+    AxrVulkanSceneData m_GlobalSceneData;
     AxrVulkanWindowGraphics* m_WindowGraphics;
 
     // ----------------------------------------- //
