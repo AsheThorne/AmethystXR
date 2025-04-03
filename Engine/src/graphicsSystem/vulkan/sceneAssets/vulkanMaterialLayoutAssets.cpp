@@ -17,7 +17,8 @@ AxrVulkanMaterialLayoutAssets::AxrVulkanMaterialLayoutAssets():
     m_Device(VK_NULL_HANDLE),
     m_DispatchHandle(nullptr),
     m_DescriptorSetLayout(VK_NULL_HANDLE),
-    m_PipelineLayout(VK_NULL_HANDLE) {
+    m_PipelineLayout(VK_NULL_HANDLE),
+    m_WindowPipeline(VK_NULL_HANDLE) {
 }
 
 AxrVulkanMaterialLayoutAssets::AxrVulkanMaterialLayoutAssets(const Config& config):
@@ -27,7 +28,8 @@ AxrVulkanMaterialLayoutAssets::AxrVulkanMaterialLayoutAssets(const Config& confi
     m_Device(config.Device),
     m_DispatchHandle(config.DispatchHandle),
     m_DescriptorSetLayout(VK_NULL_HANDLE),
-    m_PipelineLayout(VK_NULL_HANDLE) {
+    m_PipelineLayout(VK_NULL_HANDLE),
+    m_WindowPipeline(VK_NULL_HANDLE) {
 }
 
 AxrVulkanMaterialLayoutAssets::AxrVulkanMaterialLayoutAssets(AxrVulkanMaterialLayoutAssets&& src) noexcept {
@@ -40,11 +42,13 @@ AxrVulkanMaterialLayoutAssets::AxrVulkanMaterialLayoutAssets(AxrVulkanMaterialLa
     m_DispatchHandle = src.m_DispatchHandle;
     m_DescriptorSetLayout = src.m_DescriptorSetLayout;
     m_PipelineLayout = src.m_PipelineLayout;
+    m_WindowPipeline = src.m_WindowPipeline;
 
     src.m_Device = VK_NULL_HANDLE;
     src.m_DispatchHandle = nullptr;
     src.m_DescriptorSetLayout = VK_NULL_HANDLE;
     src.m_PipelineLayout = VK_NULL_HANDLE;
+    src.m_WindowPipeline = VK_NULL_HANDLE;
 }
 
 AxrVulkanMaterialLayoutAssets::~AxrVulkanMaterialLayoutAssets() {
@@ -64,11 +68,13 @@ AxrVulkanMaterialLayoutAssets& AxrVulkanMaterialLayoutAssets::operator=(AxrVulka
         m_DispatchHandle = src.m_DispatchHandle;
         m_DescriptorSetLayout = src.m_DescriptorSetLayout;
         m_PipelineLayout = src.m_PipelineLayout;
+        m_WindowPipeline = src.m_WindowPipeline;
 
         src.m_Device = VK_NULL_HANDLE;
         src.m_DispatchHandle = nullptr;
         src.m_DescriptorSetLayout = VK_NULL_HANDLE;
         src.m_PipelineLayout = VK_NULL_HANDLE;
+        src.m_WindowPipeline = VK_NULL_HANDLE;
     }
 
     return *this;
@@ -88,10 +94,14 @@ const std::string& AxrVulkanMaterialLayoutAssets::getFragmentShaderName() const 
     return m_FragmentShaderName;
 }
 
-bool AxrVulkanMaterialLayoutAssets::assetsExist() const {
-    return !m_DescriptorSetItemLocations.empty() &&
-        m_DescriptorSetLayout != VK_NULL_HANDLE &&
-        m_PipelineLayout != VK_NULL_HANDLE;
+bool AxrVulkanMaterialLayoutAssets::areAssetsEmpty() const {
+    return m_DescriptorSetItemLocations.empty() &&
+        m_DescriptorSetLayout == VK_NULL_HANDLE &&
+        m_PipelineLayout == VK_NULL_HANDLE;
+}
+
+bool AxrVulkanMaterialLayoutAssets::areWindowAssetsEmpty() const {
+    return m_WindowPipeline == VK_NULL_HANDLE;
 }
 
 AxrResult AxrVulkanMaterialLayoutAssets::createAssets(
@@ -102,7 +112,7 @@ AxrResult AxrVulkanMaterialLayoutAssets::createAssets(
     // Validation
     // ----------------------------------------- //
 
-    if (assetsExist()) {
+    if (!areAssetsEmpty()) {
         axrLogErrorLocation("Material layout assets already exist.");
         return AXR_ERROR;
     }
@@ -138,15 +148,54 @@ AxrResult AxrVulkanMaterialLayoutAssets::createAssets(
 }
 
 void AxrVulkanMaterialLayoutAssets::destroyAssets() {
-    // TODO: Destroy window assets
+    destroyWindowAssets();
+
     destroyDescriptorSetLayout();
     destroyPipelineLayout();
+}
+
+AxrResult AxrVulkanMaterialLayoutAssets::createWindowAssets(
+    const AxrShader& vertexShader,
+    const AxrShader& fragmentShader
+) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!areWindowAssetsEmpty()) {
+        axrLogErrorLocation("Material layout window assets already exist.");
+        return AXR_ERROR;
+    }
+
+    if (areAssetsEmpty()) {
+        axrLogErrorLocation("Material layout assets are empty.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = createPipeline(vertexShader, fragmentShader, m_WindowPipeline);
+    if (AXR_FAILED(axrResult)) {
+        axrLogErrorLocation("Failed to create pipeline.");
+        destroyWindowAssets();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanMaterialLayoutAssets::destroyWindowAssets() {
+    destroyPipeline(m_WindowPipeline);
 }
 
 // ---- Private Functions ----
 
 void AxrVulkanMaterialLayoutAssets::cleanup() {
-    // TODO: Destroy window assets
+    destroyWindowAssets();
     destroyAssets();
 
     m_Name.clear();
@@ -484,6 +533,77 @@ void AxrVulkanMaterialLayoutAssets::destroyPipelineLayout() {
 
     m_Device.destroyPipelineLayout(m_PipelineLayout, nullptr, *m_DispatchHandle);
     m_PipelineLayout = VK_NULL_HANDLE;
+}
+
+AxrResult AxrVulkanMaterialLayoutAssets::createPipeline(
+    const AxrShader& vertexShader,
+    const AxrShader& fragmentShader,
+    vk::Pipeline& pipeline
+) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (pipeline != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Pipeline already exists.");
+        return AXR_ERROR;
+    }
+
+    if (m_Device == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Device is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_DispatchHandle == nullptr) {
+        axrLogErrorLocation("Dispatch handle is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const vk::GraphicsPipelineCreateInfo pipelineCreateInfo(
+        {},
+        static_cast<uint32_t>(shaderStageCreateInfos.size()),
+        shaderStageCreateInfos.data(),
+        vertexInputStateCreateInfo,
+        inputAssemblyStateCreateInfo,
+        {},
+        viewportStateCreateInfo,
+        rasterizationStateCreateInfo,
+        multisampleStateCreateInfo,
+        depthStencilStateCreateInfo,
+        colorBlendStateCreateInfo,
+        dynamicStateCreateInfo,
+        m_PipelineLayout,
+        renderPass,
+        0,
+        VK_NULL_HANDLE,
+        -1
+    );
+
+    const vk::Result vkResult = m_Device.createGraphicsPipelines(
+        VK_NULL_HANDLE,
+        1,
+        &pipelineCreateInfo,
+        nullptr,
+        &pipeline,
+        *m_DispatchHandle
+    );
+    axrLogVkResult(vkResult, "m_Device.createGraphicsPipelines");
+    if (VK_FAILED(vkResult)) {
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanMaterialLayoutAssets::destroyPipeline(vk::Pipeline& pipeline) {
+    if (pipeline == VK_NULL_HANDLE) return;
+
+    m_Device.destroyPipeline(pipeline, nullptr, *m_DispatchHandle);
+    pipeline = VK_NULL_HANDLE;
 }
 
 #endif

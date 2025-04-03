@@ -86,9 +86,12 @@ public:
     /// @returns The fragment shader name
     [[nodiscard]] const std::string& getFragmentShaderName() const;
 
-    /// Check if the assets exist
-    /// @returns True if the assets exist
-    [[nodiscard]] bool assetsExist() const;
+    /// Check if the assets are empty
+    /// @returns True if the assets are empty
+    [[nodiscard]] bool areAssetsEmpty() const;
+    /// Check if the window specific assets are empty
+    /// @returns True if the window specific assets are empty
+    [[nodiscard]] bool areWindowAssetsEmpty() const;
 
     /// Create the material layout assets
     /// @param vertexShader Vertex shader to use
@@ -99,6 +102,16 @@ public:
     );
     /// Destroy the material layout assets
     void destroyAssets();
+
+    /// Create the window specific material layout assets
+    /// @param vertexShader Vertex shader to use
+    /// @param fragmentShader Fragment shader to use
+    [[nodiscard]] AxrResult createWindowAssets(
+        const AxrShader& vertexShader,
+        const AxrShader& fragmentShader
+    );
+    /// Destroy the window specific material layout assets
+    void destroyWindowAssets();
 
 private:
     // ----------------------------------------- //
@@ -112,9 +125,13 @@ private:
     vk::Device m_Device;
     vk::DispatchLoaderDynamic* m_DispatchHandle;
 
+    // ---- Assets ----
     std::vector<DescriptorSetItemLocation> m_DescriptorSetItemLocations;
     vk::DescriptorSetLayout m_DescriptorSetLayout;
     vk::PipelineLayout m_PipelineLayout;
+
+    // ---- Window Assets ----
+    vk::Pipeline m_WindowPipeline;
 
     // ----------------------------------------- //
     // Private Functions
@@ -122,6 +139,8 @@ private:
 
     /// Clean up this class
     void cleanup();
+
+    // ---- Assets ----
 
     /// Validate the material layout shaders
     /// @param vertexShader Vertex shader to check
@@ -167,6 +186,22 @@ private:
     );
     /// Destroy the pipeline layout
     void destroyPipelineLayout();
+
+    // ---- Window assets ----
+
+    /// Create a pipeline
+    /// @param vertexShader Vertex shader to use
+    /// @param fragmentShader Fragment shader to use
+    /// @param pipeline Output created pipeline
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createPipeline(
+        const AxrShader& vertexShader,
+        const AxrShader& fragmentShader,
+        vk::Pipeline& pipeline
+    );
+    /// Destroy the given pipeline
+    /// @param pipeline Pipeline to destroy
+    void destroyPipeline(vk::Pipeline& pipeline);
 };
 
 #endif
