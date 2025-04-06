@@ -15,7 +15,7 @@
 #include "vulkanQueueFamilies.hpp"
 #include "vulkanWindowGraphics.hpp"
 #include "vulkanExtensionCollection.hpp"
-#include "sceneData/vulkanSceneData.hpp"
+#include "sceneData/vulkanLoadedScenesCollection.hpp"
 
 // ----------------------------------------- //
 // Vulkan Headers
@@ -81,6 +81,10 @@ public:
     // Public Functions
     // ----------------------------------------- //
 
+    // ---- For Internal Use ----
+    // These functions are only to be used internally in the AmethystXr engine.
+    // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
+
     /// Set up the vulkan graphics system
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setup();
@@ -102,14 +106,14 @@ private:
     /// Ordered from most desired to the least desired
     std::vector<vk::Format> m_SwapchainDepthFormatOptions;
 
-    vk::DispatchLoaderDynamic m_DynamicDispatchLoader;
+    vk::DispatchLoaderDynamic m_Dispatch;
     vk::Instance m_Instance;
     vk::DebugUtilsMessengerEXT m_DebugUtilsMessenger;
     vk::PhysicalDevice m_PhysicalDevice;
     AxrVulkanQueueFamilies m_QueueFamilies;
     vk::Device m_Device;
 
-    AxrVulkanSceneData* m_GlobalSceneData;
+    AxrVulkanLoadedScenesCollection m_LoadedScenes;
     AxrVulkanWindowGraphics* m_WindowGraphics;
 
     // ----------------------------------------- //
@@ -257,24 +261,19 @@ private:
 
     // ---- Scene Data ----
 
-    /// Create and load the global scene data
+    /// Set up the scene data
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createGlobalSceneData();
-    /// Destroy the global scene data
-    void destroyGlobalSceneData();
+    [[nodiscard]] AxrResult setupSceneData();
+    /// Reset the setupSceneData() function
+    void resetSetupSceneData();
 
-    /// Create vulkan scene data
-    /// @param sceneName Name of the scene
-    /// @param assetCollection Asset collection to use
-    /// @param sharedSceneData Shared scene data
-    /// @returns A handle to the created vulkan scene data
-    [[nodiscard]] AxrVulkanSceneData* createSceneData(
-        const char* sceneName,
-        AxrAssetCollection_T assetCollection,
-        AxrVulkanSceneData* sharedSceneData
-    );
-    /// Destroy the given vulkan scene data
-    void destroySceneData(AxrVulkanSceneData*& sceneData);
+    // ---- Window Related Functions ----
+
+    /// Set up window graphics
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setupWindowGraphics();
+    /// Reset the setupWindowGraphics() function
+    void resetSetupWindowGraphics();
 
     // ----------------------------------------- //
     // Private Static Functions

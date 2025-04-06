@@ -7,6 +7,7 @@
 #include "axr/windowSystem.h"
 #include "vulkanExtensionCollection.hpp"
 #include "vulkanQueueFamilies.hpp"
+#include "sceneData/vulkanLoadedScenesCollection.hpp"
 
 // ----------------------------------------- //
 // Vulkan Headers
@@ -24,6 +25,7 @@ public:
     struct Config {
         AxrWindowSystem& WindowSystem;
         vk::DispatchLoaderDynamic& Dispatch;
+        AxrVulkanLoadedScenesCollection& LoadedScenes;
         AxrVulkanPresentationModeEnum PresentationMode;
     };
 
@@ -98,6 +100,7 @@ private:
     // ---- Config ----
     AxrWindowSystem& m_WindowSystem;
     vk::DispatchLoaderDynamic& m_Dispatch;
+    AxrVulkanLoadedScenesCollection& m_LoadedScenes;
     AxrVulkanPresentationModeEnum m_PreferredPresentationMode;
 
     // ---- Setup Config ----

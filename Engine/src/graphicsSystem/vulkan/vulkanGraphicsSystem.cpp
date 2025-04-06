@@ -39,14 +39,13 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     m_Instance(VK_NULL_HANDLE),
     m_DebugUtilsMessenger(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
-    m_Device(VK_NULL_HANDLE),
-    m_GlobalSceneData(nullptr) {
+    m_Device(VK_NULL_HANDLE) {
     if (config.VulkanConfig == nullptr) {
         axrLogErrorLocation("Vulkan config is null.");
         return;
     }
 
-    m_DynamicDispatchLoader.init();
+    m_Dispatch.init();
 
     m_ApiLayers.add(config.VulkanConfig->ApiLayersCount, config.VulkanConfig->ApiLayers);
     m_Extensions.add(config.VulkanConfig->ExtensionsCount, config.VulkanConfig->Extensions);
@@ -59,7 +58,8 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
             m_WindowGraphics = new AxrVulkanWindowGraphics(
                 {
                     .WindowSystem = *config.WindowSystem,
-                    .Dispatch = m_DynamicDispatchLoader,
+                    .Dispatch = m_Dispatch,
+                    .LoadedScenes = m_LoadedScenes,
                     .PresentationMode = config.VulkanConfig->WindowConfig->PresentationMode
                 }
             );
@@ -109,27 +109,16 @@ AxrResult AxrVulkanGraphicsSystem::setup() {
         return axrResult;
     }
 
-    axrResult = createGlobalSceneData();
+    axrResult = setupSceneData();
     if (AXR_FAILED(axrResult)) {
         resetSetup();
         return axrResult;
     }
 
-    if (m_WindowGraphics != nullptr) {
-        axrResult = m_WindowGraphics->setup(
-            {
-                .Instance = m_Instance,
-                .PhysicalDevice = m_PhysicalDevice,
-                .Device = m_Device,
-                .QueueFamilies = m_QueueFamilies,
-                .SwapchainColorFormatOptions = m_SwapchainColorFormatOptions,
-                .SwapchainDepthFormatOptions = m_SwapchainDepthFormatOptions,
-            }
-        );
-        if (AXR_FAILED(axrResult)) {
-            resetSetup();
-            return axrResult;
-        }
+    axrResult = setupWindowGraphics();
+    if (AXR_FAILED(axrResult)) {
+        resetSetup();
+        return axrResult;
     }
 
     return AXR_SUCCESS;
@@ -138,11 +127,8 @@ AxrResult AxrVulkanGraphicsSystem::setup() {
 // ---- Private Functions ----
 
 void AxrVulkanGraphicsSystem::resetSetup() {
-    if (m_WindowGraphics != nullptr) {
-        m_WindowGraphics->resetSetup();
-    }
-
-    destroyGlobalSceneData();
+    resetSetupWindowGraphics();
+    resetSetupSceneData();
     destroyLogicalDevice();
     resetPhysicalDevice();
     destroyDebugUtils();
@@ -191,19 +177,19 @@ AxrResult AxrVulkanGraphicsSystem::createInstance() {
         &createInstanceChain(instanceCreateInfo).get<vk::InstanceCreateInfo>(),
         nullptr,
         &m_Instance,
-        m_DynamicDispatchLoader
+        m_Dispatch
     );
     axrLogVkResult(vkResult, "vk::createInstance");
     if (VK_FAILED(vkResult)) return AXR_ERROR;
 
-    m_DynamicDispatchLoader.init(m_Instance);
+    m_Dispatch.init(m_Instance);
 
     return AXR_SUCCESS;
 }
 
 void AxrVulkanGraphicsSystem::destroyInstance() {
     if (m_Instance != VK_NULL_HANDLE) {
-        m_Instance.destroy(nullptr, m_DynamicDispatchLoader);
+        m_Instance.destroy(nullptr, m_Dispatch);
         m_Instance = VK_NULL_HANDLE;
     }
 }
@@ -225,7 +211,7 @@ AxrVulkanGraphicsSystem::InstanceChain_T AxrVulkanGraphicsSystem::createInstance
 
 std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedInstanceApiLayers() const {
     const auto instanceLayerProperties =
-        vk::enumerateInstanceLayerProperties(m_DynamicDispatchLoader);
+        vk::enumerateInstanceLayerProperties(m_Dispatch);
     axrLogVkResult(instanceLayerProperties.result, "vk::enumerateInstanceLayerProperties");
 
     if (VK_FAILED(instanceLayerProperties.result)) return {};
@@ -256,7 +242,7 @@ std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedDeviceApiLayers(
     // ----------------------------------------- //
 
     const auto deviceLayerProperties =
-        physicalDevice.enumerateDeviceLayerProperties(m_DynamicDispatchLoader);
+        physicalDevice.enumerateDeviceLayerProperties(m_Dispatch);
     axrLogVkResult(deviceLayerProperties.result, "physicalDevice.enumerateDeviceLayerProperties");
 
     if (VK_FAILED(deviceLayerProperties.result)) return {};
@@ -272,7 +258,7 @@ std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedDeviceApiLayers(
 
 std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedInstanceExtensions() const {
     const auto instanceExtensionProperties =
-        vk::enumerateInstanceExtensionProperties(nullptr, m_DynamicDispatchLoader);
+        vk::enumerateInstanceExtensionProperties(nullptr, m_Dispatch);
     axrLogVkResult(instanceExtensionProperties.result, "vk::enumerateInstanceExtensionProperties");
 
     if (VK_FAILED(instanceExtensionProperties.result)) return {};
@@ -303,7 +289,7 @@ std::vector<std::string> AxrVulkanGraphicsSystem::getSupportedDeviceExtensions(
     // ----------------------------------------- //
 
     const auto deviceExtensionProperties =
-        physicalDevice.enumerateDeviceExtensionProperties(nullptr, m_DynamicDispatchLoader);
+        physicalDevice.enumerateDeviceExtensionProperties(nullptr, m_Dispatch);
     axrLogVkResult(deviceExtensionProperties.result, "physicalDevice.enumerateDeviceExtensionProperties");
 
     if (VK_FAILED(deviceExtensionProperties.result)) return {};
@@ -520,7 +506,7 @@ AxrResult AxrVulkanGraphicsSystem::createDebugUtils() {
         &debugUtilsCreateInfo,
         nullptr,
         &m_DebugUtilsMessenger,
-        m_DynamicDispatchLoader
+        m_Dispatch
     );
     axrLogVkResult(vkResult, "m_Instance.createDebugUtilsMessengerEXT");
     if (VK_FAILED(vkResult)) return AXR_ERROR;
@@ -531,7 +517,7 @@ AxrResult AxrVulkanGraphicsSystem::createDebugUtils() {
 void AxrVulkanGraphicsSystem::destroyDebugUtils() {
     if (m_DebugUtilsMessenger == VK_NULL_HANDLE) return;
 
-    m_Instance.destroyDebugUtilsMessengerEXT(m_DebugUtilsMessenger, nullptr, m_DynamicDispatchLoader);
+    m_Instance.destroyDebugUtilsMessengerEXT(m_DebugUtilsMessenger, nullptr, m_Dispatch);
     m_DebugUtilsMessenger = VK_NULL_HANDLE;
 }
 
@@ -562,7 +548,7 @@ AxrResult AxrVulkanGraphicsSystem::setupPhysicalDevice() {
 
     const AxrResult axrResult = m_QueueFamilies.setQueueFamilyIndices(
         m_PhysicalDevice,
-        m_DynamicDispatchLoader
+        m_Dispatch
     );
     if (AXR_FAILED(axrResult)) {
         axrLogErrorLocation("Failed to set queue family indices.");
@@ -595,7 +581,7 @@ vk::PhysicalDevice AxrVulkanGraphicsSystem::pickPhysicalDevice() const {
 
     // TODO: OpenXR chooses the physical device if that's set up.
 
-    const auto physicalDevices = m_Instance.enumeratePhysicalDevices(m_DynamicDispatchLoader);
+    const auto physicalDevices = m_Instance.enumeratePhysicalDevices(m_Dispatch);
     axrLogVkResult(physicalDevices.result, "m_Instance.enumeratePhysicalDevices");
     if (VK_FAILED(physicalDevices.result)) return VK_NULL_HANDLE;
 
@@ -664,7 +650,7 @@ uint32_t AxrVulkanGraphicsSystem::scorePhysicalDeviceQueueFamilies(const vk::Phy
     AxrVulkanQueueFamilies queueFamilies;
     const AxrResult axrResult = queueFamilies.setQueueFamilyIndices(
         physicalDevice,
-        m_DynamicDispatchLoader
+        m_Dispatch
     );
 
     if (AXR_FAILED(axrResult)) {
@@ -751,7 +737,7 @@ uint32_t AxrVulkanGraphicsSystem::scorePhysicalDeviceFeatures(const vk::Physical
     // ----------------------------------------- //
 
     uint32_t score = 0;
-    const vk::PhysicalDeviceFeatures features = physicalDevice.getFeatures(m_DynamicDispatchLoader);
+    const vk::PhysicalDeviceFeatures features = physicalDevice.getFeatures(m_Dispatch);
 
     if (features.samplerAnisotropy) {
         score += 5;
@@ -777,7 +763,7 @@ uint32_t AxrVulkanGraphicsSystem::scorePhysicalDeviceProperties(const vk::Physic
     // ----------------------------------------- //
 
     uint32_t score = 0;
-    const vk::PhysicalDeviceProperties properties = physicalDevice.getProperties(m_DynamicDispatchLoader);
+    const vk::PhysicalDeviceProperties properties = physicalDevice.getProperties(m_Dispatch);
 
     if (properties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu) {
         score += 1000;
@@ -857,7 +843,7 @@ AxrResult AxrVulkanGraphicsSystem::createLogicalDevice() {
         deviceLayers = getAllApiLayerNames();
     }
 
-    vk::PhysicalDeviceFeatures supportedDeviceFeatures = m_PhysicalDevice.getFeatures(m_DynamicDispatchLoader);
+    vk::PhysicalDeviceFeatures supportedDeviceFeatures = m_PhysicalDevice.getFeatures(m_Dispatch);
     vk::PhysicalDeviceFeatures deviceFeatures{};
     deviceFeatures.samplerAnisotropy = supportedDeviceFeatures.samplerAnisotropy;
     deviceFeatures.sampleRateShading = supportedDeviceFeatures.sampleRateShading;
@@ -877,19 +863,19 @@ AxrResult AxrVulkanGraphicsSystem::createLogicalDevice() {
         &createDeviceChain(deviceCreateInfo).get<vk::DeviceCreateInfo>(),
         nullptr,
         &m_Device,
-        m_DynamicDispatchLoader
+        m_Dispatch
     );
     axrLogVkResult(vkResult, "m_PhysicalDevice.createDevice");
     if (VK_FAILED(vkResult)) return AXR_ERROR;
 
-    const AxrResult axrResult = m_QueueFamilies.setQueueFamilyQueues(m_Device, m_DynamicDispatchLoader);
+    const AxrResult axrResult = m_QueueFamilies.setQueueFamilyQueues(m_Device, m_Dispatch);
     if (AXR_FAILED(axrResult)) {
         destroyLogicalDevice();
         axrLogErrorLocation("Failed to set queue family queues.");
         return AXR_ERROR;
     }
 
-    m_DynamicDispatchLoader.init(m_Device);
+    m_Dispatch.init(m_Device);
 
     return AXR_SUCCESS;
 }
@@ -898,7 +884,7 @@ void AxrVulkanGraphicsSystem::destroyLogicalDevice() {
     m_QueueFamilies.resetQueueFamilyQueues();
 
     if (m_Device != VK_NULL_HANDLE) {
-        m_Device.destroy(nullptr, m_DynamicDispatchLoader);
+        m_Device.destroy(nullptr, m_Dispatch);
         m_Device = VK_NULL_HANDLE;
     }
 }
@@ -915,62 +901,67 @@ AxrVulkanGraphicsSystem::DeviceChain_T AxrVulkanGraphicsSystem::createDeviceChai
     return chain;
 }
 
-AxrResult AxrVulkanGraphicsSystem::createGlobalSceneData() {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
+AxrResult AxrVulkanGraphicsSystem::setupSceneData() {
+    AxrResult axrResult = AXR_SUCCESS;
 
-    if (m_GlobalSceneData != nullptr) {
-        axrLogErrorLocation("Global scene data already exists.");
-        return AXR_ERROR;
+    axrResult = m_LoadedScenes.setup(
+        {
+            .Device = m_Device,
+            .Dispatch = &m_Dispatch,
+        }
+    );
+    if (AXR_FAILED(axrResult)) {
+        resetSetupSceneData();
+        return axrResult;
     }
 
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
+    // ---- Create global scene data ----
 
     // TODO: Set this scene name somewhere else and forbid an actual scene from being created with the same name
-    m_GlobalSceneData = createSceneData(
+    axrResult = m_LoadedScenes.loadScene(
         "AXR:SceneGlobal",
         m_GlobalAssetCollection,
         nullptr
     );
-
-    const AxrResult axrResult = m_GlobalSceneData->loadScene();
     if (AXR_FAILED(axrResult)) {
-        resetSetup();
+        resetSetupSceneData();
         return axrResult;
     }
 
     return AXR_SUCCESS;
 }
 
-void AxrVulkanGraphicsSystem::destroyGlobalSceneData() {
-    destroySceneData(m_GlobalSceneData);
+void AxrVulkanGraphicsSystem::resetSetupSceneData() {
+    m_LoadedScenes.clear();
+    m_LoadedScenes.resetSetup();
 }
 
-AxrVulkanSceneData* AxrVulkanGraphicsSystem::createSceneData(
-    const char* sceneName,
-    const AxrAssetCollection_T assetCollection,
-    AxrVulkanSceneData* sharedSceneData
-) {
-    return new AxrVulkanSceneData(
+AxrResult AxrVulkanGraphicsSystem::setupWindowGraphics() {
+    // Window graphics aren't required
+    if (m_WindowGraphics == nullptr) return AXR_SUCCESS;
+
+    const AxrResult axrResult = m_WindowGraphics->setup(
         {
-            .SceneName = sceneName,
-            .AssetCollection = assetCollection,
-            .SharedVulkanSceneData = sharedSceneData,
+            .Instance = m_Instance,
+            .PhysicalDevice = m_PhysicalDevice,
             .Device = m_Device,
-            .DispatchHandle = &m_DynamicDispatchLoader
+            .QueueFamilies = m_QueueFamilies,
+            .SwapchainColorFormatOptions = m_SwapchainColorFormatOptions,
+            .SwapchainDepthFormatOptions = m_SwapchainDepthFormatOptions,
         }
     );
+    if (AXR_FAILED(axrResult)) {
+        resetSetupWindowGraphics();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
 }
 
-void AxrVulkanGraphicsSystem::destroySceneData(AxrVulkanSceneData*& sceneData) {
-    if (sceneData == nullptr) return;
+void AxrVulkanGraphicsSystem::resetSetupWindowGraphics() {
+    if (m_WindowGraphics == nullptr) return;
 
-    sceneData->unloadScene();
-    delete sceneData;
-    sceneData = nullptr;
+    m_WindowGraphics->resetSetup();
 }
 
 // ---- Private Static Functions ----

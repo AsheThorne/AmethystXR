@@ -14,6 +14,7 @@
 AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
     m_WindowSystem(config.WindowSystem),
     m_Dispatch(config.Dispatch),
+    m_LoadedScenes(config.LoadedScenes),
     m_PreferredPresentationMode(config.PresentationMode),
     m_Instance(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
@@ -254,13 +255,18 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
         resetWindowConfiguration();
         return result;
     }
-    
-    // TODO: Load window scene data
+
+    result = m_LoadedScenes.setupWindowData();
+    if (AXR_FAILED(result)) {
+        resetWindowConfiguration();
+        return result;
+    }
 
     return AXR_SUCCESS;
 }
 
 void AxrVulkanWindowGraphics::resetWindowConfiguration() {
+    m_LoadedScenes.resetSetupWindowData();
     resetSwapchainImages();
     destroySwapchain();
     resetSwapchainExtent();
