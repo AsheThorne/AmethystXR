@@ -612,19 +612,138 @@ AxrResult AxrVulkanMaterialLayoutData::createPipeline(
         "main"
     );
 
+    // ---- Vertex Input State ----
+
+    // TODO: Implement
+    constexpr vk::PipelineVertexInputStateCreateInfo vertexInputStateCreateInfo(
+        {},
+        0,
+        nullptr,
+        0,
+        nullptr
+    );
+
+    // ---- Input Assembly State ----
+
+    constexpr vk::PipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo(
+        {},
+        vk::PrimitiveTopology::eTriangleList,
+        vk::False
+    );
+
+    // ---- Viewport State ----
+
+    constexpr vk::PipelineViewportStateCreateInfo viewportStateCreateInfo(
+        {},
+        1,
+        {},
+        1,
+        {}
+    );
+
+    // ---- Rasterization State ----
+
+    constexpr vk::PipelineRasterizationStateCreateInfo rasterizationStateCreateInfo(
+        {},
+        vk::False,
+        vk::False,
+        vk::PolygonMode::eFill,
+        vk::CullModeFlagBits::eBack,
+        vk::FrontFace::eClockwise,
+        vk::False,
+        0.0f,
+        0.0f,
+        0.0f
+    );
+
+    // ---- Multisample State ----
+
+    // TODO: Implement multisampling
+    constexpr vk::PipelineMultisampleStateCreateInfo multisampleStateCreateInfo(
+        {},
+        vk::SampleCountFlagBits::e1,
+        vk::False,
+        1.0f,
+        nullptr,
+        vk::False,
+        vk::False
+    );
+
+    // ---- Depth Stencil State ----
+
+    constexpr vk::PipelineDepthStencilStateCreateInfo depthStencilStateCreateInfo(
+        {},
+        vk::True,
+        vk::True,
+        vk::CompareOp::eLess,
+        vk::False,
+        vk::False,
+        {},
+        {},
+        0.0f,
+        1.0f
+    );
+
+    // ---- Color Blend State ----
+
+    constexpr vk::PipelineColorBlendAttachmentState colorBlendAttachment(
+        vk::False,
+        vk::BlendFactor::eSrcAlpha,
+        vk::BlendFactor::eOneMinusSrcAlpha,
+        vk::BlendOp::eAdd,
+        vk::BlendFactor::eOne,
+        vk::BlendFactor::eZero,
+        vk::BlendOp::eAdd,
+        vk::ColorComponentFlagBits::eR |
+        vk::ColorComponentFlagBits::eG |
+        vk::ColorComponentFlagBits::eB |
+        vk::ColorComponentFlagBits::eA
+    );
+
+    constexpr std::array blendConstants{
+        0.0f,
+        0.0f,
+        0.0f,
+        0.0f
+    };
+
+    constexpr vk::PipelineColorBlendStateCreateInfo colorBlendStateCreateInfo(
+        {},
+        vk::False,
+        vk::LogicOp::eCopy,
+        1,
+        &colorBlendAttachment,
+        blendConstants
+    );
+
+    // ---- Dynamic State ----
+
+    constexpr std::array dynamicStates{
+        vk::DynamicState::eViewport,
+        vk::DynamicState::eScissor,
+    };
+
+    vk::PipelineDynamicStateCreateInfo dynamicStateCreateInfo(
+        {},
+        static_cast<uint32_t>(dynamicStates.size()),
+        dynamicStates.data()
+    );
+
+    // ---- Pipeline Creation ----
+
     const vk::GraphicsPipelineCreateInfo pipelineCreateInfo(
         {},
         static_cast<uint32_t>(shaderStageCreateInfos.size()),
         shaderStageCreateInfos.data(),
-        vertexInputStateCreateInfo,
-        inputAssemblyStateCreateInfo,
+        &vertexInputStateCreateInfo,
+        &inputAssemblyStateCreateInfo,
         {},
-        viewportStateCreateInfo,
-        rasterizationStateCreateInfo,
-        multisampleStateCreateInfo,
-        depthStencilStateCreateInfo,
-        colorBlendStateCreateInfo,
-        dynamicStateCreateInfo,
+        &viewportStateCreateInfo,
+        &rasterizationStateCreateInfo,
+        &multisampleStateCreateInfo,
+        &depthStencilStateCreateInfo,
+        &colorBlendStateCreateInfo,
+        &dynamicStateCreateInfo,
         m_PipelineLayout,
         renderPass,
         0,
