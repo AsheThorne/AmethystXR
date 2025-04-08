@@ -113,16 +113,17 @@ private:
     /// Ordered from most desired to the least desired
     std::vector<vk::Format> m_SwapchainDepthFormatOptions;
 
+    vk::ImageLayout m_SwapchainImageLayout;
     vk::SurfaceKHR m_Surface;
     vk::SurfaceFormatKHR m_SwapchainColorFormat;
     vk::Format m_SwapchainDepthFormat;
     vk::PresentModeKHR m_SwapchainPresentationMode;
+    vk::RenderPass m_RenderPass;
     vk::Extent2D m_SwapchainExtent;
     vk::SwapchainKHR m_Swapchain;
-    std::vector<vk::Image> m_SwapchainImages;
-    std::vector<vk::ImageView> m_SwapchainImageViews;
-    vk::ImageLayout m_SwapchainImageLayout;
-    vk::RenderPass m_RenderPass;
+    std::vector<vk::Image> m_SwapchainColorImages;
+    std::vector<vk::ImageView> m_SwapchainColorImageViews;
+    std::vector<vk::Framebuffer> m_SwapchainFramebuffers;
 
     // ----------------------------------------- //
     // Private Functions
@@ -207,6 +208,14 @@ private:
     [[nodiscard]] AxrResult createRenderPass();
     /// Destroy the render pass
     void destroyRenderPass();
+
+    // ---- Framebuffer ----
+
+    /// Create the swapchain framebuffers
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createFramebuffers();
+    /// Destroy the swapchain framebuffers
+    void destroyFramebuffers();
 
     // ----------------------------------------- //
     // Private Static Functions

@@ -20,14 +20,14 @@ AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
     m_Instance(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
+    m_SwapchainImageLayout(vk::ImageLayout::ePresentSrcKHR),
     m_Surface(VK_NULL_HANDLE),
     m_SwapchainColorFormat(vk::Format::eUndefined),
     m_SwapchainDepthFormat(vk::Format::eUndefined),
     m_SwapchainPresentationMode(static_cast<vk::PresentModeKHR>(VK_PRESENT_MODE_MAX_ENUM_KHR)),
+    m_RenderPass(VK_NULL_HANDLE),
     m_SwapchainExtent(0, 0),
-    m_Swapchain(VK_NULL_HANDLE),
-    m_SwapchainImageLayout(vk::ImageLayout::ePresentSrcKHR),
-    m_RenderPass(VK_NULL_HANDLE) {
+    m_Swapchain(VK_NULL_HANDLE) {
 }
 
 AxrVulkanWindowGraphics::~AxrVulkanWindowGraphics() {
@@ -241,6 +241,12 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
         return result;
     }
 
+    result = createRenderPass();
+    if (AXR_FAILED(result)) {
+        resetWindowConfiguration();
+        return result;
+    }
+
     result = setSwapchainExtent(surfaceDetails.Capabilities);
     if (AXR_FAILED(result)) {
         resetWindowConfiguration();
@@ -259,7 +265,7 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
         return result;
     }
 
-    result = createRenderPass();
+    result = createFramebuffers();
     if (AXR_FAILED(result)) {
         resetWindowConfiguration();
         return result;
@@ -276,10 +282,11 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
 
 void AxrVulkanWindowGraphics::resetWindowConfiguration() {
     m_LoadedScenes.resetSetupWindowData();
-    destroyRenderPass();
+    destroyFramebuffers();
     resetSwapchainImages();
     destroySwapchain();
     resetSwapchainExtent();
+    destroyRenderPass();
     resetSwapchainPresentationMode();
     resetSwapchainFormats();
     destroySurface();
@@ -608,8 +615,8 @@ AxrResult AxrVulkanWindowGraphics::getSwapchainImages() {
     // Validation
     // ----------------------------------------- //
 
-    if (!m_SwapchainImages.empty()) {
-        axrLogErrorLocation("Swapchain images already exist.");
+    if (!m_SwapchainColorImages.empty()) {
+        axrLogErrorLocation("Swapchain color images already exist.");
         return AXR_ERROR;
     }
 
@@ -633,15 +640,15 @@ AxrResult AxrVulkanWindowGraphics::getSwapchainImages() {
         return AXR_ERROR;
     }
 
-    m_SwapchainImages = swapchainImagesResult.value;
+    m_SwapchainColorImages = swapchainImagesResult.value;
 
     const AxrResult axrResult = axrCreateImageViews(
         m_Device,
-        m_SwapchainImages,
+        m_SwapchainColorImages,
         m_SwapchainColorFormat.format,
         vk::ImageAspectFlagBits::eColor,
         1,
-        m_SwapchainImageViews,
+        m_SwapchainColorImageViews,
         m_Dispatch
     );
     if (AXR_FAILED(axrResult)) {
@@ -652,8 +659,8 @@ AxrResult AxrVulkanWindowGraphics::getSwapchainImages() {
 }
 
 void AxrVulkanWindowGraphics::resetSwapchainImages() {
-    axrDestroyImageViews(m_Device, m_SwapchainImageViews, m_Dispatch);
-    m_SwapchainImages.clear();
+    axrDestroyImageViews(m_Device, m_SwapchainColorImageViews, m_Dispatch);
+    m_SwapchainColorImages.clear();
 }
 
 AxrResult AxrVulkanWindowGraphics::createRenderPass() {
@@ -670,7 +677,7 @@ AxrResult AxrVulkanWindowGraphics::createRenderPass() {
     // Process
     // ----------------------------------------- //
 
-    return axrCreateSimpleRenderPass(
+    return axrCreateRenderPass(
         m_Device,
         m_SwapchainColorFormat.format,
         m_SwapchainDepthFormat,
@@ -682,6 +689,47 @@ AxrResult AxrVulkanWindowGraphics::createRenderPass() {
 
 void AxrVulkanWindowGraphics::destroyRenderPass() {
     axrDestroyRenderPass(m_Device, m_RenderPass, m_Dispatch);
+}
+
+AxrResult AxrVulkanWindowGraphics::createFramebuffers() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!m_SwapchainFramebuffers.empty()) {
+        axrLogErrorLocation("Swapchain framebuffers already exist.");
+        return AXR_ERROR;
+    }
+
+    if (m_SwapchainColorImageViews.empty()) {
+        axrLogErrorLocation("Swapchain color image views don't exist.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const AxrResult axrResult = axrCreateFramebuffers(
+        m_Device,
+        m_RenderPass,
+        m_SwapchainExtent,
+        m_SwapchainColorImageViews,
+        m_SwapchainFramebuffers,
+        m_Dispatch
+    );
+
+    if (AXR_FAILED(axrResult)) {
+        axrLogErrorLocation("Failed to create swapchain framebuffers.");
+        destroyFramebuffers();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanWindowGraphics::destroyFramebuffers() {
+    axrDestroyFramebuffers(m_Device, m_SwapchainFramebuffers, m_Dispatch);
 }
 
 // ---- Private Static Functions ----

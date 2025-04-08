@@ -79,7 +79,7 @@ void axrDestroyImageView(
 
 // ---- Render Pass ----
 
-/// Create a simple render pass
+/// Create a render pass
 /// @param device Device to use
 /// @param colorFormat Color format to use
 /// @param depthStencilFormat Depth stencil format to use
@@ -87,7 +87,7 @@ void axrDestroyImageView(
 /// @param renderPass Output created render pass
 /// @param dispatch Dispatch to use
 /// @returns AXR_SUCCESS if the function succeeded
-[[nodiscard]] AxrResult axrCreateSimpleRenderPass(
+[[nodiscard]] AxrResult axrCreateRenderPass(
     const vk::Device& device,
     vk::Format colorFormat,
     vk::Format depthStencilFormat,
@@ -102,6 +102,58 @@ void axrDestroyImageView(
 void axrDestroyRenderPass(
     const vk::Device& device,
     vk::RenderPass& renderPass,
+    const vk::DispatchLoaderDynamic& dispatch
+);
+
+// ---- Framebuffer ----
+
+/// Create a framebuffer for each swapchain color image view
+/// @param device Device to use
+/// @param renderPass Render pass to use
+/// @param swapchainExtent Swapchain extent
+/// @param swapchainColorImageViews Swapchain color image views
+/// @param framebuffers Output created framebuffers
+/// @param dispatch Dispatch to use
+[[nodiscard]] AxrResult axrCreateFramebuffers(
+    const vk::Device& device,
+    const vk::RenderPass& renderPass,
+    const vk::Extent2D& swapchainExtent,
+    const std::vector<vk::ImageView>& swapchainColorImageViews,
+    std::vector<vk::Framebuffer>& framebuffers,
+    const vk::DispatchLoaderDynamic& dispatch
+);
+/// Destroy the given framebuffers
+/// @param device Device to use
+/// @param framebuffers Framebuffers to destroy
+/// @param dispatch Dispatch to use
+void axrDestroyFramebuffers(
+    const vk::Device& device,
+    std::vector<vk::Framebuffer>& framebuffers,
+    const vk::DispatchLoaderDynamic& dispatch
+);
+
+/// Create a framebuffer
+/// @param device Device to use
+/// @param renderPass Render pass to use
+/// @param swapchainExtent Swapchain extent
+/// @param swapchainColorImageView Swapchain color image view
+/// @param framebuffer Output created framebuffer
+/// @param dispatch Dispatch to use
+[[nodiscard]] AxrResult axrCreateFramebuffer(
+    const vk::Device& device,
+    const vk::RenderPass& renderPass,
+    const vk::Extent2D& swapchainExtent,
+    const vk::ImageView& swapchainColorImageView,
+    vk::Framebuffer& framebuffer,
+    const vk::DispatchLoaderDynamic& dispatch
+);
+/// Destroy the given framebuffer
+/// @param device Device to use
+/// @param framebuffer Framebuffer to destroy
+/// @param dispatch Dispatch to use
+void axrDestroyFramebuffer(
+    const vk::Device& device,
+    vk::Framebuffer& framebuffer,
     const vk::DispatchLoaderDynamic& dispatch
 );
 

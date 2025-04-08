@@ -146,7 +146,7 @@ void axrDestroyImageView(
     imageView = VK_NULL_HANDLE;
 }
 
-AxrResult axrCreateSimpleRenderPass(
+AxrResult axrCreateRenderPass(
     const vk::Device& device,
     const vk::Format colorFormat,
     const vk::Format depthStencilFormat,
@@ -184,21 +184,23 @@ AxrResult axrCreateSimpleRenderPass(
         finalImageLayout
     );
 
-    const vk::AttachmentDescription depthStencilAttachment(
-        {},
-        depthStencilFormat,
-        vk::SampleCountFlagBits::e1,
-        vk::AttachmentLoadOp::eClear,
-        vk::AttachmentStoreOp::eDontCare,
-        vk::AttachmentLoadOp::eDontCare,
-        vk::AttachmentStoreOp::eDontCare,
-        vk::ImageLayout::eUndefined,
-        vk::ImageLayout::eDepthStencilAttachmentOptimal
-    );
+    // TODO: Implement depth buffer
+    // const vk::AttachmentDescription depthStencilAttachment(
+    //     {},
+    //     depthStencilFormat,
+    //     vk::SampleCountFlagBits::e1,
+    //     vk::AttachmentLoadOp::eClear,
+    //     vk::AttachmentStoreOp::eDontCare,
+    //     vk::AttachmentLoadOp::eDontCare,
+    //     vk::AttachmentStoreOp::eDontCare,
+    //     vk::ImageLayout::eUndefined,
+    //     vk::ImageLayout::eDepthStencilAttachmentOptimal
+    // );
 
     const std::array attachments{
         colorAttachment,
-        depthStencilAttachment,
+        // TODO: Implement depth buffer
+        // depthStencilAttachment,
     };
 
     constexpr vk::AttachmentReference colorAttachmentRef(
@@ -206,10 +208,11 @@ AxrResult axrCreateSimpleRenderPass(
         vk::ImageLayout::eColorAttachmentOptimal
     );
 
-    constexpr vk::AttachmentReference depthStencilAttachmentRef(
-        1,
-        vk::ImageLayout::eDepthStencilAttachmentOptimal
-    );
+    // TODO: Implement depth buffer
+    // constexpr vk::AttachmentReference depthStencilAttachmentRef(
+    //     1,
+    //     vk::ImageLayout::eDepthStencilAttachmentOptimal
+    // );
 
     const vk::SubpassDescription subpass(
         {},
@@ -218,8 +221,9 @@ AxrResult axrCreateSimpleRenderPass(
         nullptr,
         1,
         &colorAttachmentRef,
-        nullptr,
-        &depthStencilAttachmentRef
+        nullptr
+        // TODO: Implement depth buffer
+        // &depthStencilAttachmentRef
     );
 
     constexpr vk::SubpassDependency dependency(
@@ -267,6 +271,139 @@ void axrDestroyRenderPass(
 
     device.destroyRenderPass(renderPass, nullptr, dispatch);
     renderPass = VK_NULL_HANDLE;
+}
+
+[[nodiscard]] AxrResult axrCreateFramebuffers(
+    const vk::Device& device,
+    const vk::RenderPass& renderPass,
+    const vk::Extent2D& swapchainExtent,
+    const std::vector<vk::ImageView>& swapchainColorImageViews,
+    std::vector<vk::Framebuffer>& framebuffers,
+    const vk::DispatchLoaderDynamic& dispatch
+) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!framebuffers.empty()) {
+        axrLogErrorLocation("Framebuffers already exist.");
+        return AXR_ERROR;
+    }
+
+    if (swapchainColorImageViews.empty()) {
+        axrLogErrorLocation("Swapchain color image views don't exist.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    AxrResult axrResult = AXR_SUCCESS;
+    framebuffers.resize(swapchainColorImageViews.size());
+
+    for (size_t i = 0; i < swapchainColorImageViews.size(); ++i) {
+        axrResult = axrCreateFramebuffer(
+            device,
+            renderPass,
+            swapchainExtent,
+            swapchainColorImageViews[i],
+            framebuffers[i],
+            dispatch
+        );
+        if (AXR_FAILED(axrResult)) {
+            break;
+        }
+    }
+
+    if (AXR_FAILED(axrResult)) {
+        axrLogErrorLocation("Failed to create swapchain framebuffers.");
+        axrDestroyFramebuffers(device, framebuffers, dispatch);
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void axrDestroyFramebuffers(
+    const vk::Device& device,
+    std::vector<vk::Framebuffer>& framebuffers,
+    const vk::DispatchLoaderDynamic& dispatch
+) {
+    for (auto& framebuffer : framebuffers) {
+        axrDestroyFramebuffer(device, framebuffer, dispatch);
+    }
+    framebuffers.clear();
+}
+
+AxrResult axrCreateFramebuffer(
+    const vk::Device& device,
+    const vk::RenderPass& renderPass,
+    const vk::Extent2D& swapchainExtent,
+    const vk::ImageView& swapchainColorImageView,
+    vk::Framebuffer& framebuffer,
+    const vk::DispatchLoaderDynamic& dispatch
+) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (framebuffer != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Framebuffer already exists.");
+        return AXR_ERROR;
+    }
+
+    if (device == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Device is null.");
+        return AXR_ERROR;
+    }
+
+    if (renderPass == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Render pass is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    std::array attachments{
+        swapchainColorImageView,
+    };
+
+    const vk::FramebufferCreateInfo framebufferCreateInfo(
+        {},
+        renderPass,
+        static_cast<uint32_t>(attachments.size()),
+        attachments.data(),
+        swapchainExtent.width,
+        swapchainExtent.height,
+        1
+    );
+
+    const vk::Result vkResult = device.createFramebuffer(
+        &framebufferCreateInfo,
+        nullptr,
+        &framebuffer,
+        dispatch
+    );
+    axrLogVkResult(vkResult, "device.createFramebuffer");
+    if (VK_FAILED(vkResult)) {
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void axrDestroyFramebuffer(
+    const vk::Device& device,
+    vk::Framebuffer& framebuffer,
+    const vk::DispatchLoaderDynamic& dispatch
+) {
+    if (framebuffer == VK_NULL_HANDLE) return;
+
+    device.destroyFramebuffer(framebuffer, nullptr, dispatch);
+    framebuffer = VK_NULL_HANDLE;
 }
 
 #endif
