@@ -1,0 +1,84 @@
+﻿// ----------------------------------------- //
+// AXR Headers
+// ----------------------------------------- //
+#include "scene.hpp"
+#include "axr/logger.h"
+
+// ----------------------------------------- //
+// External Functions
+// ----------------------------------------- //
+
+const char* axrSceneGetName(const AxrScene_T scene) {
+    if (scene == nullptr) {
+        axrLogErrorLocation("`scene` is null");
+        return "";
+    }
+
+    return scene->getName();
+}
+
+AxrAssetCollection_T axrSceneGetAssetCollection(const AxrScene_T scene) {
+    if (scene == nullptr) {
+        axrLogErrorLocation("`scene` is null");
+        return nullptr;
+    }
+
+    return scene->getAssetCollection();
+}
+
+// ----------------------------------------- //
+// Internal Functions
+// ----------------------------------------- //
+
+// ---- Special Functions ----
+
+AxrScene::AxrScene():
+    m_Name("") {
+}
+
+AxrScene::AxrScene(const char* name):
+    m_Name(name) {
+}
+
+AxrScene::AxrScene(AxrScene&& src) noexcept {
+    m_AssetCollection = std::move(src.m_AssetCollection);
+
+    m_Name = src.m_Name;
+
+    src.m_Name = "";
+}
+
+AxrScene::~AxrScene() {
+    cleanup();
+}
+
+AxrScene& AxrScene::operator=(AxrScene&& src) noexcept {
+    if (this != &src) {
+        cleanup();
+
+        m_AssetCollection = std::move(src.m_AssetCollection);
+
+        m_Name = src.m_Name;
+
+        src.m_Name = "";
+    }
+
+    return *this;
+}
+
+const char* AxrScene::getName() const {
+    return m_Name;
+}
+
+// ---- Public Functions ----
+
+AxrAssetCollection_T AxrScene::getAssetCollection() {
+    return &m_AssetCollection;
+}
+
+// ---- Private Functions ----
+
+void AxrScene::cleanup() {
+    m_AssetCollection.cleanup();
+    m_Name = "";
+}

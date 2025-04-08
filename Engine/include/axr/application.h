@@ -12,6 +12,7 @@
 #include "axr/windowSystem.h"
 #include "axr/graphicsSystem.h"
 #include "axr/assets.h"
+#include "axr/scene.h"
 
 // ----------------------------------------- //
 // Forward Declared Handles
@@ -68,4 +69,15 @@ extern "C" {
     /// @param app The AxrApplication to use
     /// @returns A handle to the global asset collection
     AXR_API AxrAssetCollection_T axrApplicationGetGlobalAssetCollection(AxrApplication_T app);
+
+    /// Create a new scene
+    /// @param app The AxrApplication to use
+    /// @param sceneName Name of the scene
+    /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrApplicationCreateScene(AxrApplication_T app, const char* sceneName);
+    /// Find the named scene
+    /// @param app The AxrApplication to use
+    /// @param sceneName Name of the scene
+    /// @returns A handle to the scene
+    AXR_API AxrScene_T axrApplicationFindScene(AxrApplication_T app, const char* sceneName);
 }

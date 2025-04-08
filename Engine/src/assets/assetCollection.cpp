@@ -108,8 +108,24 @@ AxrResult axrAssetCollectionCreateEngineAssetMaterial_DefaultMaterial(
 
 AxrAssetCollection::AxrAssetCollection() = default;
 
+AxrAssetCollection::AxrAssetCollection(AxrAssetCollection&& src) noexcept {
+    m_Shaders = std::move(src.m_Shaders);
+    m_Materials = std::move(src.m_Materials);
+}
+
 AxrAssetCollection::~AxrAssetCollection() {
     cleanup();
+}
+
+AxrAssetCollection& AxrAssetCollection::operator=(AxrAssetCollection&& src) noexcept {
+    if (this == &src) {
+        cleanup();
+
+        m_Shaders = std::move(src.m_Shaders);
+        m_Materials = std::move(src.m_Materials);
+    }
+
+    return *this;
 }
 
 // ---- Public Functions ----

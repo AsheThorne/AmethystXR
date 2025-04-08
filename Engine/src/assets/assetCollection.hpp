@@ -29,7 +29,7 @@ public:
     AxrAssetCollection(const AxrAssetCollection& src) = delete;
     /// Move Constructor
     /// @param src Source AxrAssetCollection to move from
-    AxrAssetCollection(AxrAssetCollection&& src) noexcept = delete;
+    AxrAssetCollection(AxrAssetCollection&& src) noexcept;
 
     // ---- Destructor ----
 
@@ -43,7 +43,7 @@ public:
     AxrAssetCollection& operator=(const AxrAssetCollection& src) = delete;
     /// Move Assignment Operator
     /// @param src Source AxrAssetCollection to move from
-    AxrAssetCollection& operator=(AxrAssetCollection&& src) noexcept = delete;
+    AxrAssetCollection& operator=(AxrAssetCollection&& src) noexcept;
 
     // ----------------------------------------- //
     // Public Functions

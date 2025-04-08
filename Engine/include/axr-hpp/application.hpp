@@ -7,6 +7,7 @@
 #include "windowSystem.hpp"
 #include "graphicsSystem.hpp"
 #include "assets.hpp"
+#include "scene.hpp"
 
 namespace axr {
     // ----------------------------------------- //
@@ -153,6 +154,20 @@ namespace axr {
         /// @returns A handle to the global asset collection
         [[nodiscard]] axr::AssetCollection getGlobalAssetCollection() const {
             return axrApplicationGetGlobalAssetCollection(m_Application);
+        }
+
+        /// Create a new scene
+        /// @param sceneName Name of the scene
+        /// @returns AXR_SUCCESS if the function succeeded
+        [[nodiscard]] axr::Result createScene(const char* sceneName) {
+            return static_cast<axr::Result>(axrApplicationCreateScene(m_Application, sceneName));
+        }
+
+        /// Find the named scene
+        /// @param sceneName Name of the scene
+        /// @returns A handle to the scene
+        [[nodiscard]] axr::Scene findScene(const char* sceneName) {
+            return axrApplicationFindScene(m_Application, sceneName);
         }
 
     private:

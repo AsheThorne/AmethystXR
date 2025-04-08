@@ -7,6 +7,7 @@
 #include "axr/windowSystem.h"
 #include "axr/graphicsSystem.h"
 #include "axr/assets.h"
+#include "axr/scene.h"
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 #include "axr/vulkanApi.h"

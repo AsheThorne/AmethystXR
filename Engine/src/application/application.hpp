@@ -7,6 +7,7 @@
 #include "../windowSystem/windowSystem.hpp"
 #include "../graphicsSystem/graphicsSystem.hpp"
 #include "../assets/assetCollection.hpp"
+#include "../scene/scene.hpp"
 
 /// AmethystXr Application
 class AxrApplication {
@@ -64,6 +65,15 @@ public:
     /// @returns A handle to the global asset collection
     [[nodiscard]] AxrAssetCollection_T getGlobalAssetCollection();
 
+    /// Create a new scene
+    /// @param sceneName Name of the scene
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createScene(const char* sceneName);
+    /// Find the named scene
+    /// @param sceneName Name of the scene
+    /// @returns A handle to the scene
+    [[nodiscard]] AxrScene_T findScene(const char* sceneName);
+
 private:
     // ----------------------------------------- //
     // Private Variables
@@ -76,4 +86,5 @@ private:
     AxrWindowSystem m_WindowSystem;
     AxrGraphicsSystem m_GraphicsSystem;
     AxrAssetCollection m_GlobalAssetCollection;
+    std::unordered_map<std::string, AxrScene> m_Scenes;
 };

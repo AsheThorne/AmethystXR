@@ -81,6 +81,24 @@ AxrAssetCollection_T axrApplicationGetGlobalAssetCollection(const AxrApplication
     return app->getGlobalAssetCollection();
 }
 
+AxrResult axrApplicationCreateScene(const AxrApplication_T app, const char* sceneName) {
+    if (app == nullptr) {
+        axrLogErrorLocation("`app` is null.");
+        return AXR_ERROR;
+    }
+
+    return app->createScene(sceneName);
+}
+
+AxrScene_T axrApplicationFindScene(const AxrApplication_T app, const char* sceneName) {
+    if (app == nullptr) {
+        axrLogErrorLocation("`app` is null.");
+        return nullptr;
+    }
+
+    return app->findScene(sceneName);
+}
+
 // ----------------------------------------- //
 // Internal Functions
 // ----------------------------------------- //
@@ -147,4 +165,37 @@ AxrGraphicsSystem_T AxrApplication::getGraphicsSystem() {
 
 AxrAssetCollection_T AxrApplication::getGlobalAssetCollection() {
     return &m_GlobalAssetCollection;
+}
+
+AxrResult AxrApplication::createScene(const char* sceneName) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+    
+    if (m_Scenes.contains(sceneName)) {
+        axrLogErrorLocation("Scene already exists with the name: {0}.", sceneName);
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const auto insertResult = m_Scenes.insert(std::pair(sceneName, AxrScene(sceneName)));
+    if (!insertResult.second) {
+        // If the insertion failed
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+
+AxrScene_T AxrApplication::findScene(const char* sceneName) {
+    const auto foundScene = m_Scenes.find(sceneName);
+    if (foundScene == m_Scenes.end()) {
+        axrLogErrorLocation("Failed to find scene with the name: {0}.", sceneName);
+        return nullptr;
+    }
+
+    return &foundScene->second;
 }

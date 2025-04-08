@@ -32,6 +32,7 @@ set(AXR_PUBLIC_HEADER_FILES
     ${AXR_INCLUDE_DIR}/axr/graphicsSystem.h
     ${AXR_INCLUDE_DIR}/axr/vulkanApi.h
     ${AXR_INCLUDE_DIR}/axr/assets.h
+    ${AXR_INCLUDE_DIR}/axr/scene.h
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr/common/defines.h.in
     ${AXR_INCLUDE_DIR}/axr/common/defines.h
@@ -52,6 +53,7 @@ set(AXR_PUBLIC_HEADER_HPP_FILES
     ${AXR_INCLUDE_DIR}/axr-hpp/vulkanApi.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/flags.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/assets.hpp
+    ${AXR_INCLUDE_DIR}/axr-hpp/scene.hpp
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr-hpp/common/defines.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/common/result.hpp
@@ -91,6 +93,8 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/assets/shaderProperties.hpp
     ${AXR_SRC_DIR}/assets/shaderValues.hpp
     ${AXR_SRC_DIR}/assets/assetsUtils.hpp
+    # ---- Scene ----
+    ${AXR_SRC_DIR}/scene/scene.hpp
 )
 
 # ---------------------------------------------
@@ -130,6 +134,8 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/assets/shaderProperties.cpp
     ${AXR_SRC_DIR}/assets/shaderValues.cpp
     ${AXR_SRC_DIR}/assets/assetsUtils.cpp
+    # ---- Scene ----
+    ${AXR_SRC_DIR}/scene/scene.cpp
 )
 
 # ---------------------------------------------
