@@ -121,6 +121,8 @@ private:
     vk::SwapchainKHR m_Swapchain;
     std::vector<vk::Image> m_SwapchainImages;
     std::vector<vk::ImageView> m_SwapchainImageViews;
+    vk::ImageLayout m_SwapchainImageLayout;
+    vk::RenderPass m_RenderPass;
 
     // ----------------------------------------- //
     // Private Functions
@@ -197,6 +199,14 @@ private:
     [[nodiscard]] AxrResult getSwapchainImages();
     /// Reset the getSwapchainImages() function
     void resetSwapchainImages();
+
+    // ---- Render pass ----
+
+    /// Create the render pass
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createRenderPass();
+    /// Destroy the render pass
+    void destroyRenderPass();
 
     // ----------------------------------------- //
     // Private Static Functions

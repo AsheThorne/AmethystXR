@@ -156,7 +156,8 @@ void AxrVulkanMaterialLayoutData::destroyData() {
 
 AxrResult AxrVulkanMaterialLayoutData::createWindowData(
     const AxrShader& vertexShader,
-    const AxrShader& fragmentShader
+    const AxrShader& fragmentShader,
+    const vk::RenderPass renderPass
 ) {
     // ----------------------------------------- //
     // Validation
@@ -178,7 +179,7 @@ AxrResult AxrVulkanMaterialLayoutData::createWindowData(
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    axrResult = createPipeline(vertexShader, fragmentShader, m_WindowPipeline);
+    axrResult = createPipeline(vertexShader, fragmentShader, renderPass, m_WindowPipeline);
     if (AXR_FAILED(axrResult)) {
         axrLogErrorLocation("Failed to create pipeline.");
         destroyWindowData();
@@ -538,8 +539,9 @@ void AxrVulkanMaterialLayoutData::destroyPipelineLayout() {
 AxrResult AxrVulkanMaterialLayoutData::createPipeline(
     const AxrShader& vertexShader,
     const AxrShader& fragmentShader,
+    const vk::RenderPass renderPass,
     vk::Pipeline& pipeline
-) {
+) const {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -653,7 +655,8 @@ AxrResult AxrVulkanMaterialLayoutData::createPipeline(
         vk::False,
         0.0f,
         0.0f,
-        0.0f
+        0.0f,
+        1.0f
     );
 
     // ---- Multisample State ----
@@ -707,7 +710,7 @@ AxrResult AxrVulkanMaterialLayoutData::createPipeline(
         0.0f
     };
 
-    constexpr vk::PipelineColorBlendStateCreateInfo colorBlendStateCreateInfo(
+    const vk::PipelineColorBlendStateCreateInfo colorBlendStateCreateInfo(
         {},
         vk::False,
         vk::LogicOp::eCopy,

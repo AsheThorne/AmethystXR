@@ -87,8 +87,9 @@ public:
     void clear();
 
     /// Set up the window data for all scenes and load all window specific scene data
+    /// @param renderPass Render pass to use
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setupWindowData();
+    [[nodiscard]] AxrResult setupWindowData(vk::RenderPass renderPass);
     /// Reset the setupWindowData() function
     void resetSetupWindowData();
 
@@ -101,8 +102,10 @@ private:
     vk::Device m_Device;
     vk::DispatchLoaderDynamic* m_Dispatch;
 
+    // ---- Setup Window Config ----
+    vk::RenderPass m_WindowRenderPass;
+
     std::vector<AxrVulkanSceneData*> m_LoadedScenes;
-    bool m_IsWindowReady;
 
     // ----------------------------------------- //
     // Private Functions
@@ -127,6 +130,10 @@ private:
     void destroySceneData(AxrVulkanSceneData*& sceneData) const;
 
     // ---- Window Scene Data ----
+
+    /// Check if the window scene data is ready
+    /// @returns True if teh window scene data is ready
+    [[nodiscard]] bool isWindowReady() const;
 
     /// Load all window specific scene data for the loaded scenes
     /// @returns AXR_SUCCESS if the function succeeded

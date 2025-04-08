@@ -8,6 +8,7 @@
 #include "vulkanUtils.hpp"
 #include "../../windowSystem/windowSystem.hpp"
 #include "vulkanSurfaceDetails.hpp"
+#include "vulkanSharedFunctions.hpp"
 
 // ---- Special Functions ----
 
@@ -24,7 +25,9 @@ AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
     m_SwapchainDepthFormat(vk::Format::eUndefined),
     m_SwapchainPresentationMode(static_cast<vk::PresentModeKHR>(VK_PRESENT_MODE_MAX_ENUM_KHR)),
     m_SwapchainExtent(0, 0),
-    m_Swapchain(VK_NULL_HANDLE) {
+    m_Swapchain(VK_NULL_HANDLE),
+    m_SwapchainImageLayout(vk::ImageLayout::ePresentSrcKHR),
+    m_RenderPass(VK_NULL_HANDLE) {
 }
 
 AxrVulkanWindowGraphics::~AxrVulkanWindowGraphics() {
@@ -256,7 +259,13 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
         return result;
     }
 
-    result = m_LoadedScenes.setupWindowData();
+    result = createRenderPass();
+    if (AXR_FAILED(result)) {
+        resetWindowConfiguration();
+        return result;
+    }
+
+    result = m_LoadedScenes.setupWindowData(m_RenderPass);
     if (AXR_FAILED(result)) {
         resetWindowConfiguration();
         return result;
@@ -267,6 +276,7 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
 
 void AxrVulkanWindowGraphics::resetWindowConfiguration() {
     m_LoadedScenes.resetSetupWindowData();
+    destroyRenderPass();
     resetSwapchainImages();
     destroySwapchain();
     resetSwapchainExtent();
@@ -644,6 +654,34 @@ AxrResult AxrVulkanWindowGraphics::getSwapchainImages() {
 void AxrVulkanWindowGraphics::resetSwapchainImages() {
     axrDestroyImageViews(m_Device, m_SwapchainImageViews, m_Dispatch);
     m_SwapchainImages.clear();
+}
+
+AxrResult AxrVulkanWindowGraphics::createRenderPass() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_RenderPass != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Render pass already exists.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    return axrCreateSimpleRenderPass(
+        m_Device,
+        m_SwapchainColorFormat.format,
+        m_SwapchainDepthFormat,
+        m_SwapchainImageLayout,
+        m_RenderPass,
+        m_Dispatch
+    );
+}
+
+void AxrVulkanWindowGraphics::destroyRenderPass() {
+    axrDestroyRenderPass(m_Device, m_RenderPass, m_Dispatch);
 }
 
 // ---- Private Static Functions ----

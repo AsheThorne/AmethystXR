@@ -74,8 +74,9 @@ public:
     void unloadScene();
 
     /// Load the window specific scene data
+    /// @param renderPass Render pass to use
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult loadWindowData();
+    [[nodiscard]] AxrResult loadWindowData(vk::RenderPass renderPass);
     /// Unload the window specific scene data
     void unloadWindowData();
 
@@ -129,15 +130,22 @@ private:
     void destroyMaterialLayoutData(AxrVulkanMaterialLayoutData& materialLayoutData);
 
     /// Create all window specific material layout data
+    /// @param renderPass Render pass to use
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createAllWindowMaterialLayoutData();
+    [[nodiscard]] AxrResult createAllWindowMaterialLayoutData(vk::RenderPass renderPass);
     /// Destroy all window specific material layout data
     void destroyAllWindowMaterialLayoutData();
 
     /// Create the given window specific material layout data
+    /// @param renderPass Render pass to use
+    /// @param materialLayoutData Input/Output material layout data to use and create window scene data for
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createWindowMaterialLayoutData(AxrVulkanMaterialLayoutData& materialLayoutData);
+    [[nodiscard]] AxrResult createWindowMaterialLayoutData(
+        vk::RenderPass renderPass,
+        AxrVulkanMaterialLayoutData& materialLayoutData
+    );
     /// Destroy the given window specific material layout data
+    /// @param materialLayoutData Material layout data to destroy
     void destroyWindowMaterialLayoutData(AxrVulkanMaterialLayoutData& materialLayoutData);
 };
 

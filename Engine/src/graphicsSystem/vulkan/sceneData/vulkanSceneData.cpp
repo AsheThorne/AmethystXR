@@ -68,10 +68,10 @@ void AxrVulkanSceneData::unloadScene() {
     }
 }
 
-AxrResult AxrVulkanSceneData::loadWindowData() {
+AxrResult AxrVulkanSceneData::loadWindowData(const vk::RenderPass renderPass) {
     AxrResult axrResult = AXR_SUCCESS;
 
-    axrResult = createAllWindowMaterialLayoutData();
+    axrResult = createAllWindowMaterialLayoutData(renderPass);
     if (AXR_FAILED(axrResult)) {
         unloadWindowData();
         return axrResult;
@@ -234,11 +234,11 @@ void AxrVulkanSceneData::destroyMaterialLayoutData(AxrVulkanMaterialLayoutData& 
     materialLayoutData.destroyData();
 }
 
-AxrResult AxrVulkanSceneData::createAllWindowMaterialLayoutData() {
+AxrResult AxrVulkanSceneData::createAllWindowMaterialLayoutData(const vk::RenderPass renderPass) {
     AxrResult axrResult = AXR_SUCCESS;
 
     for (auto& [name, data] : m_MaterialLayoutData) {
-        axrResult = createWindowMaterialLayoutData(data);
+        axrResult = createWindowMaterialLayoutData(renderPass, data);
         if (AXR_FAILED(axrResult)) {
             break;
         }
@@ -258,7 +258,10 @@ void AxrVulkanSceneData::destroyAllWindowMaterialLayoutData() {
     }
 }
 
-AxrResult AxrVulkanSceneData::createWindowMaterialLayoutData(AxrVulkanMaterialLayoutData& materialLayoutData) {
+AxrResult AxrVulkanSceneData::createWindowMaterialLayoutData(
+    const vk::RenderPass renderPass,
+    AxrVulkanMaterialLayoutData& materialLayoutData
+) {
     const AxrShader* foundVertexShader = findShader_shared(materialLayoutData.getVertexShaderName());
     if (foundVertexShader == nullptr) {
         axrLogErrorLocation(
@@ -277,7 +280,7 @@ AxrResult AxrVulkanSceneData::createWindowMaterialLayoutData(AxrVulkanMaterialLa
         return AXR_ERROR;
     }
 
-    const AxrResult axrResult = materialLayoutData.createWindowData(*foundVertexShader, *foundFragmentShader);
+    const AxrResult axrResult = materialLayoutData.createWindowData(*foundVertexShader, *foundFragmentShader, renderPass);
 
     if (AXR_FAILED(axrResult)) {
         destroyWindowMaterialLayoutData(materialLayoutData);

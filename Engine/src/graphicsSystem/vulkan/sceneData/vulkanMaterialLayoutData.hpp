@@ -106,9 +106,11 @@ public:
     /// Create the window specific material layout data
     /// @param vertexShader Vertex shader to use
     /// @param fragmentShader Fragment shader to use
+    /// @param renderPass Render pass to use
     [[nodiscard]] AxrResult createWindowData(
         const AxrShader& vertexShader,
-        const AxrShader& fragmentShader
+        const AxrShader& fragmentShader,
+        vk::RenderPass renderPass
     );
     /// Destroy the window specific material layout data
     void destroyWindowData();
@@ -192,13 +194,15 @@ private:
     /// Create a pipeline
     /// @param vertexShader Vertex shader to use
     /// @param fragmentShader Fragment shader to use
+    /// @param renderPass Render pass to use
     /// @param pipeline Output created pipeline
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult createPipeline(
         const AxrShader& vertexShader,
         const AxrShader& fragmentShader,
+        vk::RenderPass renderPass,
         vk::Pipeline& pipeline
-    );
+    ) const;
     /// Destroy the given pipeline
     /// @param pipeline Pipeline to destroy
     void destroyPipeline(vk::Pipeline& pipeline);

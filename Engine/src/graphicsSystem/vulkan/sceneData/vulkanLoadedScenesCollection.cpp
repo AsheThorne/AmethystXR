@@ -11,7 +11,7 @@
 AxrVulkanLoadedScenesCollection::AxrVulkanLoadedScenesCollection():
     m_Device(VK_NULL_HANDLE),
     m_Dispatch(nullptr),
-    m_IsWindowReady(false) {
+    m_WindowRenderPass(VK_NULL_HANDLE) {
 }
 
 AxrVulkanLoadedScenesCollection::~AxrVulkanLoadedScenesCollection() {
@@ -92,8 +92,8 @@ AxrResult AxrVulkanLoadedScenesCollection::loadScene(
         return axrResult;
     }
 
-    if (m_IsWindowReady) {
-        axrResult = sceneData->loadWindowData();
+    if (isWindowReady()) {
+        axrResult = sceneData->loadWindowData(m_WindowRenderPass);
         if (AXR_FAILED(axrResult)) {
             unloadScene(sceneData->getSceneName());
             return axrResult;
@@ -127,13 +127,23 @@ void AxrVulkanLoadedScenesCollection::clear() {
     m_LoadedScenes.clear();
 }
 
-AxrResult AxrVulkanLoadedScenesCollection::setupWindowData() {
+AxrResult AxrVulkanLoadedScenesCollection::setupWindowData(vk::RenderPass renderPass) {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
 
-    if (m_IsWindowReady) {
+    if (isWindowReady()) {
         axrLogErrorLocation("Window data is already set up.");
+        return AXR_ERROR;
+    }
+
+    if (m_WindowRenderPass != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Window render pass already exists.");
+        return AXR_ERROR;
+    }
+
+    if (renderPass == VK_NULL_HANDLE) {
+        axrLogErrorLocation("renderPass is null.");
         return AXR_ERROR;
     }
 
@@ -141,14 +151,14 @@ AxrResult AxrVulkanLoadedScenesCollection::setupWindowData() {
     // Process
     // ----------------------------------------- //
 
-    // TODO: set the required window scene data here
-    m_IsWindowReady = true;
+    m_WindowRenderPass = renderPass;
+    // If anything new gets added here, make sure it also gets added to the isWindowReady() function
 
     return loadAllWindowSceneData();
 }
 
 void AxrVulkanLoadedScenesCollection::resetSetupWindowData() {
-    m_IsWindowReady = false;
+    m_WindowRenderPass = VK_NULL_HANDLE;
 
     unloadAllWindowSceneData();
 }
@@ -190,11 +200,28 @@ void AxrVulkanLoadedScenesCollection::destroySceneData(AxrVulkanSceneData*& scen
     sceneData = nullptr;
 }
 
+bool AxrVulkanLoadedScenesCollection::isWindowReady() const {
+    return m_WindowRenderPass != VK_NULL_HANDLE;
+}
+
 AxrResult AxrVulkanLoadedScenesCollection::loadAllWindowSceneData() const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!isWindowReady()) {
+        axrLogErrorLocation("Window data is not ready.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
     AxrResult axrResult = AXR_SUCCESS;
 
     for (AxrVulkanSceneData* scene : m_LoadedScenes) {
-        axrResult = scene->loadWindowData();
+        axrResult = scene->loadWindowData(m_WindowRenderPass);
         if (AXR_FAILED(axrResult)) {
             break;
         }
