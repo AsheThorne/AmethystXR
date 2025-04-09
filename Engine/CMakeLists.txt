@@ -173,7 +173,7 @@ target_link_libraries(AXR_Engine
 target_include_directories(AXR_Engine 
     PUBLIC ${AXR_INCLUDE_DIR} 
     ${SPDLOG_DIRECTORY}/include
-    # ${EnTT_DIRECTORY}/single_include
+    ${EnTT_DIRECTORY}/single_include
     # ${STB_DIRECTORY}/include
     # ${TINY_GLTF_DIRECTORY}/include
     # ${JSON_DIRECTORY}/include
