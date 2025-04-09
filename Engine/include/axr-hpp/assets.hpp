@@ -1041,6 +1041,495 @@ namespace axr {
     };
 
     // ---------------------------------------------------------------------------------- //
+    //                                   Model Assets                                     //
+    // ---------------------------------------------------------------------------------- //
+
+    // ----------------------------------------- //
+    // Structs
+    // ----------------------------------------- //
+
+    /// Vertex
+    struct Vertex {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+
+        glm::vec3 Position;
+        glm::vec3 Color;
+        glm::vec2 TexCoords;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        Vertex(): Position(0.0f),
+            Color(0.0f),
+            TexCoords(0.0f) {
+        }
+
+        /// Constructor
+        /// @param position Vertex position
+        /// @param color Vertex color
+        /// @param texCoords Vertex Texture Coordinates
+        Vertex(const glm::vec3 position, const glm::vec3 color, const glm::vec2 texCoords):
+            Position(position),
+            Color(color),
+            TexCoords(texCoords) {
+        }
+
+        /// Copy Constructor
+        /// @param src Source Vertex to copy from
+        Vertex(const Vertex& src) {
+            Position = src.Position;
+            Color = src.Color;
+            TexCoords = src.TexCoords;
+        }
+
+        /// Move Constructor
+        /// @param src Source Vertex to move from
+        Vertex(Vertex&& src) noexcept {
+            Position = src.Position;
+            Color = src.Color;
+            TexCoords = src.TexCoords;
+
+            src.Position = glm::vec3(0.0f);
+            src.Color = glm::vec3(0.0f);
+            src.TexCoords = glm::vec3(0.0f);
+        }
+
+        // ---- Destructor ----
+
+        /// Destructor
+        ~Vertex() {
+            cleanup();
+        }
+
+        // ---- Operator Overloads ----
+
+        /// Copy Assignment Operator
+        /// @param src Source Vertex to copy from
+        Vertex& operator=(const Vertex& src) {
+            if (this != &src) {
+                cleanup();
+
+                Position = src.Position;
+                Color = src.Color;
+                TexCoords = src.TexCoords;
+            }
+
+            return *this;
+        }
+
+        /// Move Assignment Operator
+        /// @param src Source Vertex to move from
+        Vertex& operator=(Vertex&& src) noexcept {
+            if (this != &src) {
+                cleanup();
+
+                Position = src.Position;
+                Color = src.Color;
+                TexCoords = src.TexCoords;
+
+                src.Position = glm::vec3(0.0f);
+                src.Color = glm::vec3(0.0f);
+                src.TexCoords = glm::vec3(0.0f);
+            }
+
+            return *this;
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the Vertex as an AxrVertex
+        /// @returns This as an AxrVertex
+        const AxrVertex* toRaw() const {
+            return reinterpret_cast<const AxrVertex*>(this);
+        }
+
+        /// Get a handle to the Vertex as an AxrVertex
+        /// @returns This as an AxrVertex
+        AxrVertex* toRaw() {
+            return reinterpret_cast<AxrVertex*>(this);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Functions
+        // ----------------------------------------- //
+
+        /// Clean up this class
+        void cleanup() {
+            Position = glm::vec3(0.0f);
+            Color = glm::vec3(0.0f);
+            TexCoords = glm::vec3(0.0f);
+        }
+    };
+
+    static_assert(
+        sizeof(AxrVertex) == sizeof(axr::Vertex),
+        "Original type and wrapper have different size!"
+    );
+
+    /// Mesh
+    struct Mesh {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+
+        axr::Vertex* Vertices;
+        uint32_t VerticesCount;
+        uint32_t* Indices;
+        uint32_t IndicesCount;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        Mesh(): Vertices(nullptr),
+            VerticesCount(0),
+            Indices(nullptr),
+            IndicesCount(0) {
+        }
+
+        /// Constructor
+        /// @param vertices Vertices to copy
+        /// @param indices Indices to copy
+        Mesh(const std::vector<axr::Vertex>& vertices, const std::vector<uint32_t>& indices) {
+            VerticesCount = static_cast<uint32_t>(vertices.size());
+            Vertices = cloneVertices(vertices.data(), VerticesCount);
+            IndicesCount = static_cast<uint32_t>(indices.size());
+            Indices = cloneIndices(indices.data(), IndicesCount);
+        }
+
+        /// Copy Constructor
+        /// @param src Source Mesh to copy from
+        Mesh(const Mesh& src) {
+            VerticesCount = src.VerticesCount;
+            Vertices = cloneVertices(src.Vertices, src.VerticesCount);
+            IndicesCount = src.IndicesCount;
+            Indices = cloneIndices(src.Indices, src.IndicesCount);
+        }
+
+        /// Move Constructor
+        /// @param src Source Mesh to move from
+        Mesh(Mesh&& src) noexcept {
+            VerticesCount = src.VerticesCount;
+            Vertices = src.Vertices;
+            IndicesCount = src.IndicesCount;
+            Indices = src.Indices;
+
+            src.VerticesCount = 0;
+            src.Vertices = nullptr;
+            src.IndicesCount = 0;
+            src.Indices = nullptr;
+        }
+
+        // ---- Destructor ----
+
+        /// Destructor
+        ~Mesh() {
+            cleanup();
+        }
+
+        // ---- Operator Overloads ----
+
+        /// Copy Assignment Operator
+        /// @param src Source Mesh to copy from
+        Mesh& operator=(const Mesh& src) {
+            if (this != &src) {
+                cleanup();
+
+                VerticesCount = src.VerticesCount;
+                Vertices = cloneVertices(src.Vertices, src.VerticesCount);
+                IndicesCount = src.IndicesCount;
+                Indices = cloneIndices(src.Indices, src.IndicesCount);
+            }
+
+            return *this;
+        }
+
+        /// Move Assignment Operator
+        /// @param src Source Mesh to move from
+        Mesh& operator=(Mesh&& src) noexcept {
+            if (this != &src) {
+                cleanup();
+
+                VerticesCount = src.VerticesCount;
+                Vertices = src.Vertices;
+                IndicesCount = src.IndicesCount;
+                Indices = src.Indices;
+
+                src.VerticesCount = 0;
+                src.Vertices = nullptr;
+                src.IndicesCount = 0;
+                src.Indices = nullptr;
+            }
+
+            return *this;
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the Mesh as an AxrMesh
+        /// @returns This as an AxrMesh
+        const AxrMesh* toRaw() const {
+            return reinterpret_cast<const AxrMesh*>(this);
+        }
+
+        /// Get a handle to the Mesh as an AxrMesh
+        /// @returns This as an AxrMesh
+        AxrMesh* toRaw() {
+            return reinterpret_cast<AxrMesh*>(this);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Functions
+        // ----------------------------------------- //
+
+        /// Clean up this class
+        void cleanup() {
+            VerticesCount = 0;
+            delete[] Vertices;
+            Vertices = nullptr;
+
+            IndicesCount = 0;
+            delete[] Indices;
+            Indices = nullptr;
+        }
+
+        /// Clone the given vertices
+        /// @param vertices Vertex array to clone
+        /// @param verticesCount Number of vertices in the given array
+        /// @returns A cloned array of the given vertices
+        axr::Vertex* cloneVertices(const axr::Vertex* vertices, const uint32_t verticesCount) {
+            return reinterpret_cast<axr::Vertex*>(axrMeshCloneVertices(
+                reinterpret_cast<const AxrVertex*>(vertices),
+                verticesCount
+            ));
+        }
+
+        /// Clone the given indices
+        /// @param indices Index array to clone
+        /// @param indicesCount Number of indices in the given array
+        /// @returns A cloned array of the given indices
+        uint32_t* cloneIndices(const uint32_t* indices, const uint32_t indicesCount) {
+            return axrMeshCloneIndices(indices, indicesCount);
+        }
+    };
+
+    static_assert(
+        sizeof(AxrMesh) == sizeof(axr::Mesh),
+        "Original type and wrapper have different size!"
+    );
+
+    /// Model Config
+    struct ModelConfig {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+
+        const char* Name;
+        const char* FilePath;
+        axr::Mesh* Meshes;
+        uint32_t MeshesCount;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        ModelConfig():
+            Name(""),
+            FilePath(nullptr),
+            Meshes(nullptr),
+            MeshesCount(0) {
+        }
+
+        /// Constructor
+        /// @param name Name of the model
+        /// @param meshes Model meshes
+        ModelConfig(const char* name, const std::vector<axr::Mesh>& meshes):
+            Name(name),
+            FilePath(nullptr) {
+            MeshesCount = static_cast<uint32_t>(meshes.size());
+            Meshes = cloneMeshes(meshes.data(), MeshesCount);
+        }
+
+        /// Constructor
+        /// @param name Name of the model
+        /// @param filePath Filepath of the model
+        ModelConfig(const char* name, const char* filePath):
+            Name(name),
+            FilePath(filePath),
+            Meshes(nullptr),
+            MeshesCount(0) {
+        }
+
+        /// Copy Constructor
+        /// @param src Source ModelConfig to copy from
+        ModelConfig(const ModelConfig& src) {
+            Name = src.Name;
+            FilePath = src.FilePath;
+            MeshesCount = src.MeshesCount;
+            Meshes = cloneMeshes(src.Meshes, src.MeshesCount);
+        }
+
+        /// Move Constructor
+        /// @param src Source ModelConfig to move from
+        ModelConfig(ModelConfig&& src) noexcept {
+            Name = src.Name;
+            FilePath = src.FilePath;
+            MeshesCount = src.MeshesCount;
+            Meshes = src.Meshes;
+
+            src.Name = "";
+            src.FilePath = nullptr;
+            src.MeshesCount = 0;
+            src.Meshes = nullptr;
+        }
+
+        // ---- Destructor ----
+
+        /// Destructor
+        ~ModelConfig() {
+            cleanup();
+        }
+
+        // ---- Operator Overloads ----
+
+        /// Copy Assignment Operator
+        /// @param src Source ModelConfig to copy from
+        ModelConfig& operator=(const ModelConfig& src) {
+            if (this != &src) {
+                cleanup();
+
+                Name = src.Name;
+                FilePath = src.FilePath;
+                MeshesCount = src.MeshesCount;
+                Meshes = cloneMeshes(src.Meshes, src.MeshesCount);
+            }
+
+            return *this;
+        }
+
+        /// Move Assignment Operator
+        /// @param src Source ModelConfig to move from
+        ModelConfig& operator=(ModelConfig&& src) noexcept {
+            if (this != &src) {
+                cleanup();
+
+                Name = src.Name;
+                FilePath = src.FilePath;
+                MeshesCount = src.MeshesCount;
+                Meshes = src.Meshes;
+
+                src.Name = "";
+                src.FilePath = nullptr;
+                src.MeshesCount = 0;
+                src.Meshes = nullptr;
+            }
+
+            return *this;
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the ModelConfig as an AxrModelConfig
+        /// @returns This as an AxrModelConfig
+        const AxrModelConfig* toRaw() const {
+            return reinterpret_cast<const AxrModelConfig*>(this);
+        }
+
+        /// Get a handle to the ModelConfig as an AxrModelConfig
+        /// @returns This as an AxrModelConfig
+        AxrModelConfig* toRaw() {
+            return reinterpret_cast<AxrModelConfig*>(this);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Functions
+        // ----------------------------------------- //
+
+        /// Clean up this class
+        void cleanup() {
+            Name = "";
+            FilePath = nullptr;
+
+            MeshesCount = 0;
+            delete[] Meshes;
+            Meshes = nullptr;
+        }
+
+        /// Clone the given meshes
+        /// @param meshes Mesh array to clone
+        /// @param meshesCount Number of meshes in the given array
+        /// @returns A cloned array of the given meshes
+        axr::Mesh* cloneMeshes(const axr::Mesh* meshes, const uint32_t meshesCount) const {
+            return reinterpret_cast<axr::Mesh*>(axrModelCloneMeshes(
+                reinterpret_cast<const AxrMesh*>(meshes),
+                meshesCount
+            ));
+        }
+    };
+
+    static_assert(
+        sizeof(AxrModelConfig) == sizeof(axr::ModelConfig),
+        "Original type and wrapper have different size!"
+    );
+
+    // ----------------------------------------- //
+    // Model Definition
+    // ----------------------------------------- //
+
+    /// Model
+    class Model {
+    public:
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Constructor
+        /// @param model Model handle
+        Model(const AxrModel_T model):
+            m_Model(model) {
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get the model's name
+        /// @returns The model's name
+        [[nodiscard]] const char* getName() const {
+            return axrModelGetName(m_Model);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Variables
+        // ----------------------------------------- //
+        AxrModel_T m_Model;
+    };
+
+    // ---------------------------------------------------------------------------------- //
     //                               Engine Defined Assets                                //
     // ---------------------------------------------------------------------------------- //
 

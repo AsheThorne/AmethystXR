@@ -6,6 +6,11 @@
 #include "axr/common.h"
 #include "axr/graphicsSystem.h"
 
+// ----------------------------------------- //
+// GLM Headers
+// ----------------------------------------- //
+#include <glm/glm.hpp>
+
 // ---------------------------------------------------------------------------------- //
 //                                  Shader Properties                                 //
 // ---------------------------------------------------------------------------------- //
@@ -455,6 +460,70 @@ extern "C" {
 }
 
 // ---------------------------------------------------------------------------------- //
+//                                   Model Assets                                     //
+// ---------------------------------------------------------------------------------- //
+
+// ----------------------------------------- //
+// Structs
+// ----------------------------------------- //
+
+/// Vertex
+struct AxrVertex {
+    glm::vec3 Position;
+    glm::vec3 Color;
+    glm::vec2 TexCoords;
+};
+
+/// Mesh
+struct AxrMesh {
+    AxrVertex* Vertices;
+    uint32_t VerticesCount;
+    uint32_t* Indices;
+    uint32_t IndicesCount;
+};
+
+/// Model Config
+struct AxrModelConfig {
+    const char* Name;
+    const char* FilePath;
+    AxrMesh* Meshes;
+    uint32_t MeshesCount;
+};
+
+// ----------------------------------------- //
+// Forward Declared Handles
+// ----------------------------------------- //
+
+/// AxrModel Handle
+typedef class AxrModel* AxrModel_T;
+
+// ----------------------------------------- //
+// External Function Definitions
+// ----------------------------------------- //
+extern "C" {
+    /// Clone the given vertices
+    /// @param vertices Vertex array to clone
+    /// @param verticesCount Number of vertices in the given array
+    /// @returns A cloned array of the given vertices
+    AXR_API AxrVertex* axrMeshCloneVertices(const AxrVertex* vertices, uint32_t verticesCount);
+    /// Clone the given indices
+    /// @param indices Index array to clone
+    /// @param indicesCount Number of indices in the given array
+    /// @returns A cloned array of the given indices
+    AXR_API uint32_t* axrMeshCloneIndices(const uint32_t* indices, uint32_t indicesCount);
+    /// Clone the given meshes
+    /// @param meshes Mesh array to clone
+    /// @param meshesCount Number of meshes in the given array
+    /// @returns A cloned array of the given meshes
+    AXR_API AxrMesh* axrModelCloneMeshes(const AxrMesh* meshes, uint32_t meshesCount);
+
+    /// Get the model's name
+    /// @param model Model to use
+    /// @returns The model's name
+    AXR_API const char* axrModelGetName(AxrModel_T model);
+}
+
+// ---------------------------------------------------------------------------------- //
 //                               Engine Defined Assets                                //
 // ---------------------------------------------------------------------------------- //
 
@@ -601,5 +670,16 @@ extern "C" {
         AxrAssetCollection_T assetCollection,
         const char* materialName,
         AxrMaterialEngineAsset_DefaultMaterial materialValues
+    );
+
+    // ---- Model ----
+
+    /// Create a new model
+    /// @param assetCollection Asset collection to use
+    /// @param modelConfig Model config
+    /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrAssetCollectionCreateModel(
+        AxrAssetCollection_T assetCollection,
+        const AxrModelConfig* modelConfig
     );
 }

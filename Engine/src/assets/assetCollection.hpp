@@ -12,6 +12,7 @@
 #include "axr/assets.h"
 #include "shader.hpp"
 #include "material.hpp"
+#include "model.hpp"
 
 /// Axr Asset Collection
 class AxrAssetCollection {
@@ -90,6 +91,13 @@ public:
         AxrMaterialEngineAsset_DefaultMaterial materialValues
     );
 
+    // ---- Model ----
+
+    /// Create a new model
+    /// @param modelConfig Model config
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createModel(const AxrModelConfig& modelConfig);
+
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
     // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
@@ -105,6 +113,9 @@ public:
     /// Get the materials
     /// @returns A map of the materials
     [[nodiscard]] const std::unordered_map<std::string, AxrMaterial>& getMaterials();
+    /// Get the models
+    /// @returns A map of the models
+    [[nodiscard]] const std::unordered_map<std::string, AxrModel>& getModels();
 
 private:
     // ----------------------------------------- //
@@ -112,4 +123,5 @@ private:
     // ----------------------------------------- //
     std::unordered_map<std::string, AxrShader> m_Shaders;
     std::unordered_map<std::string, AxrMaterial> m_Materials;
+    std::unordered_map<std::string, AxrModel> m_Models;
 };

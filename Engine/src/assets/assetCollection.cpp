@@ -99,6 +99,22 @@ AxrResult axrAssetCollectionCreateEngineAssetMaterial_DefaultMaterial(
     return assetCollection->createMaterial(materialName, materialValues);
 }
 
+AxrResult axrAssetCollectionCreateModel(
+    const AxrAssetCollection_T assetCollection,
+    const AxrModelConfig* modelConfig
+) {
+    if (assetCollection == nullptr) {
+        axrLogErrorLocation("`assetCollection` is null.");
+        return AXR_ERROR;
+    }
+
+    if (modelConfig == nullptr) {
+        axrLogErrorLocation("`modelConfig` is null.");
+        return AXR_ERROR;
+    }
+
+    return assetCollection->createModel(*modelConfig);
+}
 
 // ----------------------------------------- //
 // Internal Functions
@@ -342,6 +358,31 @@ AxrResult AxrAssetCollection::createMaterial(
     return AXR_SUCCESS;
 }
 
+AxrResult AxrAssetCollection::createModel(const AxrModelConfig& modelConfig) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Models.contains(modelConfig.Name)) {
+        axrLogError("Unable to create model. A model named: {0} already exists.", modelConfig.Name);
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const auto insertResult = m_Models.insert(std::pair(modelConfig.Name, AxrModel(modelConfig)));
+    if (!insertResult.second) {
+        // If the insertion failed
+        return AXR_ERROR;
+    }
+
+    // TODO: Reload vulkan scene assets if they're already loaded.
+
+    return AXR_SUCCESS;
+}
+
 const AxrShader* AxrAssetCollection::findShader(const std::string& name) {
     const auto foundShaderIterator = m_Shaders.find(name);
     if (foundShaderIterator == m_Shaders.end()) {
@@ -357,4 +398,8 @@ const std::unordered_map<std::string, AxrShader>& AxrAssetCollection::getShaders
 
 const std::unordered_map<std::string, AxrMaterial>& AxrAssetCollection::getMaterials() {
     return m_Materials;
+}
+
+const std::unordered_map<std::string, AxrModel>& AxrAssetCollection::getModels() {
+    return m_Models;
 }
