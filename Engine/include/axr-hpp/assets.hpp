@@ -1741,7 +1741,7 @@ namespace axr {
         /// @returns AXR_SUCCESS if the function succeeded
         [[nodiscard]] axr::Result createMaterial(
             const axr::MaterialConfig& materialConfig
-        ) {
+        ) const {
             return static_cast<axr::Result>(axrAssetCollectionCreateMaterial(
                 m_AssetCollection,
                 materialConfig.toRaw()
@@ -1752,10 +1752,10 @@ namespace axr {
         /// @param materialName Material name
         /// @param materialValues Material values
         /// @returns AXR_SUCCESS if the function succeeded
-        axr::Result assetCollectionCreateMaterial(
+        axr::Result createMaterial(
             const char* materialName,
             const AxrMaterialEngineAsset_DefaultMaterial materialValues
-        ) {
+        ) const {
             return static_cast<axr::Result>(
                 axrAssetCollectionCreateEngineAssetMaterial_DefaultMaterial(
                     m_AssetCollection,
@@ -1763,6 +1763,20 @@ namespace axr {
                     materialValues
                 )
             );
+        }
+
+        // ---- Model ----
+
+        /// Create a new model
+        /// @param modelConfig Model config
+        /// @returns AXR_SUCCESS if the function succeeded
+        [[nodiscard]] axr::Result createModel(
+            const axr::ModelConfig& modelConfig
+        ) const {
+            return static_cast<axr::Result>(axrAssetCollectionCreateModel(
+                m_AssetCollection,
+                modelConfig.toRaw()
+            ));
         }
 
     private:
