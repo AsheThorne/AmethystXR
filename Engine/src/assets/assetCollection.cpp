@@ -11,36 +11,6 @@
 // External Functions
 // ----------------------------------------- //
 
-bool axrAssetCollectionIsLoaded(const AxrAssetCollection_T assetCollection) {
-    if (assetCollection == nullptr) {
-        axrLogErrorLocation("`assetCollection` is null.");
-        return false;
-    }
-
-    return assetCollection->isLoaded();
-}
-
-AxrResult axrAssetCollectionLoadAssets(
-    const AxrAssetCollection_T assetCollection,
-    const AxrGraphicsApiEnum graphicsApi
-) {
-    if (assetCollection == nullptr) {
-        axrLogErrorLocation("`assetCollection` is null.");
-        return AXR_ERROR;
-    }
-
-    return assetCollection->loadAssets(graphicsApi);
-}
-
-void axrAssetCollectionUnloadAssets(const AxrAssetCollection_T assetCollection) {
-    if (assetCollection == nullptr) {
-        axrLogErrorLocation("`assetCollection` is null.");
-        return;
-    }
-
-    assetCollection->unloadAssets();
-}
-
 AxrResult axrAssetCollectionCreateShader(
     const AxrAssetCollection_T assetCollection,
     const AxrShaderConfig* shaderConfig
@@ -141,6 +111,7 @@ AxrAssetCollection::AxrAssetCollection() = default;
 AxrAssetCollection::AxrAssetCollection(AxrAssetCollection&& src) noexcept {
     m_Shaders = std::move(src.m_Shaders);
     m_Materials = std::move(src.m_Materials);
+    m_Models = std::move(src.m_Models);
 }
 
 AxrAssetCollection::~AxrAssetCollection() {
@@ -153,45 +124,13 @@ AxrAssetCollection& AxrAssetCollection::operator=(AxrAssetCollection&& src) noex
 
         m_Shaders = std::move(src.m_Shaders);
         m_Materials = std::move(src.m_Materials);
+        m_Models = std::move(src.m_Models);
     }
 
     return *this;
 }
 
 // ---- Public Functions ----
-
-void AxrAssetCollection::cleanup() {
-    m_Shaders.clear();
-    m_Materials.clear();
-}
-
-bool AxrAssetCollection::isLoaded() {
-    for (auto& [shaderName, shader] : m_Shaders) {
-        if (!shader.isLoaded()) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-AxrResult AxrAssetCollection::loadAssets(const AxrGraphicsApiEnum graphicsApi) {
-    for (auto& [shaderName, shader] : m_Shaders) {
-        const AxrResult axrResult = shader.loadFile(graphicsApi);
-        if (AXR_FAILED(axrResult)) {
-            unloadAssets();
-            return axrResult;
-        }
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrAssetCollection::unloadAssets() {
-    for (auto& [shaderName, shader] : m_Shaders) {
-        shader.unloadFile();
-    }
-}
 
 AxrResult AxrAssetCollection::createShader(const AxrShaderConfig& shaderConfig) {
     // ----------------------------------------- //
@@ -427,6 +366,60 @@ AxrResult AxrAssetCollection::createModel(const char* modelName, AxrModelEngineA
     // TODO: Reload vulkan scene assets if they're already loaded.
 
     return AXR_SUCCESS;
+}
+
+void AxrAssetCollection::cleanup() {
+    unloadAssets();
+
+    m_Shaders.clear();
+    m_Materials.clear();
+    m_Models.clear();
+}
+
+bool AxrAssetCollection::isLoaded() {
+    for (auto& [shaderName, shader] : m_Shaders) {
+        if (!shader.isLoaded()) {
+            return false;
+        }
+    }
+
+    for (auto& [modelName, model] : m_Models) {
+        if (!model.isLoaded()) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+AxrResult AxrAssetCollection::loadAssets(const AxrGraphicsApiEnum graphicsApi) {
+    for (auto& [shaderName, shader] : m_Shaders) {
+        const AxrResult axrResult = shader.loadFile(graphicsApi);
+        if (AXR_FAILED(axrResult)) {
+            unloadAssets();
+            return axrResult;
+        }
+    }
+
+    for (auto& [modelName, model] : m_Models) {
+        const AxrResult axrResult = model.loadFile();
+        if (AXR_FAILED(axrResult)) {
+            unloadAssets();
+            return axrResult;
+        }
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrAssetCollection::unloadAssets() {
+    for (auto& [shaderName, shader] : m_Shaders) {
+        shader.unloadFile();
+    }
+
+    for (auto& [modelName, model] : m_Models) {
+        model.unloadFile();
+    }
 }
 
 const AxrShader* AxrAssetCollection::findShader(const std::string& name) {

@@ -639,24 +639,6 @@ typedef class AxrAssetCollection* AxrAssetCollection_T;
 // External Function Definitions
 // ----------------------------------------- //
 extern "C" {
-    // ---- All Assets ----
-
-    /// Check if all the assets in the collection have been loaded
-    /// @param assetCollection Asset collection to use
-    /// @returns True if all assets in the collection have been loaded
-    AXR_API bool axrAssetCollectionIsLoaded(AxrAssetCollection_T assetCollection);
-    /// Load all assets in the collection
-    /// @param assetCollection Asset collection to use
-    /// @param graphicsApi Graphics api to use with these assets
-    /// @returns AXR_SUCCESS if the function succeeded
-    AXR_API AxrResult axrAssetCollectionLoadAssets(
-        AxrAssetCollection_T assetCollection,
-        AxrGraphicsApiEnum graphicsApi
-    );
-    /// Unload all assets in the collection
-    /// @param assetCollection Asset collection to use
-    AXR_API void axrAssetCollectionUnloadAssets(AxrAssetCollection_T assetCollection);
-
     // ---- Shader ----
 
     /// Create a new shader

@@ -1692,31 +1692,6 @@ namespace axr {
         // Public Functions
         // ----------------------------------------- //
 
-        // ---- All Assets ----
-
-        /// Check if all the assets in the collection have been loaded
-        /// @returns True if all assets in the collection have been loaded
-        bool isLoaded() const {
-            return axrAssetCollectionIsLoaded(m_AssetCollection);
-        }
-
-        /// Load all assets in the collection
-        /// @param graphicsApi Graphics api to use with these assets
-        /// @returns AXR_SUCCESS if the function succeeded
-        [[nodiscard]] axr::Result loadAssets(
-            axr::GraphicsApiEnum graphicsApi
-        ) {
-            return static_cast<axr::Result>(axrAssetCollectionLoadAssets(
-                m_AssetCollection,
-                static_cast<AxrGraphicsApiEnum>(graphicsApi)
-            ));
-        }
-
-        /// Unload all assets in the collection
-        void unloadAssets() {
-            axrAssetCollectionUnloadAssets(m_AssetCollection);
-        }
-
         // ---- Shaders ----
 
         /// Create a new shader

@@ -50,21 +50,6 @@ public:
     // Public Functions
     // ----------------------------------------- //
 
-    /// Clean up this class
-    void cleanup();
-
-    // ---- All Assets ----
-
-    /// Check if all the assets in the collection have been loaded
-    /// @returns True if all assets in the collection have been loaded
-    [[nodiscard]] bool isLoaded();
-    /// Load all assets in the collection
-    /// @param graphicsApi Graphics api to use with these assets
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult loadAssets(AxrGraphicsApiEnum graphicsApi);
-    /// Unload all assets in the collection
-    void unloadAssets();
-
     // ---- Shader ----
 
     /// Create a new shader
@@ -106,6 +91,21 @@ public:
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
     // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
+
+    // ---- All Assets ----
+    
+    /// Clean up this class
+    void cleanup();
+
+    /// Check if all the assets in the collection have been loaded
+    /// @returns True if all assets in the collection have been loaded
+    [[nodiscard]] bool isLoaded();
+    /// Load all assets in the collection
+    /// @param graphicsApi Graphics api to use with these assets
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult loadAssets(AxrGraphicsApiEnum graphicsApi);
+    /// Unload all assets in the collection
+    void unloadAssets();
 
     /// Find the named shader
     /// @param name Name of the shader
