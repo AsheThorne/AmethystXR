@@ -81,10 +81,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
     const char* scene1Name = "Scene1";
     if (AXR_FAILED(app.createScene(scene1Name))) return 0;
     const axr::Scene scene1 = app.findScene(scene1Name);
-    entt::registry* scene1Registry = scene1.getEcsRegistry();
-    const entt::entity triangleEntity = scene1Registry->create();
-    scene1Registry->emplace<AxrModelComponent>(
-        triangleEntity,
+    const axr::Entity_T triangleEntity = scene1.createEntity();
+
+    triangleEntity.emplace<AxrModelComponent>(
         AxrModelComponent{
             .ModelName = "Triangle",
             .MaterialNamesCount = 1,

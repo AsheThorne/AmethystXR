@@ -55,6 +55,10 @@ public:
     /// @returns A handle to the scene ECS registry
     [[nodiscard]] entt::registry* getEcsRegistry();
 
+    /// Create a new entity
+    /// @returns The entity id
+    [[nodiscard]] entt::entity createEntity();
+
 private:
     // ----------------------------------------- //
     // Private Variables

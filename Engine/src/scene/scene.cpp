@@ -35,6 +35,15 @@ entt::registry* axrSceneGetEcsRegistry(const AxrScene_T scene) {
     return scene->getEcsRegistry();
 }
 
+entt::entity axrSceneCreateEntity(const AxrScene_T scene) {
+    if (scene == nullptr) {
+        axrLogErrorLocation("`scene` is null");
+        return {};
+    }
+
+    return scene->createEntity();
+}
+
 // ----------------------------------------- //
 // Internal Functions
 // ----------------------------------------- //
@@ -89,6 +98,10 @@ AxrAssetCollection_T AxrScene::getAssetCollection() {
 
 entt::registry* AxrScene::getEcsRegistry() {
     return &m_Registry;
+}
+
+entt::entity AxrScene::createEntity() {
+    return m_Registry.create();
 }
 
 // ---- Private Functions ----

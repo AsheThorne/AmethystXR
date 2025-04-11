@@ -66,4 +66,9 @@ extern "C" {
     /// @param scene The scene to use
     /// @returns A handle to the scene ECS registry
     AXR_API entt::registry* axrSceneGetEcsRegistry(AxrScene_T scene);
+
+    /// Create a new entity
+    /// @param scene The scene to use
+    /// @returns The entity id
+    AXR_API entt::entity axrSceneCreateEntity(AxrScene_T scene);
 }

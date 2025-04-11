@@ -6,6 +6,23 @@
 #include "axr/scene.h"
 
 namespace axr {
+    // ---------------------------------------------------------------------------------- //
+    //                                     Entity                                         //
+    // ---------------------------------------------------------------------------------- //
+
+    // ----------------------------------------- //
+    // Types
+    // ----------------------------------------- //
+
+    /// Entity handle
+    using Entity_T = entt::handle;
+    /// Const Entity handle
+    using EntityConst_T = entt::const_handle;
+
+    // ---------------------------------------------------------------------------------- //
+    //                                     Scene                                          //
+    // ---------------------------------------------------------------------------------- //
+
     /// Axr Scene
     class Scene {
     public:
@@ -41,6 +58,12 @@ namespace axr {
         /// @returns The scene ECS registry
         [[nodiscard]] entt::registry* getEcsRegistry() const {
             return axrSceneGetEcsRegistry(m_Scene);
+        }
+
+        /// Create a new entity
+        /// @returns A handle to the created entity
+        axr::Entity_T createEntity() const {
+            return {*getEcsRegistry(), axrSceneCreateEntity(m_Scene)};
         }
 
     private:
