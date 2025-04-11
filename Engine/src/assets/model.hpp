@@ -53,24 +53,24 @@ public:
     // ----------------------------------------- //
 
     /// Clone the given meshes
-    /// @param meshes Mesh array to clone
     /// @param meshesCount Number of meshes in the given array
+    /// @param meshes Mesh array to clone
     /// @returns A cloned array of the given meshes
-    static AxrMesh* cloneMeshes(const AxrMesh* meshes, uint32_t meshesCount);
+    static AxrMesh* cloneMeshes(uint32_t meshesCount, const AxrMesh* meshes);
     /// Clone the given mesh
     /// @param mesh Mesh to clone
     /// @returns A clone of the given mesh
     static AxrMesh cloneMesh(const AxrMesh& mesh);
     /// Clone the given vertices
-    /// @param vertices Vertex array to clone
     /// @param verticesCount Number of vertices in the given array
+    /// @param vertices Vertex array to clone
     /// @returns A cloned array of the given vertices
-    static AxrVertex* cloneVertices(const AxrVertex* vertices, uint32_t verticesCount);
+    static AxrVertex* cloneVertices(uint32_t verticesCount, const AxrVertex* vertices);
     /// Clone the given indices
-    /// @param indices Index array to clone
     /// @param indicesCount Number of indices in the given array
+    /// @param indices Index array to clone
     /// @returns A cloned array of the given indices
-    static uint32_t* cloneIndices(const uint32_t* indices, uint32_t indicesCount);
+    static uint32_t* cloneIndices(uint32_t indicesCount, const uint32_t* indices);
 
 private:
     // ----------------------------------------- //
@@ -80,8 +80,8 @@ private:
     // ---- Config Variables ----
     const char* m_Name;
     const char* m_FilePath;
-    AxrMesh* m_Meshes;
     uint32_t m_MeshesCount;
+    AxrMesh* m_Meshes;
 
     // ----------------------------------------- //
     // Private Variables

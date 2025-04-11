@@ -8,31 +8,31 @@
 // External Functions
 // ----------------------------------------- //
 
-AxrVertex* axrMeshCloneVertices(const AxrVertex* vertices, const uint32_t verticesCount) {
+AxrVertex* axrMeshCloneVertices(const uint32_t verticesCount, const AxrVertex* vertices) {
     if (vertices == nullptr) {
         axrLogErrorLocation("`vertices` is null.");
         return {};
     }
 
-    return AxrModel::cloneVertices(vertices, verticesCount);
+    return AxrModel::cloneVertices(verticesCount, vertices);
 }
 
-uint32_t* axrMeshCloneIndices(const uint32_t* indices, const uint32_t indicesCount) {
+uint32_t* axrMeshCloneIndices(const uint32_t indicesCount, const uint32_t* indices) {
     if (indices == nullptr) {
         axrLogErrorLocation("`indices` is null.");
         return {};
     }
 
-    return AxrModel::cloneIndices(indices, indicesCount);
+    return AxrModel::cloneIndices(indicesCount, indices);
 }
 
-AxrMesh* axrModelCloneMeshes(const AxrMesh* meshes, const uint32_t meshesCount) {
+AxrMesh* axrModelCloneMeshes(const uint32_t meshesCount, const AxrMesh* meshes) {
     if (meshes == nullptr) {
         axrLogErrorLocation("`meshes` is null.");
         return nullptr;
     }
 
-    return AxrModel::cloneMeshes(meshes, meshesCount);
+    return AxrModel::cloneMeshes(meshesCount, meshes);
 }
 
 const char* axrModelGetName(const AxrModel_T model) {
@@ -53,24 +53,24 @@ const char* axrModelGetName(const AxrModel_T model) {
 AxrModel::AxrModel():
     m_Name(""),
     m_FilePath(nullptr),
-    m_Meshes(nullptr),
-    m_MeshesCount(0) {
+    m_MeshesCount(0),
+    m_Meshes(nullptr) {
 }
 
 AxrModel::AxrModel(const AxrModelConfig& config):
     m_Name(config.Name),
     m_FilePath(config.FilePath),
-    m_Meshes(nullptr),
-    m_MeshesCount(0) {
+    m_MeshesCount(0),
+    m_Meshes(nullptr) {
     m_MeshesCount = config.MeshesCount;
-    m_Meshes = cloneMeshes(config.Meshes, config.MeshesCount);
+    m_Meshes = cloneMeshes(config.MeshesCount, config.Meshes);
 }
 
 AxrModel::AxrModel(const AxrModel& src) {
     m_Name = src.m_Name;
     m_FilePath = src.m_FilePath;
     m_MeshesCount = src.m_MeshesCount;
-    m_Meshes = cloneMeshes(src.m_Meshes, src.m_MeshesCount);
+    m_Meshes = cloneMeshes(src.m_MeshesCount, src.m_Meshes);
 }
 
 AxrModel::AxrModel(AxrModel&& src) noexcept {
@@ -96,7 +96,7 @@ AxrModel& AxrModel::operator=(const AxrModel& src) {
         m_Name = src.m_Name;
         m_FilePath = src.m_FilePath;
         m_MeshesCount = src.m_MeshesCount;
-        m_Meshes = cloneMeshes(src.m_Meshes, src.m_MeshesCount);
+        m_Meshes = cloneMeshes(src.m_MeshesCount, src.m_Meshes);
     }
 
     return *this;
@@ -126,7 +126,7 @@ const char* AxrModel::getName() const {
     return m_Name;
 }
 
-AxrMesh* AxrModel::cloneMeshes(const AxrMesh* meshes, const uint32_t meshesCount) {
+AxrMesh* AxrModel::cloneMeshes(const uint32_t meshesCount, const AxrMesh* meshes) {
     if (meshes == nullptr) return nullptr;
 
     AxrMesh* newMeshes = new AxrMesh[meshesCount];
@@ -139,14 +139,14 @@ AxrMesh* AxrModel::cloneMeshes(const AxrMesh* meshes, const uint32_t meshesCount
 
 AxrMesh AxrModel::cloneMesh(const AxrMesh& mesh) {
     return AxrMesh{
-        .Vertices = cloneVertices(mesh.Vertices, mesh.VerticesCount),
         .VerticesCount = mesh.VerticesCount,
-        .Indices = cloneIndices(mesh.Indices, mesh.IndicesCount),
+        .Vertices = cloneVertices(mesh.VerticesCount, mesh.Vertices),
         .IndicesCount = mesh.IndicesCount,
+        .Indices = cloneIndices(mesh.IndicesCount, mesh.Indices),
     };
 }
 
-AxrVertex* AxrModel::cloneVertices(const AxrVertex* vertices, const uint32_t verticesCount) {
+AxrVertex* AxrModel::cloneVertices(const uint32_t verticesCount, const AxrVertex* vertices) {
     if (vertices == nullptr) return nullptr;
 
     AxrVertex* newVertices = new AxrVertex[verticesCount];
@@ -157,7 +157,7 @@ AxrVertex* AxrModel::cloneVertices(const AxrVertex* vertices, const uint32_t ver
     return newVertices;
 }
 
-uint32_t* AxrModel::cloneIndices(const uint32_t* indices, const uint32_t indicesCount) {
+uint32_t* AxrModel::cloneIndices(const uint32_t indicesCount, const uint32_t* indices) {
     if (indices == nullptr) return nullptr;
 
     uint32_t* newIndices = new uint32_t[indicesCount];

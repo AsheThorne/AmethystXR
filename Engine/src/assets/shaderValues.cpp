@@ -158,26 +158,26 @@ AxrShaderValues_T AxrShaderValuesRAII::clone(const AxrShaderValuesConst_T values
     if (values == nullptr) return nullptr;
 
     return new AxrShaderValues{
-        .BufferLinks = clone(
-            values->BufferLinks,
-            values->BufferLinksCount
-        ),
         .BufferLinksCount = values->BufferLinksCount,
+        .BufferLinks = clone(
+            values->BufferLinksCount,
+            values->BufferLinks
+        ),
     };
 }
 
 void AxrShaderValuesRAII::destroy(AxrShaderValues_T& values) {
     if (values == nullptr) return;
 
-    destroy(values->BufferLinks, values->BufferLinksCount);
+    destroy(values->BufferLinksCount, values->BufferLinks);
 
     delete values;
     values = nullptr;
 }
 
 AxrShaderBufferLink_T* AxrShaderValuesRAII::clone(
-    const AxrShaderBufferLinkConst_T* shaderBufferLinks,
-    const uint32_t shaderBufferLinksCount
+    const uint32_t shaderBufferLinksCount,
+    const AxrShaderBufferLinkConst_T* shaderBufferLinks
 ) {
     if (shaderBufferLinks == nullptr) return nullptr;
 
@@ -190,8 +190,8 @@ AxrShaderBufferLink_T* AxrShaderValuesRAII::clone(
 }
 
 void AxrShaderValuesRAII::destroy(
-    AxrShaderBufferLink_T*& shaderBufferLinks,
-    uint32_t& shaderBufferLinksCount
+    uint32_t& shaderBufferLinksCount,
+    AxrShaderBufferLink_T*& shaderBufferLinks
 ) {
     if (shaderBufferLinks == nullptr) return;
 
@@ -323,12 +323,12 @@ bool AxrShaderValuesRAII::isValid(const AxrShaderValuesConst_T values) {
         return false;
     }
 
-    return isValid(values->BufferLinks, values->BufferLinksCount);
+    return isValid(values->BufferLinksCount, values->BufferLinks);
 }
 
 bool AxrShaderValuesRAII::isValid(
-    const AxrShaderBufferLinkConst_T* bufferLinks,
-    const uint32_t bufferLinksCount
+    const uint32_t bufferLinksCount,
+    const AxrShaderBufferLinkConst_T* bufferLinks
 ) {
     if (bufferLinks == nullptr) {
         // Buffer links aren't required

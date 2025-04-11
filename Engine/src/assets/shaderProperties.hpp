@@ -114,17 +114,17 @@ public:
     // ---- Shader Buffer Layouts ----
 
     /// Clone the given shader buffer layouts
-    /// @param shaderBufferLayouts Shader buffer layouts to clone
     /// @param shaderBufferLayoutsCount Number of shader buffer layouts
+    /// @param shaderBufferLayouts Shader buffer layouts to clone
     /// @returns The cloned shader buffer layouts
     [[nodiscard]] static AxrShaderBufferLayout_T* clone(
-        const AxrShaderBufferLayoutConst_T* shaderBufferLayouts,
-        uint32_t shaderBufferLayoutsCount
+        uint32_t shaderBufferLayoutsCount,
+        const AxrShaderBufferLayoutConst_T* shaderBufferLayouts
     );
     /// Destroy the given shader buffer layouts
-    /// @param shaderBufferLayouts Shader buffer layouts to destroy
     /// @param shaderBufferLayoutsCount Number of shader buffer layouts
-    static void destroy(AxrShaderBufferLayout_T*& shaderBufferLayouts, uint32_t& shaderBufferLayoutsCount);
+    /// @param shaderBufferLayouts Shader buffer layouts to destroy
+    static void destroy(uint32_t& shaderBufferLayoutsCount, AxrShaderBufferLayout_T*& shaderBufferLayouts);
     /// Clone the given shader buffer layout
     /// @param shaderBufferLayout Shader buffer layout to clone
     /// @returns The cloned shader buffer layout
@@ -166,17 +166,17 @@ public:
     // ---- Vertex Attribute ----
 
     /// Clone the given shader vertex attributes
-    /// @param vertexAttributes Shader vertex attributes to clone
     /// @param vertexAttributesCount Number of shader vertex attributes
+    /// @param vertexAttributes Shader vertex attributes to clone
     /// @returns The cloned shader vertex attributes
     [[nodiscard]] static AxrShaderVertexAttribute* clone(
-        const AxrShaderVertexAttribute* vertexAttributes,
-        uint32_t vertexAttributesCount
+        uint32_t vertexAttributesCount,
+        const AxrShaderVertexAttribute* vertexAttributes
     );
     /// Destroy the given shader vertex attributes
-    /// @param vertexAttributes Shader vertex attributes to destroy
     /// @param vertexAttributesCount Number of shader vertex attributes
-    static void destroy(AxrShaderVertexAttribute*& vertexAttributes, uint32_t& vertexAttributesCount);
+    /// @param vertexAttributes Shader vertex attributes to destroy
+    static void destroy(uint32_t& vertexAttributesCount, AxrShaderVertexAttribute*& vertexAttributes);
     /// Clone the given shader vertex attribute
     /// @param vertexAttribute Shader vertex attribute to clone
     /// @returns The cloned shader vertex attribute
@@ -201,21 +201,21 @@ public:
     [[nodiscard]] static bool isValid(AxrFragmentShaderPropertiesConst_T properties);
 
     /// Check if the given shader buffer layouts are valid
-    /// @param bufferLayouts Shader buffer layouts to check
     /// @param bufferLayoutsCount Number of shader buffer layouts
+    /// @param bufferLayouts Shader buffer layouts to check
     /// @returns True if the shader buffer layouts are valid
     [[nodiscard]] static bool isValid(
-        const AxrShaderBufferLayoutConst_T* bufferLayouts,
-        uint32_t bufferLayoutsCount
+        uint32_t bufferLayoutsCount,
+        const AxrShaderBufferLayoutConst_T* bufferLayouts
     );
 
     /// Check if the given shader vertex attributes are valid
-    /// @param vertexAttributes Shader vertex attributes to check
     /// @param vertexAttributesCount Number of shader vertex attributes
+    /// @param vertexAttributes Shader vertex attributes to check
     /// @returns True if the shader vertex attributes are valid
     [[nodiscard]] static bool isValid(
-        const AxrShaderVertexAttribute* vertexAttributes,
-        uint32_t vertexAttributesCount
+        uint32_t vertexAttributesCount,
+        const AxrShaderVertexAttribute* vertexAttributes
     );
 
     /// Check if the given shader properties are compatible and can be used together
@@ -230,28 +230,28 @@ public:
     // ----------------- Get Buffer Layouts -----------------
 
     /// Get all uniform buffer layouts from the given shader buffer layouts
-    /// @param bufferLayouts Buffer layouts array
     /// @param bufferLayoutsCount Buffer layouts array length
+    /// @param bufferLayouts Buffer layouts array
     /// @returns A collection of uniform buffer layouts
     [[nodiscard]] static std::vector<AxrShaderUniformBufferLayoutConst_T> getUniformBufferLayouts(
-        const AxrShaderBufferLayoutConst_T* bufferLayouts,
-        uint32_t bufferLayoutsCount
+        uint32_t bufferLayoutsCount,
+        const AxrShaderBufferLayoutConst_T* bufferLayouts
     );
     /// Get all image sampler buffer layouts from the given shader buffer layouts
-    /// @param bufferLayouts Buffer layouts array
     /// @param bufferLayoutsCount Buffer layouts array length
+    /// @param bufferLayouts Buffer layouts array
     /// @returns A collection of image sampler buffer layouts
     [[nodiscard]] static std::vector<AxrShaderImageSamplerBufferLayoutConst_T> getImageSamplerBufferLayouts(
-        const AxrShaderBufferLayoutConst_T* bufferLayouts,
-        uint32_t bufferLayoutsCount
+        uint32_t bufferLayoutsCount,
+        const AxrShaderBufferLayoutConst_T* bufferLayouts
     );
     /// Get the push constants buffer layout from the given shader buffer layouts
-    /// @param bufferLayouts Buffer layouts array
     /// @param bufferLayoutsCount Buffer layouts array length
+    /// @param bufferLayouts Buffer layouts array
     /// @returns The push constants buffer layout
     [[nodiscard]] static AxrShaderPushConstantsBufferLayoutConst_T getPushConstantsBufferLayout(
-        const AxrShaderBufferLayoutConst_T* bufferLayouts,
-        uint32_t bufferLayoutsCount
+        uint32_t bufferLayoutsCount,
+        const AxrShaderBufferLayoutConst_T* bufferLayouts
     );
 
 private:

@@ -209,11 +209,11 @@ std::vector<AxrShaderUniformBufferLayoutConst_T> AxrShaderPropertiesRAII::getUni
     switch (m_RawProperties->Type) {
         case AXR_SHADER_STAGE_VERTEX: {
             const auto vertexProperties = reinterpret_cast<AxrVertexShaderPropertiesConst_T>(m_RawProperties);
-            return getUniformBufferLayouts(vertexProperties->BufferLayouts, vertexProperties->BufferLayoutsCount);
+            return getUniformBufferLayouts(vertexProperties->BufferLayoutsCount, vertexProperties->BufferLayouts);
         }
         case AXR_SHADER_STAGE_FRAGMENT: {
             const auto fragmentProperties = reinterpret_cast<AxrFragmentShaderPropertiesConst_T>(m_RawProperties);
-            return getUniformBufferLayouts(fragmentProperties->BufferLayouts, fragmentProperties->BufferLayoutsCount);
+            return getUniformBufferLayouts(fragmentProperties->BufferLayoutsCount, fragmentProperties->BufferLayouts);
         }
         case AXR_SHADER_STAGE_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
@@ -232,13 +232,13 @@ std::vector<AxrShaderImageSamplerBufferLayoutConst_T> AxrShaderPropertiesRAII::g
     switch (m_RawProperties->Type) {
         case AXR_SHADER_STAGE_VERTEX: {
             const auto vertexProperties = reinterpret_cast<AxrVertexShaderPropertiesConst_T>(m_RawProperties);
-            return getImageSamplerBufferLayouts(vertexProperties->BufferLayouts, vertexProperties->BufferLayoutsCount);
+            return getImageSamplerBufferLayouts(vertexProperties->BufferLayoutsCount, vertexProperties->BufferLayouts);
         }
         case AXR_SHADER_STAGE_FRAGMENT: {
             const auto fragmentProperties = reinterpret_cast<AxrFragmentShaderPropertiesConst_T>(m_RawProperties);
             return getImageSamplerBufferLayouts(
-                fragmentProperties->BufferLayouts,
-                fragmentProperties->BufferLayoutsCount
+                fragmentProperties->BufferLayoutsCount,
+                fragmentProperties->BufferLayouts
             );
         }
         case AXR_SHADER_STAGE_UNDEFINED:
@@ -258,13 +258,13 @@ AxrShaderPushConstantsBufferLayoutConst_T AxrShaderPropertiesRAII::getPushConsta
     switch (m_RawProperties->Type) {
         case AXR_SHADER_STAGE_VERTEX: {
             const auto vertexProperties = reinterpret_cast<AxrVertexShaderPropertiesConst_T>(m_RawProperties);
-            return getPushConstantsBufferLayout(vertexProperties->BufferLayouts, vertexProperties->BufferLayoutsCount);
+            return getPushConstantsBufferLayout(vertexProperties->BufferLayoutsCount, vertexProperties->BufferLayouts);
         }
         case AXR_SHADER_STAGE_FRAGMENT: {
             const auto fragmentProperties = reinterpret_cast<AxrFragmentShaderPropertiesConst_T>(m_RawProperties);
             return getPushConstantsBufferLayout(
-                fragmentProperties->BufferLayouts,
-                fragmentProperties->BufferLayoutsCount
+                fragmentProperties->BufferLayoutsCount,
+                fragmentProperties->BufferLayouts
             );
         }
         case AXR_SHADER_STAGE_UNDEFINED:
@@ -329,24 +329,24 @@ AxrVertexShaderProperties_T AxrShaderPropertiesRAII::clone(const AxrVertexShader
     if (properties == nullptr) return nullptr;
 
     return new AxrVertexShaderProperties{
-        .VertexAttributes = clone(
-            properties->VertexAttributes,
-            properties->VertexAttributesCount
-        ),
         .VertexAttributesCount = properties->VertexAttributesCount,
-        .BufferLayouts = clone(
-            properties->BufferLayouts,
-            properties->BufferLayoutsCount
+        .VertexAttributes = clone(
+            properties->VertexAttributesCount,
+            properties->VertexAttributes
         ),
         .BufferLayoutsCount = properties->BufferLayoutsCount,
+        .BufferLayouts = clone(
+            properties->BufferLayoutsCount,
+            properties->BufferLayouts
+        ),
     };
 }
 
 void AxrShaderPropertiesRAII::destroy(AxrVertexShaderProperties_T& properties) {
     if (properties == nullptr) return;
 
-    destroy(properties->VertexAttributes, properties->VertexAttributesCount);
-    destroy(properties->BufferLayouts, properties->BufferLayoutsCount);
+    destroy(properties->VertexAttributesCount, properties->VertexAttributes);
+    destroy(properties->BufferLayoutsCount, properties->BufferLayouts);
 
     delete properties;
     properties = nullptr;
@@ -356,26 +356,26 @@ AxrFragmentShaderProperties_T AxrShaderPropertiesRAII::clone(const AxrFragmentSh
     if (properties == nullptr) return nullptr;
 
     return new AxrFragmentShaderProperties{
-        .BufferLayouts = clone(
-            properties->BufferLayouts,
-            properties->BufferLayoutsCount
-        ),
         .BufferLayoutsCount = properties->BufferLayoutsCount,
+        .BufferLayouts = clone(
+            properties->BufferLayoutsCount,
+            properties->BufferLayouts
+        ),
     };
 }
 
 void AxrShaderPropertiesRAII::destroy(AxrFragmentShaderProperties_T& properties) {
     if (properties == nullptr) return;
 
-    destroy(properties->BufferLayouts, properties->BufferLayoutsCount);
+    destroy(properties->BufferLayoutsCount, properties->BufferLayouts);
 
     delete properties;
     properties = nullptr;
 }
 
 AxrShaderBufferLayout_T* AxrShaderPropertiesRAII::clone(
-    const AxrShaderBufferLayoutConst_T* shaderBufferLayouts,
-    const uint32_t shaderBufferLayoutsCount
+    const uint32_t shaderBufferLayoutsCount,
+    const AxrShaderBufferLayoutConst_T* shaderBufferLayouts
 ) {
     if (shaderBufferLayouts == nullptr) return nullptr;
 
@@ -388,8 +388,8 @@ AxrShaderBufferLayout_T* AxrShaderPropertiesRAII::clone(
 }
 
 void AxrShaderPropertiesRAII::destroy(
-    AxrShaderBufferLayout_T*& shaderBufferLayouts,
-    uint32_t& shaderBufferLayoutsCount
+    uint32_t& shaderBufferLayoutsCount,
+    AxrShaderBufferLayout_T*& shaderBufferLayouts
 ) {
     if (shaderBufferLayouts == nullptr) return;
 
@@ -515,8 +515,8 @@ void AxrShaderPropertiesRAII::destroy(AxrShaderPushConstantsBufferLayout_T& shad
 #endif
 
 AxrShaderVertexAttribute* AxrShaderPropertiesRAII::clone(
-    const AxrShaderVertexAttribute* vertexAttributes,
-    const uint32_t vertexAttributesCount
+    const uint32_t vertexAttributesCount,
+    const AxrShaderVertexAttribute* vertexAttributes
 ) {
     if (vertexAttributes == nullptr) return nullptr;
 
@@ -529,8 +529,8 @@ AxrShaderVertexAttribute* AxrShaderPropertiesRAII::clone(
 }
 
 void AxrShaderPropertiesRAII::destroy(
-    AxrShaderVertexAttribute*& vertexAttributes,
-    uint32_t& vertexAttributesCount
+    uint32_t& vertexAttributesCount,
+    AxrShaderVertexAttribute*& vertexAttributes
 ) {
     if (vertexAttributes == nullptr) return;
 
@@ -582,8 +582,8 @@ bool AxrShaderPropertiesRAII::isValid(const AxrVertexShaderPropertiesConst_T pro
         return false;
     }
 
-    return isValid(properties->VertexAttributes, properties->VertexAttributesCount) &&
-        isValid(properties->BufferLayouts, properties->BufferLayoutsCount);
+    return isValid(properties->VertexAttributesCount, properties->VertexAttributes) &&
+        isValid(properties->BufferLayoutsCount, properties->BufferLayouts);
 }
 
 bool AxrShaderPropertiesRAII::isValid(const AxrFragmentShaderPropertiesConst_T properties) {
@@ -592,12 +592,12 @@ bool AxrShaderPropertiesRAII::isValid(const AxrFragmentShaderPropertiesConst_T p
         return false;
     }
 
-    return isValid(properties->BufferLayouts, properties->BufferLayoutsCount);
+    return isValid(properties->BufferLayoutsCount, properties->BufferLayouts);
 }
 
 bool AxrShaderPropertiesRAII::isValid(
-    const AxrShaderBufferLayoutConst_T* bufferLayouts,
-    const uint32_t bufferLayoutsCount
+    const uint32_t bufferLayoutsCount,
+    const AxrShaderBufferLayoutConst_T* bufferLayouts
 ) {
     if (bufferLayouts == nullptr) {
         // Buffer layouts aren't required
@@ -666,8 +666,8 @@ bool AxrShaderPropertiesRAII::isValid(
 }
 
 bool AxrShaderPropertiesRAII::isValid(
-    const AxrShaderVertexAttribute* vertexAttributes,
-    const uint32_t vertexAttributesCount
+    const uint32_t vertexAttributesCount,
+    const AxrShaderVertexAttribute* vertexAttributes
 ) {
     if (vertexAttributes == nullptr) {
         // Vertex attributes aren't required
@@ -796,8 +796,8 @@ bool AxrShaderPropertiesRAII::areCompatible(
 }
 
 std::vector<AxrShaderUniformBufferLayoutConst_T> AxrShaderPropertiesRAII::getUniformBufferLayouts(
-    const AxrShaderBufferLayoutConst_T* bufferLayouts,
-    const uint32_t bufferLayoutsCount
+    const uint32_t bufferLayoutsCount,
+    const AxrShaderBufferLayoutConst_T* bufferLayouts
 ) {
     if (bufferLayouts == nullptr) {
         return {};
@@ -819,8 +819,8 @@ std::vector<AxrShaderUniformBufferLayoutConst_T> AxrShaderPropertiesRAII::getUni
 }
 
 std::vector<AxrShaderImageSamplerBufferLayoutConst_T> AxrShaderPropertiesRAII::getImageSamplerBufferLayouts(
-    const AxrShaderBufferLayoutConst_T* bufferLayouts,
-    const uint32_t bufferLayoutsCount
+    const uint32_t bufferLayoutsCount,
+    const AxrShaderBufferLayoutConst_T* bufferLayouts
 ) {
     if (bufferLayouts == nullptr) {
         return {};
@@ -844,8 +844,8 @@ std::vector<AxrShaderImageSamplerBufferLayoutConst_T> AxrShaderPropertiesRAII::g
 }
 
 AxrShaderPushConstantsBufferLayoutConst_T AxrShaderPropertiesRAII::getPushConstantsBufferLayout(
-    const AxrShaderBufferLayoutConst_T* bufferLayouts,
-    const uint32_t bufferLayoutsCount
+    const uint32_t bufferLayoutsCount,
+    const AxrShaderBufferLayoutConst_T* bufferLayouts
 ) {
     if (bufferLayouts == nullptr) {
         return {};

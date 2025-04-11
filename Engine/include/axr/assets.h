@@ -124,10 +124,10 @@ typedef const AxrShaderPropertiesStructure* AxrShaderPropertiesConst_T;
 /// Vertex shader properties
 struct AxrVertexShaderProperties {
     const AxrShaderStageEnum Type = AXR_SHADER_STAGE_VERTEX;
-    AxrShaderVertexAttribute* VertexAttributes;
     uint32_t VertexAttributesCount;
-    AxrShaderBufferLayout_T* BufferLayouts;
+    AxrShaderVertexAttribute* VertexAttributes;
     uint32_t BufferLayoutsCount;
+    AxrShaderBufferLayout_T* BufferLayouts;
 };
 
 /// AxrVertexShaderProperties Handle Type
@@ -138,8 +138,8 @@ typedef const AxrVertexShaderProperties* AxrVertexShaderPropertiesConst_T;
 /// Fragment shader properties
 struct AxrFragmentShaderProperties {
     const AxrShaderStageEnum Type = AXR_SHADER_STAGE_FRAGMENT;
-    AxrShaderBufferLayout_T* BufferLayouts;
     uint32_t BufferLayoutsCount;
+    AxrShaderBufferLayout_T* BufferLayouts;
 };
 
 /// AxrFragmentShaderProperties Handle Type
@@ -351,8 +351,8 @@ typedef const AxrShaderPushConstantsBufferLink* AxrShaderPushConstantsBufferLink
 
 /// Shader Values
 struct AxrShaderValues {
-    AxrShaderBufferLink_T* BufferLinks;
     uint32_t BufferLinksCount;
+    AxrShaderBufferLink_T* BufferLinks;
 };
 
 /// AxrShaderValues Handle Type
@@ -476,18 +476,18 @@ struct AxrVertex {
 
 /// Mesh
 struct AxrMesh {
-    AxrVertex* Vertices;
     uint32_t VerticesCount;
-    uint32_t* Indices;
+    AxrVertex* Vertices;
     uint32_t IndicesCount;
+    uint32_t* Indices;
 };
 
 /// Model Config
 struct AxrModelConfig {
     const char* Name;
     const char* FilePath;
-    AxrMesh* Meshes;
     uint32_t MeshesCount;
+    AxrMesh* Meshes;
 };
 
 // ----------------------------------------- //
@@ -502,20 +502,20 @@ typedef class AxrModel* AxrModel_T;
 // ----------------------------------------- //
 extern "C" {
     /// Clone the given vertices
-    /// @param vertices Vertex array to clone
     /// @param verticesCount Number of vertices in the given array
+    /// @param vertices Vertex array to clone
     /// @returns A cloned array of the given vertices
-    AXR_API AxrVertex* axrMeshCloneVertices(const AxrVertex* vertices, uint32_t verticesCount);
+    AXR_API AxrVertex* axrMeshCloneVertices(uint32_t verticesCount, const AxrVertex* vertices);
     /// Clone the given indices
-    /// @param indices Index array to clone
     /// @param indicesCount Number of indices in the given array
+    /// @param indices Index array to clone
     /// @returns A cloned array of the given indices
-    AXR_API uint32_t* axrMeshCloneIndices(const uint32_t* indices, uint32_t indicesCount);
+    AXR_API uint32_t* axrMeshCloneIndices(uint32_t indicesCount, const uint32_t* indices);
     /// Clone the given meshes
-    /// @param meshes Mesh array to clone
     /// @param meshesCount Number of meshes in the given array
+    /// @param meshes Mesh array to clone
     /// @returns A cloned array of the given meshes
-    AXR_API AxrMesh* axrModelCloneMeshes(const AxrMesh* meshes, uint32_t meshesCount);
+    AXR_API AxrMesh* axrModelCloneMeshes(uint32_t meshesCount, const AxrMesh* meshes);
 
     /// Get the model's name
     /// @param model Model to use

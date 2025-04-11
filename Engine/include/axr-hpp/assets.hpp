@@ -56,10 +56,10 @@ namespace axr {
         // Public Variables
         // ----------------------------------------- //
         const AxrShaderStageEnum Type = AXR_SHADER_STAGE_VERTEX;
-        AxrShaderVertexAttribute* VertexAttributes;
         uint32_t VertexAttributesCount;
-        AxrShaderBufferLayout_T* BufferLayouts;
+        AxrShaderVertexAttribute* VertexAttributes;
         uint32_t BufferLayoutsCount;
+        AxrShaderBufferLayout_T* BufferLayouts;
 
         // ----------------------------------------- //
         // Special Functions
@@ -69,10 +69,10 @@ namespace axr {
 
         /// Default Constructor
         VertexShaderProperties():
-            VertexAttributes(nullptr),
             VertexAttributesCount(0),
-            BufferLayouts(nullptr),
-            BufferLayoutsCount(0) {
+            VertexAttributes(nullptr),
+            BufferLayoutsCount(0),
+            BufferLayouts(nullptr) {
         }
 
         /// Copy Constructor
@@ -272,8 +272,8 @@ namespace axr {
         // Public Variables
         // ----------------------------------------- //
         const AxrShaderStageEnum Type = AXR_SHADER_STAGE_FRAGMENT;
-        AxrShaderBufferLayout_T* BufferLayouts;
         uint32_t BufferLayoutsCount;
+        AxrShaderBufferLayout_T* BufferLayouts;
 
         // ----------------------------------------- //
         // Special Functions
@@ -283,8 +283,8 @@ namespace axr {
 
         /// Default Constructor
         FragmentShaderProperties():
-            BufferLayouts(nullptr),
-            BufferLayoutsCount(0) {
+            BufferLayoutsCount(0),
+            BufferLayouts(nullptr) {
         }
 
         /// Copy Constructor
@@ -655,8 +655,8 @@ namespace axr {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-        AxrShaderBufferLink_T* BufferLinks;
         uint32_t BufferLinksCount;
+        AxrShaderBufferLink_T* BufferLinks;
 
         // ----------------------------------------- //
         // Special Functions
@@ -666,8 +666,8 @@ namespace axr {
 
         /// Default Constructor
         ShaderValues():
-            BufferLinks(nullptr),
-            BufferLinksCount(0) {
+            BufferLinksCount(0),
+            BufferLinks(nullptr) {
         }
 
         /// Copy Constructor
@@ -1181,10 +1181,10 @@ namespace axr {
         // Public Variables
         // ----------------------------------------- //
 
-        axr::Vertex* Vertices;
         uint32_t VerticesCount;
-        uint32_t* Indices;
+        axr::Vertex* Vertices;
         uint32_t IndicesCount;
+        uint32_t* Indices;
 
         // ----------------------------------------- //
         // Special Functions
@@ -1193,10 +1193,10 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        Mesh(): Vertices(nullptr),
-            VerticesCount(0),
-            Indices(nullptr),
-            IndicesCount(0) {
+        Mesh(): VerticesCount(0),
+            Vertices(nullptr),
+            IndicesCount(0),
+            Indices(nullptr) {
         }
 
         /// Constructor
@@ -1204,18 +1204,18 @@ namespace axr {
         /// @param indices Indices to copy
         Mesh(const std::vector<axr::Vertex>& vertices, const std::vector<uint32_t>& indices) {
             VerticesCount = static_cast<uint32_t>(vertices.size());
-            Vertices = cloneVertices(vertices.data(), VerticesCount);
+            Vertices = cloneVertices(VerticesCount, vertices.data());
             IndicesCount = static_cast<uint32_t>(indices.size());
-            Indices = cloneIndices(indices.data(), IndicesCount);
+            Indices = cloneIndices(IndicesCount, indices.data());
         }
 
         /// Copy Constructor
         /// @param src Source Mesh to copy from
         Mesh(const Mesh& src) {
             VerticesCount = src.VerticesCount;
-            Vertices = cloneVertices(src.Vertices, src.VerticesCount);
+            Vertices = cloneVertices(src.VerticesCount, src.Vertices);
             IndicesCount = src.IndicesCount;
-            Indices = cloneIndices(src.Indices, src.IndicesCount);
+            Indices = cloneIndices(src.IndicesCount, src.Indices);
         }
 
         /// Move Constructor
@@ -1248,9 +1248,9 @@ namespace axr {
                 cleanup();
 
                 VerticesCount = src.VerticesCount;
-                Vertices = cloneVertices(src.Vertices, src.VerticesCount);
+                Vertices = cloneVertices(src.VerticesCount, src.Vertices);
                 IndicesCount = src.IndicesCount;
-                Indices = cloneIndices(src.Indices, src.IndicesCount);
+                Indices = cloneIndices(src.IndicesCount, src.Indices);
             }
 
             return *this;
@@ -1309,22 +1309,22 @@ namespace axr {
         }
 
         /// Clone the given vertices
-        /// @param vertices Vertex array to clone
         /// @param verticesCount Number of vertices in the given array
+        /// @param vertices Vertex array to clone
         /// @returns A cloned array of the given vertices
-        axr::Vertex* cloneVertices(const axr::Vertex* vertices, const uint32_t verticesCount) {
+        axr::Vertex* cloneVertices(const uint32_t verticesCount, const axr::Vertex* vertices) {
             return reinterpret_cast<axr::Vertex*>(axrMeshCloneVertices(
-                reinterpret_cast<const AxrVertex*>(vertices),
-                verticesCount
+                verticesCount,
+                reinterpret_cast<const AxrVertex*>(vertices)
             ));
         }
 
         /// Clone the given indices
-        /// @param indices Index array to clone
         /// @param indicesCount Number of indices in the given array
+        /// @param indices Index array to clone
         /// @returns A cloned array of the given indices
-        uint32_t* cloneIndices(const uint32_t* indices, const uint32_t indicesCount) {
-            return axrMeshCloneIndices(indices, indicesCount);
+        uint32_t* cloneIndices(const uint32_t indicesCount, const uint32_t* indices) {
+            return axrMeshCloneIndices(indicesCount, indices);
         }
     };
 
@@ -1341,8 +1341,8 @@ namespace axr {
 
         const char* Name;
         const char* FilePath;
-        axr::Mesh* Meshes;
         uint32_t MeshesCount;
+        axr::Mesh* Meshes;
 
         // ----------------------------------------- //
         // Special Functions
@@ -1354,8 +1354,8 @@ namespace axr {
         ModelConfig():
             Name(""),
             FilePath(nullptr),
-            Meshes(nullptr),
-            MeshesCount(0) {
+            MeshesCount(0),
+            Meshes(nullptr) {
         }
 
         /// Constructor
@@ -1365,7 +1365,7 @@ namespace axr {
             Name(name),
             FilePath(nullptr) {
             MeshesCount = static_cast<uint32_t>(meshes.size());
-            Meshes = cloneMeshes(meshes.data(), MeshesCount);
+            Meshes = cloneMeshes(MeshesCount, meshes.data());
         }
 
         /// Constructor
@@ -1374,8 +1374,8 @@ namespace axr {
         ModelConfig(const char* name, const char* filePath):
             Name(name),
             FilePath(filePath),
-            Meshes(nullptr),
-            MeshesCount(0) {
+            MeshesCount(0),
+            Meshes(nullptr) {
         }
 
         /// Copy Constructor
@@ -1384,7 +1384,7 @@ namespace axr {
             Name = src.Name;
             FilePath = src.FilePath;
             MeshesCount = src.MeshesCount;
-            Meshes = cloneMeshes(src.Meshes, src.MeshesCount);
+            Meshes = cloneMeshes(src.MeshesCount, src.Meshes);
         }
 
         /// Move Constructor
@@ -1419,7 +1419,7 @@ namespace axr {
                 Name = src.Name;
                 FilePath = src.FilePath;
                 MeshesCount = src.MeshesCount;
-                Meshes = cloneMeshes(src.Meshes, src.MeshesCount);
+                Meshes = cloneMeshes(src.MeshesCount, src.Meshes);
             }
 
             return *this;
@@ -1477,13 +1477,13 @@ namespace axr {
         }
 
         /// Clone the given meshes
-        /// @param meshes Mesh array to clone
         /// @param meshesCount Number of meshes in the given array
+        /// @param meshes Mesh array to clone
         /// @returns A cloned array of the given meshes
-        axr::Mesh* cloneMeshes(const axr::Mesh* meshes, const uint32_t meshesCount) const {
+        axr::Mesh* cloneMeshes(const uint32_t meshesCount, const axr::Mesh* meshes) const {
             return reinterpret_cast<axr::Mesh*>(axrModelCloneMeshes(
-                reinterpret_cast<const AxrMesh*>(meshes),
-                meshesCount
+                meshesCount,
+                reinterpret_cast<const AxrMesh*>(meshes)
             ));
         }
     };

@@ -161,10 +161,10 @@ namespace axr {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-        AxrVulkanApiLayer_T* ApiLayers;
         uint32_t ApiLayersCount;
-        AxrVulkanExtension_T* Extensions;
+        AxrVulkanApiLayer_T* ApiLayers;
         uint32_t ExtensionsCount;
+        AxrVulkanExtension_T* Extensions;
         axr::VulkanWindowConfig* WindowConfig;
 
         // ----------------------------------------- //
