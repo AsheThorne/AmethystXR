@@ -26,6 +26,15 @@ AxrAssetCollection_T axrSceneGetAssetCollection(const AxrScene_T scene) {
     return scene->getAssetCollection();
 }
 
+entt::registry* axrSceneGetEcsRegistry(const AxrScene_T scene) {
+    if (scene == nullptr) {
+        axrLogErrorLocation("`scene` is null");
+        return nullptr;
+    }
+
+    return scene->getEcsRegistry();
+}
+
 // ----------------------------------------- //
 // Internal Functions
 // ----------------------------------------- //
@@ -42,6 +51,7 @@ AxrScene::AxrScene(const char* name):
 
 AxrScene::AxrScene(AxrScene&& src) noexcept {
     m_AssetCollection = std::move(src.m_AssetCollection);
+    m_Registry = std::move(src.m_Registry);
 
     m_Name = src.m_Name;
 
@@ -57,6 +67,7 @@ AxrScene& AxrScene::operator=(AxrScene&& src) noexcept {
         cleanup();
 
         m_AssetCollection = std::move(src.m_AssetCollection);
+        m_Registry = std::move(src.m_Registry);
 
         m_Name = src.m_Name;
 
@@ -76,9 +87,14 @@ AxrAssetCollection_T AxrScene::getAssetCollection() {
     return &m_AssetCollection;
 }
 
+entt::registry* AxrScene::getEcsRegistry() {
+    return &m_Registry;
+}
+
 // ---- Private Functions ----
 
 void AxrScene::cleanup() {
+    m_Registry.clear();
     m_AssetCollection.cleanup();
     m_Name = "";
 }

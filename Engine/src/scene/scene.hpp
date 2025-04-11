@@ -51,6 +51,9 @@ public:
     /// Get the scene asset collection
     /// @returns A handle to the scene asset collection
     [[nodiscard]] AxrAssetCollection_T getAssetCollection();
+    /// Get the scene ECS registry
+    /// @returns A handle to the scene ECS registry
+    [[nodiscard]] entt::registry* getEcsRegistry();
 
 private:
     // ----------------------------------------- //
@@ -58,6 +61,7 @@ private:
     // ----------------------------------------- //
     const char* m_Name;
     AxrAssetCollection m_AssetCollection;
+    entt::registry m_Registry;
 
     // ----------------------------------------- //
     // Private Functions

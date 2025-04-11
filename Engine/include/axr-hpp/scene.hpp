@@ -37,6 +37,12 @@ namespace axr {
             return axrSceneGetAssetCollection(m_Scene);
         }
 
+        /// Get the scene ECS registry
+        /// @returns The scene ECS registry
+        [[nodiscard]] entt::registry* getEcsRegistry() const {
+            return axrSceneGetEcsRegistry(m_Scene);
+        }
+
     private:
         // ----------------------------------------- //
         // Private Variables

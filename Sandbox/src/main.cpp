@@ -65,8 +65,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 
     const axr::ShaderValues vertexShaderValues;
     const axr::ShaderValues fragmentShaderValues;
+    const char* materialName = "MyMaterial";
     const axr::MaterialConfig materialConfig(
-        "MyMaterial",
+        materialName,
         vertexShaderConfig.Name,
         fragmentShaderConfig.Name,
         vertexShaderValues,
@@ -76,6 +77,20 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
     if (AXR_FAILED(globalAssetCollection.createMaterial(materialConfig))) return 0;
 
     if (AXR_FAILED(globalAssetCollection.createModel("Triangle", axr::ModelEngineAssetEnum::Triangle))) return 0;
+
+    const char* scene1Name = "Scene1";
+    if (AXR_FAILED(app.createScene(scene1Name))) return 0;
+    const axr::Scene scene1 = app.findScene(scene1Name);
+    entt::registry* scene1Registry = scene1.getEcsRegistry();
+    const entt::entity triangleEntity = scene1Registry->create();
+    scene1Registry->emplace<AxrModelComponent>(
+        triangleEntity,
+        AxrModelComponent{
+            .ModelName = "Triangle",
+            .MaterialNamesCount = 1,
+            .MaterialNames = &materialName,
+        }
+    );
 
     if (AXR_FAILED(app.setup())) return 0;
 

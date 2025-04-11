@@ -7,6 +7,43 @@
 #include "axr/assets.h"
 
 // ----------------------------------------- //
+// EnTT Headers
+// ----------------------------------------- //
+#include <entt/entt.hpp>
+
+// ----------------------------------------- //
+// GLM Headers
+// ----------------------------------------- //
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+
+// ---------------------------------------------------------------------------------- //
+//                                 Entity Components                                  //
+// ---------------------------------------------------------------------------------- //
+
+// ----------------------------------------- //
+// Structs
+// ----------------------------------------- //
+
+/// Entity transform component
+struct AxrTransformComponent {
+    glm::vec3 Position;
+    glm::vec3 Scale;
+    glm::quat Orientation;
+};
+
+/// Entity model component
+struct AxrModelComponent {
+    const char* ModelName;
+    uint32_t MaterialNamesCount;
+    const char** MaterialNames;
+};
+
+// ---------------------------------------------------------------------------------- //
+//                                      Scene                                         //
+// ---------------------------------------------------------------------------------- //
+
+// ----------------------------------------- //
 // Forward Declared Handles
 // ----------------------------------------- //
 
@@ -25,4 +62,8 @@ extern "C" {
     /// @param scene The scene to use
     /// @returns A handle to the scene asset collection
     AXR_API AxrAssetCollection_T axrSceneGetAssetCollection(AxrScene_T scene);
+    /// Get the scene ECS registry
+    /// @param scene The scene to use
+    /// @returns A handle to the scene ECS registry
+    AXR_API entt::registry* axrSceneGetEcsRegistry(AxrScene_T scene);
 }
