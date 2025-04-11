@@ -5,6 +5,7 @@
 #include "axr/logger.h"
 #include "shaderEngineAssets.hpp"
 #include "materialEngineAssets.hpp"
+#include "modelEngineAssets.hpp"
 
 // ----------------------------------------- //
 // External Functions
@@ -114,6 +115,19 @@ AxrResult axrAssetCollectionCreateModel(
     }
 
     return assetCollection->createModel(*modelConfig);
+}
+
+AxrResult axrAssetCollectionCreateEngineAssetModel(
+    const AxrAssetCollection_T assetCollection,
+    const char* modelName,
+    const AxrModelEngineAssetEnum engineAssetEnum
+) {
+    if (assetCollection == nullptr) {
+        axrLogErrorLocation("`assetCollection` is null.");
+        return AXR_ERROR;
+    }
+
+    return assetCollection->createModel(modelName, engineAssetEnum);
 }
 
 // ----------------------------------------- //
@@ -373,6 +387,38 @@ AxrResult AxrAssetCollection::createModel(const AxrModelConfig& modelConfig) {
     // ----------------------------------------- //
 
     const auto insertResult = m_Models.insert(std::pair(modelConfig.Name, AxrModel(modelConfig)));
+    if (!insertResult.second) {
+        // If the insertion failed
+        return AXR_ERROR;
+    }
+
+    // TODO: Reload vulkan scene assets if they're already loaded.
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrAssetCollection::createModel(const char* modelName, AxrModelEngineAssetEnum engineAssetEnum) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Models.contains(modelName)) {
+        axrLogError("Unable to create model. A model named: {0} already exists.", modelName);
+        return AXR_ERROR;
+    }
+
+    AxrModel model;
+    const AxrResult axrResult = axrCreateEngineAssetModel(modelName, engineAssetEnum, model);
+    if (AXR_FAILED(axrResult)) {
+        axrLogErrorLocation("Failed to create model engine asset.");
+        return axrResult;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const auto insertResult = m_Models.insert(std::pair(model.getName(), std::move(model)));
     if (!insertResult.second) {
         // If the insertion failed
         return AXR_ERROR;

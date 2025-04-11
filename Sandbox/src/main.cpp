@@ -75,6 +75,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
     if (!materialConfig.isValid()) return 0;
     if (AXR_FAILED(globalAssetCollection.createMaterial(materialConfig))) return 0;
 
+    if (AXR_FAILED(globalAssetCollection.createModel("Triangle", axr::ModelEngineAssetEnum::Triangle))) return 0;
+
     if (AXR_FAILED(app.setup())) return 0;
 
     axr::WindowSystem windowSystem = app.getWindowSystem();

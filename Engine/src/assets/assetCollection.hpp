@@ -97,6 +97,11 @@ public:
     /// @param modelConfig Model config
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult createModel(const AxrModelConfig& modelConfig);
+    /// Create a new engine asset model
+    /// @param modelName Model name
+    /// @param engineAssetEnum Engine asset enum
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createModel(const char* modelName, AxrModelEngineAssetEnum engineAssetEnum);
 
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.

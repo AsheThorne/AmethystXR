@@ -91,6 +91,7 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/assets/model.hpp
     ${AXR_SRC_DIR}/assets/shaderEngineAssets.hpp
     ${AXR_SRC_DIR}/assets/materialEngineAssets.hpp
+    ${AXR_SRC_DIR}/assets/modelEngineAssets.hpp
     ${AXR_SRC_DIR}/assets/shaderProperties.hpp
     ${AXR_SRC_DIR}/assets/shaderValues.hpp
     ${AXR_SRC_DIR}/assets/assetsUtils.hpp
@@ -132,6 +133,7 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/assets/model.cpp
     ${AXR_SRC_DIR}/assets/shaderEngineAssets.cpp
     ${AXR_SRC_DIR}/assets/materialEngineAssets.cpp
+    ${AXR_SRC_DIR}/assets/modelEngineAssets.cpp
     ${AXR_SRC_DIR}/assets/bufferEngineAssets.cpp
     ${AXR_SRC_DIR}/assets/shaderProperties.cpp
     ${AXR_SRC_DIR}/assets/shaderValues.cpp

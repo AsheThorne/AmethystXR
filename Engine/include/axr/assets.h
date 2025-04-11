@@ -554,9 +554,20 @@ enum AxrPushConstantsBufferEngineAssetEnum {
     AXR_PUSH_CONSTANTS_BUFFER_ENGINE_ASSET_MODEL_MATRIX,
 };
 
+// ---- Models ----
+
+/// Axr engine defined model enum
+enum AxrModelEngineAssetEnum {
+    AXR_MODEL_ENGINE_ASSET_UNDEFINED = 0,
+    AXR_MODEL_ENGINE_ASSET_TRIANGLE,
+};
+
+
 // ----------------------------------------- //
 // Structs
 // ----------------------------------------- //
+
+// ---- Materials ----
 
 /// Engine asset material named 'Default Material' values
 struct AxrMaterialEngineAsset_DefaultMaterial {
@@ -681,5 +692,16 @@ extern "C" {
     AXR_API AxrResult axrAssetCollectionCreateModel(
         AxrAssetCollection_T assetCollection,
         const AxrModelConfig* modelConfig
+    );
+
+    /// Create a new engine asset model
+    /// @param assetCollection Asset collection to use
+    /// @param modelName Model name
+    /// @param engineAssetEnum Model engine asset
+    /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrAssetCollectionCreateEngineAssetModel(
+        AxrAssetCollection_T assetCollection,
+        const char* modelName,
+        AxrModelEngineAssetEnum engineAssetEnum
     );
 }

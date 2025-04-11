@@ -1560,9 +1560,19 @@ namespace axr {
         ModelMatrix = AXR_PUSH_CONSTANTS_BUFFER_ENGINE_ASSET_MODEL_MATRIX,
     };
 
+    // ---- Models ----
+
+    /// Engine defined model enum
+    enum class ModelEngineAssetEnum {
+        Undefined = AXR_MODEL_ENGINE_ASSET_UNDEFINED,
+        Triangle = AXR_MODEL_ENGINE_ASSET_TRIANGLE,
+    };
+
     // ----------------------------------------- //
     // Structs
     // ----------------------------------------- //
+
+    // ---- Materials ----
 
     /// Engine asset material named 'Default Material' values
     struct MaterialEngineAsset_DefaultMaterial {
@@ -1776,6 +1786,21 @@ namespace axr {
             return static_cast<axr::Result>(axrAssetCollectionCreateModel(
                 m_AssetCollection,
                 modelConfig.toRaw()
+            ));
+        }
+
+        /// Create a new engine asset model
+        /// @param modelName Model name
+        /// @param engineAssetEnum Model engine asset
+        /// @returns AXR_SUCCESS if the function succeeded
+        [[nodiscard]] axr::Result createModel(
+            const char* modelName,
+            axr::ModelEngineAssetEnum engineAssetEnum
+        ) const {
+            return static_cast<axr::Result>(axrAssetCollectionCreateEngineAssetModel(
+                m_AssetCollection,
+                modelName,
+                static_cast<AxrModelEngineAssetEnum>(engineAssetEnum)
             ));
         }
 
