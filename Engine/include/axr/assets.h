@@ -506,16 +506,30 @@ extern "C" {
     /// @param vertices Vertex array to clone
     /// @returns A cloned array of the given vertices
     AXR_API AxrVertex* axrMeshCloneVertices(uint32_t verticesCount, const AxrVertex* vertices);
+    /// Destroy the given vertices
+    /// @param verticesCount Number of vertices in the given array
+    /// @param vertices Vertex array to destroy
+    AXR_API void axrMeshDestroyVertices(uint32_t* verticesCount, AxrVertex** vertices);
+
     /// Clone the given indices
     /// @param indicesCount Number of indices in the given array
     /// @param indices Index array to clone
     /// @returns A cloned array of the given indices
     AXR_API uint32_t* axrMeshCloneIndices(uint32_t indicesCount, const uint32_t* indices);
+    /// Destroy the given indices
+    /// @param indicesCount Number of indices in the given array
+    /// @param indices Index array to destroy
+    AXR_API void axrMeshDestroyIndices(uint32_t* indicesCount, uint32_t** indices);
+
     /// Clone the given meshes
     /// @param meshesCount Number of meshes in the given array
     /// @param meshes Mesh array to clone
     /// @returns A cloned array of the given meshes
     AXR_API AxrMesh* axrModelCloneMeshes(uint32_t meshesCount, const AxrMesh* meshes);
+    /// Destroy the given meshes
+    /// @param meshesCount Number of meshes in the given array
+    /// @param meshes Mesh array to destroy
+    AXR_API void axrModelDestroyMeshes(uint32_t* meshesCount, AxrMesh** meshes);
 
     /// Get the model's name
     /// @param model Model to use

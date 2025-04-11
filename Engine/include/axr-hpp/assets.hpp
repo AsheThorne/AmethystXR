@@ -1299,13 +1299,8 @@ namespace axr {
 
         /// Clean up this class
         void cleanup() {
-            VerticesCount = 0;
-            delete[] Vertices;
-            Vertices = nullptr;
-
-            IndicesCount = 0;
-            delete[] Indices;
-            Indices = nullptr;
+            axrMeshDestroyVertices(&VerticesCount, reinterpret_cast<AxrVertex**>(&Vertices));
+            axrMeshDestroyIndices(&IndicesCount, &Indices);
         }
 
         /// Clone the given vertices
@@ -1470,10 +1465,7 @@ namespace axr {
         void cleanup() {
             Name = "";
             FilePath = nullptr;
-
-            MeshesCount = 0;
-            delete[] Meshes;
-            Meshes = nullptr;
+            axrModelDestroyMeshes(&MeshesCount, reinterpret_cast<AxrMesh**>(&Meshes));
         }
 
         /// Clone the given meshes

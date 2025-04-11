@@ -2,29 +2,12 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "model.hpp"
+#include "../utils.hpp"
 #include "axr/logger.h"
 
 // ----------------------------------------- //
 // External Functions
 // ----------------------------------------- //
-
-AxrVertex* axrMeshCloneVertices(const uint32_t verticesCount, const AxrVertex* vertices) {
-    if (vertices == nullptr) {
-        axrLogErrorLocation("`vertices` is null.");
-        return {};
-    }
-
-    return AxrModel::cloneVertices(verticesCount, vertices);
-}
-
-uint32_t* axrMeshCloneIndices(const uint32_t indicesCount, const uint32_t* indices) {
-    if (indices == nullptr) {
-        axrLogErrorLocation("`indices` is null.");
-        return {};
-    }
-
-    return AxrModel::cloneIndices(indicesCount, indices);
-}
 
 AxrMesh* axrModelCloneMeshes(const uint32_t meshesCount, const AxrMesh* meshes) {
     if (meshes == nullptr) {
@@ -33,6 +16,20 @@ AxrMesh* axrModelCloneMeshes(const uint32_t meshesCount, const AxrMesh* meshes) 
     }
 
     return AxrModel::cloneMeshes(meshesCount, meshes);
+}
+
+void axrModelDestroyMeshes(uint32_t* meshesCount, AxrMesh** meshes) {
+    if (meshesCount == nullptr) {
+        axrLogErrorLocation("`meshesCount` is null.");
+        return;
+    }
+
+    if (meshes == nullptr) {
+        axrLogErrorLocation("`meshes` is null.");
+        return;
+    }
+
+    return AxrModel::destroyMeshes(*meshesCount, *meshes);
 }
 
 const char* axrModelGetName(const AxrModel_T model) {
@@ -52,37 +49,29 @@ const char* axrModelGetName(const AxrModel_T model) {
 
 AxrModel::AxrModel():
     m_Name(""),
-    m_FilePath(nullptr),
-    m_MeshesCount(0),
-    m_Meshes(nullptr) {
+    m_FilePath(nullptr) {
 }
 
 AxrModel::AxrModel(const AxrModelConfig& config):
     m_Name(config.Name),
-    m_FilePath(config.FilePath),
-    m_MeshesCount(0),
-    m_Meshes(nullptr) {
-    m_MeshesCount = config.MeshesCount;
-    m_Meshes = cloneMeshes(config.MeshesCount, config.Meshes);
+    m_FilePath(config.FilePath) {
+    m_Meshes = toVector(config.MeshesCount, config.Meshes);
 }
 
 AxrModel::AxrModel(const AxrModel& src) {
     m_Name = src.m_Name;
     m_FilePath = src.m_FilePath;
-    m_MeshesCount = src.m_MeshesCount;
-    m_Meshes = cloneMeshes(src.m_MeshesCount, src.m_Meshes);
+    m_Meshes = src.m_Meshes;
 }
 
 AxrModel::AxrModel(AxrModel&& src) noexcept {
+    m_Meshes = std::move(src.m_Meshes);
+
     m_Name = src.m_Name;
     m_FilePath = src.m_FilePath;
-    m_MeshesCount = src.m_MeshesCount;
-    m_Meshes = src.m_Meshes;
 
     src.m_Name = "";
     src.m_FilePath = nullptr;
-    src.m_MeshesCount = 0;
-    src.m_Meshes = nullptr;
 }
 
 AxrModel::~AxrModel() {
@@ -95,8 +84,7 @@ AxrModel& AxrModel::operator=(const AxrModel& src) {
 
         m_Name = src.m_Name;
         m_FilePath = src.m_FilePath;
-        m_MeshesCount = src.m_MeshesCount;
-        m_Meshes = cloneMeshes(src.m_MeshesCount, src.m_Meshes);
+        m_Meshes = src.m_Meshes;
     }
 
     return *this;
@@ -106,15 +94,13 @@ AxrModel& AxrModel::operator=(AxrModel&& src) noexcept {
     if (this != &src) {
         cleanup();
 
+        m_Meshes = std::move(src.m_Meshes);
+
         m_Name = src.m_Name;
         m_FilePath = src.m_FilePath;
-        m_MeshesCount = src.m_MeshesCount;
-        m_Meshes = src.m_Meshes;
 
         src.m_Name = "";
         src.m_FilePath = nullptr;
-        src.m_MeshesCount = 0;
-        src.m_Meshes = nullptr;
     }
 
     return *this;
@@ -126,71 +112,78 @@ const char* AxrModel::getName() const {
     return m_Name;
 }
 
+bool AxrModel::isLoaded() const {
+    return !m_Meshes.empty();
+}
+
+AxrResult AxrModel::loadFile() const {
+    if (axrStringIsEmpty(m_FilePath)) {
+        if (m_Meshes.empty()) {
+            axrLogErrorLocation("There is no file path for the model and no meshes were assigned.");
+            return AXR_ERROR;
+        }
+
+        // File path isn't required if mesh data has been provided manually
+        return AXR_SUCCESS;
+    }
+
+    // TODO: implement this
+    // return axrLoadModel(m_FilePath, m_Meshes);
+    return AXR_ERROR;
+}
+
+void AxrModel::unloadFile() const {
+    // Don't clear the meshes if there is no original data file to be loaded again
+    if (axrStringIsEmpty(m_FilePath)) {
+        return;
+    }
+
+    m_Meshes.clear();
+}
+
+// ---- Public Static Functions ----
+
 AxrMesh* AxrModel::cloneMeshes(const uint32_t meshesCount, const AxrMesh* meshes) {
     if (meshes == nullptr) return nullptr;
 
     AxrMesh* newMeshes = new AxrMesh[meshesCount];
     for (uint32_t i = 0; i < meshesCount; ++i) {
-        newMeshes[i] = cloneMesh(meshes[i]);
+        newMeshes[i] = AxrMeshRAII::cloneMesh(meshes[i]);
     }
 
     return newMeshes;
 }
 
-AxrMesh AxrModel::cloneMesh(const AxrMesh& mesh) {
-    return AxrMesh{
-        .VerticesCount = mesh.VerticesCount,
-        .Vertices = cloneVertices(mesh.VerticesCount, mesh.Vertices),
-        .IndicesCount = mesh.IndicesCount,
-        .Indices = cloneIndices(mesh.IndicesCount, mesh.Indices),
-    };
-}
+void AxrModel::destroyMeshes(uint32_t& meshesCount, AxrMesh*& meshes) {
+    if (meshes != nullptr) {
+        for (uint32_t i = 0; i < meshesCount; ++i) {
+            AxrMeshRAII::destroyMesh(meshes[i]);
+        }
 
-AxrVertex* AxrModel::cloneVertices(const uint32_t verticesCount, const AxrVertex* vertices) {
-    if (vertices == nullptr) return nullptr;
-
-    AxrVertex* newVertices = new AxrVertex[verticesCount];
-    for (uint32_t i = 0; i < verticesCount; ++i) {
-        newVertices[i] = vertices[i];
+        delete[] meshes;
+        meshes = nullptr;
     }
 
-    return newVertices;
+    meshesCount = 0;
 }
 
-uint32_t* AxrModel::cloneIndices(const uint32_t indicesCount, const uint32_t* indices) {
-    if (indices == nullptr) return nullptr;
-
-    uint32_t* newIndices = new uint32_t[indicesCount];
-    for (uint32_t i = 0; i < indicesCount; ++i) {
-        newIndices[i] = indices[i];
-    }
-
-    return newIndices;
-}
+// ---- Private Functions ----
 
 void AxrModel::cleanup() {
-    destroyMeshes();
-
     m_Name = "";
     m_FilePath = nullptr;
+    m_Meshes.clear();
 }
 
-void AxrModel::destroyMeshes() {
-    for (uint32_t i = 0; i < m_MeshesCount; ++i) {
-        destroyMesh(m_Meshes[i]);
+// ---- Private Static Functions ----
+
+std::vector<AxrMeshRAII> AxrModel::toVector(const uint32_t meshesCount, const AxrMesh* meshes) {
+    if (meshes == nullptr) return {};
+
+    std::vector<AxrMeshRAII> meshVector = std::vector<AxrMeshRAII>(meshesCount);
+    for (uint32_t i = 0; i < meshesCount; ++i) {
+        meshVector[i] = AxrMeshRAII(meshes[i]);
     }
 
-    delete[] m_Meshes;
-    m_Meshes = nullptr;
-    m_MeshesCount = 0;
-}
-
-void AxrModel::destroyMesh(AxrMesh& mesh) const {
-    delete[] mesh.Vertices;
-    mesh.Vertices = nullptr;
-    mesh.VerticesCount = 0;
-
-    delete[] mesh.Indices;
-    mesh.Indices = nullptr;
-    mesh.IndicesCount = 0;
+    return meshVector;
 }
