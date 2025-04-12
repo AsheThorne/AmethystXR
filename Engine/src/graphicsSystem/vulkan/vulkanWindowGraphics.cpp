@@ -20,6 +20,7 @@ AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
     m_Instance(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
+    m_GraphicsCommandPool(VK_NULL_HANDLE),
     m_SwapchainImageLayout(vk::ImageLayout::ePresentSrcKHR),
     m_Surface(VK_NULL_HANDLE),
     m_SwapchainColorFormat(vk::Format::eUndefined),
@@ -113,6 +114,16 @@ AxrResult AxrVulkanWindowGraphics::setSetupConfigVariables(const SetupConfig& co
         return AXR_ERROR;
     }
 
+    if (m_GraphicsCommandPool != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Graphics command pool isn't null.");
+        return AXR_ERROR;
+    }
+
+    if (config.GraphicsCommandPool == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Config graphics command pool is null.");
+        return AXR_ERROR;
+    }
+
     if (m_QueueFamilies.isValid()) {
         axrLogErrorLocation("Queue families are already set.");
         return AXR_ERROR;
@@ -129,6 +140,7 @@ AxrResult AxrVulkanWindowGraphics::setSetupConfigVariables(const SetupConfig& co
     m_Instance = config.Instance;
     m_PhysicalDevice = config.PhysicalDevice;
     m_Device = config.Device;
+    m_GraphicsCommandPool = config.GraphicsCommandPool;
     m_QueueFamilies = config.QueueFamilies;
 
     // TODO: Don't take the whole config object. only take what it needs
@@ -146,6 +158,7 @@ void AxrVulkanWindowGraphics::resetSetupConfigVariables() {
     m_Instance = VK_NULL_HANDLE;
     m_PhysicalDevice = VK_NULL_HANDLE;
     m_Device = VK_NULL_HANDLE;
+    m_GraphicsCommandPool = VK_NULL_HANDLE;
     m_QueueFamilies.reset();
 }
 
@@ -247,6 +260,12 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
         return result;
     }
 
+    result = createCommandBuffers();
+    if (AXR_FAILED(result)) {
+        resetWindowConfiguration();
+        return result;
+    }
+
     result = setSwapchainExtent(surfaceDetails.Capabilities);
     if (AXR_FAILED(result)) {
         resetWindowConfiguration();
@@ -286,6 +305,7 @@ void AxrVulkanWindowGraphics::resetWindowConfiguration() {
     resetSwapchainImages();
     destroySwapchain();
     resetSwapchainExtent();
+    destroyCommandBuffers();
     destroyRenderPass();
     resetSwapchainPresentationMode();
     resetSwapchainFormats();
@@ -689,6 +709,28 @@ AxrResult AxrVulkanWindowGraphics::createRenderPass() {
 
 void AxrVulkanWindowGraphics::destroyRenderPass() {
     axrDestroyRenderPass(m_Device, m_RenderPass, m_Dispatch);
+}
+
+AxrResult AxrVulkanWindowGraphics::createCommandBuffers() {
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = axrCreateCommandBuffers(
+        m_Device,
+        m_GraphicsCommandPool,
+        1,
+        m_RenderingCommandBuffers,
+        m_Dispatch
+    );
+    if (AXR_FAILED(axrResult)) {
+        destroyCommandBuffers();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanWindowGraphics::destroyCommandBuffers() {
+    axrDestroyCommandBuffers(m_Device, m_GraphicsCommandPool, m_RenderingCommandBuffers, m_Dispatch);
 }
 
 AxrResult AxrVulkanWindowGraphics::createFramebuffers() {

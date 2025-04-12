@@ -39,7 +39,9 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     m_Instance(VK_NULL_HANDLE),
     m_DebugUtilsMessenger(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
-    m_Device(VK_NULL_HANDLE) {
+    m_Device(VK_NULL_HANDLE),
+    m_GraphicsCommandPool(VK_NULL_HANDLE),
+    m_TransferCommandPool(VK_NULL_HANDLE) {
     if (config.VulkanConfig == nullptr) {
         axrLogErrorLocation("Vulkan config is null.");
         return;
@@ -109,6 +111,12 @@ AxrResult AxrVulkanGraphicsSystem::setup() {
         return axrResult;
     }
 
+    axrResult = createCommandPools();
+    if (AXR_FAILED(axrResult)) {
+        resetSetup();
+        return axrResult;
+    }
+
     axrResult = setupSceneData();
     if (AXR_FAILED(axrResult)) {
         resetSetup();
@@ -129,6 +137,7 @@ AxrResult AxrVulkanGraphicsSystem::setup() {
 void AxrVulkanGraphicsSystem::resetSetup() {
     resetSetupWindowGraphics();
     resetSetupSceneData();
+    destroyCommandPools();
     destroyLogicalDevice();
     resetPhysicalDevice();
     destroyDebugUtils();
@@ -901,6 +910,115 @@ AxrVulkanGraphicsSystem::DeviceChain_T AxrVulkanGraphicsSystem::createDeviceChai
     return chain;
 }
 
+AxrResult AxrVulkanGraphicsSystem::createCommandPools() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_GraphicsCommandPool != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Graphics command pool already exists.");
+        return AXR_ERROR;
+    }
+
+    if (m_TransferCommandPool != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Transfer command pool already exists.");
+        return AXR_ERROR;
+    }
+
+    if (!m_QueueFamilies.GraphicsQueueFamilyIndex.has_value()) {
+        axrLogErrorLocation("Graphics queue family index does not exist.");
+        return AXR_ERROR;
+    }
+
+    if (!m_QueueFamilies.TransferQueueFamilyIndex.has_value()) {
+        axrLogErrorLocation("Transfer queue family index does not exist.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = createCommandPool(
+        m_QueueFamilies.GraphicsQueueFamilyIndex.value(),
+        vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+        m_GraphicsCommandPool
+    );
+    if (AXR_FAILED(axrResult)) {
+        destroyCommandPools();
+        return axrResult;
+    }
+
+    axrResult = createCommandPool(
+        m_QueueFamilies.TransferQueueFamilyIndex.value(),
+        vk::CommandPoolCreateFlagBits::eTransient,
+        m_TransferCommandPool
+    );
+    if (AXR_FAILED(axrResult)) {
+        destroyCommandPools();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanGraphicsSystem::destroyCommandPools() {
+    destroyCommandPool(m_GraphicsCommandPool);
+    destroyCommandPool(m_TransferCommandPool);
+}
+
+AxrResult AxrVulkanGraphicsSystem::createCommandPool(
+    const uint32_t queueFamilyIndex,
+    const vk::CommandPoolCreateFlags commandPoolFlags,
+    vk::CommandPool& commandPool
+) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (commandPool != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Command pool already exists.");
+        return AXR_ERROR;
+    }
+
+    if (m_Device == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Device is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const vk::CommandPoolCreateInfo commandPoolCreateInfo(
+        commandPoolFlags,
+        queueFamilyIndex
+    );
+
+    const vk::Result vkResult = m_Device.createCommandPool(
+        &commandPoolCreateInfo,
+        nullptr,
+        &commandPool,
+        m_Dispatch
+    );
+    axrLogVkResult(vkResult, "m_Device.createCommandPool");
+    if (VK_FAILED(vkResult)) {
+        destroyCommandPool(commandPool);
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanGraphicsSystem::destroyCommandPool(vk::CommandPool& commandPool) const {
+    if (commandPool == VK_NULL_HANDLE) return;
+
+    m_Device.destroyCommandPool(commandPool, nullptr, m_Dispatch);
+    commandPool = VK_NULL_HANDLE;
+}
+
 AxrResult AxrVulkanGraphicsSystem::setupSceneData() {
     AxrResult axrResult = AXR_SUCCESS;
 
@@ -945,6 +1063,7 @@ AxrResult AxrVulkanGraphicsSystem::setupWindowGraphics() {
             .Instance = m_Instance,
             .PhysicalDevice = m_PhysicalDevice,
             .Device = m_Device,
+            .GraphicsCommandPool = m_GraphicsCommandPool,
             .QueueFamilies = m_QueueFamilies,
             .SwapchainColorFormatOptions = m_SwapchainColorFormatOptions,
             .SwapchainDepthFormatOptions = m_SwapchainDepthFormatOptions,

@@ -34,6 +34,7 @@ public:
         vk::Instance Instance;
         vk::PhysicalDevice PhysicalDevice;
         vk::Device Device;
+        vk::CommandPool GraphicsCommandPool;
         const AxrVulkanQueueFamilies& QueueFamilies;
         /// Ordered from most desired to the least desired
         const std::vector<vk::SurfaceFormatKHR>& SwapchainColorFormatOptions;
@@ -107,6 +108,7 @@ private:
     vk::Instance m_Instance;
     vk::PhysicalDevice m_PhysicalDevice;
     vk::Device m_Device;
+    vk::CommandPool m_GraphicsCommandPool;
     AxrVulkanQueueFamilies m_QueueFamilies;
     /// Ordered from most desired to the least desired
     std::vector<vk::SurfaceFormatKHR> m_SwapchainColorFormatOptions;
@@ -124,6 +126,7 @@ private:
     std::vector<vk::Image> m_SwapchainColorImages;
     std::vector<vk::ImageView> m_SwapchainColorImageViews;
     std::vector<vk::Framebuffer> m_SwapchainFramebuffers;
+    std::vector<vk::CommandBuffer> m_RenderingCommandBuffers;
 
     // ----------------------------------------- //
     // Private Functions
@@ -208,6 +211,14 @@ private:
     [[nodiscard]] AxrResult createRenderPass();
     /// Destroy the render pass
     void destroyRenderPass();
+
+    // ---- Command Buffers ----
+
+    /// Create command buffers
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createCommandBuffers();
+    /// Destroy command buffers
+    void destroyCommandBuffers();
 
     // ---- Framebuffer ----
 

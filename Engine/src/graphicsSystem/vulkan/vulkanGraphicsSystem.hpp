@@ -112,6 +112,8 @@ private:
     vk::PhysicalDevice m_PhysicalDevice;
     AxrVulkanQueueFamilies m_QueueFamilies;
     vk::Device m_Device;
+    vk::CommandPool m_GraphicsCommandPool;
+    vk::CommandPool m_TransferCommandPool;
 
     AxrVulkanLoadedScenesCollection m_LoadedScenes;
     AxrVulkanWindowGraphics* m_WindowGraphics;
@@ -258,6 +260,30 @@ private:
     /// @param deviceCreateInfo Device create info to use
     /// @returns The device structure chain
     [[nodiscard]] DeviceChain_T createDeviceChain(const vk::DeviceCreateInfo& deviceCreateInfo) const;
+
+    // ---- Command Pools ----
+
+    /// Create the command pools
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createCommandPools();
+    /// Destroy the command pools
+    void destroyCommandPools();
+
+    /// Create a new command pool
+    /// @param queueFamilyIndex Command pool queue family index
+    /// @param commandPoolFlags Command pool create flags
+    /// @param commandPool Output created command pool
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createCommandPool(
+        uint32_t queueFamilyIndex,
+        vk::CommandPoolCreateFlags commandPoolFlags,
+        vk::CommandPool& commandPool
+    ) const;
+    /// Destroy the given command pool
+    /// @param commandPool Command pool to destroy
+    void destroyCommandPool(
+        vk::CommandPool& commandPool
+    ) const;
 
     // ---- Scene Data ----
 

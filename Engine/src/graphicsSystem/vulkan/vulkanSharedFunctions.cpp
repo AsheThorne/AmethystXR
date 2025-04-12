@@ -406,4 +406,73 @@ void axrDestroyFramebuffer(
     framebuffer = VK_NULL_HANDLE;
 }
 
+AxrResult axrCreateCommandBuffers(
+    const vk::Device& device,
+    const vk::CommandPool& commandPool,
+    const uint32_t commandBufferCount,
+    std::vector<vk::CommandBuffer>& commandBuffers,
+    const vk::DispatchLoaderDynamic& dispatch
+) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!commandBuffers.empty()) {
+        axrLogErrorLocation("Command buffers already exist.");
+        return AXR_ERROR;
+    }
+
+    if (device == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Device is null.");
+        return AXR_ERROR;
+    }
+
+    if (commandPool == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Command pool is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    commandBuffers.resize(commandBufferCount);
+
+    const vk::CommandBufferAllocateInfo commandBufferAllocateInfo(
+        commandPool,
+        vk::CommandBufferLevel::ePrimary,
+        commandBufferCount
+    );
+
+    const vk::Result vkResult = device.allocateCommandBuffers(
+        &commandBufferAllocateInfo,
+        commandBuffers.data(),
+        dispatch
+    );
+    axrLogVkResult(vkResult, "device.allocateCommandBuffers");
+    if (VK_FAILED(vkResult)) {
+        axrDestroyCommandBuffers(device, commandPool, commandBuffers, dispatch);
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void axrDestroyCommandBuffers(
+    const vk::Device& device,
+    const vk::CommandPool& commandPool,
+    std::vector<vk::CommandBuffer>& commandBuffers,
+    const vk::DispatchLoaderDynamic& dispatch
+) {
+    if (commandBuffers.empty()) return;
+
+    device.freeCommandBuffers(
+        commandPool,
+        static_cast<uint32_t>(commandBuffers.size()),
+        commandBuffers.data(),
+        dispatch
+    );
+    commandBuffers.clear();
+}
+
 #endif

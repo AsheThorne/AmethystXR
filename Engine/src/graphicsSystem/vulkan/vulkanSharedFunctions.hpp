@@ -114,6 +114,7 @@ void axrDestroyRenderPass(
 /// @param swapchainColorImageViews Swapchain color image views
 /// @param framebuffers Output created framebuffers
 /// @param dispatch Dispatch to use
+/// @returns AXR_SUCCESS if the function succeeded
 [[nodiscard]] AxrResult axrCreateFramebuffers(
     const vk::Device& device,
     const vk::RenderPass& renderPass,
@@ -139,6 +140,7 @@ void axrDestroyFramebuffers(
 /// @param swapchainColorImageView Swapchain color image view
 /// @param framebuffer Output created framebuffer
 /// @param dispatch Dispatch to use
+/// @returns AXR_SUCCESS if the function succeeded
 [[nodiscard]] AxrResult axrCreateFramebuffer(
     const vk::Device& device,
     const vk::RenderPass& renderPass,
@@ -154,6 +156,34 @@ void axrDestroyFramebuffers(
 void axrDestroyFramebuffer(
     const vk::Device& device,
     vk::Framebuffer& framebuffer,
+    const vk::DispatchLoaderDynamic& dispatch
+);
+
+// ---- Command Buffers ----
+
+/// Create the given number of command buffers
+/// @param device Device to use
+/// @param commandPool Command pool to use
+/// @param commandBufferCount Number of command buffers to create
+/// @param commandBuffers Output created command buffers
+/// @param dispatch Dispatch to use
+/// @returns AXR_SUCCESS if the function succeeded
+[[nodiscard]] AxrResult axrCreateCommandBuffers(
+    const vk::Device& device,
+    const vk::CommandPool& commandPool,
+    uint32_t commandBufferCount,
+    std::vector<vk::CommandBuffer>& commandBuffers,
+    const vk::DispatchLoaderDynamic& dispatch
+);
+/// Destroy the given number of command buffers
+/// @param device Device to use
+/// @param commandPool Command pool that was used to create the command buffers
+/// @param commandBuffers Command buffers to destroy
+/// @param dispatch Dispatch to use
+void axrDestroyCommandBuffers(
+    const vk::Device& device,
+    const vk::CommandPool& commandPool,
+    std::vector<vk::CommandBuffer>& commandBuffers,
     const vk::DispatchLoaderDynamic& dispatch
 );
 
