@@ -6,6 +6,7 @@
 // ----------------------------------------- //
 #include "axr/assets.h"
 #include "vulkanMaterialLayoutData.hpp"
+#include "vulkanMaterialData.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -100,6 +101,7 @@ private:
     vk::DispatchLoaderDynamic* m_DispatchHandle;
 
     std::unordered_map<std::string, AxrVulkanMaterialLayoutData> m_MaterialLayoutData;
+    std::unordered_map<std::string, AxrVulkanMaterialData> m_MaterialData;
 
     // ----------------------------------------- //
     // Private Functions
@@ -119,7 +121,7 @@ private:
     /// Initialize a single material layout for the given material
     /// @param material Material to use
     /// @returns AXR_SUCCESS if the function succeeded
-    void initializeMaterialLayoutData(const AxrMaterial& material);
+    [[nodiscard]] AxrResult initializeMaterialLayoutData(const AxrMaterial& material);
 
     /// Create the given material layout data
     /// @param materialLayoutData Material layout data to create
@@ -129,24 +131,53 @@ private:
     /// @param materialLayoutData Material layout data to destroy
     void destroyMaterialLayoutData(AxrVulkanMaterialLayoutData& materialLayoutData);
 
-    /// Create all window specific material layout data
-    /// @param renderPass Render pass to use
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createAllWindowMaterialLayoutData(vk::RenderPass renderPass);
-    /// Destroy all window specific material layout data
-    void destroyAllWindowMaterialLayoutData();
+    /// Find the named material layout data
+    /// @param name The name of the material layout
+    /// @returns A handle to the found material layout. Or nullptr if it wasn't found
+    [[nodiscard]] const AxrVulkanMaterialLayoutData* findMaterialLayoutData(const std::string& name) const;
 
-    /// Create the given window specific material layout data
-    /// @param renderPass Render pass to use
-    /// @param materialLayoutData Input/Output material layout data to use and create window scene data for
+    // ---- Material ----
+
+    /// Create all material data
+    /// @results AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createAllMaterialData();
+    /// Destroy all material data
+    void destroyAllMaterialData();
+
+    /// Initialize all the materials
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createWindowMaterialLayoutData(
+    [[nodiscard]] AxrResult initializeAllMaterialData();
+    /// Initialize a single material data for the given material
+    /// @param material Material to use
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult initializeMaterialData(const AxrMaterial& material);
+
+    /// Create the given material data
+    /// @param materialData Material data to create
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createMaterialData(AxrVulkanMaterialData& materialData);
+    /// Destroy the given material data
+    /// @param materialData Material data to destroy
+    void destroyMaterialData(AxrVulkanMaterialData& materialData);
+
+    /// Create all window specific material data
+    /// @param renderPass Render pass to use
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createAllWindowMaterialData(vk::RenderPass renderPass);
+    /// Destroy all window specific material data
+    void destroyAllWindowMaterialData();
+
+    /// Create the given window specific material data
+    /// @param renderPass Render pass to use
+    /// @param materialData Input/Output material data to use and create window scene data for
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createWindowMaterialData(
         vk::RenderPass renderPass,
-        AxrVulkanMaterialLayoutData& materialLayoutData
+        AxrVulkanMaterialData& materialData
     );
-    /// Destroy the given window specific material layout data
-    /// @param materialLayoutData Material layout data to destroy
-    void destroyWindowMaterialLayoutData(AxrVulkanMaterialLayoutData& materialLayoutData);
+    /// Destroy the given window specific material data
+    /// @param materialData Material data to destroy
+    void destroyWindowMaterialData(AxrVulkanMaterialData& materialData);
 };
 
 #endif

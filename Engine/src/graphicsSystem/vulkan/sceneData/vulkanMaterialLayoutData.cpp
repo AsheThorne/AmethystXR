@@ -14,41 +14,41 @@
 // ---- Special Functions ----
 
 AxrVulkanMaterialLayoutData::AxrVulkanMaterialLayoutData():
+    m_VertexShaderHandle(nullptr),
+    m_FragmentShaderHandle(nullptr),
     m_Device(VK_NULL_HANDLE),
     m_DispatchHandle(nullptr),
     m_DescriptorSetLayout(VK_NULL_HANDLE),
-    m_PipelineLayout(VK_NULL_HANDLE),
-    m_WindowPipeline(VK_NULL_HANDLE) {
+    m_PipelineLayout(VK_NULL_HANDLE) {
 }
 
 AxrVulkanMaterialLayoutData::AxrVulkanMaterialLayoutData(const Config& config):
     m_Name(config.Name),
-    m_VertexShaderName(config.VertexShaderName),
-    m_FragmentShaderName(config.FragmentShaderName),
+    m_VertexShaderHandle(config.VertexShaderHandle),
+    m_FragmentShaderHandle(config.FragmentShaderHandle),
     m_Device(config.Device),
     m_DispatchHandle(config.DispatchHandle),
     m_DescriptorSetLayout(VK_NULL_HANDLE),
-    m_PipelineLayout(VK_NULL_HANDLE),
-    m_WindowPipeline(VK_NULL_HANDLE) {
+    m_PipelineLayout(VK_NULL_HANDLE) {
 }
 
 AxrVulkanMaterialLayoutData::AxrVulkanMaterialLayoutData(AxrVulkanMaterialLayoutData&& src) noexcept {
     m_Name = std::move(src.m_Name);
-    m_VertexShaderName = std::move(src.m_VertexShaderName);
-    m_FragmentShaderName = std::move(src.m_FragmentShaderName);
     m_DescriptorSetItemLocations = std::move(src.m_DescriptorSetItemLocations);
 
+    m_VertexShaderHandle = src.m_VertexShaderHandle;
+    m_FragmentShaderHandle = src.m_FragmentShaderHandle;
     m_Device = src.m_Device;
     m_DispatchHandle = src.m_DispatchHandle;
     m_DescriptorSetLayout = src.m_DescriptorSetLayout;
     m_PipelineLayout = src.m_PipelineLayout;
-    m_WindowPipeline = src.m_WindowPipeline;
 
+    src.m_VertexShaderHandle = nullptr;
+    src.m_FragmentShaderHandle = nullptr;
     src.m_Device = VK_NULL_HANDLE;
     src.m_DispatchHandle = nullptr;
     src.m_DescriptorSetLayout = VK_NULL_HANDLE;
     src.m_PipelineLayout = VK_NULL_HANDLE;
-    src.m_WindowPipeline = VK_NULL_HANDLE;
 }
 
 AxrVulkanMaterialLayoutData::~AxrVulkanMaterialLayoutData() {
@@ -60,21 +60,21 @@ AxrVulkanMaterialLayoutData& AxrVulkanMaterialLayoutData::operator=(AxrVulkanMat
         cleanup();
 
         m_Name = std::move(src.m_Name);
-        m_VertexShaderName = std::move(src.m_VertexShaderName);
-        m_FragmentShaderName = std::move(src.m_FragmentShaderName);
         m_DescriptorSetItemLocations = std::move(src.m_DescriptorSetItemLocations);
 
+        m_VertexShaderHandle = src.m_VertexShaderHandle;
+        m_FragmentShaderHandle = src.m_FragmentShaderHandle;
         m_Device = src.m_Device;
         m_DispatchHandle = src.m_DispatchHandle;
         m_DescriptorSetLayout = src.m_DescriptorSetLayout;
         m_PipelineLayout = src.m_PipelineLayout;
-        m_WindowPipeline = src.m_WindowPipeline;
 
+        src.m_VertexShaderHandle = nullptr;
+        src.m_FragmentShaderHandle = nullptr;
         src.m_Device = VK_NULL_HANDLE;
         src.m_DispatchHandle = nullptr;
         src.m_DescriptorSetLayout = VK_NULL_HANDLE;
         src.m_PipelineLayout = VK_NULL_HANDLE;
-        src.m_WindowPipeline = VK_NULL_HANDLE;
     }
 
     return *this;
@@ -86,12 +86,8 @@ const std::string& AxrVulkanMaterialLayoutData::getName() const {
     return m_Name;
 }
 
-const std::string& AxrVulkanMaterialLayoutData::getVertexShaderName() const {
-    return m_VertexShaderName;
-}
-
-const std::string& AxrVulkanMaterialLayoutData::getFragmentShaderName() const {
-    return m_FragmentShaderName;
+vk::PipelineLayout AxrVulkanMaterialLayoutData::getPipelineLayout() const {
+    return m_PipelineLayout;
 }
 
 bool AxrVulkanMaterialLayoutData::doesDataExist() const {
@@ -100,14 +96,7 @@ bool AxrVulkanMaterialLayoutData::doesDataExist() const {
         m_PipelineLayout != VK_NULL_HANDLE;
 }
 
-bool AxrVulkanMaterialLayoutData::doesWindowDataExist() const {
-    return m_WindowPipeline != VK_NULL_HANDLE;
-}
-
-AxrResult AxrVulkanMaterialLayoutData::createData(
-    const AxrShader& vertexShader,
-    const AxrShader& fragmentShader
-) {
+AxrResult AxrVulkanMaterialLayoutData::createData() {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -123,21 +112,21 @@ AxrResult AxrVulkanMaterialLayoutData::createData(
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    axrResult = validateMaterialLayoutShaders(vertexShader, fragmentShader);
+    axrResult = validateMaterialLayoutShaders();
     if (AXR_FAILED(axrResult)) {
         axrLogErrorLocation("Failed to validate material layout shaders.");
         destroyData();
         return axrResult;
     }
 
-    axrResult = createDescriptorSetLayout(vertexShader, fragmentShader);
+    axrResult = createDescriptorSetLayout();
     if (AXR_FAILED(axrResult)) {
         axrLogErrorLocation("Failed to create descriptor set layout.");
         destroyData();
         return axrResult;
     }
 
-    axrResult = createPipelineLayout(vertexShader, fragmentShader);
+    axrResult = createPipelineLayout();
     if (AXR_FAILED(axrResult)) {
         axrLogErrorLocation("Failed to create pipeline layout.");
         destroyData();
@@ -148,83 +137,48 @@ AxrResult AxrVulkanMaterialLayoutData::createData(
 }
 
 void AxrVulkanMaterialLayoutData::destroyData() {
-    destroyWindowData();
-
     destroyDescriptorSetLayout();
     destroyPipelineLayout();
-}
-
-AxrResult AxrVulkanMaterialLayoutData::createWindowData(
-    const AxrShader& vertexShader,
-    const AxrShader& fragmentShader,
-    const vk::RenderPass renderPass
-) {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
-
-    if (doesWindowDataExist()) {
-        axrLogErrorLocation("Material layout window data already exists.");
-        return AXR_ERROR;
-    }
-
-    if (!doesDataExist()) {
-        axrLogErrorLocation("Material layout data is missing.");
-        return AXR_ERROR;
-    }
-
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
-
-    AxrResult axrResult = AXR_SUCCESS;
-
-    axrResult = createPipeline(vertexShader, fragmentShader, renderPass, m_WindowPipeline);
-    if (AXR_FAILED(axrResult)) {
-        axrLogErrorLocation("Failed to create pipeline.");
-        destroyWindowData();
-        return axrResult;
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanMaterialLayoutData::destroyWindowData() {
-    destroyPipeline(m_WindowPipeline);
 }
 
 // ---- Private Functions ----
 
 void AxrVulkanMaterialLayoutData::cleanup() {
-    destroyWindowData();
     destroyData();
 
     m_Name.clear();
-    m_VertexShaderName.clear();
-    m_FragmentShaderName.clear();
+    m_VertexShaderHandle = nullptr;
+    m_FragmentShaderHandle = nullptr;
     m_Device = VK_NULL_HANDLE;
     m_DispatchHandle = nullptr;
 }
 
-AxrResult AxrVulkanMaterialLayoutData::validateMaterialLayoutShaders(
-    const AxrShader& vertexShader,
-    const AxrShader& fragmentShader
-) {
-    if (!vertexShader.isValid()) {
-        axrLogErrorLocation("Validation failed for shader named: {0}.", vertexShader.getName());
+AxrResult AxrVulkanMaterialLayoutData::validateMaterialLayoutShaders() {
+    if (m_VertexShaderHandle == nullptr) {
+        axrLogErrorLocation("Vertex shader handle is null.");
         return AXR_ERROR;
     }
 
-    if (!fragmentShader.isValid()) {
-        axrLogErrorLocation("Validation failed for shader named: {0}.", fragmentShader.getName());
+    if (m_FragmentShaderHandle == nullptr) {
+        axrLogErrorLocation("Fragment shader handle is null.");
         return AXR_ERROR;
     }
 
-    if (!AxrShader::areCompatible(vertexShader, fragmentShader)) {
+    if (!m_VertexShaderHandle->isValid()) {
+        axrLogErrorLocation("Validation failed for shader named: {0}.", m_VertexShaderHandle->getName());
+        return AXR_ERROR;
+    }
+
+    if (!m_FragmentShaderHandle->isValid()) {
+        axrLogErrorLocation("Validation failed for shader named: {0}.", m_FragmentShaderHandle->getName());
+        return AXR_ERROR;
+    }
+
+    if (!AxrShader::areCompatible(*m_VertexShaderHandle, *m_FragmentShaderHandle)) {
         axrLogErrorLocation(
             "Validation failed for shader compatibility between: {0} and {1}.",
-            vertexShader.getName(),
-            fragmentShader.getName()
+            m_VertexShaderHandle->getName(),
+            m_FragmentShaderHandle->getName()
         );
         return AXR_ERROR;
     }
@@ -232,10 +186,7 @@ AxrResult AxrVulkanMaterialLayoutData::validateMaterialLayoutShaders(
     return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanMaterialLayoutData::createDescriptorSetLayout(
-    const AxrShader& vertexShader,
-    const AxrShader& fragmentShader
-) {
+AxrResult AxrVulkanMaterialLayoutData::createDescriptorSetLayout() {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -260,6 +211,16 @@ AxrResult AxrVulkanMaterialLayoutData::createDescriptorSetLayout(
         return AXR_ERROR;
     }
 
+    if (m_VertexShaderHandle == nullptr) {
+        axrLogErrorLocation("Vertex shader handle is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_FragmentShaderHandle == nullptr) {
+        axrLogErrorLocation("Fragment shader handle is null.");
+        return AXR_ERROR;
+    }
+
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //
@@ -269,9 +230,9 @@ AxrResult AxrVulkanMaterialLayoutData::createDescriptorSetLayout(
     // ---- Uniform buffer bindings ----
 
     const std::vector<AxrShaderUniformBufferLayoutConst_T> vertexUniformBufferLayouts =
-        vertexShader.getProperties().getUniformBufferLayouts();
+        m_VertexShaderHandle->getProperties().getUniformBufferLayouts();
     const std::vector<AxrShaderUniformBufferLayoutConst_T> fragmentUniformBufferLayouts =
-        fragmentShader.getProperties().getUniformBufferLayouts();
+        m_FragmentShaderHandle->getProperties().getUniformBufferLayouts();
 
     for (const AxrShaderUniformBufferLayoutConst_T uniformBufferLayout : vertexUniformBufferLayouts) {
         if (uniformBufferLayout == nullptr) continue;
@@ -300,9 +261,9 @@ AxrResult AxrVulkanMaterialLayoutData::createDescriptorSetLayout(
     // ---- Image sampler bindings ----
 
     const std::vector<AxrShaderImageSamplerBufferLayoutConst_T> vertexImageSamplerBufferLayouts =
-        vertexShader.getProperties().getImageSamplerBufferLayouts();
+        m_VertexShaderHandle->getProperties().getImageSamplerBufferLayouts();
     const std::vector<AxrShaderImageSamplerBufferLayoutConst_T> fragmentImageSamplerBufferLayouts =
-        fragmentShader.getProperties().getImageSamplerBufferLayouts();
+        m_FragmentShaderHandle->getProperties().getImageSamplerBufferLayouts();
 
     for (const AxrShaderImageSamplerBufferLayoutConst_T imageSamplerBufferLayout : vertexImageSamplerBufferLayouts) {
         if (imageSamplerBufferLayout == nullptr) continue;
@@ -391,10 +352,7 @@ void AxrVulkanMaterialLayoutData::addDescriptorSetLayoutItem(
     descriptorSetItemLocations.push_back(descriptorSetItemLocation);
 }
 
-AxrResult AxrVulkanMaterialLayoutData::createPipelineLayout(
-    const AxrShader& vertexShader,
-    const AxrShader& fragmentShader
-) {
+AxrResult AxrVulkanMaterialLayoutData::createPipelineLayout() {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -419,6 +377,16 @@ AxrResult AxrVulkanMaterialLayoutData::createPipelineLayout(
         return AXR_ERROR;
     }
 
+    if (m_VertexShaderHandle == nullptr) {
+        axrLogErrorLocation("Vertex shader handle is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_FragmentShaderHandle == nullptr) {
+        axrLogErrorLocation("Fragment shader handle is null.");
+        return AXR_ERROR;
+    }
+
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //
@@ -426,7 +394,7 @@ AxrResult AxrVulkanMaterialLayoutData::createPipelineLayout(
     std::vector<vk::PushConstantRange> pushConstantRanges;
 
     const AxrShaderPushConstantsBufferLayoutConst_T vertexPushConstantsBufferLayout =
-        vertexShader.getProperties().getPushConstantsBufferLayout();
+        m_VertexShaderHandle->getProperties().getPushConstantsBufferLayout();
     if (vertexPushConstantsBufferLayout != nullptr) {
         pushConstantRanges.push_back(
             {
@@ -440,7 +408,7 @@ AxrResult AxrVulkanMaterialLayoutData::createPipelineLayout(
     }
 
     const AxrShaderPushConstantsBufferLayoutConst_T fragmentPushConstantsBufferLayout =
-        fragmentShader.getProperties().getPushConstantsBufferLayout();
+        m_FragmentShaderHandle->getProperties().getPushConstantsBufferLayout();
     if (fragmentPushConstantsBufferLayout != nullptr) {
         pushConstantRanges.push_back(
             {
@@ -534,301 +502,6 @@ void AxrVulkanMaterialLayoutData::destroyPipelineLayout() {
 
     m_Device.destroyPipelineLayout(m_PipelineLayout, nullptr, *m_DispatchHandle);
     m_PipelineLayout = VK_NULL_HANDLE;
-}
-
-AxrResult AxrVulkanMaterialLayoutData::createPipeline(
-    const AxrShader& vertexShader,
-    const AxrShader& fragmentShader,
-    const vk::RenderPass renderPass,
-    vk::Pipeline& pipeline
-) const {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
-
-    if (pipeline != VK_NULL_HANDLE) {
-        axrLogErrorLocation("Pipeline already exists.");
-        return AXR_ERROR;
-    }
-
-    if (m_Device == VK_NULL_HANDLE) {
-        axrLogErrorLocation("Device is null.");
-        return AXR_ERROR;
-    }
-
-    if (m_DispatchHandle == nullptr) {
-        axrLogErrorLocation("Dispatch handle is null.");
-        return AXR_ERROR;
-    }
-
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
-
-    AxrResult axrResult = AXR_SUCCESS;
-
-    // ---- Shader Stage ----
-
-    std::vector<vk::PipelineShaderStageCreateInfo> shaderStageCreateInfos(2);
-    std::vector<vk::ShaderModule> shaderModules(2);
-
-    if (!vertexShader.isLoaded()) {
-        axrResult = vertexShader.loadFile(AXR_GRAPHICS_API_VULKAN);
-        if (AXR_FAILED(axrResult)) {
-            cleanupPipelineCreationData(shaderModules);
-            return axrResult;
-        }
-    }
-
-    axrResult = createShaderModule(vertexShader.getFileData(), shaderModules[0]);
-    if (AXR_FAILED(axrResult)) {
-        cleanupPipelineCreationData(shaderModules);
-        return axrResult;
-    }
-
-    shaderStageCreateInfos[0] = vk::PipelineShaderStageCreateInfo(
-        {},
-        vk::ShaderStageFlagBits::eVertex,
-        shaderModules[0],
-        "main"
-    );
-
-    if (!fragmentShader.isLoaded()) {
-        axrResult = fragmentShader.loadFile(AXR_GRAPHICS_API_VULKAN);
-        if (AXR_FAILED(axrResult)) {
-            cleanupPipelineCreationData(shaderModules);
-            return axrResult;
-        }
-    }
-
-    axrResult = createShaderModule(fragmentShader.getFileData(), shaderModules[1]);
-    if (AXR_FAILED(axrResult)) {
-        cleanupPipelineCreationData(shaderModules);
-        return axrResult;
-    }
-
-    shaderStageCreateInfos[1] = vk::PipelineShaderStageCreateInfo(
-        {},
-        vk::ShaderStageFlagBits::eFragment,
-        shaderModules[1],
-        "main"
-    );
-
-    // ---- Vertex Input State ----
-
-    // TODO: Implement
-    constexpr vk::PipelineVertexInputStateCreateInfo vertexInputStateCreateInfo(
-        {},
-        0,
-        nullptr,
-        0,
-        nullptr
-    );
-
-    // ---- Input Assembly State ----
-
-    constexpr vk::PipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo(
-        {},
-        vk::PrimitiveTopology::eTriangleList,
-        vk::False
-    );
-
-    // ---- Viewport State ----
-
-    constexpr vk::PipelineViewportStateCreateInfo viewportStateCreateInfo(
-        {},
-        1,
-        {},
-        1,
-        {}
-    );
-
-    // ---- Rasterization State ----
-
-    constexpr vk::PipelineRasterizationStateCreateInfo rasterizationStateCreateInfo(
-        {},
-        vk::False,
-        vk::False,
-        vk::PolygonMode::eFill,
-        vk::CullModeFlagBits::eBack,
-        vk::FrontFace::eClockwise,
-        vk::False,
-        0.0f,
-        0.0f,
-        0.0f,
-        1.0f
-    );
-
-    // ---- Multisample State ----
-
-    // TODO: Implement multisampling
-    constexpr vk::PipelineMultisampleStateCreateInfo multisampleStateCreateInfo(
-        {},
-        vk::SampleCountFlagBits::e1,
-        vk::False,
-        1.0f,
-        nullptr,
-        vk::False,
-        vk::False
-    );
-
-    // ---- Depth Stencil State ----
-
-    constexpr vk::PipelineDepthStencilStateCreateInfo depthStencilStateCreateInfo(
-        {},
-        vk::True,
-        vk::True,
-        vk::CompareOp::eLess,
-        vk::False,
-        vk::False,
-        {},
-        {},
-        0.0f,
-        1.0f
-    );
-
-    // ---- Color Blend State ----
-
-    constexpr vk::PipelineColorBlendAttachmentState colorBlendAttachment(
-        vk::False,
-        vk::BlendFactor::eSrcAlpha,
-        vk::BlendFactor::eOneMinusSrcAlpha,
-        vk::BlendOp::eAdd,
-        vk::BlendFactor::eOne,
-        vk::BlendFactor::eZero,
-        vk::BlendOp::eAdd,
-        vk::ColorComponentFlagBits::eR |
-        vk::ColorComponentFlagBits::eG |
-        vk::ColorComponentFlagBits::eB |
-        vk::ColorComponentFlagBits::eA
-    );
-
-    constexpr std::array blendConstants{
-        0.0f,
-        0.0f,
-        0.0f,
-        0.0f
-    };
-
-    const vk::PipelineColorBlendStateCreateInfo colorBlendStateCreateInfo(
-        {},
-        vk::False,
-        vk::LogicOp::eCopy,
-        1,
-        &colorBlendAttachment,
-        blendConstants
-    );
-
-    // ---- Dynamic State ----
-
-    constexpr std::array dynamicStates{
-        vk::DynamicState::eViewport,
-        vk::DynamicState::eScissor,
-    };
-
-    vk::PipelineDynamicStateCreateInfo dynamicStateCreateInfo(
-        {},
-        static_cast<uint32_t>(dynamicStates.size()),
-        dynamicStates.data()
-    );
-
-    // ---- Pipeline Creation ----
-
-    const vk::GraphicsPipelineCreateInfo pipelineCreateInfo(
-        {},
-        static_cast<uint32_t>(shaderStageCreateInfos.size()),
-        shaderStageCreateInfos.data(),
-        &vertexInputStateCreateInfo,
-        &inputAssemblyStateCreateInfo,
-        {},
-        &viewportStateCreateInfo,
-        &rasterizationStateCreateInfo,
-        &multisampleStateCreateInfo,
-        &depthStencilStateCreateInfo,
-        &colorBlendStateCreateInfo,
-        &dynamicStateCreateInfo,
-        m_PipelineLayout,
-        renderPass,
-        0,
-        VK_NULL_HANDLE,
-        -1
-    );
-
-    const vk::Result vkResult = m_Device.createGraphicsPipelines(
-        VK_NULL_HANDLE,
-        1,
-        &pipelineCreateInfo,
-        nullptr,
-        &pipeline,
-        *m_DispatchHandle
-    );
-    axrLogVkResult(vkResult, "m_Device.createGraphicsPipelines");
-
-    cleanupPipelineCreationData(shaderModules);
-
-    if (VK_FAILED(vkResult)) {
-        return AXR_ERROR;
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanMaterialLayoutData::destroyPipeline(vk::Pipeline& pipeline) {
-    if (pipeline == VK_NULL_HANDLE) return;
-
-    m_Device.destroyPipeline(pipeline, nullptr, *m_DispatchHandle);
-    pipeline = VK_NULL_HANDLE;
-}
-
-void AxrVulkanMaterialLayoutData::cleanupPipelineCreationData(std::vector<vk::ShaderModule>& shaderModules) const {
-    for (vk::ShaderModule& shaderModule : shaderModules) {
-        destroyShaderModule(shaderModule);
-    }
-    shaderModules.clear();
-}
-
-AxrResult AxrVulkanMaterialLayoutData::createShaderModule(
-    const std::vector<char>& shaderFileData,
-    vk::ShaderModule& shaderModule
-) const {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
-
-    if (m_Device == VK_NULL_HANDLE) {
-        axrLogErrorLocation("Device is null.");
-        return AXR_ERROR;
-    }
-
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
-
-    const vk::ShaderModuleCreateInfo shaderModuleCreateInfo(
-        {},
-        shaderFileData.size(),
-        reinterpret_cast<const uint32_t*>(shaderFileData.data())
-    );
-
-    const vk::Result vkResult = m_Device.createShaderModule(
-        &shaderModuleCreateInfo,
-        nullptr,
-        &shaderModule,
-        *m_DispatchHandle
-    );
-    axrLogVkResult(vkResult, "m_Device.createShaderModule");
-    if (VK_FAILED(vkResult)) {
-        return AXR_ERROR;
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanMaterialLayoutData::destroyShaderModule(vk::ShaderModule& shaderModule) const {
-    if (shaderModule == VK_NULL_HANDLE) return;
-
-    m_Device.destroyShaderModule(shaderModule, nullptr, *m_DispatchHandle);
-    shaderModule = VK_NULL_HANDLE;
 }
 
 #endif

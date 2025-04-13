@@ -34,8 +34,8 @@ public:
     /// Material layout data config
     struct Config {
         std::string Name;
-        std::string VertexShaderName;
-        std::string FragmentShaderName;
+        const AxrShader* VertexShaderHandle;
+        const AxrShader* FragmentShaderHandle;
         vk::Device Device;
         vk::DispatchLoaderDynamic* DispatchHandle;
     };
@@ -79,41 +79,19 @@ public:
     /// Get the material layout name
     /// @returns The material layout name
     [[nodiscard]] const std::string& getName() const;
-    /// Get the vertex shader name
-    /// @returns The vertex shader name
-    [[nodiscard]] const std::string& getVertexShaderName() const;
-    /// Get the fragment shader name
-    /// @returns The fragment shader name
-    [[nodiscard]] const std::string& getFragmentShaderName() const;
+    /// Get the pipeline layout
+    /// @returns The pipeline layout
+    [[nodiscard]] vk::PipelineLayout getPipelineLayout() const;
 
     /// Check if the data exists
     /// @returns True if the data exists
     [[nodiscard]] bool doesDataExist() const;
-    /// Check if the window specific data exists
-    /// @returns True if the window specific data exists
-    [[nodiscard]] bool doesWindowDataExist() const;
 
     /// Create the material layout data
-    /// @param vertexShader Vertex shader to use
-    /// @param fragmentShader Fragment shader to use
-    [[nodiscard]] AxrResult createData(
-        const AxrShader& vertexShader,
-        const AxrShader& fragmentShader
-    );
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createData();
     /// Destroy the material layout data
     void destroyData();
-
-    /// Create the window specific material layout data
-    /// @param vertexShader Vertex shader to use
-    /// @param fragmentShader Fragment shader to use
-    /// @param renderPass Render pass to use
-    [[nodiscard]] AxrResult createWindowData(
-        const AxrShader& vertexShader,
-        const AxrShader& fragmentShader,
-        vk::RenderPass renderPass
-    );
-    /// Destroy the window specific material layout data
-    void destroyWindowData();
 
 private:
     // ----------------------------------------- //
@@ -122,8 +100,8 @@ private:
 
     // ---- Config Variables ----
     std::string m_Name;
-    std::string m_VertexShaderName;
-    std::string m_FragmentShaderName;
+    const AxrShader* m_VertexShaderHandle;
+    const AxrShader* m_FragmentShaderHandle;
     vk::Device m_Device;
     vk::DispatchLoaderDynamic* m_DispatchHandle;
 
@@ -131,9 +109,6 @@ private:
     std::vector<DescriptorSetItemLocation> m_DescriptorSetItemLocations;
     vk::DescriptorSetLayout m_DescriptorSetLayout;
     vk::PipelineLayout m_PipelineLayout;
-
-    // ---- Window Data ----
-    vk::Pipeline m_WindowPipeline;
 
     // ----------------------------------------- //
     // Private Functions
@@ -145,22 +120,12 @@ private:
     // ---- Data ----
 
     /// Validate the material layout shaders
-    /// @param vertexShader Vertex shader to check
-    /// @param fragmentShader Fragment shader to check
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult validateMaterialLayoutShaders(
-        const AxrShader& vertexShader,
-        const AxrShader& fragmentShader
-    );
+    [[nodiscard]] AxrResult validateMaterialLayoutShaders();
 
     /// Create the descriptor set layout
-    /// @param vertexShader Vertex shader to use
-    /// @param fragmentShader Fragment shader to use
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createDescriptorSetLayout(
-        const AxrShader& vertexShader,
-        const AxrShader& fragmentShader
-    );
+    [[nodiscard]] AxrResult createDescriptorSetLayout();
     /// Destroy the descriptor set layout
     void destroyDescriptorSetLayout();
 
@@ -179,49 +144,10 @@ private:
     );
 
     /// Create the pipeline layout
-    /// @param vertexShader Vertex shader to use
-    /// @param fragmentShader Fragment shader to use
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createPipelineLayout(
-        const AxrShader& vertexShader,
-        const AxrShader& fragmentShader
-    );
+    [[nodiscard]] AxrResult createPipelineLayout();
     /// Destroy the pipeline layout
     void destroyPipelineLayout();
-
-    // ---- Window Data ----
-
-    /// Create a pipeline
-    /// @param vertexShader Vertex shader to use
-    /// @param fragmentShader Fragment shader to use
-    /// @param renderPass Render pass to use
-    /// @param pipeline Output created pipeline
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createPipeline(
-        const AxrShader& vertexShader,
-        const AxrShader& fragmentShader,
-        vk::RenderPass renderPass,
-        vk::Pipeline& pipeline
-    ) const;
-    /// Destroy the given pipeline
-    /// @param pipeline Pipeline to destroy
-    void destroyPipeline(vk::Pipeline& pipeline);
-
-    /// Clean up the data that's used in a pipeline's creation
-    /// @param shaderModules Shader modules
-    void cleanupPipelineCreationData(std::vector<vk::ShaderModule>& shaderModules) const;
-
-    /// Create a shader module
-    /// @param shaderFileData Shader file data
-    /// @param shaderModule Output created shader module
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createShaderModule(
-        const std::vector<char>& shaderFileData,
-        vk::ShaderModule& shaderModule
-    ) const;
-    /// Destroy the given shader module
-    /// @param shaderModule Shader module to destroy
-    void destroyShaderModule(vk::ShaderModule& shaderModule) const;
 };
 
 #endif
