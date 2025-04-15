@@ -35,7 +35,9 @@ struct AxrTransformComponent {
 /// Entity model component
 struct AxrModelComponent {
     const char* ModelName;
+    // TODO: Material count must equal the number of meshes in a model
     uint32_t MaterialNamesCount;
+    /// One material per mesh
     const char** MaterialNames;
 };
 

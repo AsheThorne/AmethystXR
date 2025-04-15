@@ -158,6 +158,17 @@ AxrResult AxrVulkanMaterialData::createPipeline(
     const vk::RenderPass renderPass,
     vk::Pipeline& pipeline
 ) const {
+    // TODO: When creating a pipeline (For OpenXR or Window)
+    //  Check if any pipeline already exists
+    //  Check if the existing pipeline was created with the same parameters as what is passed in here.
+    //  (Check the render pass. Not the output pipeline).
+    //  If an existing pipeline was already created with the same parameters, then just reuse it. Don't create a new one
+    //  -
+    //  To make this worth it, it needs to be possible for OpenXR and the window to use the same render pass.
+    //  Which will need to be checked similar to this function. By checking the parameters during it's creation.
+    //  -
+    //  Also check if there are other objects that can be reused too.
+
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -247,13 +258,40 @@ AxrResult AxrVulkanMaterialData::createPipeline(
 
     // ---- Vertex Input State ----
 
-    // TODO: Implement
-    constexpr vk::PipelineVertexInputStateCreateInfo vertexInputStateCreateInfo(
+    std::vector<AxrShaderVertexAttribute> vertexAttributes = m_VertexShaderHandle->getProperties().
+        getVertexAttributes();
+
+    std::unordered_set<uint32_t> vertexAttributeBindings;
+    for (const AxrShaderVertexAttribute& vertexAttribute : vertexAttributes) {
+        vertexAttributeBindings.insert(vertexAttribute.Binding);
+    }
+
+    std::vector<vk::VertexInputBindingDescription> vertexBindingDescriptions(vertexAttributeBindings.size());
+    for (uint32_t vertexAttributeBindingIndex = 0; uint32_t vertexAttributeBinding : vertexAttributeBindings) {
+        vertexBindingDescriptions[vertexAttributeBindingIndex] = vk::VertexInputBindingDescription(
+            vertexAttributeBinding,
+            sizeof(AxrVertex),
+            vk::VertexInputRate::eVertex
+        );
+        ++vertexAttributeBindingIndex;
+    }
+
+    std::vector<vk::VertexInputAttributeDescription> vertexAttributeDescriptions(vertexAttributes.size());
+    for (size_t i = 0; i < vertexAttributeDescriptions.size(); ++i) {
+        vertexAttributeDescriptions[i] = vk::VertexInputAttributeDescription(
+            vertexAttributes[i].Location,
+            vertexAttributes[i].Binding,
+            getVertexAttributeFormat(vertexAttributes[i].Type),
+            getVertexAttributeOffset(vertexAttributes[i].Type)
+        );
+    }
+
+    const vk::PipelineVertexInputStateCreateInfo vertexInputStateCreateInfo(
         {},
-        0,
-        nullptr,
-        0,
-        nullptr
+        static_cast<uint32_t>(vertexBindingDescriptions.size()),
+        vertexBindingDescriptions.data(),
+        static_cast<uint32_t>(vertexAttributeDescriptions.size()),
+        vertexAttributeDescriptions.data()
     );
 
     // ---- Input Assembly State ----
@@ -460,6 +498,40 @@ void AxrVulkanMaterialData::destroyShaderModule(vk::ShaderModule& shaderModule) 
 
     m_Device.destroyShaderModule(shaderModule, nullptr, *m_DispatchHandle);
     shaderModule = VK_NULL_HANDLE;
+}
+
+vk::Format AxrVulkanMaterialData::getVertexAttributeFormat(const AxrShaderVertexAttributeEnum vertexAttribute) const {
+    switch (vertexAttribute) {
+        case AXR_SHADER_VERTEX_ATTRIBUTE_POSITION:
+        case AXR_SHADER_VERTEX_ATTRIBUTE_COLOR: {
+            return vk::Format::eR32G32B32Sfloat;
+        }
+        case AXR_SHADER_VERTEX_ATTRIBUTE_TEX_COORDS: {
+            return vk::Format::eR32G32Sfloat;
+        }
+        case AXR_SHADER_VERTEX_ATTRIBUTE_UNDEFINED:
+        default: { // NOLINT(clang-diagnostic-covered-switch-default)
+            return vk::Format::eUndefined;
+        }
+    }
+}
+
+uint32_t AxrVulkanMaterialData::getVertexAttributeOffset(const AxrShaderVertexAttributeEnum vertexAttribute) const {
+    switch (vertexAttribute) {
+        case AXR_SHADER_VERTEX_ATTRIBUTE_POSITION: {
+            return offsetof(AxrVertex, Position);
+        }
+        case AXR_SHADER_VERTEX_ATTRIBUTE_COLOR: {
+            return offsetof(AxrVertex, Color);
+        }
+        case AXR_SHADER_VERTEX_ATTRIBUTE_TEX_COORDS: {
+            return offsetof(AxrVertex, TexCoords);
+        }
+        case AXR_SHADER_VERTEX_ATTRIBUTE_UNDEFINED:
+        default: { // NOLINT(clang-diagnostic-covered-switch-default)
+            return 0;
+        }
+    }
 }
 
 #endif

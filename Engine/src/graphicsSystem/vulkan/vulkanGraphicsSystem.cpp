@@ -132,6 +132,8 @@ AxrResult AxrVulkanGraphicsSystem::setup() {
     return AXR_SUCCESS;
 }
 
+// TODO: Implement frustum culling
+
 // ---- Private Functions ----
 
 void AxrVulkanGraphicsSystem::resetSetup() {
@@ -1024,7 +1026,10 @@ AxrResult AxrVulkanGraphicsSystem::setupSceneData() {
 
     axrResult = m_LoadedScenes.setup(
         {
+            .PhysicalDevice = m_PhysicalDevice,
             .Device = m_Device,
+            .TransferCommandPool = m_TransferCommandPool,
+            .TransferQueue = m_QueueFamilies.TransferQueue,
             .Dispatch = &m_Dispatch,
         }
     );

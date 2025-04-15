@@ -53,7 +53,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 
     axr::AssetCollection globalAssetCollection = app.getGlobalAssetCollection();
 
-    const axr::VertexShaderProperties vertexShaderProperties;
+    axr::VertexShaderProperties vertexShaderProperties;
+    vertexShaderProperties.addVertexAttribute(axr::ShaderVertexAttributeEnum::Position, 0, 0);
+    vertexShaderProperties.addVertexAttribute(axr::ShaderVertexAttributeEnum::Color, 0, 1);
+    vertexShaderProperties.addVertexAttribute(axr::ShaderVertexAttributeEnum::TexCoords, 0, 2);
     const axr::ShaderConfig vertexShaderConfig("VertexShader", "shaders/shader.vert", vertexShaderProperties);
     if (!vertexShaderConfig.isValid()) return 0;
     if (AXR_FAILED(globalAssetCollection.createShader(vertexShaderConfig))) return 0;

@@ -200,6 +200,23 @@ bool AxrShaderPropertiesRAII::isValid() const {
     return isValid(m_RawProperties);
 }
 
+std::vector<AxrShaderVertexAttribute> AxrShaderPropertiesRAII::getVertexAttributes() const {
+    if (m_RawProperties == nullptr) {
+        axrLogErrorLocation("Raw properties are null.");
+        return {};
+    }
+
+    if (m_RawProperties->Type != AXR_SHADER_STAGE_VERTEX) return {};
+
+    const auto vertexProperties = reinterpret_cast<AxrVertexShaderPropertiesConst_T>(m_RawProperties);
+    if (vertexProperties->VertexAttributes == nullptr) return {};
+
+    return {
+        vertexProperties->VertexAttributes,
+        vertexProperties->VertexAttributes + vertexProperties->VertexAttributesCount
+    };
+}
+
 std::vector<AxrShaderUniformBufferLayoutConst_T> AxrShaderPropertiesRAII::getUniformBufferLayouts() const {
     if (m_RawProperties == nullptr) {
         axrLogErrorLocation("Raw properties are null.");
@@ -674,33 +691,14 @@ bool AxrShaderPropertiesRAII::isValid(
         return true;
     }
 
-    std::unordered_set<AxrShaderVertexAttributeEnum> vertexAttributeTypes;
-    std::unordered_map<uint32_t, std::unordered_set<uint32_t>> vertexAttributesBindingsLocation;
+    std::unordered_set<uint32_t> vertexAttributeLocations;
 
     for (uint32_t i = 0; i < vertexAttributesCount; ++i) {
-        if (vertexAttributeTypes.contains(vertexAttributes[i].Type)) {
-            axrLogError("Validation for shader vertex attributes failed. Vertex attributes have a duplicate type.");
+        if (vertexAttributeLocations.contains(vertexAttributes[i].Location)) {
+            axrLogError("Validation for shader vertex attributes failed. Vertex attributes have a duplicate location.");
             return false;
         }
-        vertexAttributeTypes.insert(vertexAttributes[i].Type);
-
-        auto foundVertexAttributeBindingIt = vertexAttributesBindingsLocation.find(vertexAttributes[i].Binding);
-        if (foundVertexAttributeBindingIt != vertexAttributesBindingsLocation.end()) {
-            if (foundVertexAttributeBindingIt->second.contains(vertexAttributes[i].Location)) {
-                axrLogError(
-                    "Validation for shader vertex attributes failed. Vertex attributes have a duplicate binding and location."
-                );
-                return false;
-            }
-            foundVertexAttributeBindingIt->second.insert(vertexAttributes[i].Location);
-        } else {
-            vertexAttributesBindingsLocation.insert(
-                std::pair(
-                    vertexAttributes[i].Binding,
-                    std::unordered_set({vertexAttributes[i].Location})
-                )
-            );
-        }
+        vertexAttributeLocations.insert(vertexAttributes[i].Location);
     }
 
     return true;

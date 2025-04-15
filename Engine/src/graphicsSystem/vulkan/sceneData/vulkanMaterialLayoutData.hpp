@@ -24,13 +24,6 @@ public:
     // Structs
     // ----------------------------------------- //
 
-    /// Descriptor set item location details
-    struct DescriptorSetItemLocation {
-        AxrShaderBufferLayoutEnum BufferLayoutType;
-        uint32_t ShaderBinding;
-        uint32_t ItemIndex;
-    };
-
     /// Material layout data config
     struct Config {
         std::string Name;
@@ -38,6 +31,13 @@ public:
         const AxrShader* FragmentShaderHandle;
         vk::Device Device;
         vk::DispatchLoaderDynamic* DispatchHandle;
+    };
+
+    /// Descriptor set item location details
+    struct DescriptorSetItemLocation {
+        AxrShaderBufferLayoutEnum BufferLayoutType;
+        uint32_t ShaderBinding;
+        uint32_t ItemIndex;
     };
 
     // ----------------------------------------- //

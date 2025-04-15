@@ -5,6 +5,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/assets.h"
+#include "vulkanModelData.hpp"
 #include "vulkanMaterialLayoutData.hpp"
 #include "vulkanMaterialData.hpp"
 
@@ -26,7 +27,10 @@ public:
         const char* SceneName;
         AxrAssetCollection_T AssetCollection;
         AxrVulkanSceneData* SharedVulkanSceneData;
+        vk::PhysicalDevice PhysicalDevice;
         vk::Device Device;
+        vk::CommandPool TransferCommandPool;
+        vk::Queue TransferQueue;
         vk::DispatchLoaderDynamic* DispatchHandle;
     };
 
@@ -66,7 +70,7 @@ public:
 
     /// Get the scene name
     /// @returns The scene name
-    [[nodiscard]] const char* getSceneName();
+    [[nodiscard]] const char* getSceneName() const;
 
     /// Load the scene data
     /// @returns AXR_SUCCESS if the function succeeded
@@ -97,15 +101,43 @@ private:
     const char* m_SceneName;
     AxrAssetCollection_T m_AssetCollection;
     AxrVulkanSceneData* m_SharedVulkanSceneData;
+    vk::PhysicalDevice m_PhysicalDevice;
     vk::Device m_Device;
+    vk::CommandPool m_TransferCommandPool;
+    vk::Queue m_TransferQueue;
     vk::DispatchLoaderDynamic* m_DispatchHandle;
 
+    std::unordered_map<std::string, AxrVulkanModelData> m_ModelData;
     std::unordered_map<std::string, AxrVulkanMaterialLayoutData> m_MaterialLayoutData;
     std::unordered_map<std::string, AxrVulkanMaterialData> m_MaterialData;
 
     // ----------------------------------------- //
     // Private Functions
     // ----------------------------------------- //
+
+    // ---- Model ----
+
+    /// Create all model data
+    /// @results AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createAllModelData();
+    /// Destroy all model data
+    void destroyAllModelData();
+
+    /// Initialize all the model data
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult initializeAllModelData();
+    /// Initialize a single model's data for the given model
+    /// @param model Model to use
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult initializeModelData(const AxrModel& model);
+
+    /// Create the given model data
+    /// @param modelData Model data to create
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createModelData(AxrVulkanModelData& modelData);
+    /// Destroy the given model data
+    /// @param modelData Model data to destroy
+    void destroyModelData(AxrVulkanModelData& modelData);
 
     // ---- Material Layout ----
 

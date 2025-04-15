@@ -20,7 +20,10 @@ public:
 
     /// AxrVulkanLoadedScenesCollection setup config
     struct SetupConfig {
+        vk::PhysicalDevice PhysicalDevice;
         vk::Device Device;
+        vk::CommandPool TransferCommandPool;
+        vk::Queue TransferQueue;
         vk::DispatchLoaderDynamic* Dispatch;
     };
 
@@ -99,12 +102,16 @@ private:
     // ----------------------------------------- //
 
     // ---- Setup Config ----
+    vk::PhysicalDevice m_PhysicalDevice;
     vk::Device m_Device;
+    vk::CommandPool m_TransferCommandPool;
+    vk::Queue m_TransferQueue;
     vk::DispatchLoaderDynamic* m_Dispatch;
 
     // ---- Setup Window Config ----
     vk::RenderPass m_WindowRenderPass;
 
+    // TODO: Check if this needs to be a pointer
     std::vector<AxrVulkanSceneData*> m_LoadedScenes;
 
     // ----------------------------------------- //

@@ -62,6 +62,10 @@ public:
     /// Unload this model file
     void unloadFile() const;
 
+    /// Get the model meshes
+    /// @returns The model meshes
+    const std::vector<AxrMeshRAII>& getMeshes() const;
+
     // ----------------------------------------- //
     // Public Static Functions
     // ----------------------------------------- //

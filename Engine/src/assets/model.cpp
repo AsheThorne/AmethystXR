@@ -141,6 +141,10 @@ void AxrModel::unloadFile() const {
     m_Meshes.clear();
 }
 
+const std::vector<AxrMeshRAII>& AxrModel::getMeshes() const {
+    return m_Meshes;
+}
+
 // ---- Public Static Functions ----
 
 AxrMesh* AxrModel::cloneMeshes(const uint32_t meshesCount, const AxrMesh* meshes) {

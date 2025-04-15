@@ -119,4 +119,145 @@ bool axrAreFormatFeaturesSupported(
     return false;
 }
 
+AxrResult axrFindMemoryTypeIndex(
+    const vk::PhysicalDevice& physicalDevice,
+    const uint32_t typeFilter,
+    const vk::MemoryPropertyFlags properties,
+    uint32_t& memoryTypeIndex,
+    const vk::DispatchLoaderDynamic& dispatch
+) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (physicalDevice == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Physical device is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const vk::PhysicalDeviceMemoryProperties memoryProperties = physicalDevice.getMemoryProperties(dispatch);
+
+    for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; ++i) {
+        if (typeFilter & (1 << i) && (memoryProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+            memoryTypeIndex = i;
+            return AXR_SUCCESS;
+        }
+    }
+
+    axrLogErrorLocation("Failed to find a suitable memory type.");
+    return AXR_ERROR;
+}
+
+AxrResult axrBeginSingleTimeCommand(
+    const vk::Device device,
+    const vk::CommandPool commandPool,
+    vk::CommandBuffer& commandBuffer,
+    const vk::DispatchLoaderDynamic& dispatch
+) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (commandBuffer != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Command buffer already exists.");
+        return AXR_ERROR;
+    }
+
+    if (device == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Device is null.");
+        return AXR_ERROR;
+    }
+
+    if (commandPool == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Command pool is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const vk::CommandBufferAllocateInfo commandBufferAllocateInfo(
+        commandPool,
+        vk::CommandBufferLevel::ePrimary,
+        1
+    );
+
+    vk::Result vkResult = device.allocateCommandBuffers(
+        &commandBufferAllocateInfo,
+        &commandBuffer,
+        dispatch
+    );
+    axrLogVkResult(vkResult, "device.allocateCommandBuffers");
+    if (VK_FAILED(vkResult)) {
+        return AXR_ERROR;
+    }
+
+    constexpr vk::CommandBufferBeginInfo commandBufferBeginInfo(
+        vk::CommandBufferUsageFlagBits::eOneTimeSubmit,
+        nullptr
+    );
+
+    vkResult = commandBuffer.begin(&commandBufferBeginInfo, dispatch);
+    axrLogVkResult(vkResult, "commandBuffer.begin");
+    if (VK_FAILED(vkResult)) {
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+
+AxrResult axrEndSingleTimeCommand(
+    const vk::Device device,
+    const vk::CommandPool commandPool,
+    const vk::Queue queue,
+    vk::CommandBuffer& commandBuffer,
+    const vk::DispatchLoaderDynamic& dispatch
+) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+    
+    vk::Result vkResult = commandBuffer.end(dispatch);
+    axrLogVkResult(vkResult, "commandBuffer.end");
+    if (VK_FAILED(vkResult)) {
+        return AXR_ERROR;
+    }
+
+    const vk::SubmitInfo submitInfo(
+        0,
+        {},
+        {},
+        1,
+        &commandBuffer,
+        0,
+        {}
+    );
+
+    vkResult = queue.submit(1, &submitInfo, VK_NULL_HANDLE, dispatch);
+    axrLogVkResult(vkResult, "queue.submit");
+    if (VK_FAILED(vkResult)) {
+        return AXR_ERROR;
+    }
+
+    vkResult = queue.waitIdle(dispatch);
+    axrLogVkResult(vkResult, "queue.waitIdle");
+    if (VK_FAILED(vkResult)) {
+        return AXR_ERROR;
+    }
+
+    device.freeCommandBuffers(commandPool, 1, &commandBuffer, dispatch);
+    commandBuffer = VK_NULL_HANDLE;
+
+    return AXR_SUCCESS;
+}
+
 #endif

@@ -150,6 +150,15 @@ private:
     /// Destroy the given shader module
     /// @param shaderModule Shader module to destroy
     void destroyShaderModule(vk::ShaderModule& shaderModule) const;
+
+    /// Get the format for the given vertex attribute enum
+    /// @param vertexAttribute Vertex attribute
+    /// @returns The format
+    [[nodiscard]] vk::Format getVertexAttributeFormat(AxrShaderVertexAttributeEnum vertexAttribute) const;
+    /// Get the offset for the given vertex attribute enum
+    /// @param vertexAttribute Vertex attribute
+    /// @returns The offset
+    [[nodiscard]] uint32_t getVertexAttributeOffset(AxrShaderVertexAttributeEnum vertexAttribute) const;
 };
 
 #endif

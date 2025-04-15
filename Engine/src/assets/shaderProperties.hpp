@@ -57,6 +57,10 @@ public:
     /// @returns True if the shader properties are valid
     [[nodiscard]] bool isValid() const;
 
+    /// Get all vertex attributes
+    /// @returns A collection of vertex attributes
+    [[nodiscard]] std::vector<AxrShaderVertexAttribute> getVertexAttributes() const;
+
     /// Get all uniform buffer layouts
     /// @returns A collection of uniform buffer layouts
     [[nodiscard]] std::vector<AxrShaderUniformBufferLayoutConst_T> getUniformBufferLayouts() const;

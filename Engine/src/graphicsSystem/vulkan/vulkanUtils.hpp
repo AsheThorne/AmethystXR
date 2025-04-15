@@ -8,6 +8,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/vulkanApi.h"
+#include "axr/common/result.h"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -75,6 +76,52 @@ const char* axrGetExtensionName(AxrVulkanExtensionTypeEnum extensionType);
     vk::ImageTiling tiling,
     vk::FormatFeatureFlags features,
     const vk::PhysicalDevice& physicalDevice,
+    const vk::DispatchLoaderDynamic& dispatch
+);
+
+// ---- Memory ----
+
+/// Find a suitable memory type index from the given type filter and properties
+/// @param physicalDevice Physical device to use
+/// @param typeFilter Type filter
+/// @param properties Memory properties
+/// @param memoryTypeIndex Output memory type index
+/// @param dispatch Dispatch to use
+/// @returns AXR_SUCCESS if the function succeeded
+[[nodiscard]] AxrResult axrFindMemoryTypeIndex(
+    const vk::PhysicalDevice& physicalDevice,
+    uint32_t typeFilter,
+    vk::MemoryPropertyFlags properties,
+    uint32_t& memoryTypeIndex,
+    const vk::DispatchLoaderDynamic& dispatch
+);
+
+// ---- Command Buffer ----
+
+/// Begin a single time command
+/// @param device Device to use
+/// @param commandPool Command pool to use
+/// @param commandBuffer Output command buffer to record commands on
+/// @param dispatch Dispatch to use
+/// @returns AXR_SUCCESS if the function succeeded
+[[nodiscard]] AxrResult axrBeginSingleTimeCommand(
+    vk::Device device,
+    vk::CommandPool commandPool,
+    vk::CommandBuffer& commandBuffer,
+    const vk::DispatchLoaderDynamic& dispatch
+);
+/// End a single time command
+/// @param device Device to use
+/// @param commandPool Command pool to use
+/// @param queue Queue to use
+/// @param commandBuffer Command buffer to use
+/// @param dispatch Dispatch to use
+/// @returns AXR_SUCCESS if the function succeeded
+[[nodiscard]] AxrResult axrEndSingleTimeCommand(
+    vk::Device device,
+    vk::CommandPool commandPool,
+    vk::Queue queue,
+    vk::CommandBuffer& commandBuffer,
     const vk::DispatchLoaderDynamic& dispatch
 );
 

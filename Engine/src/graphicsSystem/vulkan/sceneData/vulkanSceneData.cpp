@@ -14,7 +14,10 @@ AxrVulkanSceneData::AxrVulkanSceneData(const Config& config):
     m_SceneName(config.SceneName),
     m_AssetCollection(config.AssetCollection),
     m_SharedVulkanSceneData(config.SharedVulkanSceneData),
+    m_PhysicalDevice(config.PhysicalDevice),
     m_Device(config.Device),
+    m_TransferCommandPool(config.TransferCommandPool),
+    m_TransferQueue(config.TransferQueue),
     m_DispatchHandle(config.DispatchHandle) {
 }
 
@@ -24,7 +27,7 @@ AxrVulkanSceneData::~AxrVulkanSceneData() {
 
 // ---- Public Functions ----
 
-const char* AxrVulkanSceneData::getSceneName() {
+const char* AxrVulkanSceneData::getSceneName() const {
     return m_SceneName;
 }
 
@@ -44,6 +47,12 @@ AxrResult AxrVulkanSceneData::loadScene() {
     AxrResult axrResult = AXR_SUCCESS;
 
     axrResult = m_AssetCollection->loadAssets(AXR_GRAPHICS_API_VULKAN);
+    if (AXR_FAILED(axrResult)) {
+        unloadScene();
+        return axrResult;
+    }
+
+    axrResult = createAllModelData();
     if (AXR_FAILED(axrResult)) {
         unloadScene();
         return axrResult;
@@ -70,6 +79,7 @@ void AxrVulkanSceneData::unloadScene() {
 
     destroyAllMaterialData();
     destroyAllMaterialLayoutData();
+    destroyAllModelData();
     if (m_AssetCollection != nullptr) {
         m_AssetCollection->unloadAssets();
     }
@@ -116,6 +126,126 @@ const AxrShader* AxrVulkanSceneData::findShader_shared(const std::string& name) 
 }
 
 // ---- Private Functions ----
+
+AxrResult AxrVulkanSceneData::createAllModelData() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!m_ModelData.empty()) {
+        axrLogErrorLocation("Model data already exists.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = initializeAllModelData();
+    if (AXR_FAILED(axrResult)) {
+        destroyAllModelData();
+        return axrResult;
+    }
+
+    for (auto& [name, data] : m_ModelData) {
+        axrResult = createModelData(data);
+        if (AXR_FAILED(axrResult)) {
+            break;
+        }
+    }
+
+    if (AXR_FAILED(axrResult)) {
+        destroyAllModelData();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanSceneData::destroyAllModelData() {
+    for (auto& [name, data] : m_ModelData) {
+        destroyModelData(data);
+    }
+    m_ModelData.clear();
+}
+
+AxrResult AxrVulkanSceneData::initializeAllModelData() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!m_ModelData.empty()) {
+        axrLogErrorLocation("Model data already exists.");
+        return AXR_ERROR;
+    }
+
+    if (m_AssetCollection == nullptr) {
+        axrLogErrorLocation("Asset collection is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    for (const auto& [modelName, model] : m_AssetCollection->getModels()) {
+        axrResult = initializeModelData(model);
+        if (AXR_FAILED(axrResult)) {
+            break;
+        }
+    }
+
+    if (AXR_FAILED(axrResult)) {
+        axrLogErrorLocation("Failed to initialize model data.");
+        destroyAllModelData();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrVulkanSceneData::initializeModelData(const AxrModel& model) {
+    const std::string modelName = model.getName();
+    if (m_ModelData.contains(modelName)) return AXR_SUCCESS;
+
+    const AxrVulkanModelData::Config modelDataConfig{
+        .Name = modelName,
+        .ModelHandle = &model,
+        .PhysicalDevice = m_PhysicalDevice,
+        .Device = m_Device,
+        .TransferCommandPool = m_TransferCommandPool,
+        .TransferQueue = m_TransferQueue,
+        .DispatchHandle = m_DispatchHandle,
+    };
+
+    m_ModelData.insert(
+        std::pair(
+            modelName,
+            AxrVulkanModelData(modelDataConfig)
+        )
+    );
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrVulkanSceneData::createModelData(AxrVulkanModelData& modelData) {
+    const AxrResult axrResult = modelData.createData();
+
+    if (AXR_FAILED(axrResult)) {
+        destroyModelData(modelData);
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanSceneData::destroyModelData(AxrVulkanModelData& modelData) {
+    modelData.destroyData();
+}
 
 AxrResult AxrVulkanSceneData::createAllMaterialLayoutData() {
     // ----------------------------------------- //

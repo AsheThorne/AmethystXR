@@ -9,7 +9,10 @@
 // ---- Special Functions ----
 
 AxrVulkanLoadedScenesCollection::AxrVulkanLoadedScenesCollection():
+    m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
+    m_TransferCommandPool(VK_NULL_HANDLE),
+    m_TransferQueue(VK_NULL_HANDLE),
     m_Dispatch(nullptr),
     m_WindowRenderPass(VK_NULL_HANDLE) {
 }
@@ -34,6 +37,16 @@ AxrResult AxrVulkanLoadedScenesCollection::setup(const SetupConfig& config) {
     // Validation
     // ----------------------------------------- //
 
+    if (m_PhysicalDevice != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Physical device isn't null.");
+        return AXR_ERROR;
+    }
+
+    if (config.PhysicalDevice == VK_NULL_HANDLE) {
+        axrLogErrorLocation("config.PhysicalDevice is null.");
+        return AXR_ERROR;
+    }
+
     if (m_Device != VK_NULL_HANDLE) {
         axrLogErrorLocation("Device isn't null.");
         return AXR_ERROR;
@@ -41,6 +54,26 @@ AxrResult AxrVulkanLoadedScenesCollection::setup(const SetupConfig& config) {
 
     if (config.Device == VK_NULL_HANDLE) {
         axrLogErrorLocation("config.Device is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_TransferCommandPool != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Transfer command pool isn't null.");
+        return AXR_ERROR;
+    }
+
+    if (config.TransferCommandPool == VK_NULL_HANDLE) {
+        axrLogErrorLocation("config.TransferCommandPool is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_TransferQueue != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Transfer queue isn't null.");
+        return AXR_ERROR;
+    }
+
+    if (config.TransferQueue == VK_NULL_HANDLE) {
+        axrLogErrorLocation("config.TransferQueue is null.");
         return AXR_ERROR;
     }
 
@@ -58,7 +91,10 @@ AxrResult AxrVulkanLoadedScenesCollection::setup(const SetupConfig& config) {
     // Process
     // ----------------------------------------- //
 
+    m_PhysicalDevice = config.PhysicalDevice;
     m_Device = config.Device;
+    m_TransferCommandPool = config.TransferCommandPool;
+    m_TransferQueue = config.TransferQueue;
     m_Dispatch = config.Dispatch;
 
     return AXR_SUCCESS;
@@ -68,7 +104,10 @@ void AxrVulkanLoadedScenesCollection::resetSetup() {
     clear();
     resetSetupWindowData();
 
+    m_PhysicalDevice = VK_NULL_HANDLE;
     m_Device = VK_NULL_HANDLE;
+    m_TransferCommandPool = VK_NULL_HANDLE;
+    m_TransferQueue = VK_NULL_HANDLE;
     m_Dispatch = nullptr;
 }
 
@@ -187,7 +226,10 @@ AxrVulkanSceneData* AxrVulkanLoadedScenesCollection::createSceneData(
             .SceneName = sceneName,
             .AssetCollection = assetCollection,
             .SharedVulkanSceneData = sharedSceneData,
+            .PhysicalDevice = m_PhysicalDevice,
             .Device = m_Device,
+            .TransferCommandPool = m_TransferCommandPool,
+            .TransferQueue = m_TransferQueue,
             .DispatchHandle = m_Dispatch
         }
     );
