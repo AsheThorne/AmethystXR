@@ -38,7 +38,7 @@ namespace axr {
 
     /// Shader vertex attribute enum
     enum class ShaderVertexAttributeEnum {
-        Undefined = AXR_SHADER_VERTEX_ATTRIBUTE_UNKNOWN,
+        Undefined = AXR_SHADER_VERTEX_ATTRIBUTE_UNDEFINED,
         Position = AXR_SHADER_VERTEX_ATTRIBUTE_POSITION,
         Color = AXR_SHADER_VERTEX_ATTRIBUTE_COLOR,
         TexCoords = AXR_SHADER_VERTEX_ATTRIBUTE_TEX_COORDS,
