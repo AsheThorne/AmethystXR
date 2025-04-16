@@ -66,6 +66,9 @@ public:
     /// Check if the buffer exists
     /// @returns True if the buffer doesn't exist
     [[nodiscard]] bool isEmpty() const;
+    /// Get the vulkan buffer
+    /// @returns The vulkan buffer
+    [[nodiscard]] const vk::Buffer& getBuffer() const;
 
     /// Create the buffer
     /// @param willBufferBeStatic Set to true if the buffer will get converted to a static buffer

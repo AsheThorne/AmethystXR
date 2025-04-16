@@ -76,7 +76,8 @@ public:
     /// Signal that we want to close the window
     void closeWindow();
     /// Process the window message queue
-    void processEvents();
+    /// @returns False if the window was closed
+    [[nodiscard]] bool processEvents();
     /// Get the window client size in pixels
     /// @param width Output window client width
     /// @param height Output window client height

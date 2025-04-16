@@ -160,7 +160,12 @@ void AxrWindowSystem::processEvents() {
         return;
     }
 
-    m_Win32WindowSystem->processEvents();
+    if (!m_Win32WindowSystem->processEvents()) {
+        // If the window closed, signal the window graphics
+        if (AXR_FAILED(invokeConfigureWindowGraphicsCallback(false))) {
+            axrLogErrorLocation("Failed to clean up window graphics.");
+        }
+    }
 #else
     axrLogErrorLocation("Unknown platform.");
 #endif

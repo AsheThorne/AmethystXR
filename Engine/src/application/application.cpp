@@ -99,6 +99,24 @@ AxrScene_T axrApplicationFindScene(const AxrApplication_T app, const char* scene
     return app->findScene(sceneName);
 }
 
+AxrResult axrApplicationLoadScene(const AxrApplication_T app, const char* sceneName) {
+    if (app == nullptr) {
+        axrLogErrorLocation("`app` is null.");
+        return AXR_ERROR;
+    }
+
+    return app->loadScene(sceneName);
+}
+
+AxrResult axrApplicationSetActiveScene(const AxrApplication_T app, const char* sceneName) {
+    if (app == nullptr) {
+        axrLogErrorLocation("`app` is null.");
+        return AXR_ERROR;
+    }
+
+    return app->setActiveScene(sceneName);
+}
+
 // ----------------------------------------- //
 // Internal Functions
 // ----------------------------------------- //
@@ -171,7 +189,7 @@ AxrResult AxrApplication::createScene(const char* sceneName) {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
-    
+
     if (m_Scenes.contains(sceneName)) {
         axrLogErrorLocation("Scene already exists with the name: {0}.", sceneName);
         return AXR_ERROR;
@@ -198,4 +216,18 @@ AxrScene_T AxrApplication::findScene(const char* sceneName) {
     }
 
     return &foundScene->second;
+}
+
+AxrResult AxrApplication::loadScene(const char* sceneName) {
+    AxrScene_T foundScene = findScene(sceneName);
+    if (foundScene == nullptr) {
+        axrLogErrorLocation("Failed to find scene with the name: {0}.", sceneName);
+        return AXR_ERROR;
+    }
+
+    return m_GraphicsSystem.loadScene(foundScene);
+}
+
+AxrResult AxrApplication::setActiveScene(const char* sceneName) {
+    return m_GraphicsSystem.setActiveScene(sceneName);
 }

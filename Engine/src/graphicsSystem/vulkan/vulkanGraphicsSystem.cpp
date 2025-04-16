@@ -13,6 +13,7 @@
 #include "vulkanGraphicsSystem.hpp"
 #include "vulkanutils.hpp"
 #include "../../utils.hpp"
+#include "../../scene/scene.hpp"
 
 // ---- Special Functions ----
 
@@ -132,7 +133,56 @@ AxrResult AxrVulkanGraphicsSystem::setup() {
     return AXR_SUCCESS;
 }
 
-// TODO: Implement frustum culling
+void AxrVulkanGraphicsSystem::drawFrame() const {
+    AxrResult axrResult = AXR_SUCCESS;
+
+    if (m_WindowGraphics != nullptr && m_WindowGraphics->isReady()) {
+        const AxrVulkanRenderCommands windowRenderCommands(*m_WindowGraphics, m_Device, m_Dispatch);
+
+        axrResult = renderCurrentFrame(windowRenderCommands);
+        if (AXR_FAILED(axrResult)) {
+            axrLogErrorLocation("Failed to render current frame.");
+            return;
+        }
+    }
+}
+
+AxrResult AxrVulkanGraphicsSystem::loadScene(const AxrScene_T scene) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (scene == nullptr) {
+        axrLogErrorLocation("Scene is null.");
+        return AXR_ERROR;
+    }
+
+    if (!m_LoadedScenes.isSetup()) {
+        axrLogErrorLocation("Scenes have not been set up.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const AxrResult axrResult = m_LoadedScenes.loadScene(
+        scene->getName(),
+        scene->getAssetCollection(),
+        scene->getEcsRegistry(),
+        m_LoadedScenes.getGlobalSceneData()
+    );
+    if (AXR_FAILED(axrResult)) {
+        resetSetupSceneData();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrVulkanGraphicsSystem::setActiveScene(const char* sceneName) {
+    return m_LoadedScenes.setActiveScene(sceneName);
+}
 
 // ---- Private Functions ----
 
@@ -1044,6 +1094,7 @@ AxrResult AxrVulkanGraphicsSystem::setupSceneData() {
     axrResult = m_LoadedScenes.loadScene(
         "AXR:SceneGlobal",
         m_GlobalAssetCollection,
+        nullptr,
         nullptr
     );
     if (AXR_FAILED(axrResult)) {
@@ -1086,6 +1137,72 @@ void AxrVulkanGraphicsSystem::resetSetupWindowGraphics() {
     if (m_WindowGraphics == nullptr) return;
 
     m_WindowGraphics->resetSetup();
+}
+
+template <typename RenderTarget>
+AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
+    const AxrVulkanRenderCommands<RenderTarget>& renderCommands
+) const {
+    const AxrVulkanSceneData* sceneAssets = m_LoadedScenes.getActiveScene();
+    if (sceneAssets == nullptr) {
+        axrLogErrorLocation("There is no active scene.");
+        return AXR_ERROR;
+    }
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = renderCommands.waitForFrameFence();
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
+
+    axrResult = renderCommands.acquireNextSwapchainImage();
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
+
+    axrResult = renderCommands.resetCommandBuffer();
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
+
+    axrResult = renderCommands.beginCommandBuffer();
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
+
+    renderCommands.beginRenderPass();
+    renderCommands.setViewport();
+    renderCommands.setScissor();
+
+    // TODO: Implement frustum culling
+    for (auto& [materialName, material] : sceneAssets->getMaterialsForRendering()) {
+        // TODO: Don't hardcode the window pipeline here
+        renderCommands.bindPipeline(material.WindowPipeline);
+
+        for (const AxrVulkanSceneData::MeshForRendering& mesh : material.Meshes) {
+            renderCommands.draw(mesh);
+        }
+    }
+
+    renderCommands.endRenderPass();
+
+    axrResult = renderCommands.endCommandBuffer();
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
+
+    axrResult = renderCommands.submitCommandBuffer(m_QueueFamilies.GraphicsQueue);
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
+
+    axrResult = renderCommands.presentFrame();
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
 }
 
 // ---- Private Static Functions ----

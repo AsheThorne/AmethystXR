@@ -170,6 +170,20 @@ namespace axr {
             return axrApplicationFindScene(m_Application, sceneName);
         }
 
+        /// Load the named scene
+        /// @param sceneName Name of the scene
+        /// @returns AXR_SUCCESS if the function succeeded
+        [[nodiscard]] axr::Result loadScene(const char* sceneName) {
+            return static_cast<axr::Result>(axrApplicationLoadScene(m_Application, sceneName));
+        }
+
+        /// Set the active scene to the named scene
+        /// @param sceneName Name of the scene
+        /// @returns AXR_SUCCESS if the function succeeded
+        [[nodiscard]] axr::Result setActiveScene(const char* sceneName) {
+            return static_cast<axr::Result>(axrApplicationSetActiveScene(m_Application, sceneName));
+        }
+
     private:
         // ----------------------------------------- //
         // Private Variables

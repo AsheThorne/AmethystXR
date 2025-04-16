@@ -100,6 +100,11 @@ namespace axr {
         // Public Functions
         // ----------------------------------------- //
 
+        /// Draw the current frame
+        void drawFrame() const {
+            axrGraphicsSystemDrawFrame(m_GraphicsSystem);
+        }
+
     private:
         // ----------------------------------------- //
         // Private Variables

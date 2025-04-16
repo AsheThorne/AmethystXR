@@ -101,19 +101,21 @@ void AxrWin32WindowSystem::closeWindow() {
     PostMessage(m_WindowHandle, WM_CLOSE, 0, 0);
 }
 
-void AxrWin32WindowSystem::processEvents() {
-    if (!isWindowOpen()) return;
+bool AxrWin32WindowSystem::processEvents() {
+    if (!isWindowOpen()) return true;
 
     MSG message{};
     while (PeekMessage(&message, nullptr, 0, 0, PM_REMOVE)) {
         if (message.message == WM_QUIT) {
             destroyWin32Window();
-            return;
+            return false;
         }
 
         TranslateMessage(&message);
         DispatchMessage(&message);
     }
+
+    return true;
 }
 
 AxrResult AxrWin32WindowSystem::getClientSize(uint32_t& width, uint32_t& height) const {

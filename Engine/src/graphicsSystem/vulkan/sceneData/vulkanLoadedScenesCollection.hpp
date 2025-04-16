@@ -60,11 +60,9 @@ public:
     // Public Functions
     // ----------------------------------------- //
 
-    /// Find the named loaded scene data
-    /// @param sceneName Scene name
-    /// @returns The named loaded scene data. Or nullptr if it wasn't found
-    [[nodiscard]] const AxrVulkanSceneData* findLoadedScene(const char* sceneName);
-
+    /// Check if the loaded scenes have been set up
+    /// @returns True if the loaded scenes have been set up
+    [[nodiscard]] bool isSetup() const;
     /// Set up the loaded scenes collection
     /// @param config Setup config
     /// @returns AXR_SUCCESS if the function succeeded
@@ -72,14 +70,20 @@ public:
     /// Reset the setup() function
     void resetSetup();
 
+    /// Get the global scene data
+    /// @returns The global scene data. Or nullptr if it doesn't exist
+    [[nodiscard]] AxrVulkanSceneData* getGlobalSceneData() const; 
+
     /// Load a new scene
     /// @param sceneName Name of the scene
     /// @param assetCollection Asset collection to use
+    /// @param ecsRegistryHandle ECS registry to use
     /// @param sharedSceneData Shared scene assets
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult loadScene(
         const char* sceneName,
         AxrAssetCollection_T assetCollection,
+        entt::registry* ecsRegistryHandle,
         AxrVulkanSceneData* sharedSceneData
     );
     /// Unload the named scene
@@ -88,6 +92,19 @@ public:
 
     /// Unload and remove all loaded scenes
     void clear();
+
+    /// Find the named loaded scene data
+    /// @param sceneName Scene name
+    /// @returns The named loaded scene data. Or nullptr if it wasn't found
+    [[nodiscard]] AxrVulkanSceneData* findLoadedScene(const char* sceneName);
+
+    /// Set the active scene to the named scene
+    /// @param sceneName Scene name
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setActiveScene(const char* sceneName);
+    /// Get the active scene
+    /// @returns A handle to the active scene data or nullptr if an active scene isn't set
+    [[nodiscard]] AxrVulkanSceneData* getActiveScene() const;
 
     /// Set up the window data for all scenes and load all window specific scene data
     /// @param renderPass Render pass to use
@@ -108,9 +125,12 @@ private:
     vk::Queue m_TransferQueue;
     vk::DispatchLoaderDynamic* m_Dispatch;
 
+    bool m_IsSetup;
+
     // ---- Setup Window Config ----
     vk::RenderPass m_WindowRenderPass;
 
+    AxrVulkanSceneData* m_ActiveScene;
     // TODO: Check if this needs to be a pointer
     std::vector<AxrVulkanSceneData*> m_LoadedScenes;
 
@@ -126,11 +146,13 @@ private:
     /// Create vulkan scene data
     /// @param sceneName Name of the scene
     /// @param assetCollection Asset collection to use
+    /// @param ecsRegistryHandle ECS registry to use
     /// @param sharedSceneData Shared scene data
     /// @returns A handle to the created vulkan scene data
     [[nodiscard]] AxrVulkanSceneData* createSceneData(
         const char* sceneName,
         AxrAssetCollection_T assetCollection,
+        entt::registry* ecsRegistryHandle,
         AxrVulkanSceneData* sharedSceneData
     ) const;
     /// Destroy the given vulkan scene data

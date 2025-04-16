@@ -81,6 +81,7 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanExtensionCollection.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanSurfaceDetails.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanBuffer.hpp
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanRenderCommands.hpp
     # ---- Graphics System - Vulkan - Scene Data ----
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanSceneData.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanModelData.hpp

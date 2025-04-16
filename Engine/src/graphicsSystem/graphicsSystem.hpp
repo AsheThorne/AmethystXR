@@ -62,6 +62,9 @@ public:
     // Public Functions
     // ----------------------------------------- //
 
+    /// Draw the current frame
+    void drawFrame();
+
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
     // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
@@ -71,6 +74,15 @@ public:
     [[nodiscard]] AxrResult setup();
     /// Clean up this class
     void cleanup();
+
+    /// Load the named scene
+    /// @param scene Scene to load
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult loadScene(AxrScene_T scene);
+    /// Set the active scene to the named scene
+    /// @param sceneName Name of the scene
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setActiveScene(const char* sceneName);
 
 private:
     // ----------------------------------------- //

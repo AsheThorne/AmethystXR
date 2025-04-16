@@ -16,6 +16,7 @@
 #include "vulkanWindowGraphics.hpp"
 #include "vulkanExtensionCollection.hpp"
 #include "sceneData/vulkanLoadedScenesCollection.hpp"
+#include "vulkanRenderCommands.hpp"
 
 // ----------------------------------------- //
 // Vulkan Headers
@@ -81,13 +82,22 @@ public:
     // Public Functions
     // ----------------------------------------- //
 
-    // ---- For Internal Use ----
-    // These functions are only to be used internally in the AmethystXr engine.
-    // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
-
     /// Set up the vulkan graphics system
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setup();
+
+    /// Draw the current frame
+    void drawFrame() const;
+
+    /// Load the named scene
+    /// @param scene Scene to load
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult loadScene(AxrScene_T scene);
+
+    /// Set the active scene to the named scene
+    /// @param sceneName Name of the scene
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setActiveScene(const char* sceneName);
 
 private:
     // ----------------------------------------- //
@@ -300,6 +310,15 @@ private:
     [[nodiscard]] AxrResult setupWindowGraphics();
     /// Reset the setupWindowGraphics() function
     void resetSetupWindowGraphics();
+
+    // ---- Rendering ----
+
+    /// Render the current frame using the given render target specific commands
+    /// @tparam RenderTarget Render target class. Like a window or xr device
+    /// @param renderCommands Render commands to use
+    /// @returns AXR_SUCCESS if the function succeeded
+    template <typename RenderTarget>
+    [[nodiscard]] AxrResult renderCurrentFrame(const AxrVulkanRenderCommands<RenderTarget>& renderCommands) const;
 
     // ----------------------------------------- //
     // Private Static Functions

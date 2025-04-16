@@ -38,8 +38,9 @@ public:
     /// Model mesh buffer
     struct MeshBuffer {
         AxrVulkanBuffer Buffer;
-        vk::DeviceSize IndicesOffset = 0;
-        vk::DeviceSize VerticesOffset = 0;
+        vk::DeviceSize IndicesOffset;
+        vk::DeviceSize VerticesOffset;
+        uint32_t IndexCount;
     };
 
     // ----------------------------------------- //
@@ -81,6 +82,22 @@ public:
     /// Get the model name
     /// @returns The model name
     [[nodiscard]] const std::string& getName() const;
+    /// Get the mesh buffer for the given mesh index
+    /// @param meshIndex Mesh index
+    /// @returns The mesh buffer
+    [[nodiscard]] const vk::Buffer& getMeshBuffer(uint32_t meshIndex) const;
+    /// Get the mesh buffer indices offset for the given mesh index
+    /// @param meshIndex Mesh index
+    /// @returns The mesh buffer indices offset
+    [[nodiscard]] const vk::DeviceSize& getMeshBufferIndicesOffset(uint32_t meshIndex) const;
+    /// Get the mesh buffer vertices offset for the given mesh index
+    /// @param meshIndex Mesh index
+    /// @returns The mesh buffer vertices offset
+    [[nodiscard]] const vk::DeviceSize& getMeshBufferVerticesOffset(uint32_t meshIndex) const;
+    /// Get the mesh index count for the given mesh index
+    /// @param meshIndex Mesh index
+    /// @returns The mesh index count
+    [[nodiscard]] const uint32_t& getMeshIndexCount(uint32_t meshIndex) const;
 
     /// Check if the data exists
     /// @returns True if the data exists

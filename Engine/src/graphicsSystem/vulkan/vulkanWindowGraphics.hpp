@@ -93,6 +93,45 @@ public:
     /// Reset the setup() function
     void resetSetup();
 
+    /// Check if the window graphics are ready for rendering
+    /// @returns True if the window graphics are ready for rendering
+    [[nodiscard]] bool isReady() const;
+
+    /// Get the render pass
+    /// @returns The render pass
+    [[nodiscard]] vk::RenderPass getRenderPass() const;
+    /// Get the framebuffer for the current swapchain image
+    /// @returns The framebuffer for the current swapchain image
+    [[nodiscard]] vk::Framebuffer getFramebuffer() const;
+    /// Get the swapchain extent
+    /// @returns The swapchain extent
+    [[nodiscard]] vk::Extent2D getSwapchainExtent() const;
+    /// Get the clear color value
+    /// @returns The clear color value
+    [[nodiscard]] vk::ClearColorValue getClearColorValue() const;
+    /// Get the command buffer to use for rendering for the current frame
+    /// @returns The rendering command buffer for the current frame
+    [[nodiscard]] vk::CommandBuffer getRenderingCommandBuffer() const;
+    /// Get the rendering wait semaphores to use for the current frame
+    /// @returns The wait semaphores for the current frame
+    [[nodiscard]] std::vector<vk::Semaphore> getRenderingWaitSemaphores() const;
+    /// Get the rendering wait stages to use for the current frame
+    /// @returns The wait stages for the current frame
+    [[nodiscard]] std::vector<vk::PipelineStageFlags> getRenderingWaitStages() const;
+    /// Get the rendering signal semaphores to use for the current frame
+    /// @returns The signal semaphores for the current frame
+    [[nodiscard]] std::vector<vk::Semaphore> getRenderingSignalSemaphores() const;
+    /// Get the rendering fence to use for the current frame
+    /// @returns The rendering fence for the current frame
+    [[nodiscard]] vk::Fence getRenderingFence() const;
+
+    /// Acquire the next swapchain image
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult acquireNextSwapchainImage();
+    /// Present the current frame to the window
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult presentFrame() const;
+
 private:
     // ----------------------------------------- //
     // Private Variables
@@ -115,6 +154,7 @@ private:
     /// Ordered from most desired to the least desired
     std::vector<vk::Format> m_SwapchainDepthFormatOptions;
 
+    bool m_IsReady;
     vk::ImageLayout m_SwapchainImageLayout;
     vk::SurfaceKHR m_Surface;
     vk::SurfaceFormatKHR m_SwapchainColorFormat;
@@ -126,7 +166,15 @@ private:
     std::vector<vk::Image> m_SwapchainColorImages;
     std::vector<vk::ImageView> m_SwapchainColorImageViews;
     std::vector<vk::Framebuffer> m_SwapchainFramebuffers;
+    /// One command buffer per frame in flight
     std::vector<vk::CommandBuffer> m_RenderingCommandBuffers;
+    /// One semaphore per frame in flight
+    std::vector<vk::Semaphore> m_ImageAvailableSemaphores;
+    /// One semaphore per frame in flight
+    std::vector<vk::Semaphore> m_RenderingFinishedSemaphores;
+    /// One fence per frame in flight
+    std::vector<vk::Fence> m_RenderingFences;
+    uint32_t m_CurrentImageIndex;
 
     // ----------------------------------------- //
     // Private Functions
@@ -211,6 +259,14 @@ private:
     [[nodiscard]] AxrResult createRenderPass();
     /// Destroy the render pass
     void destroyRenderPass();
+
+    // ---- Sync Objects ----
+
+    /// Create the rendering sync objects
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createSyncObjects();
+    /// Destroy the rendering sync objects
+    void destroySyncObjects();
 
     // ---- Command Buffers ----
 

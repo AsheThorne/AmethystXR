@@ -14,7 +14,9 @@ AxrVulkanLoadedScenesCollection::AxrVulkanLoadedScenesCollection():
     m_TransferCommandPool(VK_NULL_HANDLE),
     m_TransferQueue(VK_NULL_HANDLE),
     m_Dispatch(nullptr),
-    m_WindowRenderPass(VK_NULL_HANDLE) {
+    m_IsSetup(false),
+    m_WindowRenderPass(VK_NULL_HANDLE),
+    m_ActiveScene(nullptr) {
 }
 
 AxrVulkanLoadedScenesCollection::~AxrVulkanLoadedScenesCollection() {
@@ -23,13 +25,8 @@ AxrVulkanLoadedScenesCollection::~AxrVulkanLoadedScenesCollection() {
 
 // ---- Public Functions ----
 
-const AxrVulkanSceneData* AxrVulkanLoadedScenesCollection::findLoadedScene(const char* sceneName) {
-    const auto foundScene = findLoadedSceneIterator(sceneName);
-    if (foundScene == m_LoadedScenes.end()) {
-        return nullptr;
-    }
-
-    return *foundScene;
+bool AxrVulkanLoadedScenesCollection::isSetup() const {
+    return m_IsSetup;
 }
 
 AxrResult AxrVulkanLoadedScenesCollection::setup(const SetupConfig& config) {
@@ -97,12 +94,16 @@ AxrResult AxrVulkanLoadedScenesCollection::setup(const SetupConfig& config) {
     m_TransferQueue = config.TransferQueue;
     m_Dispatch = config.Dispatch;
 
+    m_IsSetup = true;
+
     return AXR_SUCCESS;
 }
 
 void AxrVulkanLoadedScenesCollection::resetSetup() {
     clear();
     resetSetupWindowData();
+
+    m_IsSetup = false;
 
     m_PhysicalDevice = VK_NULL_HANDLE;
     m_Device = VK_NULL_HANDLE;
@@ -111,9 +112,19 @@ void AxrVulkanLoadedScenesCollection::resetSetup() {
     m_Dispatch = nullptr;
 }
 
+AxrVulkanSceneData* AxrVulkanLoadedScenesCollection::getGlobalSceneData() const {
+    if (m_LoadedScenes.empty()) {
+        return nullptr;
+    }
+
+    // The global scene data should always be the first loaded scene
+    return m_LoadedScenes[0];
+}
+
 AxrResult AxrVulkanLoadedScenesCollection::loadScene(
     const char* sceneName,
     const AxrAssetCollection_T assetCollection,
+    entt::registry* ecsRegistryHandle,
     AxrVulkanSceneData* sharedSceneData
 ) {
     AxrResult axrResult = AXR_SUCCESS;
@@ -121,6 +132,7 @@ AxrResult AxrVulkanLoadedScenesCollection::loadScene(
     AxrVulkanSceneData* sceneData = createSceneData(
         sceneName,
         assetCollection,
+        ecsRegistryHandle,
         sharedSceneData
     );
     m_LoadedScenes.push_back(sceneData);
@@ -143,6 +155,10 @@ AxrResult AxrVulkanLoadedScenesCollection::loadScene(
 }
 
 void AxrVulkanLoadedScenesCollection::unloadScene(const char* sceneName) {
+    if (m_ActiveScene != nullptr && strcmp(m_ActiveScene->getSceneName(), sceneName) == 0) {
+        m_ActiveScene = nullptr;
+    }
+
     const auto foundScene = findLoadedSceneIterator(sceneName);
     if (foundScene == m_LoadedScenes.end()) {
         axrLogErrorLocation("Scene named: {0} not found.", sceneName);
@@ -164,9 +180,35 @@ void AxrVulkanLoadedScenesCollection::clear() {
     }
 
     m_LoadedScenes.clear();
+    m_ActiveScene = nullptr;
 }
 
-AxrResult AxrVulkanLoadedScenesCollection::setupWindowData(vk::RenderPass renderPass) {
+AxrVulkanSceneData* AxrVulkanLoadedScenesCollection::findLoadedScene(const char* sceneName) {
+    const auto foundScene = findLoadedSceneIterator(sceneName);
+    if (foundScene == m_LoadedScenes.end()) {
+        return nullptr;
+    }
+
+    return *foundScene;
+}
+
+AxrResult AxrVulkanLoadedScenesCollection::setActiveScene(const char* sceneName) {
+    AxrVulkanSceneData* foundScene = findLoadedScene(sceneName);
+    if (foundScene == nullptr) {
+        axrLogErrorLocation("Failed to find loaded scene named: {0}.", sceneName);
+        return AXR_ERROR;
+    }
+
+    m_ActiveScene = foundScene;
+
+    return AXR_SUCCESS;
+}
+
+AxrVulkanSceneData* AxrVulkanLoadedScenesCollection::getActiveScene() const {
+    return m_ActiveScene;
+}
+
+AxrResult AxrVulkanLoadedScenesCollection::setupWindowData(const vk::RenderPass renderPass) {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -219,12 +261,14 @@ std::vector<AxrVulkanSceneData*>::iterator AxrVulkanLoadedScenesCollection::find
 AxrVulkanSceneData* AxrVulkanLoadedScenesCollection::createSceneData(
     const char* sceneName,
     const AxrAssetCollection_T assetCollection,
+    entt::registry* ecsRegistryHandle,
     AxrVulkanSceneData* sharedSceneData
 ) const {
     return new AxrVulkanSceneData(
         {
             .SceneName = sceneName,
             .AssetCollection = assetCollection,
+            .EcsRegistryHandle = ecsRegistryHandle,
             .SharedVulkanSceneData = sharedSceneData,
             .PhysicalDevice = m_PhysicalDevice,
             .Device = m_Device,

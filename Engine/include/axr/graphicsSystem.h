@@ -3,16 +3,11 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
+#include "axr/common/defines.h"
+
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 #include "vulkanApi.h"
 #endif
-
-// ----------------------------------------- //
-// Forward Declared Handles
-// ----------------------------------------- //
-
-/// AxrGraphicsSystem Handle
-typedef class AxrGraphicsSystem* AxrGraphicsSystem_T;
 
 // ----------------------------------------- //
 // Enums
@@ -37,7 +32,17 @@ struct AxrGraphicsSystemConfig {
 };
 
 // ----------------------------------------- //
+// Forward Declared Handles
+// ----------------------------------------- //
+
+/// AxrGraphicsSystem Handle
+typedef class AxrGraphicsSystem* AxrGraphicsSystem_T;
+
+// ----------------------------------------- //
 // External Function Definitions
 // ----------------------------------------- //
 extern "C" {
+    /// Draw the current frame
+    /// @param graphicsSystem Graphics system to use
+    AXR_API void axrGraphicsSystemDrawFrame(AxrGraphicsSystem_T graphicsSystem);
 }

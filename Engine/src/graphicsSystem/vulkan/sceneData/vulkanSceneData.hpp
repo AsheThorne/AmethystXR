@@ -8,6 +8,7 @@
 #include "vulkanModelData.hpp"
 #include "vulkanMaterialLayoutData.hpp"
 #include "vulkanMaterialData.hpp"
+#include "axr/scene.h"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -26,12 +27,36 @@ public:
     struct Config {
         const char* SceneName;
         AxrAssetCollection_T AssetCollection;
+        entt::registry* EcsRegistryHandle;
         AxrVulkanSceneData* SharedVulkanSceneData;
         vk::PhysicalDevice PhysicalDevice;
         vk::Device Device;
         vk::CommandPool TransferCommandPool;
         vk::Queue TransferQueue;
         vk::DispatchLoaderDynamic* DispatchHandle;
+    };
+
+    /// Mesh references for rendering
+    struct MeshForRendering {
+        const vk::Buffer& Buffer;
+        const vk::DeviceSize& BufferIndicesOffset;
+        const vk::DeviceSize& BufferVerticesOffset;
+        const uint32_t& IndexCount;
+    };
+
+    /// Push constants references for rendering
+    struct PushConstantsForRendering {
+        const vk::ShaderStageFlags& ShaderStages;
+        const uint32_t& BufferSize;
+        const void*& BufferData;
+    };
+
+    /// Material references for rendering
+    struct MaterialForRendering {
+        const vk::PipelineLayout& PipelineLayout;
+        const vk::Pipeline& WindowPipeline;
+        std::vector<PushConstantsForRendering> PushConstantsForRendering;
+        std::vector<MeshForRendering> Meshes;
     };
 
     // ----------------------------------------- //
@@ -85,6 +110,10 @@ public:
     /// Unload the window specific scene data
     void unloadWindowData();
 
+    /// Get the materials, organized specifically for rendering
+    /// @returns The collection of materials for rendering
+    [[nodiscard]] const std::unordered_map<std::string, MaterialForRendering>& getMaterialsForRendering() const;
+
     // ---- Find Assets ----
 
     /// Find the named shader, including the shared data in the search
@@ -100,6 +129,7 @@ private:
     // ---- Config Variables ----
     const char* m_SceneName;
     AxrAssetCollection_T m_AssetCollection;
+    entt::registry* m_EcsRegistryHandle;
     AxrVulkanSceneData* m_SharedVulkanSceneData;
     vk::PhysicalDevice m_PhysicalDevice;
     vk::Device m_Device;
@@ -110,6 +140,7 @@ private:
     std::unordered_map<std::string, AxrVulkanModelData> m_ModelData;
     std::unordered_map<std::string, AxrVulkanMaterialLayoutData> m_MaterialLayoutData;
     std::unordered_map<std::string, AxrVulkanMaterialData> m_MaterialData;
+    std::unordered_map<std::string, MaterialForRendering> m_MaterialsForRendering;
 
     // ----------------------------------------- //
     // Private Functions
@@ -138,6 +169,11 @@ private:
     /// Destroy the given model data
     /// @param modelData Model data to destroy
     void destroyModelData(AxrVulkanModelData& modelData);
+
+    /// Find the named model data, including the shared data in the search
+    /// @param name The name of the model
+    /// @returns A handle to the found model. Or nullptr if it wasn't found
+    [[nodiscard]] const AxrVulkanModelData* findModelData_shared(const std::string& name) const;
 
     // ---- Material Layout ----
 
@@ -210,6 +246,30 @@ private:
     /// Destroy the given window specific material data
     /// @param materialData Material data to destroy
     void destroyWindowMaterialData(AxrVulkanMaterialData& materialData);
+
+    /// Find the named material data, including the shared data in the search
+    /// @param name The name of the material
+    /// @returns A handle to the found material. Or nullptr if it wasn't found
+    [[nodiscard]] const AxrVulkanMaterialData* findMaterialData_shared(const std::string& name) const;
+
+    // ---- Materials For Rendering ----
+
+    /// Create all materials for rendering
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createAllMaterialsForRendering();
+    /// Destroy all materials for rendering
+    void destroyAllMaterialsForRendering();
+
+    /// Add a material for rendering to the given collection
+    /// @param transformComponent Transform component
+    /// @param modelComponent Model component
+    /// @param materialsForRendering Collection to add to
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult addMaterialForRendering(
+        const AxrTransformComponent& transformComponent,
+        const AxrModelComponent& modelComponent,
+        std::unordered_map<std::string, MaterialForRendering>& materialsForRendering
+    ) const;
 };
 
 #endif

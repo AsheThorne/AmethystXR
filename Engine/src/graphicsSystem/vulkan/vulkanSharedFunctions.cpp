@@ -475,4 +475,126 @@ void axrDestroyCommandBuffers(
     commandBuffers.clear();
 }
 
+AxrResult axrCreateSemaphores(
+    const vk::Device& device,
+    const uint32_t semaphoreCount,
+    std::vector<vk::Semaphore>& semaphores,
+    const vk::DispatchLoaderDynamic& dispatch
+) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!semaphores.empty()) {
+        axrLogErrorLocation("Semaphores already exists.");
+        return AXR_ERROR;
+    }
+
+    if (device == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Device is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    vk::Result vkResult = vk::Result::eSuccess;
+    semaphores.resize(semaphoreCount, VK_NULL_HANDLE);
+
+    constexpr vk::SemaphoreCreateInfo semaphoreCreateInfo(
+        {},
+        nullptr
+    );
+
+    for (uint32_t i = 0; i < semaphoreCount; ++i) {
+        vkResult = device.createSemaphore(&semaphoreCreateInfo, nullptr, &semaphores[i], dispatch);
+        axrLogVkResult(vkResult, "device.createSemaphore");
+        if (VK_FAILED(vkResult)) {
+            break;
+        }
+    }
+
+    if (VK_FAILED(vkResult)) {
+        axrLogErrorLocation("Failed to create semaphores.");
+        axrDestroySemaphores(device, semaphores, dispatch);
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void axrDestroySemaphores(
+    const vk::Device& device,
+    std::vector<vk::Semaphore>& semaphores,
+    const vk::DispatchLoaderDynamic& dispatch
+) {
+    for (vk::Semaphore& semaphore : semaphores) {
+        device.destroySemaphore(semaphore, nullptr, dispatch);
+        semaphore = VK_NULL_HANDLE;
+    }
+    semaphores.clear();
+}
+
+AxrResult axrCreateFences(
+    const vk::Device& device,
+    const uint32_t fenceCount,
+    std::vector<vk::Fence>& fences,
+    const vk::DispatchLoaderDynamic& dispatch
+) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!fences.empty()) {
+        axrLogErrorLocation("Fences already exists.");
+        return AXR_ERROR;
+    }
+
+    if (device == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Device is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    vk::Result vkResult = vk::Result::eSuccess;
+    fences.resize(fenceCount, VK_NULL_HANDLE);
+
+    constexpr vk::FenceCreateInfo fenceCreateInfo(
+        vk::FenceCreateFlagBits::eSignaled,
+        nullptr
+    );
+
+    for (uint32_t i = 0; i < fenceCount; ++i) {
+        vkResult = device.createFence(&fenceCreateInfo, nullptr, &fences[i], dispatch);
+        axrLogVkResult(vkResult, "device.createFence");
+        if (VK_FAILED(vkResult)) {
+            break;
+        }
+    }
+
+    if (VK_FAILED(vkResult)) {
+        axrLogErrorLocation("Failed to create fences.");
+        axrDestroyFences(device, fences, dispatch);
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void axrDestroyFences(
+    const vk::Device& device,
+    std::vector<vk::Fence>& fences,
+    const vk::DispatchLoaderDynamic& dispatch
+) {
+    for (vk::Fence& fence : fences) {
+        device.destroyFence(fence, nullptr, dispatch);
+        fence = VK_NULL_HANDLE;
+    }
+    fences.clear();
+}
+
 #endif

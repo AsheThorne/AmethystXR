@@ -56,7 +56,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
     axr::VertexShaderProperties vertexShaderProperties;
     vertexShaderProperties.addVertexAttribute(axr::ShaderVertexAttributeEnum::Position, 0, 0);
     vertexShaderProperties.addVertexAttribute(axr::ShaderVertexAttributeEnum::Color, 0, 1);
-    vertexShaderProperties.addVertexAttribute(axr::ShaderVertexAttributeEnum::TexCoords, 0, 2);
     const axr::ShaderConfig vertexShaderConfig("VertexShader", "shaders/shader.vert", vertexShaderProperties);
     if (!vertexShaderConfig.isValid()) return 0;
     if (AXR_FAILED(globalAssetCollection.createShader(vertexShaderConfig))) return 0;
@@ -86,6 +85,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
     const axr::Scene scene1 = app.findScene(scene1Name);
     const axr::Entity_T triangleEntity = scene1.createEntity();
 
+    triangleEntity.emplace<AxrTransformComponent>(
+        AxrTransformComponent{
+            .Position = {},
+            .Scale = {},
+            .Orientation = {},
+        }
+    );
     triangleEntity.emplace<AxrModelComponent>(
         AxrModelComponent{
             .ModelName = "Triangle",
@@ -96,11 +102,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 
     if (AXR_FAILED(app.setup())) return 0;
 
+    if (AXR_FAILED(app.loadScene(scene1Name))) return 0;
+    if (AXR_FAILED(app.setActiveScene(scene1Name))) return 0;
+
     axr::WindowSystem windowSystem = app.getWindowSystem();
     if (AXR_FAILED(windowSystem.openWindow())) return 0;
 
+    const axr::GraphicsSystem graphicsSystem = app.getGraphicsSystem();
+
     while (app.isRunning()) {
         app.processEvents();
+
+        graphicsSystem.drawFrame();
     }
 
     return 0;

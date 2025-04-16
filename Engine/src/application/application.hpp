@@ -73,6 +73,14 @@ public:
     /// @param sceneName Name of the scene
     /// @returns A handle to the scene
     [[nodiscard]] AxrScene_T findScene(const char* sceneName);
+    /// Load the named scene
+    /// @param sceneName Name of the scene
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult loadScene(const char* sceneName);
+    /// Set the active scene to the named scene
+    /// @param sceneName Name of the scene
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setActiveScene(const char* sceneName);
 
 private:
     // ----------------------------------------- //

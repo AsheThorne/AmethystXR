@@ -21,6 +21,7 @@ AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
     m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
     m_GraphicsCommandPool(VK_NULL_HANDLE),
+    m_IsReady(false),
     m_SwapchainImageLayout(vk::ImageLayout::ePresentSrcKHR),
     m_Surface(VK_NULL_HANDLE),
     m_SwapchainColorFormat(vk::Format::eUndefined),
@@ -28,7 +29,8 @@ AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
     m_SwapchainPresentationMode(static_cast<vk::PresentModeKHR>(VK_PRESENT_MODE_MAX_ENUM_KHR)),
     m_RenderPass(VK_NULL_HANDLE),
     m_SwapchainExtent(0, 0),
-    m_Swapchain(VK_NULL_HANDLE) {
+    m_Swapchain(VK_NULL_HANDLE),
+    m_CurrentImageIndex(0) {
 }
 
 AxrVulkanWindowGraphics::~AxrVulkanWindowGraphics() {
@@ -75,6 +77,93 @@ void AxrVulkanWindowGraphics::resetSetup() {
 
     m_WindowSystem.resetConfigureWindowGraphicsCallback();
     resetSetupConfigVariables();
+}
+
+bool AxrVulkanWindowGraphics::isReady() const {
+    return m_IsReady;
+}
+
+vk::RenderPass AxrVulkanWindowGraphics::getRenderPass() const {
+    return m_RenderPass;
+}
+
+vk::Framebuffer AxrVulkanWindowGraphics::getFramebuffer() const {
+    return m_SwapchainFramebuffers[m_CurrentImageIndex];
+}
+
+vk::Extent2D AxrVulkanWindowGraphics::getSwapchainExtent() const {
+    return m_SwapchainExtent;
+}
+
+vk::ClearColorValue AxrVulkanWindowGraphics::getClearColorValue() const {
+    // TODO: Don't hard code this
+    return vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
+}
+
+vk::CommandBuffer AxrVulkanWindowGraphics::getRenderingCommandBuffer() const {
+    // TODO: Don't hard code this
+    return m_RenderingCommandBuffers[0];
+}
+
+std::vector<vk::Semaphore> AxrVulkanWindowGraphics::getRenderingWaitSemaphores() const {
+    // TODO: Don't hard code this
+    return {m_ImageAvailableSemaphores[0]};
+}
+
+std::vector<vk::PipelineStageFlags> AxrVulkanWindowGraphics::getRenderingWaitStages() const {
+    return {vk::PipelineStageFlagBits::eColorAttachmentOutput};
+}
+
+std::vector<vk::Semaphore> AxrVulkanWindowGraphics::getRenderingSignalSemaphores() const {
+    // TODO: Don't hard code this
+    return {m_RenderingFinishedSemaphores[0]};
+}
+
+vk::Fence AxrVulkanWindowGraphics::getRenderingFence() const {
+    // TODO: Don't hard code this
+    return {m_RenderingFences[0]};
+}
+
+AxrResult AxrVulkanWindowGraphics::acquireNextSwapchainImage() {
+    const vk::Result vkResult = m_Device.acquireNextImageKHR(
+        m_Swapchain,
+        UINT64_MAX,
+        // TODO: Don't hard code this
+        m_ImageAvailableSemaphores[0],
+        VK_NULL_HANDLE,
+        &m_CurrentImageIndex,
+        m_Dispatch
+    );
+    axrLogVkResult(vkResult, "m_Device.acquireNextImageKHR");
+    if (VK_FAILED(vkResult)) {
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrVulkanWindowGraphics::presentFrame() const {
+    const std::vector<vk::Semaphore> waitSemaphores = getRenderingSignalSemaphores();
+
+    const vk::PresentInfoKHR presentInfo(
+        static_cast<uint32_t>(waitSemaphores.size()),
+        waitSemaphores.data(),
+        1,
+        &m_Swapchain,
+        &m_CurrentImageIndex,
+        nullptr
+    );
+
+    const vk::Result vkResult = m_QueueFamilies.PresentationQueue.presentKHR(
+        &presentInfo,
+        m_Dispatch
+    );
+    axrLogVkResult(vkResult, "PresentationQueue.presentKHR");
+    if (AXR_FAILED(vkResult)) {
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
 }
 
 // ---- Private Functions ----
@@ -260,6 +349,12 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
         return result;
     }
 
+    result = createSyncObjects();
+    if (AXR_FAILED(result)) {
+        resetWindowConfiguration();
+        return result;
+    }
+
     result = createCommandBuffers();
     if (AXR_FAILED(result)) {
         resetWindowConfiguration();
@@ -296,16 +391,21 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
         return result;
     }
 
+    m_IsReady = true;
+
     return AXR_SUCCESS;
 }
 
 void AxrVulkanWindowGraphics::resetWindowConfiguration() {
+    m_IsReady = false;
+    
     m_LoadedScenes.resetSetupWindowData();
     destroyFramebuffers();
     resetSwapchainImages();
     destroySwapchain();
     resetSwapchainExtent();
     destroyCommandBuffers();
+    destroySyncObjects();
     destroyRenderPass();
     resetSwapchainPresentationMode();
     resetSwapchainFormats();
@@ -709,6 +809,58 @@ AxrResult AxrVulkanWindowGraphics::createRenderPass() {
 
 void AxrVulkanWindowGraphics::destroyRenderPass() {
     axrDestroyRenderPass(m_Device, m_RenderPass, m_Dispatch);
+}
+
+AxrResult AxrVulkanWindowGraphics::createSyncObjects() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!m_ImageAvailableSemaphores.empty()) {
+        axrLogErrorLocation("Image available semaphores already exist.");
+        return AXR_ERROR;
+    }
+
+    if (!m_RenderingFinishedSemaphores.empty()) {
+        axrLogErrorLocation("Rendering finished semaphores already exist.");
+        return AXR_ERROR;
+    }
+
+    if (!m_RenderingFences.empty()) {
+        axrLogErrorLocation("Rendering fences already exist.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = axrCreateSemaphores(m_Device, 1, m_ImageAvailableSemaphores, m_Dispatch);
+    if (AXR_FAILED(axrResult)) {
+        destroySyncObjects();
+        return axrResult;
+    }
+
+    axrResult = axrCreateSemaphores(m_Device, 1, m_RenderingFinishedSemaphores, m_Dispatch);
+    if (AXR_FAILED(axrResult)) {
+        destroySyncObjects();
+        return axrResult;
+    }
+
+    axrResult = axrCreateFences(m_Device, 1, m_RenderingFences, m_Dispatch);
+    if (AXR_FAILED(axrResult)) {
+        destroySyncObjects();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanWindowGraphics::destroySyncObjects() {
+    axrDestroySemaphores(m_Device, m_ImageAvailableSemaphores, m_Dispatch);
+    axrDestroySemaphores(m_Device, m_RenderingFinishedSemaphores, m_Dispatch);
+    axrDestroyFences(m_Device, m_RenderingFences, m_Dispatch);
 }
 
 AxrResult AxrVulkanWindowGraphics::createCommandBuffers() {

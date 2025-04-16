@@ -80,4 +80,14 @@ extern "C" {
     /// @param sceneName Name of the scene
     /// @returns A handle to the scene
     AXR_API AxrScene_T axrApplicationFindScene(AxrApplication_T app, const char* sceneName);
+    /// Load the named scene
+    /// @param app The AxrApplication to use
+    /// @param sceneName Name of the scene
+        /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrApplicationLoadScene(AxrApplication_T app, const char* sceneName);
+    /// Set the active scene to the named scene
+    /// @param app The AxrApplication to use
+    /// @param sceneName Name of the scene
+        /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrApplicationSetActiveScene(AxrApplication_T app, const char* sceneName);
 }

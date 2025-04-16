@@ -86,6 +86,22 @@ const std::string& AxrVulkanModelData::getName() const {
     return m_Name;
 }
 
+const vk::Buffer& AxrVulkanModelData::getMeshBuffer(const uint32_t meshIndex) const {
+    return m_MeshBuffers[meshIndex].Buffer.getBuffer();
+}
+
+const vk::DeviceSize& AxrVulkanModelData::getMeshBufferIndicesOffset(const uint32_t meshIndex) const {
+    return m_MeshBuffers[meshIndex].IndicesOffset;
+}
+
+const vk::DeviceSize& AxrVulkanModelData::getMeshBufferVerticesOffset(const uint32_t meshIndex) const {
+    return m_MeshBuffers[meshIndex].VerticesOffset;
+}
+
+const uint32_t& AxrVulkanModelData::getMeshIndexCount(const uint32_t meshIndex) const {
+    return m_MeshBuffers[meshIndex].IndexCount;
+}
+
 bool AxrVulkanModelData::doesDataExist() const {
     return !m_MeshBuffers.empty();
 }
@@ -178,7 +194,8 @@ AxrResult AxrVulkanModelData::createMeshBuffers() {
                 }
             ),
             .IndicesOffset = 0,
-            .VerticesOffset = 0
+            .VerticesOffset = 0,
+            .IndexCount = 0
         };
         m_MeshBuffers[i] = std::move(meshBuffer);
 
@@ -235,6 +252,7 @@ AxrResult AxrVulkanModelData::createMeshBuffer(const AxrMeshRAII& mesh, MeshBuff
 
     meshBuffer.IndicesOffset = 0;
     meshBuffer.VerticesOffset = indexBufferSize;
+    meshBuffer.IndexCount = static_cast<uint32_t>(mesh.Indices.size());
 
     axrResult = meshBuffer.Buffer.createBuffer(
         // NOTE: We only have static meshes right now. In the future, we will have dynamic ones though

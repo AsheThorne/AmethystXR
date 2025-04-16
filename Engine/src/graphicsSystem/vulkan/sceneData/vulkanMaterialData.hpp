@@ -73,6 +73,12 @@ public:
     /// Get the material name
     /// @returns The material name
     [[nodiscard]] const std::string& getName() const;
+    /// Get the pipeline layout
+    /// @returns The pipeline layout
+    [[nodiscard]] const vk::PipelineLayout& getPipelineLayout() const;
+    /// Get the window pipeline
+    /// @returns The window pipeline
+    [[nodiscard]] const vk::Pipeline& getWindowPipeline() const;
 
     /// Check if the data exists
     /// @returns True if the data exists

@@ -7,12 +7,14 @@
 #include "axr/logger.h"
 #include "../../../assets/assetCollection.hpp"
 #include "../../../assets/material.hpp"
+#include "../vulkanUtils.hpp"
 
 // ---- Special Functions ----
 
 AxrVulkanSceneData::AxrVulkanSceneData(const Config& config):
     m_SceneName(config.SceneName),
     m_AssetCollection(config.AssetCollection),
+    m_EcsRegistryHandle(config.EcsRegistryHandle),
     m_SharedVulkanSceneData(config.SharedVulkanSceneData),
     m_PhysicalDevice(config.PhysicalDevice),
     m_Device(config.Device),
@@ -70,13 +72,24 @@ AxrResult AxrVulkanSceneData::loadScene() {
         return axrResult;
     }
 
+    axrResult = createAllMaterialsForRendering();
+    if (AXR_FAILED(axrResult)) {
+        unloadScene();
+        return axrResult;
+    }
+
     return AXR_SUCCESS;
 }
 
 void AxrVulkanSceneData::unloadScene() {
+    // TODO: See if we can wait for all the scene specific fences to be finished instead of doing this.
+    const vk::Result vkResult = m_Device.waitIdle(*m_DispatchHandle);
+    axrLogVkResult(vkResult, "m_Device.waitIdle");
+
     // TODO: Unload OpenXR data
     unloadWindowData();
 
+    destroyAllMaterialsForRendering();
     destroyAllMaterialData();
     destroyAllMaterialLayoutData();
     destroyAllModelData();
@@ -98,7 +111,16 @@ AxrResult AxrVulkanSceneData::loadWindowData(const vk::RenderPass renderPass) {
 }
 
 void AxrVulkanSceneData::unloadWindowData() {
+    // TODO: See if we can wait for all the scene specific fences to be finished instead of doing this.
+    const vk::Result vkResult = m_Device.waitIdle(*m_DispatchHandle);
+    axrLogVkResult(vkResult, "m_Device.waitIdle");
+
     destroyAllWindowMaterialData();
+}
+
+const std::unordered_map<std::string, AxrVulkanSceneData::MaterialForRendering>&
+AxrVulkanSceneData::getMaterialsForRendering() const {
+    return m_MaterialsForRendering;
 }
 
 const AxrShader* AxrVulkanSceneData::findShader_shared(const std::string& name) const {
@@ -245,6 +267,24 @@ AxrResult AxrVulkanSceneData::createModelData(AxrVulkanModelData& modelData) {
 
 void AxrVulkanSceneData::destroyModelData(AxrVulkanModelData& modelData) {
     modelData.destroyData();
+}
+
+const AxrVulkanModelData* AxrVulkanSceneData::findModelData_shared(const std::string& name) const {
+    const auto foundModelDataIt = m_ModelData.find(name);
+    if (foundModelDataIt != m_ModelData.end()) {
+        return &foundModelDataIt->second;
+    }
+
+    if (m_SharedVulkanSceneData != nullptr) {
+        const auto foundModelData = m_SharedVulkanSceneData->findModelData_shared(name);
+
+        if (foundModelData != nullptr) {
+            return foundModelData;
+        }
+    }
+
+    axrLogErrorLocation("Failed to find model data named: {0}.", name.c_str());
+    return nullptr;
 }
 
 AxrResult AxrVulkanSceneData::createAllMaterialLayoutData() {
@@ -580,6 +620,123 @@ AxrResult AxrVulkanSceneData::createWindowMaterialData(
 
 void AxrVulkanSceneData::destroyWindowMaterialData(AxrVulkanMaterialData& materialData) {
     materialData.destroyWindowData();
+}
+
+const AxrVulkanMaterialData* AxrVulkanSceneData::findMaterialData_shared(const std::string& name) const {
+    const auto foundMaterialDataIt = m_MaterialData.find(name);
+    if (foundMaterialDataIt != m_MaterialData.end()) {
+        return &foundMaterialDataIt->second;
+    }
+
+    if (m_SharedVulkanSceneData != nullptr) {
+        const auto foundMaterialData = m_SharedVulkanSceneData->findMaterialData_shared(name);
+
+        if (foundMaterialData != nullptr) {
+            return foundMaterialData;
+        }
+    }
+
+    axrLogErrorLocation("Failed to find material data named: {0}.", name.c_str());
+    return nullptr;
+}
+
+AxrResult AxrVulkanSceneData::createAllMaterialsForRendering() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!m_MaterialsForRendering.empty()) {
+        axrLogErrorLocation("Materials for rendering already exist.");
+        return AXR_ERROR;
+    }
+
+    // We don't necessarily need a registry handle. The global assets definitely won't have one.
+    if (m_EcsRegistryHandle == nullptr) {
+        return AXR_SUCCESS;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    for (const auto [entity, transformComponent, modelComponent] :
+         m_EcsRegistryHandle->view<AxrTransformComponent, AxrModelComponent>().each()) {
+        axrResult = addMaterialForRendering(transformComponent, modelComponent, m_MaterialsForRendering);
+        if (AXR_FAILED(axrResult)) {
+            break;
+        }
+    }
+
+    if (AXR_FAILED(axrResult)) {
+        axrLogErrorLocation("Failed to create materials for rendering.");
+        destroyAllMaterialLayoutData();
+        return axrResult;
+    }
+
+    // TODO: create callback anytime a new AxrTransformComponent and AxrModelComponent combo gets added.
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanSceneData::destroyAllMaterialsForRendering() {
+    // m_MaterialsForRendering only contain references to objects so we don't need to explicitly clean up any objects
+    m_MaterialsForRendering.clear();
+}
+
+AxrResult AxrVulkanSceneData::addMaterialForRendering(
+    const AxrTransformComponent& transformComponent,
+    const AxrModelComponent& modelComponent,
+    std::unordered_map<std::string, MaterialForRendering>& materialsForRendering
+) const {
+    const AxrVulkanModelData* foundModelData = findModelData_shared(modelComponent.ModelName);
+    if (foundModelData == nullptr) {
+        axrLogErrorLocation("Failed to find model data for model: {0}.", modelComponent.ModelName);
+    }
+
+    for (uint32_t i = 0; i < modelComponent.MaterialNamesCount; ++i) {
+        auto foundMaterialForRendering = materialsForRendering.find(modelComponent.MaterialNames[i]);
+
+        if (foundMaterialForRendering != materialsForRendering.end()) {
+            foundMaterialForRendering->second.Meshes.push_back(
+                MeshForRendering{
+                    .Buffer = foundModelData->getMeshBuffer(i),
+                    .BufferIndicesOffset = foundModelData->getMeshBufferIndicesOffset(i),
+                    .BufferVerticesOffset = foundModelData->getMeshBufferVerticesOffset(i),
+                    .IndexCount = foundModelData->getMeshIndexCount(i),
+                }
+            );
+        } else {
+            const AxrVulkanMaterialData* foundMaterialData = findMaterialData_shared(modelComponent.MaterialNames[i]);
+            if (foundMaterialData == nullptr) {
+                axrLogErrorLocation("Failed to find material data for material: {0}.", modelComponent.MaterialNames[i]);
+                continue;
+            }
+
+            materialsForRendering.insert(
+                std::pair(
+                    modelComponent.MaterialNames[i],
+                    MaterialForRendering{
+                        .PipelineLayout = foundMaterialData->getPipelineLayout(),
+                        .WindowPipeline = foundMaterialData->getWindowPipeline(),
+                        // TODO: PushConstantsForRendering
+                        .PushConstantsForRendering = {},
+                        .Meshes = {
+                            MeshForRendering{
+                                .Buffer = foundModelData->getMeshBuffer(i),
+                                .BufferIndicesOffset = foundModelData->getMeshBufferIndicesOffset(i),
+                                .BufferVerticesOffset = foundModelData->getMeshBufferVerticesOffset(i),
+                                .IndexCount = foundModelData->getMeshIndexCount(i),
+                            }
+                        }
+                    }
+                )
+            );
+        }
+    }
+
+    return AXR_SUCCESS;
 }
 
 #endif

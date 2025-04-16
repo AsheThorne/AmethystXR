@@ -84,6 +84,14 @@ const std::string& AxrVulkanMaterialData::getName() const {
     return m_Name;
 }
 
+const vk::PipelineLayout& AxrVulkanMaterialData::getPipelineLayout() const {
+    return m_PipelineLayout;
+}
+
+const vk::Pipeline& AxrVulkanMaterialData::getWindowPipeline() const {
+    return m_WindowPipeline;
+}
+
 bool AxrVulkanMaterialData::doesDataExist() const {
     // NOTE: When we have general data, check for it here
     return true;

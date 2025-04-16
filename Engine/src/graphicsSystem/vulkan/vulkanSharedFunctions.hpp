@@ -187,4 +187,52 @@ void axrDestroyCommandBuffers(
     const vk::DispatchLoaderDynamic& dispatch
 );
 
+// ---- Sync Objects ----
+
+/// Create the given number of semaphores
+/// @param device Device to use
+/// @param semaphoreCount Number of semaphores to create
+/// @param semaphores Output created semaphores
+/// @param dispatch Dispatch to use
+/// @returns AXR_SUCCESS if the function succeeded
+[[nodiscard]] AxrResult axrCreateSemaphores(
+    const vk::Device& device,
+    uint32_t semaphoreCount,
+    std::vector<vk::Semaphore>& semaphores,
+    const vk::DispatchLoaderDynamic& dispatch
+);
+/// Destroy the given semaphores
+/// @param device Device to use
+/// @param semaphores Semaphores to destroy
+/// @param dispatch Dispatch to use
+/// @returns AXR_SUCCESS if the function succeeded
+void axrDestroySemaphores(
+    const vk::Device& device,
+    std::vector<vk::Semaphore>& semaphores,
+    const vk::DispatchLoaderDynamic& dispatch
+);
+
+/// Create the given number of fences
+/// @param device Device to use
+/// @param fenceCount Number of fences to create
+/// @param fences Output created fences
+/// @param dispatch Dispatch to use
+/// @returns AXR_SUCCESS if the function succeeded
+[[nodiscard]] AxrResult axrCreateFences(
+    const vk::Device& device,
+    uint32_t fenceCount,
+    std::vector<vk::Fence>& fences,
+    const vk::DispatchLoaderDynamic& dispatch
+);
+/// Destroy the given number of fences
+/// @param device Device to use
+/// @param fences Fences to destroy
+/// @param dispatch Dispatch to use
+/// @returns AXR_SUCCESS if the function succeeded
+void axrDestroyFences(
+    const vk::Device& device,
+    std::vector<vk::Fence>& fences,
+    const vk::DispatchLoaderDynamic& dispatch
+);
+
 #endif

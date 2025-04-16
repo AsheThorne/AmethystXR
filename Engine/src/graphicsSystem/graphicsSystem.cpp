@@ -8,6 +8,15 @@
 // External Functions
 // ----------------------------------------- //
 
+void axrGraphicsSystemDrawFrame(const AxrGraphicsSystem_T graphicsSystem) {
+    if (graphicsSystem == nullptr) {
+        axrLogErrorLocation("`graphicsSystem` is null.");
+        return;
+    }
+
+    graphicsSystem->drawFrame();
+}
+
 // ----------------------------------------- //
 // Internal Functions
 // ----------------------------------------- //
@@ -36,6 +45,30 @@ AxrGraphicsSystem::~AxrGraphicsSystem() {
 }
 
 // ---- Public Headers ----
+
+void AxrGraphicsSystem::drawFrame() {
+    switch (m_GraphicsApi) {
+        case AXR_GRAPHICS_API_VULKAN: {
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+            if (m_VulkanGraphicsSystem == nullptr) {
+                axrLogErrorLocation("VulkanGraphicsSystem is null.");
+                return;
+            }
+
+            m_VulkanGraphicsSystem->drawFrame();
+            return;
+#elif
+            axrLogErrorLocation("Vulkan not supported.");
+            return;
+#endif
+        }
+        case AXR_GRAPHICS_API_UNDEFINED:
+        default: { // NOLINT(clang-diagnostic-covered-switch-default)
+            axrLogErrorLocation("Unknown platform.");
+            return;
+        }
+    }
+}
 
 AxrResult AxrGraphicsSystem::setup() {
     switch (m_GraphicsApi) {
@@ -69,4 +102,50 @@ void AxrGraphicsSystem::cleanup() {
 #endif
 
     m_GraphicsApi = AXR_GRAPHICS_API_UNDEFINED;
+}
+
+AxrResult AxrGraphicsSystem::loadScene(const AxrScene_T scene) {
+    switch (m_GraphicsApi) {
+        case AXR_GRAPHICS_API_VULKAN: {
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+            if (m_VulkanGraphicsSystem == nullptr) {
+                axrLogErrorLocation("VulkanGraphicsSystem is null.");
+                return AXR_ERROR;
+            }
+
+            return m_VulkanGraphicsSystem->loadScene(scene);
+#elif
+            axrLogErrorLocation("Vulkan not supported.");
+            return AXR_ERROR;
+#endif
+        }
+        case AXR_GRAPHICS_API_UNDEFINED:
+        default: { // NOLINT(clang-diagnostic-covered-switch-default)
+            axrLogErrorLocation("Unknown platform.");
+            return AXR_ERROR;
+        }
+    }
+}
+
+AxrResult AxrGraphicsSystem::setActiveScene(const char* sceneName) {
+    switch (m_GraphicsApi) {
+        case AXR_GRAPHICS_API_VULKAN: {
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+            if (m_VulkanGraphicsSystem == nullptr) {
+                axrLogErrorLocation("VulkanGraphicsSystem is null.");
+                return AXR_ERROR;
+            }
+
+            return m_VulkanGraphicsSystem->setActiveScene(sceneName);
+#elif
+            axrLogErrorLocation("Vulkan not supported.");
+            return AXR_ERROR;
+#endif
+        }
+        case AXR_GRAPHICS_API_UNDEFINED:
+        default: { // NOLINT(clang-diagnostic-covered-switch-default)
+            axrLogErrorLocation("Unknown platform.");
+            return AXR_ERROR;
+        }
+    }
 }

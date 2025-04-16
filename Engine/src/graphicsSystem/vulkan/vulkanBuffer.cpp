@@ -116,6 +116,10 @@ bool AxrVulkanBuffer::isEmpty() const {
         m_BufferSize == 0;
 }
 
+const vk::Buffer& AxrVulkanBuffer::getBuffer() const {
+    return m_Buffer;
+}
+
 AxrResult AxrVulkanBuffer::createBuffer(
     const bool willBufferBeStatic,
     const vk::DeviceSize bufferSize,
