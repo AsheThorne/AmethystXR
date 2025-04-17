@@ -42,7 +42,8 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
     m_GraphicsCommandPool(VK_NULL_HANDLE),
-    m_TransferCommandPool(VK_NULL_HANDLE) {
+    m_TransferCommandPool(VK_NULL_HANDLE),
+    m_MaxFramesInFlight(2) {
     if (config.VulkanConfig == nullptr) {
         axrLogErrorLocation("Vulkan config is null.");
         return;
@@ -63,7 +64,8 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
                     .WindowSystem = *config.WindowSystem,
                     .Dispatch = m_Dispatch,
                     .LoadedScenes = m_LoadedScenes,
-                    .PresentationMode = config.VulkanConfig->WindowConfig->PresentationMode
+                    .PresentationMode = config.VulkanConfig->WindowConfig->PresentationMode,
+                    .MaxFramesInFlight = m_MaxFramesInFlight,
                 }
             );
         } else {

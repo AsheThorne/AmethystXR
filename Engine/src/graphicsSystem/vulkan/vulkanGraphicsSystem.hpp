@@ -124,6 +124,7 @@ private:
     vk::Device m_Device;
     vk::CommandPool m_GraphicsCommandPool;
     vk::CommandPool m_TransferCommandPool;
+    uint32_t m_MaxFramesInFlight;
 
     AxrVulkanLoadedScenesCollection m_LoadedScenes;
     AxrVulkanWindowGraphics* m_WindowGraphics;

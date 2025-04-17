@@ -27,6 +27,7 @@ public:
         vk::DispatchLoaderDynamic& Dispatch;
         AxrVulkanLoadedScenesCollection& LoadedScenes;
         AxrVulkanPresentationModeEnum PresentationMode;
+        uint32_t MaxFramesInFlight;
     };
 
     /// AxrVulkanWindowGraphics Setup Config
@@ -130,7 +131,7 @@ public:
     [[nodiscard]] AxrResult acquireNextSwapchainImage();
     /// Present the current frame to the window
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult presentFrame() const;
+    [[nodiscard]] AxrResult presentFrame();
 
 private:
     // ----------------------------------------- //
@@ -142,6 +143,7 @@ private:
     vk::DispatchLoaderDynamic& m_Dispatch;
     AxrVulkanLoadedScenesCollection& m_LoadedScenes;
     AxrVulkanPresentationModeEnum m_PreferredPresentationMode;
+    uint32_t m_MaxFramesInFlight;
 
     // ---- Setup Config ----
     vk::Instance m_Instance;
@@ -154,7 +156,6 @@ private:
     /// Ordered from most desired to the least desired
     std::vector<vk::Format> m_SwapchainDepthFormatOptions;
 
-    bool m_IsReady;
     vk::ImageLayout m_SwapchainImageLayout;
     vk::SurfaceKHR m_Surface;
     vk::SurfaceFormatKHR m_SwapchainColorFormat;
@@ -174,7 +175,9 @@ private:
     std::vector<vk::Semaphore> m_RenderingFinishedSemaphores;
     /// One fence per frame in flight
     std::vector<vk::Fence> m_RenderingFences;
+    bool m_IsReady;
     uint32_t m_CurrentImageIndex;
+    uint32_t m_CurrentFrame;
 
     // ----------------------------------------- //
     // Private Functions

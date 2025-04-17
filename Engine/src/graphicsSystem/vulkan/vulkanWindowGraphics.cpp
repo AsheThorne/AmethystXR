@@ -17,11 +17,11 @@ AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
     m_Dispatch(config.Dispatch),
     m_LoadedScenes(config.LoadedScenes),
     m_PreferredPresentationMode(config.PresentationMode),
+    m_MaxFramesInFlight(config.MaxFramesInFlight),
     m_Instance(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
     m_GraphicsCommandPool(VK_NULL_HANDLE),
-    m_IsReady(false),
     m_SwapchainImageLayout(vk::ImageLayout::ePresentSrcKHR),
     m_Surface(VK_NULL_HANDLE),
     m_SwapchainColorFormat(vk::Format::eUndefined),
@@ -30,7 +30,9 @@ AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
     m_RenderPass(VK_NULL_HANDLE),
     m_SwapchainExtent(0, 0),
     m_Swapchain(VK_NULL_HANDLE),
-    m_CurrentImageIndex(0) {
+    m_IsReady(false),
+    m_CurrentImageIndex(0),
+    m_CurrentFrame(0) {
 }
 
 AxrVulkanWindowGraphics::~AxrVulkanWindowGraphics() {
@@ -101,13 +103,11 @@ vk::ClearColorValue AxrVulkanWindowGraphics::getClearColorValue() const {
 }
 
 vk::CommandBuffer AxrVulkanWindowGraphics::getRenderingCommandBuffer() const {
-    // TODO: Don't hard code this
-    return m_RenderingCommandBuffers[0];
+    return m_RenderingCommandBuffers[m_CurrentFrame];
 }
 
 std::vector<vk::Semaphore> AxrVulkanWindowGraphics::getRenderingWaitSemaphores() const {
-    // TODO: Don't hard code this
-    return {m_ImageAvailableSemaphores[0]};
+    return {m_ImageAvailableSemaphores[m_CurrentFrame]};
 }
 
 std::vector<vk::PipelineStageFlags> AxrVulkanWindowGraphics::getRenderingWaitStages() const {
@@ -115,21 +115,18 @@ std::vector<vk::PipelineStageFlags> AxrVulkanWindowGraphics::getRenderingWaitSta
 }
 
 std::vector<vk::Semaphore> AxrVulkanWindowGraphics::getRenderingSignalSemaphores() const {
-    // TODO: Don't hard code this
-    return {m_RenderingFinishedSemaphores[0]};
+    return {m_RenderingFinishedSemaphores[m_CurrentFrame]};
 }
 
 vk::Fence AxrVulkanWindowGraphics::getRenderingFence() const {
-    // TODO: Don't hard code this
-    return {m_RenderingFences[0]};
+    return {m_RenderingFences[m_CurrentFrame]};
 }
 
 AxrResult AxrVulkanWindowGraphics::acquireNextSwapchainImage() {
     const vk::Result vkResult = m_Device.acquireNextImageKHR(
         m_Swapchain,
         UINT64_MAX,
-        // TODO: Don't hard code this
-        m_ImageAvailableSemaphores[0],
+        m_ImageAvailableSemaphores[m_CurrentFrame],
         VK_NULL_HANDLE,
         &m_CurrentImageIndex,
         m_Dispatch
@@ -142,7 +139,7 @@ AxrResult AxrVulkanWindowGraphics::acquireNextSwapchainImage() {
     return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanWindowGraphics::presentFrame() const {
+AxrResult AxrVulkanWindowGraphics::presentFrame() {
     const std::vector<vk::Semaphore> waitSemaphores = getRenderingSignalSemaphores();
 
     const vk::PresentInfoKHR presentInfo(
@@ -162,6 +159,8 @@ AxrResult AxrVulkanWindowGraphics::presentFrame() const {
     if (AXR_FAILED(vkResult)) {
         return AXR_ERROR;
     }
+
+    m_CurrentFrame = (m_CurrentFrame + 1) % m_MaxFramesInFlight;
 
     return AXR_SUCCESS;
 }
@@ -398,7 +397,7 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
 
 void AxrVulkanWindowGraphics::resetWindowConfiguration() {
     m_IsReady = false;
-    
+
     m_LoadedScenes.resetSetupWindowData();
     destroyFramebuffers();
     resetSwapchainImages();
@@ -836,19 +835,19 @@ AxrResult AxrVulkanWindowGraphics::createSyncObjects() {
     // ----------------------------------------- //
     AxrResult axrResult = AXR_SUCCESS;
 
-    axrResult = axrCreateSemaphores(m_Device, 1, m_ImageAvailableSemaphores, m_Dispatch);
+    axrResult = axrCreateSemaphores(m_Device, m_MaxFramesInFlight, m_ImageAvailableSemaphores, m_Dispatch);
     if (AXR_FAILED(axrResult)) {
         destroySyncObjects();
         return axrResult;
     }
 
-    axrResult = axrCreateSemaphores(m_Device, 1, m_RenderingFinishedSemaphores, m_Dispatch);
+    axrResult = axrCreateSemaphores(m_Device, m_MaxFramesInFlight, m_RenderingFinishedSemaphores, m_Dispatch);
     if (AXR_FAILED(axrResult)) {
         destroySyncObjects();
         return axrResult;
     }
 
-    axrResult = axrCreateFences(m_Device, 1, m_RenderingFences, m_Dispatch);
+    axrResult = axrCreateFences(m_Device, m_MaxFramesInFlight, m_RenderingFences, m_Dispatch);
     if (AXR_FAILED(axrResult)) {
         destroySyncObjects();
         return axrResult;
@@ -869,7 +868,7 @@ AxrResult AxrVulkanWindowGraphics::createCommandBuffers() {
     axrResult = axrCreateCommandBuffers(
         m_Device,
         m_GraphicsCommandPool,
-        1,
+        m_MaxFramesInFlight,
         m_RenderingCommandBuffers,
         m_Dispatch
     );
