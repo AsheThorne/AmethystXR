@@ -7,6 +7,7 @@
 
 namespace axr {
     /// Generic event handler
+    /// @tparam Args Callback arguments
     template <typename... Args>
     // ReSharper disable once CppInconsistentNaming
     using EventHandler = AxrEventHandler<Args...>;
