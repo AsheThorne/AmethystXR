@@ -24,11 +24,24 @@ public:
     // Types
     // ----------------------------------------- //
 
-    /// ConfigureWindowGraphics callback function type
-    /// @param userData User data
-    /// @param isWindowOpen If true,the graphics should be set up. If false, the graphics should be cleaned up.
+    /// On window open state changed callback function type
+    /// @param 1: True if the window is open. False if it's not
     /// @returns AXR_SUCCESS if the function succeeded
-    using ConfigureWindowGraphicsCallback_T = AxrResult(*)(void* userData, bool isWindowOpen);
+    using OnWindowOpenStateChangedCallback_T = AxrCallback<AxrResult, bool>;
+
+    /// On window resized callback function type
+    /// @param 1: New window width 
+    /// @param 2: New window height
+    using OnWindowResizedCallback_T = AxrCallback<void, uint32_t, uint32_t>;
+
+    // ----------------------------------------- //
+    // Public Functions
+    // ----------------------------------------- //
+
+    /// On window open state changed for the graphics system
+    OnWindowOpenStateChangedCallback_T OnWindowOpenStateChangedCallbackGraphics;
+    /// On window resized callback for the graphics system
+    OnWindowResizedCallback_T OnWindowResizedCallbackGraphics;
 
     // ----------------------------------------- //
     // Special Functions
@@ -86,13 +99,6 @@ public:
     /// Process the window events
     void processEvents();
 
-    /// Set the 'ConfigureWindowGraphics' callback function
-    /// @param userData User data
-    /// @param function Callback function
-    void setConfigureWindowGraphicsCallback(void* userData, ConfigureWindowGraphicsCallback_T function);
-    /// Reset the 'ConfigureWindowGraphics' callback function
-    void resetConfigureWindowGraphicsCallback();
-
 #ifdef AXR_USE_PLATFORM_WIN32
     [[nodiscard]] AxrWin32WindowSystem* getWin32WindowSystem() const;
 #endif
@@ -113,15 +119,22 @@ private:
     AxrWin32WindowSystem* m_Win32WindowSystem;
 #endif
 
-    void* m_ConfigureWindowGraphicsCallbackUserData;
-    ConfigureWindowGraphicsCallback_T m_ConfigureWindowGraphicsCallback;
-
     // ----------------------------------------- //
     // Private Functions
     // ----------------------------------------- //
 
-    /// Invoke 'Configure window graphics' callback
-    /// @param isWindowOpen Window open state
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult invokeConfigureWindowGraphicsCallback(bool isWindowOpen) const;
+    /// Invoke 'On window resized' callback
+    /// @param width New window width
+    /// @param height New window height
+    void invokeOnWindowResizedCallbacks(uint32_t width, uint32_t height) const;
+
+    // ----------------------------------------- //
+    // Private Static Functions
+    // ----------------------------------------- //
+    
+    /// 'On window resized' callback function
+    /// @param userData User data
+    /// @param width New window width
+    /// @param height New window height
+    static void onWindowResizedCallback(void* userData, uint32_t width, uint32_t height);
 };

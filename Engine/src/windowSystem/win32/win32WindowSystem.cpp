@@ -13,6 +13,7 @@ AxrWin32WindowSystem::AxrWin32WindowSystem(const Config& config) :
     m_ApplicationName(config.ApplicationName),
     m_Width(config.Width),
     m_Height(config.Height),
+    m_OnWindowResizedCallback(config.OnWindowResizedCallback),
     m_WindowClassName(axrToWString((std::string(config.ApplicationName) + "_Class").c_str())),
     m_Instance(nullptr),
     m_WindowHandle(nullptr) {
@@ -159,6 +160,11 @@ LRESULT AxrWin32WindowSystem::processWindowMessageInternal(
         case WM_DESTROY:
         case WM_QUIT: {
             PostQuitMessage(0);
+            wasHandled = true;
+            return 0;
+        }
+        case WM_SIZE: {
+            m_OnWindowResizedCallback(LOWORD(lParam), HIWORD(lParam));
             wasHandled = true;
             return 0;
         }

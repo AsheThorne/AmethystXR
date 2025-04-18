@@ -50,15 +50,14 @@ void axrWindowSystemProcessEvents(const AxrWindowSystem_T windowSystem) {
 
 // ---- Special Functions ----
 
-AxrWindowSystem::AxrWindowSystem(const Config& config):
-    m_ConfigureWindowGraphicsCallbackUserData(nullptr),
-    m_ConfigureWindowGraphicsCallback(nullptr) {
+AxrWindowSystem::AxrWindowSystem(const Config& config) {
 #ifdef AXR_USE_PLATFORM_WIN32
     m_Win32WindowSystem = new AxrWin32WindowSystem(
         AxrWin32WindowSystem::Config{
             .ApplicationName = config.ApplicationName,
             .Width = config.WindowConfig.Width,
             .Height = config.WindowConfig.Height,
+            .OnWindowResizedCallback = AxrCallback(this, onWindowResizedCallback)
         }
     );
 #endif
@@ -101,7 +100,7 @@ AxrResult AxrWindowSystem::openWindow() {
         return axrResult;
     }
 
-    axrResult = invokeConfigureWindowGraphicsCallback(true);
+    axrResult = OnWindowOpenStateChangedCallbackGraphics(true);
     if (AXR_FAILED(axrResult)) {
         return axrResult;
     }
@@ -122,7 +121,7 @@ void AxrWindowSystem::closeWindow() {
     return;
 #endif
 
-    if (AXR_FAILED(invokeConfigureWindowGraphicsCallback(false))) {
+    if (AXR_FAILED(OnWindowOpenStateChangedCallbackGraphics(false))) {
         axrLogErrorLocation("Failed to clean up window graphics.");
     }
 }
@@ -149,8 +148,8 @@ void AxrWindowSystem::cleanup() {
     }
 #endif
 
-    m_ConfigureWindowGraphicsCallback = nullptr;
-    m_ConfigureWindowGraphicsCallbackUserData = nullptr;
+    OnWindowOpenStateChangedCallbackGraphics = {};
+    OnWindowResizedCallbackGraphics = {};
 }
 
 void AxrWindowSystem::processEvents() {
@@ -162,31 +161,13 @@ void AxrWindowSystem::processEvents() {
 
     if (!m_Win32WindowSystem->processEvents()) {
         // If the window closed, signal the window graphics
-        if (AXR_FAILED(invokeConfigureWindowGraphicsCallback(false))) {
+        if (AXR_FAILED(OnWindowOpenStateChangedCallbackGraphics(false))) {
             axrLogErrorLocation("Failed to clean up window graphics.");
         }
     }
 #else
     axrLogErrorLocation("Unknown platform.");
 #endif
-}
-
-void AxrWindowSystem::setConfigureWindowGraphicsCallback(
-    void* userData,
-    const ConfigureWindowGraphicsCallback_T function
-) {
-    if (m_ConfigureWindowGraphicsCallback != nullptr) {
-        axrLogErrorLocation("ConfigureWindowGraphics callback has already been set.");
-        return;
-    }
-
-    m_ConfigureWindowGraphicsCallback = function;
-    m_ConfigureWindowGraphicsCallbackUserData = userData;
-}
-
-void AxrWindowSystem::resetConfigureWindowGraphicsCallback() {
-    m_ConfigureWindowGraphicsCallback = nullptr;
-    m_ConfigureWindowGraphicsCallbackUserData = nullptr;
 }
 
 #ifdef AXR_USE_PLATFORM_WIN32
@@ -211,6 +192,18 @@ AxrResult AxrWindowSystem::getClientSize(uint32_t& width, uint32_t& height) cons
 
 // ---- Private Functions ----
 
-AxrResult AxrWindowSystem::invokeConfigureWindowGraphicsCallback(const bool isWindowOpen) const {
-    return m_ConfigureWindowGraphicsCallback(m_ConfigureWindowGraphicsCallbackUserData, isWindowOpen);
+void AxrWindowSystem::invokeOnWindowResizedCallbacks(const uint32_t width, const uint32_t height) const {
+    OnWindowResizedCallbackGraphics(width, height);
+}
+
+// ---- Private Static Functions ----
+
+void AxrWindowSystem::onWindowResizedCallback(void* userData, const uint32_t width, const uint32_t height) {
+    if (userData == nullptr) {
+        axrLogErrorLocation("userData is null.");
+        return;
+    }
+
+    auto self = reinterpret_cast<AxrWindowSystem_T>(userData);
+    self->invokeOnWindowResizedCallbacks(width, height);
 }

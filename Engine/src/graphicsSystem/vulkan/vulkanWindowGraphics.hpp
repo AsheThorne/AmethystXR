@@ -8,6 +8,7 @@
 #include "vulkanExtensionCollection.hpp"
 #include "vulkanQueueFamilies.hpp"
 #include "sceneData/vulkanLoadedScenesCollection.hpp"
+#include "vulkanSurfaceDetails.hpp"
 
 // ----------------------------------------- //
 // Vulkan Headers
@@ -178,6 +179,7 @@ private:
     bool m_IsReady;
     uint32_t m_CurrentImageIndex;
     uint32_t m_CurrentFrame;
+    bool m_IsSwapchainOutOfDate;
 
     // ----------------------------------------- //
     // Private Functions
@@ -218,6 +220,17 @@ private:
 #endif
 
     // ---- Swapchain ----
+
+    /// Set up swapchain related data
+    /// @param surfaceDetails Surface details to use
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setupSwapchain(const AxrVulkanSurfaceDetails& surfaceDetails);
+    /// Reset the setupSwapchain() function
+    void resetSetupSwapchain();
+
+    /// Recreate the swapchain and it's related data
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult recreateSwapchain();
 
     /// Set the swapchain color and depth formats
     /// @param surfaceFormats Collection of surface formats that are available to us
@@ -291,11 +304,17 @@ private:
     // Private Static Functions
     // ----------------------------------------- //
 
-    /// 'Configure window graphics' callback function
+    /// 'On window open state changed' callback function
     /// @param userData User data
-    /// @param isWindowOpen If true, the graphics should be configured. If false, the graphics configuration should be reset.
+    /// @param isWindowOpen If true, the window is open. If false, the window is closed.
     /// @returns AXR_SUCCESS if the function succeeded
-    static AxrResult configureWindowGraphicsCallback(void* userData, bool isWindowOpen);
+    static AxrResult onWindowOpenStateChangedCallback(void* userData, bool isWindowOpen);
+
+    /// 'On window resized' callback function
+    /// @param userData User data
+    /// @param width New window width
+    /// @param height New window height
+    static void onWindowResizedCallback(void* userData, uint32_t width, uint32_t height);
 };
 
 

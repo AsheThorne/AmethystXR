@@ -20,6 +20,15 @@
 class AxrWin32WindowSystem {
 public:
     // ----------------------------------------- //
+    // Types
+    // ----------------------------------------- //
+
+    /// On window resized callback function type
+    /// @param 1: New window width 
+    /// @param 2: New window height
+    using OnWindowResizedCallback_T = AxrCallback<void, uint32_t, uint32_t>;
+    
+    // ----------------------------------------- //
     // Structs
     // ----------------------------------------- //
 
@@ -28,6 +37,7 @@ public:
         const char* ApplicationName;
         uint32_t Width;
         uint32_t Height;
+        OnWindowResizedCallback_T OnWindowResizedCallback;
     };
 
     // ----------------------------------------- //
@@ -100,6 +110,7 @@ private:
     const char* m_ApplicationName;
     uint32_t m_Width;
     uint32_t m_Height;
+    OnWindowResizedCallback_T m_OnWindowResizedCallback;
 
     std::wstring m_WindowClassName;
     HINSTANCE m_Instance;

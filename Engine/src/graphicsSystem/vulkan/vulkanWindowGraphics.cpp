@@ -7,7 +7,6 @@
 #include "axr/logger.h"
 #include "vulkanUtils.hpp"
 #include "../../windowSystem/windowSystem.hpp"
-#include "vulkanSurfaceDetails.hpp"
 #include "vulkanSharedFunctions.hpp"
 
 // ---- Special Functions ----
@@ -32,7 +31,8 @@ AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
     m_Swapchain(VK_NULL_HANDLE),
     m_IsReady(false),
     m_CurrentImageIndex(0),
-    m_CurrentFrame(0) {
+    m_CurrentFrame(0),
+    m_IsSwapchainOutOfDate(false) {
 }
 
 AxrVulkanWindowGraphics::~AxrVulkanWindowGraphics() {
@@ -69,7 +69,7 @@ AxrResult AxrVulkanWindowGraphics::setup(const SetupConfig& config) {
         return result;
     }
 
-    m_WindowSystem.setConfigureWindowGraphicsCallback(this, configureWindowGraphicsCallback);
+    m_WindowSystem.OnWindowOpenStateChangedCallbackGraphics = AxrCallback(this, onWindowOpenStateChangedCallback);
 
     return AXR_SUCCESS;
 }
@@ -77,7 +77,7 @@ AxrResult AxrVulkanWindowGraphics::setup(const SetupConfig& config) {
 void AxrVulkanWindowGraphics::resetSetup() {
     resetWindowConfiguration();
 
-    m_WindowSystem.resetConfigureWindowGraphicsCallback();
+    m_WindowSystem.OnWindowOpenStateChangedCallbackGraphics = {};
     resetSetupConfigVariables();
 }
 
@@ -123,6 +123,11 @@ vk::Fence AxrVulkanWindowGraphics::getRenderingFence() const {
 }
 
 AxrResult AxrVulkanWindowGraphics::acquireNextSwapchainImage() {
+    if (m_IsSwapchainOutOfDate && AXR_FAILED(recreateSwapchain())) {
+        axrLogErrorLocation("Failed to recreate swapchain.");
+        return AXR_ERROR;
+    }
+
     const vk::Result vkResult = m_Device.acquireNextImageKHR(
         m_Swapchain,
         UINT64_MAX,
@@ -132,6 +137,14 @@ AxrResult AxrVulkanWindowGraphics::acquireNextSwapchainImage() {
         m_Dispatch
     );
     axrLogVkResult(vkResult, "m_Device.acquireNextImageKHR");
+
+    if (vkResult == vk::Result::eErrorOutOfDateKHR || vkResult == vk::Result::eSuboptimalKHR) {
+        if (AXR_FAILED(recreateSwapchain())) {
+            axrLogErrorLocation("Failed to recreate swapchain.");
+            return AXR_ERROR;
+        }
+    }
+
     if (VK_FAILED(vkResult)) {
         return AXR_ERROR;
     }
@@ -156,8 +169,16 @@ AxrResult AxrVulkanWindowGraphics::presentFrame() {
         m_Dispatch
     );
     axrLogVkResult(vkResult, "PresentationQueue.presentKHR");
-    if (AXR_FAILED(vkResult)) {
-        return AXR_ERROR;
+
+    if (vkResult == vk::Result::eErrorOutOfDateKHR || vkResult == vk::Result::eSuboptimalKHR) {
+        if (AXR_FAILED(recreateSwapchain())) {
+            axrLogErrorLocation("Failed to recreate swapchain.");
+            return AXR_ERROR;
+        }
+    } else {
+        if (AXR_FAILED(vkResult)) {
+            return AXR_ERROR;
+        }
     }
 
     m_CurrentFrame = (m_CurrentFrame + 1) % m_MaxFramesInFlight;
@@ -336,12 +357,6 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
         return result;
     }
 
-    result = setSwapchainPresentationMode(surfaceDetails.PresentationModes);
-    if (AXR_FAILED(result)) {
-        resetWindowConfiguration();
-        return result;
-    }
-
     result = createRenderPass();
     if (AXR_FAILED(result)) {
         resetWindowConfiguration();
@@ -360,25 +375,7 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
         return result;
     }
 
-    result = setSwapchainExtent(surfaceDetails.Capabilities);
-    if (AXR_FAILED(result)) {
-        resetWindowConfiguration();
-        return result;
-    }
-
-    result = createSwapchain(surfaceDetails.Capabilities);
-    if (AXR_FAILED(result)) {
-        resetWindowConfiguration();
-        return result;
-    }
-
-    result = getSwapchainImages();
-    if (AXR_FAILED(result)) {
-        resetWindowConfiguration();
-        return result;
-    }
-
-    result = createFramebuffers();
+    result = setupSwapchain(surfaceDetails);
     if (AXR_FAILED(result)) {
         resetWindowConfiguration();
         return result;
@@ -391,22 +388,20 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
     }
 
     m_IsReady = true;
+    m_WindowSystem.OnWindowResizedCallbackGraphics = AxrCallback(this, onWindowResizedCallback);
 
     return AXR_SUCCESS;
 }
 
 void AxrVulkanWindowGraphics::resetWindowConfiguration() {
     m_IsReady = false;
+    m_WindowSystem.OnWindowResizedCallbackGraphics = {};
 
     m_LoadedScenes.resetSetupWindowData();
-    destroyFramebuffers();
-    resetSwapchainImages();
-    destroySwapchain();
-    resetSwapchainExtent();
+    resetSetupSwapchain();
     destroyCommandBuffers();
     destroySyncObjects();
     destroyRenderPass();
-    resetSwapchainPresentationMode();
     resetSwapchainFormats();
     destroySurface();
 }
@@ -483,6 +478,111 @@ AxrResult AxrVulkanWindowGraphics::createWin32Surface() {
     return AXR_SUCCESS;
 }
 #endif
+
+AxrResult AxrVulkanWindowGraphics::setupSwapchain(const AxrVulkanSurfaceDetails& surfaceDetails) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = setSwapchainPresentationMode(surfaceDetails.PresentationModes);
+    if (AXR_FAILED(axrResult)) {
+        resetWindowConfiguration();
+        return axrResult;
+    }
+
+    axrResult = setSwapchainExtent(surfaceDetails.Capabilities);
+    if (AXR_FAILED(axrResult)) {
+        resetWindowConfiguration();
+        return axrResult;
+    }
+
+    axrResult = createSwapchain(surfaceDetails.Capabilities);
+    if (AXR_FAILED(axrResult)) {
+        resetWindowConfiguration();
+        return axrResult;
+    }
+
+    axrResult = getSwapchainImages();
+    if (AXR_FAILED(axrResult)) {
+        resetWindowConfiguration();
+        return axrResult;
+    }
+
+    axrResult = createFramebuffers();
+    if (AXR_FAILED(axrResult)) {
+        resetWindowConfiguration();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanWindowGraphics::resetSetupSwapchain() {
+    destroyFramebuffers();
+    resetSwapchainImages();
+    destroySwapchain();
+    resetSwapchainExtent();
+    resetSwapchainPresentationMode();
+}
+
+AxrResult AxrVulkanWindowGraphics::recreateSwapchain() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Device == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Device is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+    AxrResult axrResult = AXR_SUCCESS;
+
+    // Don't bother recreating the swapchain if the window isn't visible
+    uint32_t width = 0;
+    uint32_t height = 0;
+    axrResult = m_WindowSystem.getClientSize(width, height);
+    if (AXR_FAILED(axrResult)) {
+        axrLogErrorLocation("Failed to get client size.");
+        return axrResult;
+    }
+
+    if (width == 0 || height == 0) {
+        m_IsSwapchainOutOfDate = true;
+        return AXR_SUCCESS;
+    }
+
+    const vk::Result vkResult = m_Device.waitIdle(m_Dispatch);
+    axrLogVkResult(vkResult, "m_Device.waitIdle");
+    if (VK_FAILED(vkResult)) {
+        return AXR_ERROR;
+    }
+
+
+    resetSetupSwapchain();
+
+    const auto surfaceDetails = AxrVulkanSurfaceDetails(m_PhysicalDevice, m_Surface, m_Dispatch);
+    if (!surfaceDetails.isValid()) {
+        return AXR_ERROR;
+    }
+
+    axrResult = setupSwapchain(surfaceDetails);
+    if (AXR_FAILED(axrResult)) {
+        axrLogErrorLocation("Failed to setup swapchain.");
+        return axrResult;
+    }
+
+    m_IsSwapchainOutOfDate = false;
+
+    return AXR_SUCCESS;
+}
 
 AxrResult AxrVulkanWindowGraphics::setSwapchainFormats(const std::vector<vk::SurfaceFormatKHR>& surfaceFormats) {
     // ----------------------------------------- //
@@ -669,7 +769,8 @@ AxrResult AxrVulkanWindowGraphics::createSwapchain(const vk::SurfaceCapabilities
     uint32_t minImageCount = surfaceCapabilities.minImageCount + 1;
 
     // 0 is a special value that indicates that there is no maximum
-    if (surfaceCapabilities.maxImageCount > 0 && minImageCount > surfaceCapabilities.maxImageCount) {
+    if (surfaceCapabilities.maxImageCount > 0 && minImageCount > surfaceCapabilities.
+        maxImageCount) {
         minImageCount = surfaceCapabilities.maxImageCount;
     }
 
@@ -927,7 +1028,7 @@ void AxrVulkanWindowGraphics::destroyFramebuffers() {
 
 // ---- Private Static Functions ----
 
-AxrResult AxrVulkanWindowGraphics::configureWindowGraphicsCallback(void* userData, const bool isWindowOpen) {
+AxrResult AxrVulkanWindowGraphics::onWindowOpenStateChangedCallback(void* userData, const bool isWindowOpen) {
     if (userData == nullptr) {
         axrLogErrorLocation("userData is null.");
         return AXR_ERROR;
@@ -940,6 +1041,19 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphicsCallback(void* userDat
     } else {
         self->resetWindowConfiguration();
         return AXR_SUCCESS;
+    }
+}
+
+void AxrVulkanWindowGraphics::onWindowResizedCallback(void* userData, uint32_t width, uint32_t height) {
+    if (userData == nullptr) {
+        axrLogErrorLocation("userData is null.");
+        return;
+    }
+
+    const auto self = static_cast<AxrVulkanWindowGraphics*>(userData);
+    if (AXR_FAILED(self->recreateSwapchain())) {
+        axrLogErrorLocation("Failed to recreate swapchain.");
+        return;
     }
 }
 
