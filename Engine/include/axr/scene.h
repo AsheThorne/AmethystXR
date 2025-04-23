@@ -15,7 +15,7 @@
 // GLM Headers
 // ----------------------------------------- //
 #include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 // ---------------------------------------------------------------------------------- //
 //                                 Entity Components                                  //
@@ -35,10 +35,15 @@ struct AxrTransformComponent {
 /// Entity model component
 struct AxrModelComponent {
     const char* ModelName;
-    // TODO: Material count must equal the number of meshes in a model
-    uint32_t MaterialNamesCount;
-    /// One material per mesh
-    const char** MaterialNames;
+
+    uint32_t MeshCount;
+    struct Mesh {
+        const char* MaterialName;
+    }* Meshes;
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    const char* PushConstantsBufferName;
+#endif
 };
 
 // ---------------------------------------------------------------------------------- //

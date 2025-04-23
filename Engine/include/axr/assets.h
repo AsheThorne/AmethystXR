@@ -295,7 +295,6 @@ enum AxrShaderBufferLinkEnum {
     AXR_SHADER_BUFFER_LINK_UNDEFINED = 0,
     AXR_SHADER_BUFFER_LINK_UNIFORM_BUFFER,
     AXR_SHADER_BUFFER_LINK_IMAGE_SAMPLER_BUFFER,
-    AXR_SHADER_BUFFER_LINK_PUSH_CONSTANTS_BUFFER,
 };
 
 // ----------------------------------------- //
@@ -335,19 +334,6 @@ struct AxrShaderImageSamplerBufferLink {
 typedef AxrShaderImageSamplerBufferLink* AxrShaderImageSamplerBufferLink_T;
 /// Const AxrShaderImageSamplerBufferLink Handle Type
 typedef const AxrShaderImageSamplerBufferLink* AxrShaderImageSamplerBufferLinkConst_T;
-
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-/// Shader Push Constants Buffer Link
-struct AxrShaderPushConstantsBufferLink {
-    const AxrShaderBufferLinkEnum Type = AXR_SHADER_BUFFER_LINK_PUSH_CONSTANTS_BUFFER;
-    const char* BufferName;
-};
-
-/// AxrShaderPushConstantsBufferLink Handle Type
-typedef AxrShaderPushConstantsBufferLink* AxrShaderPushConstantsBufferLink_T;
-/// Const AxrShaderPushConstantsBufferLink Handle Type
-typedef const AxrShaderPushConstantsBufferLink* AxrShaderPushConstantsBufferLinkConst_T;
-#endif
 
 /// Shader Values
 struct AxrShaderValues {
@@ -394,18 +380,6 @@ extern "C" {
     /// @param bufferLink Shader buffer link to destroy
     AXR_API void axrShaderImageSamplerBufferLinkDestroy(AxrShaderImageSamplerBufferLink_T* bufferLink);
 
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    /// Clone the given shader push constants buffer link
-    /// @param bufferLink Shader buffer link to clone
-    /// @returns The cloned shader buffer link
-    AXR_API AxrShaderPushConstantsBufferLink_T axrShaderPushConstantsBufferLinkClone(
-        AxrShaderPushConstantsBufferLinkConst_T bufferLink
-    );
-    /// Destroy the given shader push constants buffer link
-    /// @param bufferLink Shader buffer link to destroy
-    AXR_API void axrShaderPushConstantsBufferLinkDestroy(AxrShaderPushConstantsBufferLink_T* bufferLink);
-#endif
-
     // ---- Shader Values ----
 
     /// Check if the given shader values are valid
@@ -434,6 +408,9 @@ struct AxrMaterialConfig {
     const char* Name;
     const char* VertexShaderName;
     const char* FragmentShaderName;
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    const char* PushConstantsBufferName;
+#endif
     AxrShaderValues_T VertexShaderValues;
     AxrShaderValues_T FragmentShaderValues;
 };
@@ -538,6 +515,54 @@ extern "C" {
 }
 
 // ---------------------------------------------------------------------------------- //
+//                                   Buffer Assets                                    //
+// ---------------------------------------------------------------------------------- //
+
+// ----------------------------------------- //
+// Structs
+// ----------------------------------------- //
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+/// Push Constants Buffer Config
+struct AxrPushConstantsBufferConfig {
+    const char* Name;
+    uint32_t BufferSize;
+    void* Data;
+};
+#endif
+
+// ----------------------------------------- //
+// Forward Declared Handles
+// ----------------------------------------- //
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+/// AxrPushConstantsBuffer Handle
+typedef class AxrPushConstantsBuffer* AxrPushConstantsBuffer_T;
+#endif
+
+// ----------------------------------------- //
+// External Function Definitions
+// ----------------------------------------- //
+extern "C" {
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    /// Clone the given push constants buffer data
+    /// @param size Buffer size
+    /// @param data Buffer data
+    /// @returns The cloned push constants buffer data
+    AXR_API void* axrPushConstantsCloneData(uint32_t size, const void* data);
+    /// Destroy the given push constants buffer data
+    /// @param size Buffer size
+    /// @param data Buffer data
+    AXR_API void axrPushConstantsDestroyData(uint32_t* size, void** data);
+    
+    /// Get the push constants buffer's name
+    /// @param pushConstantsBuffer Push constants buffer to use
+    /// @returns The push constants buffer's name
+    AXR_API const char* axrPushConstantsBufferGetName(AxrPushConstantsBuffer_T pushConstantsBuffer);
+#endif
+}
+
+// ---------------------------------------------------------------------------------- //
 //                               Engine Defined Assets                                //
 // ---------------------------------------------------------------------------------- //
 
@@ -580,6 +605,15 @@ enum AxrModelEngineAssetEnum {
 // ----------------------------------------- //
 // Structs
 // ----------------------------------------- //
+
+// ---- Buffers ----
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+/// Engine asset push constants buffer named 'Model Matrix' structure
+struct AxrPushConstantsBufferEngineAsset_ModelMatrix {
+    glm::mat4 ModelMatrix;
+};
+#endif
 
 // ---- Materials ----
 
@@ -700,4 +734,17 @@ extern "C" {
         const char* modelName,
         AxrModelEngineAssetEnum engineAssetEnum
     );
+
+    // ---- Push Constants Buffer ----
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    /// Create a new push constants buffer
+    /// @param assetCollection Asset collection to use
+    /// @param pushConstantsBufferConfig Push constants buffer config
+    /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrAssetCollectionCreatePushConstantsBuffer(
+        AxrAssetCollection_T assetCollection,
+        const AxrPushConstantsBufferConfig* pushConstantsBufferConfig
+    );
+#endif
 }

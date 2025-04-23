@@ -8,6 +8,7 @@
 #include "../../../assets/assetCollection.hpp"
 #include "../../../assets/material.hpp"
 #include "../vulkanUtils.hpp"
+#include "../../../utils.hpp"
 
 // ---- Special Functions ----
 
@@ -53,6 +54,8 @@ AxrResult AxrVulkanSceneData::loadScene() {
         unloadScene();
         return axrResult;
     }
+
+    // TODO: Maybe validate push constants buffers?
 
     axrResult = createAllModelData();
     if (AXR_FAILED(axrResult)) {
@@ -123,27 +126,29 @@ AxrVulkanSceneData::getMaterialsForRendering() const {
     return m_MaterialsForRendering;
 }
 
-const AxrShader* AxrVulkanSceneData::findShader_shared(const std::string& name) const {
+const AxrPushConstantsBuffer* AxrVulkanSceneData::findPushConstantsBuffer_shared(const std::string& name) const {
+    if (name.empty()) return nullptr;
+
     if (m_AssetCollection == nullptr) {
         axrLogErrorLocation("Asset collection is null.");
         return nullptr;
     }
 
-    const AxrShader* foundShader = m_AssetCollection->findShader(name);
+    const AxrPushConstantsBuffer* foundPushConstantsBuffer = m_AssetCollection->findPushConstantsBuffer(name);
 
-    if (foundShader != nullptr) {
-        return foundShader;
+    if (foundPushConstantsBuffer != nullptr) {
+        return foundPushConstantsBuffer;
     }
 
     if (m_SharedVulkanSceneData != nullptr) {
-        foundShader = m_SharedVulkanSceneData->findShader_shared(name);
+        foundPushConstantsBuffer = m_SharedVulkanSceneData->findPushConstantsBuffer_shared(name);
 
-        if (foundShader != nullptr) {
-            return foundShader;
+        if (foundPushConstantsBuffer != nullptr) {
+            return foundPushConstantsBuffer;
         }
     }
 
-    axrLogErrorLocation("Failed to find shader named: {0}.", name.c_str());
+    axrLogErrorLocation("Failed to find push constants buffer named: {0}.", name.c_str());
     return nullptr;
 }
 
@@ -284,6 +289,30 @@ const AxrVulkanModelData* AxrVulkanSceneData::findModelData_shared(const std::st
     }
 
     axrLogErrorLocation("Failed to find model data named: {0}.", name.c_str());
+    return nullptr;
+}
+
+const AxrShader* AxrVulkanSceneData::findShader_shared(const std::string& name) const {
+    if (m_AssetCollection == nullptr) {
+        axrLogErrorLocation("Asset collection is null.");
+        return nullptr;
+    }
+
+    const AxrShader* foundShader = m_AssetCollection->findShader(name);
+
+    if (foundShader != nullptr) {
+        return foundShader;
+    }
+
+    if (m_SharedVulkanSceneData != nullptr) {
+        foundShader = m_SharedVulkanSceneData->findShader_shared(name);
+
+        if (foundShader != nullptr) {
+            return foundShader;
+        }
+    }
+
+    axrLogErrorLocation("Failed to find shader named: {0}.", name.c_str());
     return nullptr;
 }
 
@@ -550,7 +579,8 @@ AxrResult AxrVulkanSceneData::initializeMaterialData(const AxrMaterial& material
         .Name = materialName,
         .VertexShaderHandle = foundVertexShader,
         .FragmentShaderHandle = foundFragmentShader,
-        .PipelineLayout = foundMaterialLayoutData->getPipelineLayout(),
+        .MaterialHandle = &material,
+        .MaterialLayoutData = foundMaterialLayoutData,
         .Device = m_Device,
         .DispatchHandle = m_DispatchHandle,
     };
@@ -695,44 +725,56 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
         axrLogErrorLocation("Failed to find model data for model: {0}.", modelComponent.ModelName);
     }
 
-    for (uint32_t i = 0; i < modelComponent.MaterialNamesCount; ++i) {
-        auto foundMaterialForRendering = materialsForRendering.find(modelComponent.MaterialNames[i]);
+    for (uint32_t i = 0; i < modelComponent.MeshCount; ++i) {
+        AxrModelComponent::Mesh& currentMesh = modelComponent.Meshes[i];
 
-        if (foundMaterialForRendering != materialsForRendering.end()) {
-            foundMaterialForRendering->second.Meshes.push_back(
-                MeshForRendering{
-                    .Buffer = foundModelData->getMeshBuffer(i),
-                    .BufferIndicesOffset = foundModelData->getMeshBufferIndicesOffset(i),
-                    .BufferVerticesOffset = foundModelData->getMeshBufferVerticesOffset(i),
-                    .IndexCount = foundModelData->getMeshIndexCount(i),
-                }
-            );
-        } else {
-            const AxrVulkanMaterialData* foundMaterialData = findMaterialData_shared(modelComponent.MaterialNames[i]);
-            if (foundMaterialData == nullptr) {
-                axrLogErrorLocation("Failed to find material data for material: {0}.", modelComponent.MaterialNames[i]);
-                continue;
-            }
+        const AxrVulkanMaterialData* foundMaterialData = findMaterialData_shared(currentMesh.MaterialName);
+        if (foundMaterialData == nullptr) {
+            axrLogErrorLocation("Failed to find material data for material: {0}.", currentMesh.MaterialName);
+            continue;
+        }
+
+        auto foundMaterialForRendering = materialsForRendering.find(currentMesh.MaterialName);
+        const vk::ShaderStageFlags& pushConstantStageFlags = foundMaterialData->getPushConstantsShaderStages();
+
+        auto meshForRendering = MeshForRendering{
+            .Buffer = foundModelData->getMeshBuffer(i),
+            .BufferIndicesOffset = foundModelData->getMeshBufferIndicesOffset(i),
+            .BufferVerticesOffset = foundModelData->getMeshBufferVerticesOffset(i),
+            .IndexCount = foundModelData->getMeshIndexCount(i),
+            .PushConstants = axrStringIsEmpty(modelComponent.PushConstantsBufferName) ||
+                             pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
+                                 ? PushConstantsForRendering{}
+                                 : PushConstantsForRendering{
+                                     .ShaderStages = &pushConstantStageFlags,
+                                     .BufferName = modelComponent.PushConstantsBufferName,
+                                     .TransformComponent = &transformComponent,
+                                 },
+        };
+
+        if (foundMaterialForRendering == materialsForRendering.end()) {
+            const char* materialPushConstantsBufferName = foundMaterialData->getPushConstantsBufferName().c_str();
 
             materialsForRendering.insert(
                 std::pair(
-                    modelComponent.MaterialNames[i],
+                    currentMesh.MaterialName,
                     MaterialForRendering{
                         .PipelineLayout = foundMaterialData->getPipelineLayout(),
                         .WindowPipeline = foundMaterialData->getWindowPipeline(),
-                        // TODO: PushConstantsForRendering
-                        .PushConstantsForRendering = {},
-                        .Meshes = {
-                            MeshForRendering{
-                                .Buffer = foundModelData->getMeshBuffer(i),
-                                .BufferIndicesOffset = foundModelData->getMeshBufferIndicesOffset(i),
-                                .BufferVerticesOffset = foundModelData->getMeshBufferVerticesOffset(i),
-                                .IndexCount = foundModelData->getMeshIndexCount(i),
-                            }
-                        }
+                        .PushConstants = axrStringIsEmpty(materialPushConstantsBufferName) ||
+                                         pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
+                                             ? PushConstantsForRendering{}
+                                             : PushConstantsForRendering{
+                                                 .ShaderStages = &pushConstantStageFlags,
+                                                 .BufferName = materialPushConstantsBufferName,
+                                                 .TransformComponent = &transformComponent,
+                                             },
+                        .Meshes = {meshForRendering}
                     }
                 )
             );
+        } else {
+            foundMaterialForRendering->second.Meshes.push_back(meshForRendering);
         }
     }
 

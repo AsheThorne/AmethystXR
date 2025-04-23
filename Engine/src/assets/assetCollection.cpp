@@ -100,6 +100,25 @@ AxrResult axrAssetCollectionCreateEngineAssetModel(
     return assetCollection->createModel(modelName, engineAssetEnum);
 }
 
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+AxrResult axrAssetCollectionCreatePushConstantsBuffer(
+    const AxrAssetCollection_T assetCollection,
+    const AxrPushConstantsBufferConfig* pushConstantsBufferConfig
+) {
+    if (assetCollection == nullptr) {
+        axrLogErrorLocation("`assetCollection` is null.");
+        return AXR_ERROR;
+    }
+
+    if (pushConstantsBufferConfig == nullptr) {
+        axrLogErrorLocation("`pushConstantsBufferConfig` is null.");
+        return AXR_ERROR;
+    }
+
+    return assetCollection->createPushConstantsBuffer(*pushConstantsBufferConfig);
+}
+#endif
+
 // ----------------------------------------- //
 // Internal Functions
 // ----------------------------------------- //
@@ -112,6 +131,10 @@ AxrAssetCollection::AxrAssetCollection(AxrAssetCollection&& src) noexcept {
     m_Shaders = std::move(src.m_Shaders);
     m_Materials = std::move(src.m_Materials);
     m_Models = std::move(src.m_Models);
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    m_PushConstantsBuffers = std::move(src.m_PushConstantsBuffers);
+#endif
 }
 
 AxrAssetCollection::~AxrAssetCollection() {
@@ -125,6 +148,10 @@ AxrAssetCollection& AxrAssetCollection::operator=(AxrAssetCollection&& src) noex
         m_Shaders = std::move(src.m_Shaders);
         m_Materials = std::move(src.m_Materials);
         m_Models = std::move(src.m_Models);
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+        m_PushConstantsBuffers = std::move(src.m_PushConstantsBuffers);
+#endif
     }
 
     return *this;
@@ -368,12 +395,56 @@ AxrResult AxrAssetCollection::createModel(const char* modelName, AxrModelEngineA
     return AXR_SUCCESS;
 }
 
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+AxrResult AxrAssetCollection::createPushConstantsBuffer(const AxrPushConstantsBufferConfig& pushConstantsBufferConfig) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (axrIsPushConstantsBufferNameReserved(pushConstantsBufferConfig.Name)) {
+        axrLogError(
+            "Unable to create push constants buffer. The push constants buffer name: {0} is reserved by the engine.",
+            pushConstantsBufferConfig.Name
+        );
+        return AXR_ERROR;
+    }
+
+    if (m_PushConstantsBuffers.contains(pushConstantsBufferConfig.Name)) {
+        axrLogError(
+            "Unable to create push constants buffer. A push constants buffer named: {0} already exists.",
+            pushConstantsBufferConfig.Name
+        );
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const auto insertResult = m_PushConstantsBuffers.insert(
+        std::pair(pushConstantsBufferConfig.Name, AxrPushConstantsBuffer(pushConstantsBufferConfig))
+    );
+    if (!insertResult.second) {
+        // If the insertion failed
+        return AXR_ERROR;
+    }
+
+    // TODO: Reload vulkan scene assets if they're already loaded.
+
+    return AXR_SUCCESS;
+}
+#endif
+
 void AxrAssetCollection::cleanup() {
     unloadAssets();
 
     m_Shaders.clear();
     m_Materials.clear();
     m_Models.clear();
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    m_PushConstantsBuffers.clear();
+#endif
 }
 
 bool AxrAssetCollection::isLoaded() {
@@ -431,6 +502,17 @@ const AxrShader* AxrAssetCollection::findShader(const std::string& name) {
     return &foundShaderIterator->second;
 }
 
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+const AxrPushConstantsBuffer* AxrAssetCollection::findPushConstantsBuffer(const std::string& name) {
+    const auto foundPushConstantsBufferIterator = m_PushConstantsBuffers.find(name);
+    if (foundPushConstantsBufferIterator == m_PushConstantsBuffers.end()) {
+        return nullptr;
+    }
+
+    return &foundPushConstantsBufferIterator->second;
+}
+#endif
+
 const std::unordered_map<std::string, AxrShader>& AxrAssetCollection::getShaders() {
     return m_Shaders;
 }
@@ -442,3 +524,9 @@ const std::unordered_map<std::string, AxrMaterial>& AxrAssetCollection::getMater
 const std::unordered_map<std::string, AxrModel>& AxrAssetCollection::getModels() {
     return m_Models;
 }
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+const std::unordered_map<std::string, AxrPushConstantsBuffer>& AxrAssetCollection::getPushConstantsBuffers() {
+    return m_PushConstantsBuffers;
+}
+#endif

@@ -81,7 +81,10 @@ public:
     [[nodiscard]] const std::string& getName() const;
     /// Get the pipeline layout
     /// @returns The pipeline layout
-    [[nodiscard]] vk::PipelineLayout getPipelineLayout() const;
+    [[nodiscard]] const vk::PipelineLayout& getPipelineLayout() const;
+    /// Get the push constants shader stages
+    /// @returns The push constants shader stages
+    [[nodiscard]] const vk::ShaderStageFlags& getPushConstantsShaderStages() const;
 
     /// Check if the data exists
     /// @returns True if the data exists
@@ -109,6 +112,7 @@ private:
     std::vector<DescriptorSetItemLocation> m_DescriptorSetItemLocations;
     vk::DescriptorSetLayout m_DescriptorSetLayout;
     vk::PipelineLayout m_PipelineLayout;
+    vk::ShaderStageFlags m_PushConstantsShaderStage;
 
     // ----------------------------------------- //
     // Private Functions

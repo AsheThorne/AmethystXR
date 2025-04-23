@@ -36,26 +36,27 @@ public:
         vk::DispatchLoaderDynamic* DispatchHandle;
     };
 
+    /// Push constants references for rendering
+    struct PushConstantsForRendering {
+        const vk::ShaderStageFlags* ShaderStages = nullptr;
+        const char* BufferName = "";
+        const AxrTransformComponent* TransformComponent = nullptr;
+    };
+
     /// Mesh references for rendering
     struct MeshForRendering {
         const vk::Buffer& Buffer;
         const vk::DeviceSize& BufferIndicesOffset;
         const vk::DeviceSize& BufferVerticesOffset;
         const uint32_t& IndexCount;
-    };
-
-    /// Push constants references for rendering
-    struct PushConstantsForRendering {
-        const vk::ShaderStageFlags& ShaderStages;
-        const uint32_t& BufferSize;
-        const void*& BufferData;
+        PushConstantsForRendering PushConstants;
     };
 
     /// Material references for rendering
     struct MaterialForRendering {
         const vk::PipelineLayout& PipelineLayout;
         const vk::Pipeline& WindowPipeline;
-        std::vector<PushConstantsForRendering> PushConstantsForRendering;
+        PushConstantsForRendering PushConstants;
         std::vector<MeshForRendering> Meshes;
     };
 
@@ -116,10 +117,10 @@ public:
 
     // ---- Find Assets ----
 
-    /// Find the named shader, including the shared data in the search
-    /// @param name The name of the shader
-    /// @returns A handle to the found shader. Or nullptr if it wasn't found
-    [[nodiscard]] const AxrShader* findShader_shared(const std::string& name) const;
+    /// Find the named push constants buffer, including the shared data in the search
+    /// @param name The name of the push constants buffer
+    /// @returns A handle to the found push constants buffer. Or nullptr if it wasn't found
+    [[nodiscard]] const AxrPushConstantsBuffer* findPushConstantsBuffer_shared(const std::string& name) const;
 
 private:
     // ----------------------------------------- //
@@ -174,6 +175,13 @@ private:
     /// @param name The name of the model
     /// @returns A handle to the found model. Or nullptr if it wasn't found
     [[nodiscard]] const AxrVulkanModelData* findModelData_shared(const std::string& name) const;
+
+    // ---- Shader ----
+
+    /// Find the named shader, including the shared data in the search
+    /// @param name The name of the shader
+    /// @returns A handle to the found shader. Or nullptr if it wasn't found
+    [[nodiscard]] const AxrShader* findShader_shared(const std::string& name) const;
 
     // ---- Material Layout ----
 

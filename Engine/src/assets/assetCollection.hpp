@@ -93,7 +93,7 @@ public:
     // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
 
     // ---- All Assets ----
-    
+
     /// Clean up this class
     void cleanup();
 
@@ -111,6 +111,12 @@ public:
     /// @param name Name of the shader
     /// @returns A handle to the shader if it was found. nullptr if it wasn't found
     [[nodiscard]] const AxrShader* findShader(const std::string& name);
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    /// Find the named push constants buffer
+    /// @param name Name of the push constants buffer
+    /// @returns A handle to the push constants buffer if it was found. nullptr if it wasn't found
+    [[nodiscard]] const AxrPushConstantsBuffer* findPushConstantsBuffer(const std::string& name);
+#endif
 
     /// Get the shaders
     /// @returns A map of the shaders 
@@ -121,6 +127,11 @@ public:
     /// Get the models
     /// @returns A map of the models
     [[nodiscard]] const std::unordered_map<std::string, AxrModel>& getModels();
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    /// Get the push constants buffers
+    /// @returns A map of the push constants buffers
+    [[nodiscard]] const std::unordered_map<std::string, AxrPushConstantsBuffer>& getPushConstantsBuffers();
+#endif
 
 private:
     // ----------------------------------------- //
@@ -129,4 +140,8 @@ private:
     std::unordered_map<std::string, AxrShader> m_Shaders;
     std::unordered_map<std::string, AxrMaterial> m_Materials;
     std::unordered_map<std::string, AxrModel> m_Models;
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    std::unordered_map<std::string, AxrPushConstantsBuffer> m_PushConstantsBuffers;
+#endif
 };
