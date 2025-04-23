@@ -14,6 +14,10 @@
 #include "material.hpp"
 #include "model.hpp"
 
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+#include "pushConstantsBuffer.hpp"
+#endif
+
 /// Axr Asset Collection
 class AxrAssetCollection {
 public:
@@ -87,6 +91,15 @@ public:
     /// @param engineAssetEnum Engine asset enum
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult createModel(const char* modelName, AxrModelEngineAssetEnum engineAssetEnum);
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    // ---- Push Constants Buffer ----
+
+    /// Create a new push constants buffer
+    /// @param pushConstantsBufferConfig Push constants buffer config
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createPushConstantsBuffer(const AxrPushConstantsBufferConfig& pushConstantsBufferConfig);
+#endif
 
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
