@@ -6,6 +6,7 @@
 #include "vulkanMaterialData.hpp"
 #include "axr/logger.h"
 #include "../vulkanUtils.hpp"
+#include "../../../assets/material.hpp"
 
 // ----------------------------------------- //
 // Internal Functions
@@ -16,7 +17,8 @@
 AxrVulkanMaterialData::AxrVulkanMaterialData():
     m_VertexShaderHandle(nullptr),
     m_FragmentShaderHandle(nullptr),
-    m_PipelineLayout(VK_NULL_HANDLE),
+    m_MaterialHandle(nullptr),
+    m_MaterialLayoutData(nullptr),
     m_Device(VK_NULL_HANDLE),
     m_DispatchHandle(nullptr),
     m_WindowPipeline(VK_NULL_HANDLE) {
@@ -26,7 +28,8 @@ AxrVulkanMaterialData::AxrVulkanMaterialData(const Config& config):
     m_Name(config.Name),
     m_VertexShaderHandle(config.VertexShaderHandle),
     m_FragmentShaderHandle(config.FragmentShaderHandle),
-    m_PipelineLayout(config.PipelineLayout),
+    m_MaterialHandle(config.MaterialHandle),
+    m_MaterialLayoutData(config.MaterialLayoutData),
     m_Device(config.Device),
     m_DispatchHandle(config.DispatchHandle),
     m_WindowPipeline(VK_NULL_HANDLE) {
@@ -37,14 +40,16 @@ AxrVulkanMaterialData::AxrVulkanMaterialData(AxrVulkanMaterialData&& src) noexce
 
     m_VertexShaderHandle = src.m_VertexShaderHandle;
     m_FragmentShaderHandle = src.m_FragmentShaderHandle;
-    m_PipelineLayout = src.m_PipelineLayout;
+    m_MaterialHandle = src.m_MaterialHandle;
+    m_MaterialLayoutData = src.m_MaterialLayoutData;
     m_Device = src.m_Device;
     m_DispatchHandle = src.m_DispatchHandle;
     m_WindowPipeline = src.m_WindowPipeline;
 
     src.m_VertexShaderHandle = nullptr;
     src.m_FragmentShaderHandle = nullptr;
-    src.m_PipelineLayout = VK_NULL_HANDLE;
+    src.m_MaterialHandle = nullptr;
+    src.m_MaterialLayoutData = nullptr;
     src.m_Device = VK_NULL_HANDLE;
     src.m_DispatchHandle = nullptr;
     src.m_WindowPipeline = VK_NULL_HANDLE;
@@ -62,14 +67,16 @@ AxrVulkanMaterialData& AxrVulkanMaterialData::operator=(AxrVulkanMaterialData&& 
 
         m_VertexShaderHandle = src.m_VertexShaderHandle;
         m_FragmentShaderHandle = src.m_FragmentShaderHandle;
-        m_PipelineLayout = src.m_PipelineLayout;
+        m_MaterialHandle = src.m_MaterialHandle;
+        m_MaterialLayoutData = src.m_MaterialLayoutData;
         m_Device = src.m_Device;
         m_DispatchHandle = src.m_DispatchHandle;
         m_WindowPipeline = src.m_WindowPipeline;
 
         src.m_VertexShaderHandle = nullptr;
         src.m_FragmentShaderHandle = nullptr;
-        src.m_PipelineLayout = VK_NULL_HANDLE;
+        src.m_MaterialHandle = nullptr;
+        src.m_MaterialLayoutData = nullptr;
         src.m_Device = VK_NULL_HANDLE;
         src.m_DispatchHandle = nullptr;
         src.m_WindowPipeline = VK_NULL_HANDLE;
@@ -85,11 +92,19 @@ const std::string& AxrVulkanMaterialData::getName() const {
 }
 
 const vk::PipelineLayout& AxrVulkanMaterialData::getPipelineLayout() const {
-    return m_PipelineLayout;
+    return m_MaterialLayoutData->getPipelineLayout();
 }
 
 const vk::Pipeline& AxrVulkanMaterialData::getWindowPipeline() const {
     return m_WindowPipeline;
+}
+
+const vk::ShaderStageFlags& AxrVulkanMaterialData::getPushConstantsShaderStages() const {
+    return m_MaterialLayoutData->getPushConstantsShaderStages();
+}
+
+const std::string& AxrVulkanMaterialData::getPushConstantsBufferName() const {
+    return m_MaterialHandle->getPushConstantsBufferName();
 }
 
 bool AxrVulkanMaterialData::doesDataExist() const {
@@ -158,6 +173,8 @@ void AxrVulkanMaterialData::cleanup() {
     m_Name.clear();
     m_VertexShaderHandle = nullptr;
     m_FragmentShaderHandle = nullptr;
+    m_MaterialHandle = nullptr;
+    m_MaterialLayoutData = nullptr;
     m_Device = VK_NULL_HANDLE;
     m_DispatchHandle = nullptr;
 }
@@ -186,7 +203,7 @@ AxrResult AxrVulkanMaterialData::createPipeline(
         return AXR_ERROR;
     }
 
-    if (m_PipelineLayout == VK_NULL_HANDLE) {
+    if (m_MaterialLayoutData == nullptr || m_MaterialLayoutData->getPipelineLayout() == VK_NULL_HANDLE) {
         axrLogErrorLocation("Pipeline layout is null.");
         return AXR_ERROR;
     }
@@ -424,7 +441,7 @@ AxrResult AxrVulkanMaterialData::createPipeline(
         &depthStencilStateCreateInfo,
         &colorBlendStateCreateInfo,
         &dynamicStateCreateInfo,
-        m_PipelineLayout,
+        m_MaterialLayoutData->getPipelineLayout(),
         renderPass,
         0,
         VK_NULL_HANDLE,

@@ -102,8 +102,10 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/assets/shaderProperties.hpp
     ${AXR_SRC_DIR}/assets/shaderValues.hpp
     ${AXR_SRC_DIR}/assets/assetsUtils.hpp
+    ${AXR_SRC_DIR}/assets/pushConstantsBuffer.hpp
     # ---- Scene ----
     ${AXR_SRC_DIR}/scene/scene.hpp
+    ${AXR_SRC_DIR}/scene/sceneUtils.hpp
 )
 
 # ---------------------------------------------
@@ -149,8 +151,10 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/assets/shaderProperties.cpp
     ${AXR_SRC_DIR}/assets/shaderValues.cpp
     ${AXR_SRC_DIR}/assets/assetsUtils.cpp
+    ${AXR_SRC_DIR}/assets/pushConstantsBuffer.cpp
     # ---- Scene ----
     ${AXR_SRC_DIR}/scene/scene.cpp
+    ${AXR_SRC_DIR}/scene/sceneUtils.cpp
 )
 
 # ---------------------------------------------

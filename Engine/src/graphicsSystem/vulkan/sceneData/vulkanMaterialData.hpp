@@ -5,7 +5,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/common.h"
-#include "../../../assets/shader.hpp"
+#include "vulkanMaterialLayoutData.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -29,7 +29,8 @@ public:
         std::string Name;
         const AxrShader* VertexShaderHandle;
         const AxrShader* FragmentShaderHandle;
-        vk::PipelineLayout PipelineLayout;
+        const AxrMaterial* MaterialHandle;
+        const AxrVulkanMaterialLayoutData* MaterialLayoutData;
         vk::Device Device;
         vk::DispatchLoaderDynamic* DispatchHandle;
     };
@@ -79,6 +80,12 @@ public:
     /// Get the window pipeline
     /// @returns The window pipeline
     [[nodiscard]] const vk::Pipeline& getWindowPipeline() const;
+    /// Get the push constants buffer shader stages
+    /// @returns The push constants buffer shader stages
+    [[nodiscard]] const vk::ShaderStageFlags& getPushConstantsShaderStages() const;
+    /// Get the push constants buffer name
+    /// @returns The push constants buffer name
+    [[nodiscard]] const std::string& getPushConstantsBufferName() const;
 
     /// Check if the data exists
     /// @returns True if the data exists
@@ -111,7 +118,8 @@ private:
     std::string m_Name;
     const AxrShader* m_VertexShaderHandle;
     const AxrShader* m_FragmentShaderHandle;
-    vk::PipelineLayout m_PipelineLayout;
+    const AxrMaterial* m_MaterialHandle;
+    const AxrVulkanMaterialLayoutData* m_MaterialLayoutData;
     vk::Device m_Device;
     vk::DispatchLoaderDynamic* m_DispatchHandle;
 

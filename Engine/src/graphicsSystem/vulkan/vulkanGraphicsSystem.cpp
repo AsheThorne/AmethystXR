@@ -1147,8 +1147,8 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
 ) const {
     const AxrVulkanSceneData* sceneAssets = m_LoadedScenes.getActiveScene();
     if (sceneAssets == nullptr) {
-        axrLogErrorLocation("There is no active scene.");
-        return AXR_ERROR;
+        // Nothing to render
+        return AXR_SUCCESS;
     }
 
     AxrResult axrResult = AXR_SUCCESS;
@@ -1181,8 +1181,10 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
     for (auto& [materialName, material] : sceneAssets->getMaterialsForRendering()) {
         // TODO: Don't hardcode the window pipeline here
         renderCommands.bindPipeline(material.WindowPipeline);
+        renderCommands.pushConstants(material.PipelineLayout, material.PushConstants, sceneAssets);
 
         for (const AxrVulkanSceneData::MeshForRendering& mesh : material.Meshes) {
+            renderCommands.pushConstants(material.PipelineLayout, mesh.PushConstants, sceneAssets);
             renderCommands.draw(mesh);
         }
     }

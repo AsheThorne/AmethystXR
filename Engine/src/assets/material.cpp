@@ -47,6 +47,7 @@ AxrMaterial::AxrMaterial(const AxrMaterialConfig& config):
     m_Name(config.Name),
     m_VertexShaderName(config.VertexShaderName),
     m_FragmentShaderName(config.FragmentShaderName),
+    m_PushConstantsBufferName(config.PushConstantsBufferName),
     m_VertexShaderValues(config.VertexShaderValues),
     m_FragmentShaderValues(config.FragmentShaderValues) {
     if (!axrMaterialConfigIsValid(&config)) {
@@ -58,6 +59,7 @@ AxrMaterial::AxrMaterial(const AxrMaterial& src) {
     m_Name = src.m_Name;
     m_VertexShaderName = src.m_VertexShaderName;
     m_FragmentShaderName = src.m_FragmentShaderName;
+    m_PushConstantsBufferName = src.m_PushConstantsBufferName;
     m_VertexShaderValues = src.m_VertexShaderValues;
     m_FragmentShaderValues = src.m_FragmentShaderValues;
 }
@@ -65,6 +67,7 @@ AxrMaterial::AxrMaterial(const AxrMaterial& src) {
 AxrMaterial::AxrMaterial(AxrMaterial&& src) noexcept {
     m_VertexShaderValues = std::move(src.m_VertexShaderValues);
     m_FragmentShaderValues = std::move(src.m_FragmentShaderValues);
+    m_PushConstantsBufferName = std::move(src.m_PushConstantsBufferName);
 
     m_Name = src.m_Name;
     m_VertexShaderName = src.m_VertexShaderName;
@@ -86,6 +89,7 @@ AxrMaterial& AxrMaterial::operator=(const AxrMaterial& src) {
         m_Name = src.m_Name;
         m_VertexShaderName = src.m_VertexShaderName;
         m_FragmentShaderName = src.m_FragmentShaderName;
+        m_PushConstantsBufferName = src.m_PushConstantsBufferName;
         m_VertexShaderValues = src.m_VertexShaderValues;
         m_FragmentShaderValues = src.m_FragmentShaderValues;
     }
@@ -99,6 +103,7 @@ AxrMaterial& AxrMaterial::operator=(AxrMaterial&& src) noexcept {
 
         m_VertexShaderValues = std::move(src.m_VertexShaderValues);
         m_FragmentShaderValues = std::move(src.m_FragmentShaderValues);
+        m_PushConstantsBufferName = std::move(src.m_PushConstantsBufferName);
 
         m_Name = src.m_Name;
         m_VertexShaderName = src.m_VertexShaderName;
@@ -130,6 +135,12 @@ std::string AxrMaterial::getMaterialLayoutName() const {
     return std::string(std::string(m_VertexShaderName) + '_' + m_FragmentShaderName);
 }
 
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+const std::string& AxrMaterial::getPushConstantsBufferName() const {
+    return m_PushConstantsBufferName;
+}
+#endif
+
 bool AxrMaterial::isValid() const {
     return !axrStringIsEmpty(m_Name) &&
         !axrStringIsEmpty(m_VertexShaderName) &&
@@ -142,6 +153,9 @@ void AxrMaterial::cleanup() {
     m_Name = "";
     m_VertexShaderName = "";
     m_FragmentShaderName = "";
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    m_PushConstantsBufferName.clear();
+#endif
 
     m_VertexShaderValues.cleanup();
     m_FragmentShaderValues.cleanup();

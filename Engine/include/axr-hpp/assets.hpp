@@ -643,7 +643,6 @@ namespace axr {
         Undefined = AXR_SHADER_BUFFER_LINK_UNDEFINED,
         UniformBuffer = AXR_SHADER_BUFFER_LINK_UNIFORM_BUFFER,
         ImageSamplerBuffer = AXR_SHADER_BUFFER_LINK_IMAGE_SAMPLER_BUFFER,
-        PushConstantsBuffer = AXR_SHADER_BUFFER_LINK_PUSH_CONSTANTS_BUFFER,
     };
 
     // ----------------------------------------- //
@@ -753,21 +752,6 @@ namespace axr {
             );
         }
 
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-        /// Add a push constants buffer link
-        /// @param bufferName Push constants buffer name
-        void addPushConstantsBufferLink(const char* bufferName) {
-            resizeBufferLinks(BufferLinksCount + 1);
-
-            const AxrShaderPushConstantsBufferLink bufferLink{
-                .BufferName = bufferName
-            };
-            BufferLinks[BufferLinksCount - 1] = reinterpret_cast<AxrShaderBufferLink_T>(
-                axrShaderPushConstantsBufferLinkClone(&bufferLink)
-            );
-        }
-#endif
-
         /// Clear the buffer links 
         void clearBufferLinks() {
             if (BufferLinks == nullptr) return;
@@ -827,6 +811,9 @@ namespace axr {
         const char* Name;
         const char* VertexShaderName;
         const char* FragmentShaderName;
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+        const char* PushConstantsBufferName;
+#endif
         AxrShaderValues_T VertexShaderValues;
         AxrShaderValues_T FragmentShaderValues;
 
@@ -841,6 +828,9 @@ namespace axr {
             Name(""),
             VertexShaderName(""),
             FragmentShaderName(""),
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+            PushConstantsBufferName(""),
+#endif
             VertexShaderValues(nullptr),
             FragmentShaderValues(nullptr) {
         }
@@ -860,9 +850,36 @@ namespace axr {
         ) : Name(name),
             VertexShaderName(vertexShaderName),
             FragmentShaderName(fragmentShaderName),
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+            PushConstantsBufferName(""),
+#endif
             VertexShaderValues(vertexShaderValues.cloneRaw()),
             FragmentShaderValues(fragmentShaderValues.cloneRaw()) {
         }
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+        /// Constructor
+        /// @param name The material name
+        /// @param vertexShaderName The vertex shader name
+        /// @param fragmentShaderName The fragment shader name
+        /// @param pushConstantsBufferName The push constants buffer name
+        /// @param vertexShaderValues The vertex shader values to use
+        /// @param fragmentShaderValues The fragment shader values to use
+        MaterialConfig(
+            const char* name,
+            const char* vertexShaderName,
+            const char* fragmentShaderName,
+            const char* pushConstantsBufferName,
+            const axr::ShaderValues& vertexShaderValues,
+            const axr::ShaderValues& fragmentShaderValues
+        ) : Name(name),
+            VertexShaderName(vertexShaderName),
+            FragmentShaderName(fragmentShaderName),
+            PushConstantsBufferName(pushConstantsBufferName),
+            VertexShaderValues(vertexShaderValues.cloneRaw()),
+            FragmentShaderValues(fragmentShaderValues.cloneRaw()) {
+        }
+#endif
 
         /// Copy Constructor
         /// @param src Source MaterialConfig to copy from
@@ -870,6 +887,9 @@ namespace axr {
             Name = src.Name;
             VertexShaderName = src.VertexShaderName;
             FragmentShaderName = src.FragmentShaderName;
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+            PushConstantsBufferName = src.PushConstantsBufferName;
+#endif
 
             if (src.VertexShaderValues != nullptr) {
                 VertexShaderValues = axrShaderValuesClone(src.VertexShaderValues);
@@ -890,12 +910,18 @@ namespace axr {
             Name = src.Name;
             VertexShaderName = src.VertexShaderName;
             FragmentShaderName = src.FragmentShaderName;
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+            PushConstantsBufferName = src.PushConstantsBufferName;
+#endif
             VertexShaderValues = src.VertexShaderValues;
             FragmentShaderValues = src.FragmentShaderValues;
 
             src.Name = "";
             src.VertexShaderName = "";
             src.FragmentShaderName = "";
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+            src.PushConstantsBufferName = "";
+#endif
             src.VertexShaderValues = nullptr;
             src.FragmentShaderValues = nullptr;
         }
@@ -918,6 +944,9 @@ namespace axr {
                 Name = src.Name;
                 VertexShaderName = src.VertexShaderName;
                 FragmentShaderName = src.FragmentShaderName;
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+                PushConstantsBufferName = src.PushConstantsBufferName;
+#endif
 
                 if (src.VertexShaderValues != nullptr) {
                     VertexShaderValues = axrShaderValuesClone(src.VertexShaderValues);
@@ -944,12 +973,18 @@ namespace axr {
                 Name = src.Name;
                 VertexShaderName = src.VertexShaderName;
                 FragmentShaderName = src.FragmentShaderName;
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+                PushConstantsBufferName = src.PushConstantsBufferName;
+#endif
                 VertexShaderValues = src.VertexShaderValues;
                 FragmentShaderValues = src.FragmentShaderValues;
 
                 src.Name = "";
                 src.VertexShaderName = "";
                 src.FragmentShaderName = "";
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+                src.PushConstantsBufferName = "";
+#endif
                 src.VertexShaderValues = nullptr;
                 src.FragmentShaderValues = nullptr;
             }
@@ -996,6 +1031,9 @@ namespace axr {
             Name = "";
             VertexShaderName = "";
             FragmentShaderName = "";
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+            PushConstantsBufferName = "";
+#endif
         }
     };
 
@@ -1521,6 +1559,133 @@ namespace axr {
         AxrModel_T m_Model;
     };
 
+    /// Push Constants Buffer Config
+    struct PushConstantsBufferConfig {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+
+        const char* Name;
+        uint32_t BufferSize;
+        void* Data;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        PushConstantsBufferConfig():
+            Name(""),
+            BufferSize(0),
+            Data(nullptr) {
+        }
+
+        /// Constructor
+        /// @param name Name of the push constants buffer
+        /// @param bufferSize Buffer size
+        /// @param data Data
+        PushConstantsBufferConfig(const char* name, const uint32_t bufferSize, const void* data):
+            Name(name),
+            BufferSize(bufferSize) {
+            Data = axrPushConstantsCloneData(bufferSize, data);
+        }
+
+        /// Copy Constructor
+        /// @param src Source PushConstantsBufferConfig to copy from
+        PushConstantsBufferConfig(const PushConstantsBufferConfig& src) {
+            Name = src.Name;
+            BufferSize = src.BufferSize;
+            Data = axrPushConstantsCloneData(src.BufferSize, src.Data);
+        }
+
+        /// Move Constructor
+        /// @param src Source PushConstantsBufferConfig to move from
+        PushConstantsBufferConfig(PushConstantsBufferConfig&& src) noexcept {
+            Name = src.Name;
+            BufferSize = src.BufferSize;
+            Data = src.Data;
+
+            src.Name = "";
+            src.BufferSize = 0;
+            src.Data = nullptr;
+        }
+
+        // ---- Destructor ----
+
+        /// Destructor
+        ~PushConstantsBufferConfig() {
+            cleanup();
+        }
+
+        // ---- Operator Overloads ----
+
+        /// Copy Assignment Operator
+        /// @param src Source PushConstantsBufferConfig to copy from
+        PushConstantsBufferConfig& operator=(const PushConstantsBufferConfig& src) {
+            if (this != &src) {
+                cleanup();
+
+                Name = src.Name;
+                BufferSize = src.BufferSize;
+                Data = axrPushConstantsCloneData(src.BufferSize, src.Data);
+            }
+
+            return *this;
+        }
+
+        /// Move Assignment Operator
+        /// @param src Source PushConstantsBufferConfig to move from
+        PushConstantsBufferConfig& operator=(PushConstantsBufferConfig&& src) noexcept {
+            if (this != &src) {
+                cleanup();
+
+                Name = src.Name;
+                BufferSize = src.BufferSize;
+                Data = src.Data;
+
+                src.Name = "";
+                src.BufferSize = 0;
+                src.Data = nullptr;
+            }
+
+            return *this;
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the PushConstantsBufferConfig as an AxrPushConstantsBufferConfig
+        /// @returns This as an AxrPushConstantsBufferConfig
+        const AxrPushConstantsBufferConfig* toRaw() const {
+            return reinterpret_cast<const AxrPushConstantsBufferConfig*>(this);
+        }
+
+        /// Get a handle to the PushConstantsBufferConfig as an AxrPushConstantsBufferConfig
+        /// @returns This as an AxrPushConstantsBufferConfig
+        AxrPushConstantsBufferConfig* toRaw() {
+            return reinterpret_cast<AxrPushConstantsBufferConfig*>(this);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Functions
+        // ----------------------------------------- //
+
+        /// Clean up this class
+        void cleanup() {
+            Name = "";
+            axrPushConstantsDestroyData(&BufferSize, &Data);
+        }
+    };
+
+    static_assert(
+        sizeof(AxrPushConstantsBufferConfig) == sizeof(axr::PushConstantsBufferConfig),
+        "Original type and wrapper have different size!"
+    );
+
     // ---------------------------------------------------------------------------------- //
     //                               Engine Defined Assets                                //
     // ---------------------------------------------------------------------------------- //
@@ -1770,6 +1935,22 @@ namespace axr {
                 static_cast<AxrModelEngineAssetEnum>(engineAssetEnum)
             ));
         }
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+        // ---- Push Constants Buffer ----
+
+        /// Create a new push constants buffer
+        /// @param pushConstantsBufferConfig Push constants buffer config
+        /// @returns AXR_SUCCESS if the function succeeded
+        [[nodiscard]] axr::Result createPushConstantsBuffer(
+            const axr::PushConstantsBufferConfig& pushConstantsBufferConfig
+        ) const {
+            return static_cast<axr::Result>(axrAssetCollectionCreatePushConstantsBuffer(
+                m_AssetCollection,
+                pushConstantsBufferConfig.toRaw()
+            ));
+        }
+#endif
 
     private:
         // ----------------------------------------- //

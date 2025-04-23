@@ -50,22 +50,6 @@ void axrShaderImageSamplerBufferLinkDestroy(AxrShaderImageSamplerBufferLink_T* b
     AxrShaderValuesRAII::destroy(*bufferLink);
 }
 
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-AxrShaderPushConstantsBufferLink_T axrShaderPushConstantsBufferLinkClone(
-    const AxrShaderPushConstantsBufferLinkConst_T bufferLink
-) {
-    if (bufferLink == nullptr) return nullptr;
-
-    return AxrShaderValuesRAII::clone(bufferLink);
-}
-
-void axrShaderPushConstantsBufferLinkDestroy(AxrShaderPushConstantsBufferLink_T* bufferLink) {
-    if (bufferLink == nullptr) return;
-
-    AxrShaderValuesRAII::destroy(*bufferLink);
-}
-#endif
-
 // ---- Shader Values ----
 
 bool axrShaderValuesIsValid(const AxrShaderValuesConst_T values) {
@@ -218,16 +202,6 @@ AxrShaderBufferLink_T AxrShaderValuesRAII::clone(const AxrShaderBufferLinkConst_
                 reinterpret_cast<AxrShaderImageSamplerBufferLinkConst_T>(shaderBufferLink)
             ));
         }
-        case AXR_SHADER_BUFFER_LINK_PUSH_CONSTANTS_BUFFER: {
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            return reinterpret_cast<AxrShaderBufferLink_T>(clone(
-                reinterpret_cast<AxrShaderPushConstantsBufferLinkConst_T>(shaderBufferLink)
-            ));
-#else
-            axrLogErrorLocation("Vulkan not supported.");
-            return nullptr;
-#endif
-        }
         case AXR_SHADER_BUFFER_LINK_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
             axrLogErrorLocation("Unknown shader buffer link type.");
@@ -249,16 +223,6 @@ void AxrShaderValuesRAII::destroy(AxrShaderBufferLink_T& shaderBufferLink) {
             // NOLINTNEXTLINE(clang-diagnostic-undefined-reinterpret-cast)
             destroy(reinterpret_cast<AxrShaderImageSamplerBufferLink_T&>(shaderBufferLink));
             break;
-        }
-        case AXR_SHADER_BUFFER_LINK_PUSH_CONSTANTS_BUFFER: {
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            // NOLINTNEXTLINE(clang-diagnostic-undefined-reinterpret-cast)
-            destroy(reinterpret_cast<AxrShaderPushConstantsBufferLink_T&>(shaderBufferLink));
-            break;
-#else
-            axrLogErrorLocation("Vulkan not supported.");
-            break;
-#endif
         }
         case AXR_SHADER_BUFFER_LINK_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
@@ -300,23 +264,6 @@ void AxrShaderValuesRAII::destroy(AxrShaderImageSamplerBufferLink_T& shaderBuffe
     shaderBufferLink = nullptr;
 }
 
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-AxrShaderPushConstantsBufferLink_T AxrShaderValuesRAII::clone(
-    const AxrShaderPushConstantsBufferLinkConst_T shaderBufferLink
-) {
-    if (shaderBufferLink == nullptr) return nullptr;
-
-    return new AxrShaderPushConstantsBufferLink{
-        .BufferName = shaderBufferLink->BufferName,
-    };
-}
-
-void AxrShaderValuesRAII::destroy(AxrShaderPushConstantsBufferLink_T& shaderBufferLink) {
-    delete shaderBufferLink;
-    shaderBufferLink = nullptr;
-}
-#endif
-
 bool AxrShaderValuesRAII::isValid(const AxrShaderValuesConst_T values) {
     if (values == nullptr) {
         axrLogError("Validation for shader values failed. Shader values are null.");
@@ -335,7 +282,6 @@ bool AxrShaderValuesRAII::isValid(
         return true;
     }
 
-    uint32_t pushConstantsCount = 0;
     std::unordered_set<uint32_t> bufferBindings;
 
     for (uint32_t i = 0; i < bufferLinksCount; ++i) {
@@ -369,28 +315,12 @@ bool AxrShaderValuesRAII::isValid(
                 bufferBindings.insert(imageSamplerBufferLink->Binding);
                 break;
             }
-            case AXR_SHADER_BUFFER_LINK_PUSH_CONSTANTS_BUFFER: {
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-                pushConstantsCount++;
-                break;
-#else
-                axrLogErrorLocation("Vulkan not supported.");
-                return false;
-#endif
-            }
             case AXR_SHADER_BUFFER_LINK_UNDEFINED:
             default: { // NOLINT(clang-diagnostic-covered-switch-default)
                 axrLogErrorLocation("Unknown Shader buffer link.");
                 return false;
             }
         }
-    }
-
-    if (pushConstantsCount > 1) {
-        axrLogError(
-            "Validation for shader buffer links failed. More than 1 push constants buffer was found."
-        );
-        return false;
     }
 
     return true;

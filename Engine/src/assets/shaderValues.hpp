@@ -116,18 +116,6 @@ public:
     /// @param shaderBufferLink Shader buffer link to destroy
     static void destroy(AxrShaderImageSamplerBufferLink_T& shaderBufferLink);
 
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    /// Clone the given shader push constants buffer link
-    /// @param shaderBufferLink Shader buffer link to clone
-    /// @returns The cloned shader buffer link
-    [[nodiscard]] static AxrShaderPushConstantsBufferLink_T clone(
-        AxrShaderPushConstantsBufferLinkConst_T shaderBufferLink
-    );
-    /// Destroy the given shader push constants buffer link
-    /// @param shaderBufferLink Shader buffer link to destroy
-    static void destroy(AxrShaderPushConstantsBufferLink_T& shaderBufferLink);
-#endif
-
     // ----------------- Shader Value Validation -----------------
 
     /// Check if the given shader values are valid
