@@ -33,6 +33,12 @@ set(AXR_SANDBOX_ASSET_FILES
 )
 
 # ---------------------------------------------
+# Set Sandbox linker options
+# ---------------------------------------------
+
+add_link_options(-municode)
+
+# ---------------------------------------------
 # Create Sandbox Executable
 # ---------------------------------------------
 
@@ -55,7 +61,7 @@ target_link_libraries(Sandbox
 )
 
 # ---------------------------------------------
-# Set AXR_Engine compile definitions
+# Set Sandbox compile definitions
 # ---------------------------------------------
 add_compile_definitions(UNICODE)
 

@@ -8,7 +8,7 @@
 // ----------------------------------------- //
 #include <axr.hpp>
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nShowCmd) {
+int wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd) {
     const char* applicationName = "Sandbox";
 
     const auto engineSetupConfig = axr::SetupConfig(axr::LogLevelEnum::Info);

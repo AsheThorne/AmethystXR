@@ -8,7 +8,7 @@
 // ----------------------------------------- //
 // C/C++ Headers
 // ----------------------------------------- //
-#include <unordered_set>
+#include <vector>
 
 /// Generic event handler
 /// @tparam Args Callback arguments

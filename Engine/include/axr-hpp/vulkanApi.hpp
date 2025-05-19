@@ -75,7 +75,7 @@ namespace axr {
     // ----------------------------------------- //
 
     template <>
-    struct axr::FlagTraits<axr::VulkanDebugUtilsSeverityFlagBits> {
+    struct FlagTraits<axr::VulkanDebugUtilsSeverityFlagBits> {
         static constexpr bool isBitmask = true;
         static constexpr VulkanDebugUtilsSeverityFlags_T allFlags =
             VulkanDebugUtilsSeverityFlagBits::Verbose | VulkanDebugUtilsSeverityFlagBits::Info |
@@ -83,7 +83,7 @@ namespace axr {
     };
 
     template <>
-    struct axr::FlagTraits<axr::VulkanDebugUtilsTypeFlagBits> {
+    struct FlagTraits<axr::VulkanDebugUtilsTypeFlagBits> {
         static constexpr bool isBitmask = true;
         static constexpr VulkanDebugUtilsTypeFlags_T allFlags =
             VulkanDebugUtilsTypeFlagBits::General | VulkanDebugUtilsTypeFlagBits::Validation |

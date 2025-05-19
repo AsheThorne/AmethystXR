@@ -8,6 +8,7 @@
 // ----------------------------------------- //
 // C/C++ Headers
 // ----------------------------------------- //
+#include <vector>
 #include <unordered_map>
 
 /// Shader properties RAII wrapper
