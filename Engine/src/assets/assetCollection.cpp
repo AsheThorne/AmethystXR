@@ -100,6 +100,23 @@ AxrResult axrAssetCollectionCreateEngineAssetModel(
     return assetCollection->createModel(modelName, engineAssetEnum);
 }
 
+AxrResult axrAssetCollectionCreateUniformBuffer(
+    const AxrAssetCollection_T assetCollection,
+    const AxrUniformBufferConfig* uniformBufferConfig
+) {
+    if (assetCollection == nullptr) {
+        axrLogErrorLocation("`assetCollection` is null.");
+        return AXR_ERROR;
+    }
+
+    if (uniformBufferConfig == nullptr) {
+        axrLogErrorLocation("`uniformBufferConfig` is null.");
+        return AXR_ERROR;
+    }
+
+    return assetCollection->createUniformBuffer(*uniformBufferConfig);
+}
+
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 AxrResult axrAssetCollectionCreatePushConstantsBuffer(
     const AxrAssetCollection_T assetCollection,
@@ -131,6 +148,7 @@ AxrAssetCollection::AxrAssetCollection(AxrAssetCollection&& src) noexcept {
     m_Shaders = std::move(src.m_Shaders);
     m_Materials = std::move(src.m_Materials);
     m_Models = std::move(src.m_Models);
+    m_UniformBuffers = std::move(src.m_UniformBuffers);
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     m_PushConstantsBuffers = std::move(src.m_PushConstantsBuffers);
@@ -148,6 +166,7 @@ AxrAssetCollection& AxrAssetCollection::operator=(AxrAssetCollection&& src) noex
         m_Shaders = std::move(src.m_Shaders);
         m_Materials = std::move(src.m_Materials);
         m_Models = std::move(src.m_Models);
+        m_UniformBuffers = std::move(src.m_UniformBuffers);
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
         m_PushConstantsBuffers = std::move(src.m_PushConstantsBuffers);
@@ -395,6 +414,44 @@ AxrResult AxrAssetCollection::createModel(const char* modelName, AxrModelEngineA
     return AXR_SUCCESS;
 }
 
+AxrResult AxrAssetCollection::createUniformBuffer(const AxrUniformBufferConfig& uniformBufferConfig) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (axrIsUniformBufferNameReserved(uniformBufferConfig.Name)) {
+        axrLogError(
+            "Unable to create uniform buffer. The uniform buffer name: {0} is reserved by the engine.",
+            uniformBufferConfig.Name
+        );
+        return AXR_ERROR;
+    }
+
+    if (m_UniformBuffers.contains(uniformBufferConfig.Name)) {
+        axrLogError(
+            "Unable to create uniform buffer. A uniform buffer named: {0} already exists.",
+            uniformBufferConfig.Name
+        );
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const auto insertResult = m_UniformBuffers.insert(
+        std::pair(uniformBufferConfig.Name, AxrUniformBuffer(uniformBufferConfig))
+    );
+    if (!insertResult.second) {
+        // If the insertion failed
+        return AXR_ERROR;
+    }
+
+    // TODO: Reload vulkan scene assets if they're already loaded.
+
+    return AXR_SUCCESS;
+}
+
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 AxrResult AxrAssetCollection::createPushConstantsBuffer(const AxrPushConstantsBufferConfig& pushConstantsBufferConfig) {
     // ----------------------------------------- //
@@ -441,6 +498,7 @@ void AxrAssetCollection::cleanup() {
     m_Shaders.clear();
     m_Materials.clear();
     m_Models.clear();
+    m_UniformBuffers.clear();
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     m_PushConstantsBuffers.clear();
@@ -523,6 +581,10 @@ const std::unordered_map<std::string, AxrMaterial>& AxrAssetCollection::getMater
 
 const std::unordered_map<std::string, AxrModel>& AxrAssetCollection::getModels() {
     return m_Models;
+}
+
+const std::unordered_map<std::string, AxrUniformBuffer>& AxrAssetCollection::getUniformBuffers() {
+    return m_UniformBuffers;
 }
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN

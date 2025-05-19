@@ -8,7 +8,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/vulkanApi.h"
-#include "axr/common/result.h"
+#include "axr/common/enums.h"
 
 // ----------------------------------------- //
 // C/C++ Headers

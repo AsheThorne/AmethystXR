@@ -13,6 +13,7 @@
 #include "shader.hpp"
 #include "material.hpp"
 #include "model.hpp"
+#include "uniformBuffer.hpp"
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 #include "pushConstantsBuffer.hpp"
@@ -92,6 +93,13 @@ public:
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult createModel(const char* modelName, AxrModelEngineAssetEnum engineAssetEnum);
 
+    // ---- Uniform Buffer ----
+
+    /// Create a new uniform buffer
+    /// @param uniformBufferConfig Uniform buffer config
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createUniformBuffer(const AxrUniformBufferConfig& uniformBufferConfig);
+
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     // ---- Push Constants Buffer ----
 
@@ -140,6 +148,9 @@ public:
     /// Get the models
     /// @returns A map of the models
     [[nodiscard]] const std::unordered_map<std::string, AxrModel>& getModels();
+    /// Get the uniform buffers
+    /// @returns A map of the uniform buffers
+    [[nodiscard]] const std::unordered_map<std::string, AxrUniformBuffer>& getUniformBuffers();
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     /// Get the push constants buffers
     /// @returns A map of the push constants buffers
@@ -153,6 +164,7 @@ private:
     std::unordered_map<std::string, AxrShader> m_Shaders;
     std::unordered_map<std::string, AxrMaterial> m_Materials;
     std::unordered_map<std::string, AxrModel> m_Models;
+    std::unordered_map<std::string, AxrUniformBuffer> m_UniformBuffers;
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     std::unordered_map<std::string, AxrPushConstantsBuffer> m_PushConstantsBuffers;

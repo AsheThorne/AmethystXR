@@ -45,6 +45,20 @@ public:
     // Public Functions
     // ----------------------------------------- //
 
+    /// Update all necessary uniform buffers for the current frame
+    /// @param sceneData The active scene
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult updateUniformBuffers(AxrVulkanSceneData* sceneData) const {
+        AxrResult axrResult = AXR_SUCCESS;
+
+        axrResult = m_RenderTarget.updateSceneDataUniformBuffer(sceneData);
+        if (AXR_FAILED(axrResult)) {
+            return axrResult;
+        }
+
+        return AXR_SUCCESS;
+    }
+
     /// Wait for the current frame's fence
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult waitForFrameFence() const {
@@ -222,18 +236,18 @@ public:
     /// Add a vkCmdPushConstants command to the render target's command buffer
     /// @param pipelineLayout Pipeline layout to use
     /// @param pushConstants Push constants to use
-    /// @param sceneAssets Scene assets to search for the push constants data in
+    /// @param sceneData Scene data to search for the push constants data in
     void pushConstants(
         const vk::PipelineLayout& pipelineLayout,
         const AxrVulkanSceneData::PushConstantsForRendering& pushConstants,
-        const AxrVulkanSceneData* sceneAssets
+        const AxrVulkanSceneData* sceneData
     ) const {
         if (axrStringIsEmpty(pushConstants.BufferName)) return;
 
         const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer();
 
         // ---- Set Model Matrix Push Constants Buffer ----
-        
+
         if (strcmp(
             axrGetPushConstantsBufferEngineAssetName(AXR_PUSH_CONSTANTS_BUFFER_ENGINE_ASSET_MODEL_MATRIX),
             pushConstants.BufferName
@@ -255,7 +269,7 @@ public:
 
         // ---- Set User Defined Push Constants Buffer ----
 
-        const AxrPushConstantsBuffer* foundBuffer = sceneAssets->findPushConstantsBuffer_shared(
+        const AxrPushConstantsBuffer* foundBuffer = sceneData->findPushConstantsBuffer_shared(
             pushConstants.BufferName
         );
         if (foundBuffer == nullptr) {
@@ -269,6 +283,28 @@ public:
             0,
             foundBuffer->getSize(),
             foundBuffer->getData(),
+            m_Dispatch
+        );
+    }
+
+    /// Add a vkCmdBindDescriptorSets command to the render target's command buffer
+    /// @param pipelineLayout Pipeline layout to use
+    /// @param descriptorSets Descriptor sets to use
+    void bindDescriptorSets(
+        const vk::PipelineLayout& pipelineLayout,
+        const std::vector<vk::DescriptorSet>& descriptorSets
+    ) const {
+        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer();
+        const uint32_t currentFrame = m_RenderTarget.getCurrentRenderingFrame();
+
+        commandBuffer.bindDescriptorSets(
+            vk::PipelineBindPoint::eGraphics,
+            pipelineLayout,
+            0,
+            1,
+            &descriptorSets[currentFrame],
+            0,
+            nullptr,
             m_Dispatch
         );
     }

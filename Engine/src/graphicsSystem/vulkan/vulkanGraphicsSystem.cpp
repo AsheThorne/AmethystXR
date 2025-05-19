@@ -1082,6 +1082,7 @@ AxrResult AxrVulkanGraphicsSystem::setupSceneData() {
             .Device = m_Device,
             .TransferCommandPool = m_TransferCommandPool,
             .TransferQueue = m_QueueFamilies.TransferQueue,
+            .MaxFramesInFlight = m_MaxFramesInFlight,
             .Dispatch = &m_Dispatch,
         }
     );
@@ -1093,6 +1094,8 @@ AxrResult AxrVulkanGraphicsSystem::setupSceneData() {
     // ---- Create global scene data ----
 
     // TODO: Set this scene name somewhere else and forbid an actual scene from being created with the same name
+    //  Maybe we can just have a special function named "LoadGlobalScene" that only takes the asset collection.
+    //  And it fails if a global scene already exists.
     axrResult = m_LoadedScenes.loadScene(
         "AXR:SceneGlobal",
         m_GlobalAssetCollection,
@@ -1145,13 +1148,18 @@ template <typename RenderTarget>
 AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
     const AxrVulkanRenderCommands<RenderTarget>& renderCommands
 ) const {
-    const AxrVulkanSceneData* sceneAssets = m_LoadedScenes.getActiveScene();
-    if (sceneAssets == nullptr) {
+    AxrVulkanSceneData* sceneData = m_LoadedScenes.getActiveScene();
+    if (sceneData == nullptr) {
         // Nothing to render
         return AXR_SUCCESS;
     }
 
     AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = renderCommands.updateUniformBuffers(sceneData);
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
 
     axrResult = renderCommands.waitForFrameFence();
     if (AXR_FAILED(axrResult)) {
@@ -1178,13 +1186,15 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
     renderCommands.setScissor();
 
     // TODO: Implement frustum culling
-    for (auto& [materialName, material] : sceneAssets->getMaterialsForRendering()) {
+    for (auto& [materialName, material] : sceneData->getMaterialsForRendering()) {
         // TODO: Don't hardcode the window pipeline here
         renderCommands.bindPipeline(material.WindowPipeline);
-        renderCommands.pushConstants(material.PipelineLayout, material.PushConstants, sceneAssets);
+        // TODO: Don't hardcode the window descriptor sets here
+        renderCommands.bindDescriptorSets(material.PipelineLayout, material.WindowDescriptorSets);
+        renderCommands.pushConstants(material.PipelineLayout, material.PushConstants, sceneData);
 
         for (const AxrVulkanSceneData::MeshForRendering& mesh : material.Meshes) {
-            renderCommands.pushConstants(material.PipelineLayout, mesh.PushConstants, sceneAssets);
+            renderCommands.pushConstants(material.PipelineLayout, mesh.PushConstants, sceneData);
             renderCommands.draw(mesh);
         }
     }

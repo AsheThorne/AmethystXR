@@ -56,7 +56,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
     axr::VertexShaderProperties vertexShaderProperties;
     vertexShaderProperties.addVertexAttribute(axr::ShaderVertexAttributeEnum::Position, 0, 0);
     vertexShaderProperties.addVertexAttribute(axr::ShaderVertexAttributeEnum::Color, 0, 1);
-    vertexShaderProperties.addPushConstantsBufferLayout(sizeof(AxrPushConstantsBufferEngineAsset_ModelMatrix));
+    vertexShaderProperties.addUniformBufferLayout(0, axr::getUniformBufferEngineAssetDataSize(axr::UniformBufferEngineAssetEnum::SceneData));
+    vertexShaderProperties.addPushConstantsBufferLayout(axr::getPushConstantsBufferEngineAssetDataSize(axr::PushConstantsBufferEngineAssetEnum::ModelMatrix));
     const axr::ShaderConfig vertexShaderConfig("VertexShader", "shaders/shader.vert", vertexShaderProperties);
     if (!vertexShaderConfig.isValid()) return 0;
     if (AXR_FAILED(globalAssetCollection.createShader(vertexShaderConfig))) return 0;
@@ -66,18 +67,24 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
     if (!fragmentShaderConfig.isValid()) return 0;
     if (AXR_FAILED(globalAssetCollection.createShader(fragmentShaderConfig))) return 0;
 
+    // TODO: These objects should have a hpp equivalent
+    // TODO: Remove the struct and just use a mat4.
     constexpr auto defaultModelMatrixBuffer = AxrPushConstantsBufferEngineAsset_ModelMatrix{
         .ModelMatrix = glm::mat4(1.0f)
     };
 
     const axr::PushConstantsBufferConfig defaultModelMatrixBufferConfig(
         "DefaultModelMatrix",
-        sizeof(AxrPushConstantsBufferEngineAsset_ModelMatrix),
+        axr::getPushConstantsBufferEngineAssetDataSize(axr::PushConstantsBufferEngineAssetEnum::ModelMatrix),
         &defaultModelMatrixBuffer
     );
     if (AXR_FAILED(globalAssetCollection.createPushConstantsBuffer(defaultModelMatrixBufferConfig))) return 0;
 
-    const axr::ShaderValues vertexShaderValues;
+    axr::ShaderValues vertexShaderValues;
+    vertexShaderValues.addUniformBufferLink(
+        0,
+        axr::getUniformBufferEngineAssetName(axr::UniformBufferEngineAssetEnum::SceneData)
+    );
     const axr::ShaderValues fragmentShaderValues;
     const char* materialName = "MyMaterial";
     const axr::MaterialConfig materialConfig(
@@ -100,8 +107,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 
     triangleEntity.emplace<AxrTransformComponent>(
         AxrTransformComponent{
-            .Position = glm::vec3(1.0f, 0.0f, 1.0f),
-            .Scale = glm::vec3(1.0f, 2.0f, 3.0f),
+            .Position = glm::vec3(0.0f, 0.0f, 0.0f),
+            .Scale = glm::vec3(1.0f, 1.0f, 1.0f),
             .Orientation = glm::quat(1.f, 0.f, 0.f, 0.f),
         }
     );

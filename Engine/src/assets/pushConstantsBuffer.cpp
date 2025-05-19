@@ -10,11 +10,11 @@
 // External Functions
 // ----------------------------------------- //
 
-AXR_API void* axrPushConstantsCloneData(const uint32_t size, const void* data) {
+void* axrPushConstantsBufferCloneData(const uint32_t size, const void* data) {
     return AxrPushConstantsBuffer::cloneData(size, data);
 }
 
-AXR_API void axrPushConstantsDestroyData(uint32_t* size, void** data) {
+void axrPushConstantsBufferDestroyData(uint32_t* size, void** data) {
     return AxrPushConstantsBuffer::destroyData(*size, *data);
 }
 
@@ -42,10 +42,10 @@ AxrPushConstantsBuffer::AxrPushConstantsBuffer():
 
 AxrPushConstantsBuffer::AxrPushConstantsBuffer(const AxrPushConstantsBufferConfig& config):
     m_Name(config.Name),
-    m_DataSize(config.BufferSize),
+    m_DataSize(config.DataSize),
     m_Data(nullptr) {
     if (config.Data == nullptr) {
-        m_Data = createData(config.BufferSize);
+        m_Data = createData(config.DataSize);
     } else {
         m_Data = cloneData(m_DataSize, config.Data);
     }

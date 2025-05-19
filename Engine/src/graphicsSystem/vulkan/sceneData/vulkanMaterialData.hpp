@@ -4,7 +4,7 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/common.h"
+#include "axr/common/enums.h"
 #include "vulkanMaterialLayoutData.hpp"
 
 // ----------------------------------------- //
@@ -31,6 +31,7 @@ public:
         const AxrShader* FragmentShaderHandle;
         const AxrMaterial* MaterialHandle;
         const AxrVulkanMaterialLayoutData* MaterialLayoutData;
+        uint32_t MaxFramesInFlight;
         vk::Device Device;
         vk::DispatchLoaderDynamic* DispatchHandle;
     };
@@ -74,18 +75,21 @@ public:
     /// Get the material name
     /// @returns The material name
     [[nodiscard]] const std::string& getName() const;
-    /// Get the pipeline layout
-    /// @returns The pipeline layout
-    [[nodiscard]] const vk::PipelineLayout& getPipelineLayout() const;
+    /// Get the material layout data used for this material data
+    /// @returns The material layout data
+    [[nodiscard]] const AxrVulkanMaterialLayoutData* getMaterialLayoutData() const;
     /// Get the window pipeline
     /// @returns The window pipeline
     [[nodiscard]] const vk::Pipeline& getWindowPipeline() const;
-    /// Get the push constants buffer shader stages
-    /// @returns The push constants buffer shader stages
-    [[nodiscard]] const vk::ShaderStageFlags& getPushConstantsShaderStages() const;
     /// Get the push constants buffer name
     /// @returns The push constants buffer name
     [[nodiscard]] const std::string& getPushConstantsBufferName() const;
+    /// Get the window specific descriptor sets
+    /// @returns The window specific descriptor sets
+    [[nodiscard]] const std::vector<vk::DescriptorSet>& getWindowDescriptorSets() const;
+    /// Get a handle to the material this class is built from
+    /// @returns A handle to the material this class is built from 
+    [[nodiscard]] const AxrMaterial* getMaterial() const;
 
     /// Check if the data exists
     /// @returns True if the data exists
@@ -109,6 +113,9 @@ public:
     /// Destroy the window specific material data
     void destroyWindowData();
 
+    /// Reset the window descriptor sets
+    void resetWindowDescriptorSets();
+
 private:
     // ----------------------------------------- //
     // Private Variables
@@ -120,10 +127,13 @@ private:
     const AxrShader* m_FragmentShaderHandle;
     const AxrMaterial* m_MaterialHandle;
     const AxrVulkanMaterialLayoutData* m_MaterialLayoutData;
+    uint32_t m_MaxFramesInFlight;
     vk::Device m_Device;
     vk::DispatchLoaderDynamic* m_DispatchHandle;
 
     // ---- Window Data ----
+    vk::DescriptorPool m_WindowDescriptorPool;
+    std::vector<vk::DescriptorSet> m_WindowDescriptorSets;
     vk::Pipeline m_WindowPipeline;
 
     // ----------------------------------------- //
@@ -133,9 +143,39 @@ private:
     /// Clean up this class
     void cleanup();
 
-    // ---- Data ----
+    // ---- Descriptor Pool ----
 
-    // ---- Window Data ----
+    /// Create a descriptor pool
+    /// @param viewCount How many views will be used in rendering
+    /// @param descriptorPool The output created descriptor pool
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createDescriptorPool(
+        uint32_t viewCount,
+        vk::DescriptorPool& descriptorPool
+    ) const;
+    /// Destroy the given descriptor pool
+    /// @param descriptorPool The descriptor pool to destroy
+    void destroyDescriptorPool(vk::DescriptorPool& descriptorPool) const;
+
+    // ---- Descriptor Sets ----
+
+    /// Create the descriptor sets
+    /// @param descriptorPool The descriptor pool to use
+    /// @param descriptorSets The output descriptor sets
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createDescriptorSets(
+        vk::DescriptorPool descriptorPool,
+        std::vector<vk::DescriptorSet>& descriptorSets
+    ) const;
+    /// Reset the given descriptor pool and descriptor sets
+    /// @param descriptorPool The descriptor pool to reset
+    /// @param descriptorSets The descriptor sets to reset
+    void resetDescriptorSets(
+        vk::DescriptorPool descriptorPool,
+        std::vector<vk::DescriptorSet>& descriptorSets
+    ) const;
+
+    // ---- Pipeline ----
 
     /// Create a pipeline
     /// @param renderPass Render pass to use

@@ -131,6 +131,28 @@ const char* AxrMaterial::getFragmentShaderName() const {
     return m_FragmentShaderName;
 }
 
+const AxrShaderValuesRAII& AxrMaterial::getVertexShaderValues() const {
+    return m_VertexShaderValues;
+}
+
+const AxrShaderValuesRAII& AxrMaterial::getFragmentShaderValues() const {
+    return m_FragmentShaderValues;
+}
+
+const char* AxrMaterial::findShaderBufferName(const uint32_t binding) const {
+    const char* bufferName = m_VertexShaderValues.findShaderBufferName(binding);
+    if (!axrStringIsEmpty(bufferName)) {
+        return bufferName;
+    }
+
+    bufferName = m_FragmentShaderValues.findShaderBufferName(binding);
+    if (!axrStringIsEmpty(bufferName)) {
+        return bufferName;
+    }
+
+    return "";
+}
+
 std::string AxrMaterial::getMaterialLayoutName() const {
     return std::string(std::string(m_VertexShaderName) + '_' + m_FragmentShaderName);
 }

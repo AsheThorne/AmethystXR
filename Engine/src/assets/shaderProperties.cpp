@@ -5,6 +5,11 @@
 #include "axr/logger.h"
 
 // ----------------------------------------- //
+// C/C++ Headers
+// ----------------------------------------- //
+#include <unordered_set>
+
+// ----------------------------------------- //
 // External Functions
 // ----------------------------------------- //
 
@@ -266,6 +271,7 @@ std::vector<AxrShaderImageSamplerBufferLayoutConst_T> AxrShaderPropertiesRAII::g
     }
 }
 
+// TODO: Shouldn't this be in the AXR_SUPPORTED_GRAPHICS_VULKAN macro??
 AxrShaderPushConstantsBufferLayoutConst_T AxrShaderPropertiesRAII::getPushConstantsBufferLayout() const {
     if (m_RawProperties == nullptr) {
         axrLogErrorLocation("Raw properties are null.");

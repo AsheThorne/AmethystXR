@@ -13,6 +13,7 @@ AxrVulkanLoadedScenesCollection::AxrVulkanLoadedScenesCollection():
     m_Device(VK_NULL_HANDLE),
     m_TransferCommandPool(VK_NULL_HANDLE),
     m_TransferQueue(VK_NULL_HANDLE),
+    m_MaxFramesInFlight(0),
     m_Dispatch(nullptr),
     m_IsSetup(false),
     m_WindowRenderPass(VK_NULL_HANDLE),
@@ -92,6 +93,7 @@ AxrResult AxrVulkanLoadedScenesCollection::setup(const SetupConfig& config) {
     m_Device = config.Device;
     m_TransferCommandPool = config.TransferCommandPool;
     m_TransferQueue = config.TransferQueue;
+    m_MaxFramesInFlight = config.MaxFramesInFlight;
     m_Dispatch = config.Dispatch;
 
     m_IsSetup = true;
@@ -109,6 +111,7 @@ void AxrVulkanLoadedScenesCollection::resetSetup() {
     m_Device = VK_NULL_HANDLE;
     m_TransferCommandPool = VK_NULL_HANDLE;
     m_TransferQueue = VK_NULL_HANDLE;
+    m_MaxFramesInFlight = 0;
     m_Dispatch = nullptr;
 }
 
@@ -125,7 +128,7 @@ AxrResult AxrVulkanLoadedScenesCollection::loadScene(
     const char* sceneName,
     const AxrAssetCollection_T assetCollection,
     entt::registry* ecsRegistryHandle,
-    AxrVulkanSceneData* sharedSceneData
+    AxrVulkanSceneData* globalSceneData
 ) {
     AxrResult axrResult = AXR_SUCCESS;
 
@@ -133,7 +136,7 @@ AxrResult AxrVulkanLoadedScenesCollection::loadScene(
         sceneName,
         assetCollection,
         ecsRegistryHandle,
-        sharedSceneData
+        globalSceneData
     );
     m_LoadedScenes.push_back(sceneData);
 
@@ -199,6 +202,17 @@ AxrResult AxrVulkanLoadedScenesCollection::setActiveScene(const char* sceneName)
         return AXR_ERROR;
     }
 
+    AxrVulkanSceneData* globalSceneData = getGlobalSceneData();
+    if (globalSceneData == nullptr) {
+        axrLogErrorLocation("No global scene data found.");
+        return AXR_ERROR;
+    }
+
+    const AxrResult axrResult = globalSceneData->onSetActiveScene(foundScene);
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
+
     m_ActiveScene = foundScene;
 
     return AXR_SUCCESS;
@@ -262,18 +276,19 @@ AxrVulkanSceneData* AxrVulkanLoadedScenesCollection::createSceneData(
     const char* sceneName,
     const AxrAssetCollection_T assetCollection,
     entt::registry* ecsRegistryHandle,
-    AxrVulkanSceneData* sharedSceneData
+    AxrVulkanSceneData* globalSceneData
 ) const {
     return new AxrVulkanSceneData(
         {
             .SceneName = sceneName,
             .AssetCollection = assetCollection,
             .EcsRegistryHandle = ecsRegistryHandle,
-            .SharedVulkanSceneData = sharedSceneData,
+            .GlobalSceneData = globalSceneData,
             .PhysicalDevice = m_PhysicalDevice,
             .Device = m_Device,
             .TransferCommandPool = m_TransferCommandPool,
             .TransferQueue = m_TransferQueue,
+            .MaxFramesInFlight = m_MaxFramesInFlight,
             .DispatchHandle = m_Dispatch
         }
     );

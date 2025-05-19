@@ -126,6 +126,9 @@ public:
     /// Get the rendering fence to use for the current frame
     /// @returns The rendering fence for the current frame
     [[nodiscard]] vk::Fence getRenderingFence() const;
+    /// Get the current rendering frame index
+    /// @returns The curent rendering frame index
+    [[nodiscard]] uint32_t getCurrentRenderingFrame() const;
 
     /// Acquire the next swapchain image
     /// @returns AXR_SUCCESS if the function succeeded
@@ -133,6 +136,11 @@ public:
     /// Present the current frame to the window
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult presentFrame();
+
+    /// Update the "Scene Data" engine asset uniform buffer for the given scene
+    /// @param sceneData Scene to update uniform buffer on
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult updateSceneDataUniformBuffer(const AxrVulkanSceneData* sceneData) const;
 
 private:
     // ----------------------------------------- //

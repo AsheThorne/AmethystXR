@@ -100,6 +100,15 @@ const vk::ShaderStageFlags& AxrVulkanMaterialLayoutData::getPushConstantsShaderS
     return m_PushConstantsShaderStage;
 }
 
+const vk::DescriptorSetLayout& AxrVulkanMaterialLayoutData::getDescriptorSetLayout() const {
+    return m_DescriptorSetLayout;
+}
+
+const std::vector<AxrVulkanMaterialLayoutData::DescriptorSetItemLocation>&
+AxrVulkanMaterialLayoutData::getDescriptorSetItemLocations() const {
+    return m_DescriptorSetItemLocations;
+}
+
 bool AxrVulkanMaterialLayoutData::doesDataExist() const {
     return !m_DescriptorSetItemLocations.empty() ||
         m_DescriptorSetLayout != VK_NULL_HANDLE ||
@@ -336,7 +345,7 @@ void AxrVulkanMaterialLayoutData::addDescriptorSetLayoutItem(
     const vk::ShaderStageFlagBits stageFlag,
     std::vector<vk::DescriptorSetLayoutBinding>& bindings,
     std::vector<DescriptorSetItemLocation>& descriptorSetItemLocations
-) {
+) const {
     // Check if the binding has already been added, and if it has, just include the shader stage
     for (const DescriptorSetItemLocation& itemLocation : descriptorSetItemLocations) {
         if (itemLocation.ShaderBinding == binding) {
@@ -354,9 +363,10 @@ void AxrVulkanMaterialLayoutData::addDescriptorSetLayoutItem(
     bindings.push_back(descriptorSetLayoutBinding);
 
     const DescriptorSetItemLocation descriptorSetItemLocation{
+        // TODO: Don't hard code this. It should actually be dependant on the descriptorType parameter
         .BufferLayoutType = AXR_SHADER_BUFFER_LAYOUT_UNIFORM_BUFFER,
         .ShaderBinding = binding,
-        .ItemIndex = static_cast<uint32_t>(bindings.size()) - 1
+        .ItemIndex = static_cast<uint32_t>(bindings.size()) - 1,
     };
 
     descriptorSetItemLocations.push_back(descriptorSetItemLocation);

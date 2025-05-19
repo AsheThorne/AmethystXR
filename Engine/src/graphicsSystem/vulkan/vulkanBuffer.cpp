@@ -25,8 +25,7 @@ AxrVulkanBuffer::AxrVulkanBuffer():
     m_BufferSize(0),
     m_BufferUsageFlags(static_cast<vk::BufferUsageFlagBits>(VK_BUFFER_USAGE_FLAG_BITS_MAX_ENUM)),
     m_Buffer(VK_NULL_HANDLE),
-    m_BufferMemory(VK_NULL_HANDLE),
-    m_MappedMemory(nullptr) {
+    m_BufferMemory(VK_NULL_HANDLE) {
 }
 
 AxrVulkanBuffer::AxrVulkanBuffer(const Config& config):
@@ -40,8 +39,7 @@ AxrVulkanBuffer::AxrVulkanBuffer(const Config& config):
     m_BufferSize(0),
     m_BufferUsageFlags(static_cast<vk::BufferUsageFlagBits>(VK_BUFFER_USAGE_FLAG_BITS_MAX_ENUM)),
     m_Buffer(VK_NULL_HANDLE),
-    m_BufferMemory(VK_NULL_HANDLE),
-    m_MappedMemory(nullptr) {
+    m_BufferMemory(VK_NULL_HANDLE) {
 }
 
 AxrVulkanBuffer::AxrVulkanBuffer(AxrVulkanBuffer&& src) noexcept {
@@ -56,7 +54,6 @@ AxrVulkanBuffer::AxrVulkanBuffer(AxrVulkanBuffer&& src) noexcept {
     m_BufferUsageFlags = src.m_BufferUsageFlags;
     m_Buffer = src.m_Buffer;
     m_BufferMemory = src.m_BufferMemory;
-    m_MappedMemory = src.m_MappedMemory;
 
     src.m_PhysicalDevice = VK_NULL_HANDLE;
     src.m_Device = VK_NULL_HANDLE;
@@ -69,7 +66,6 @@ AxrVulkanBuffer::AxrVulkanBuffer(AxrVulkanBuffer&& src) noexcept {
     src.m_BufferUsageFlags = static_cast<vk::BufferUsageFlagBits>(VK_BUFFER_USAGE_FLAG_BITS_MAX_ENUM);
     src.m_Buffer = VK_NULL_HANDLE;
     src.m_BufferMemory = VK_NULL_HANDLE;
-    src.m_MappedMemory = nullptr;
 }
 
 AxrVulkanBuffer::~AxrVulkanBuffer() {
@@ -91,7 +87,6 @@ AxrVulkanBuffer& AxrVulkanBuffer::operator=(AxrVulkanBuffer&& src) noexcept {
         m_BufferUsageFlags = src.m_BufferUsageFlags;
         m_Buffer = src.m_Buffer;
         m_BufferMemory = src.m_BufferMemory;
-        m_MappedMemory = src.m_MappedMemory;
 
         src.m_PhysicalDevice = VK_NULL_HANDLE;
         src.m_Device = VK_NULL_HANDLE;
@@ -104,7 +99,6 @@ AxrVulkanBuffer& AxrVulkanBuffer::operator=(AxrVulkanBuffer&& src) noexcept {
         src.m_BufferUsageFlags = static_cast<vk::BufferUsageFlagBits>(VK_BUFFER_USAGE_FLAG_BITS_MAX_ENUM);
         src.m_Buffer = VK_NULL_HANDLE;
         src.m_BufferMemory = VK_NULL_HANDLE;
-        src.m_MappedMemory = nullptr;
     }
 
     return *this;
@@ -172,7 +166,7 @@ AxrResult AxrVulkanBuffer::createBuffer(
 }
 
 void AxrVulkanBuffer::destroyBuffer() {
-    destroyBuffer(m_Buffer, m_BufferMemory, m_MappedMemory);
+    destroyBuffer(m_Buffer, m_BufferMemory);
     m_WillBufferBeStatic = false;
     m_IsBufferStatic = false;
     m_BufferSize = 0;
@@ -252,7 +246,7 @@ AxrResult AxrVulkanBuffer::convertToStaticBuffer() {
     return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanBuffer::setBufferData(const vk::DeviceSize offset, const vk::DeviceSize size, const void* data) {
+AxrResult AxrVulkanBuffer::setBufferData(const vk::DeviceSize offset, const vk::DeviceSize size, const void* data) const {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -286,27 +280,29 @@ AxrResult AxrVulkanBuffer::setBufferData(const vk::DeviceSize offset, const vk::
     // Process
     // ----------------------------------------- //
 
+    void* mappedMemory = nullptr;
+
     const vk::Result vkResult = m_Device.mapMemory(
         m_BufferMemory,
         offset,
         size,
         {},
-        &m_MappedMemory,
+        &mappedMemory,
         *m_DispatchHandle
     );
     axrLogVkResult(vkResult, "m_Device.mapMemory");
     if (VK_FAILED(vkResult)) {
-        unmapMemory(m_BufferMemory, m_MappedMemory);
+        unmapMemory(m_BufferMemory, mappedMemory);
         return AXR_ERROR;
     }
 
     const errno_t memcpyError = memcpy_s(
-        m_MappedMemory,
+        mappedMemory,
         size,
         data,
         size
     );
-    unmapMemory(m_BufferMemory, m_MappedMemory);
+    unmapMemory(m_BufferMemory, mappedMemory);
 
     if (memcpyError != 0) {
         axrLogErrorLocation("Failed to copy memory.");
@@ -428,15 +424,6 @@ AxrResult AxrVulkanBuffer::createBuffer(
     }
 
     return AXR_SUCCESS;
-}
-
-void AxrVulkanBuffer::destroyBuffer(
-    vk::Buffer& buffer,
-    vk::DeviceMemory& bufferMemory,
-    void*& memoryMapped
-) const {
-    unmapMemory(bufferMemory, memoryMapped);
-    destroyBuffer(buffer, bufferMemory);
 }
 
 void AxrVulkanBuffer::destroyBuffer(

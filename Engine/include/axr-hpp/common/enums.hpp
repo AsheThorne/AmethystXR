@@ -3,12 +3,12 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/common/result.h"
+#include "axr/common/enums.h"
 #include <compare>
 
 namespace axr {
     // ----------------------------------------- //
-    // Result Definition
+    // Result
     // ----------------------------------------- //
 
     /// Result enum
@@ -20,12 +20,18 @@ namespace axr {
         Success = AXR_SUCCESS,
     };
 
-    static_assert(
-        sizeof(AxrResult) == sizeof(axr::Result),
-        "Original type and wrapper have different size!"
-    );
-
     inline std::strong_ordering operator<=>(const axr::Result& result, const int number) noexcept {
         return static_cast<AxrResult>(result) <=> number;
     }
+
+    // ----------------------------------------- //
+    // Platform Type
+    // ----------------------------------------- //
+
+    /// Axr Platform Type
+    enum class AxrPlatformType {
+        Undefined = AXR_PLATFORM_TYPE_UNDEFINED,
+        Window = AXR_PLATFORM_TYPE_WINDOW,
+        XrDevice = AXR_PLATFORM_TYPE_XR_DEVICE,
+    };
 }

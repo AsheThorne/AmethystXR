@@ -4,7 +4,7 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/common/result.h"
+#include "axr/common/enums.h"
 
 // ----------------------------------------- //
 // Vulkan Headers
@@ -89,7 +89,7 @@ public:
 
     /// Set the buffer data
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setBufferData(vk::DeviceSize offset, vk::DeviceSize size, const void* data);
+    [[nodiscard]] AxrResult setBufferData(vk::DeviceSize offset, vk::DeviceSize size, const void* data) const;
 
 private:
     // ----------------------------------------- //
@@ -109,7 +109,6 @@ private:
     vk::BufferUsageFlags m_BufferUsageFlags;
     vk::Buffer m_Buffer;
     vk::DeviceMemory m_BufferMemory;
-    void* m_MappedMemory;
 
     // ----------------------------------------- //
     // Private Functions
@@ -131,15 +130,6 @@ private:
         vk::MemoryPropertyFlags properties,
         vk::Buffer& buffer,
         vk::DeviceMemory& bufferMemory
-    ) const;
-    /// Destroy the given buffer
-    /// @param buffer Buffer
-    /// @param bufferMemory Buffer memory
-    /// @param memoryMapped Buffer memory mapped
-    void destroyBuffer(
-        vk::Buffer& buffer,
-        vk::DeviceMemory& bufferMemory,
-        void*& memoryMapped
     ) const;
     /// Destroy the given buffer
     /// @param buffer Buffer

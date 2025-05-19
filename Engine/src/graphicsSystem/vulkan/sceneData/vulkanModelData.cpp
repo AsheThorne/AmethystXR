@@ -4,7 +4,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "vulkanModelData.hpp"
-#include "axr/common/result.h"
+#include "axr/common/enums.h"
 #include "axr/logger.h"
 
 // ----------------------------------------- //
@@ -256,6 +256,8 @@ AxrResult AxrVulkanModelData::createMeshBuffer(const AxrMeshRAII& mesh, MeshBuff
 
     axrResult = meshBuffer.Buffer.createBuffer(
         // NOTE: We only have static meshes right now. In the future, we will have dynamic ones though
+        //  But if we have dynamic ones, does that mean we need a new buffer for each frame in flight!?!?! I hope not.
+        //  But if we don't, then why do we for uniform buffers?
         true,
         indexBufferSize + vertexBufferSize,
         vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eVertexBuffer

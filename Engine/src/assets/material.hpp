@@ -65,6 +65,18 @@ public:
     /// @returns The fragment shader's name
     [[nodiscard]] const char* getFragmentShaderName() const;
 
+    /// Get the vertex shader values
+    /// @returns The vertex shader values
+    [[nodiscard]] const AxrShaderValuesRAII& getVertexShaderValues() const;
+    /// Get the fragment shader values
+    /// @returns The fragment shader values
+    [[nodiscard]] const AxrShaderValuesRAII& getFragmentShaderValues() const;
+
+    /// Find the shader buffer name at the given binding
+    /// @param binding Binding to use
+    /// @returns The name of the buffer at the given binding
+    [[nodiscard]] const char* findShaderBufferName(uint32_t binding) const;
+
     /// Get the material layout's name
     /// @returns The material layout's name
     [[nodiscard]] std::string getMaterialLayoutName() const;

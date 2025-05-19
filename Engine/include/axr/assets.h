@@ -3,7 +3,8 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/common.h"
+#include "axr/common/defines.h"
+#include "axr/common/enums.h"
 #include "axr/graphicsSystem.h"
 
 // ----------------------------------------- //
@@ -522,11 +523,18 @@ extern "C" {
 // Structs
 // ----------------------------------------- //
 
+/// Uniform Buffer Config
+struct AxrUniformBufferConfig {
+    const char* Name;
+    uint64_t DataSize;
+    void* Data;
+};
+
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 /// Push Constants Buffer Config
 struct AxrPushConstantsBufferConfig {
     const char* Name;
-    uint32_t BufferSize;
+    uint32_t DataSize;
     void* Data;
 };
 #endif
@@ -534,6 +542,9 @@ struct AxrPushConstantsBufferConfig {
 // ----------------------------------------- //
 // Forward Declared Handles
 // ----------------------------------------- //
+
+/// AxrUniformBuffer Handle
+typedef class AxrUniformBuffer* AxrUniformBuffer_T;
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 /// AxrPushConstantsBuffer Handle
@@ -544,16 +555,31 @@ typedef class AxrPushConstantsBuffer* AxrPushConstantsBuffer_T;
 // External Function Definitions
 // ----------------------------------------- //
 extern "C" {
+    /// Clone the given uniform buffer data
+    /// @param size Buffer size
+    /// @param data Buffer data
+    /// @returns The cloned uniform buffer data
+    AXR_API void* axrUniformBufferCloneData(uint64_t size, const void* data);
+    /// Destroy the given uniform buffer data
+    /// @param size Buffer size
+    /// @param data Buffer data
+    AXR_API void axrUniformBufferDestroyData(uint64_t* size, void** data);
+
+    /// Get the uniform buffer's name
+    /// @param uniformBuffer Uniform buffer to use
+    /// @returns The uniform buffer's name
+    AXR_API const char* axrUniformBufferGetName(AxrUniformBuffer_T uniformBuffer);
+
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     /// Clone the given push constants buffer data
     /// @param size Buffer size
     /// @param data Buffer data
     /// @returns The cloned push constants buffer data
-    AXR_API void* axrPushConstantsCloneData(uint32_t size, const void* data);
+    AXR_API void* axrPushConstantsBufferCloneData(uint32_t size, const void* data);
     /// Destroy the given push constants buffer data
     /// @param size Buffer size
     /// @param data Buffer data
-    AXR_API void axrPushConstantsDestroyData(uint32_t* size, void** data);
+    AXR_API void axrPushConstantsBufferDestroyData(uint32_t* size, void** data);
     
     /// Get the push constants buffer's name
     /// @param pushConstantsBuffer Push constants buffer to use
@@ -565,6 +591,16 @@ extern "C" {
 // ---------------------------------------------------------------------------------- //
 //                               Engine Defined Assets                                //
 // ---------------------------------------------------------------------------------- //
+
+// TODO: I don't like the long names for all engine asset related stuff.
+//  I think we should merge all the enums into a single AxrEngineAssetEnum. Then the enums themselves can be something like,
+//  AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT, AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA.
+//  And have bounds for each category. So, AXR_ENGINE_ASSET_SHADER_START = 1 and AXR_ENGINE_ASSET_SHADER_END = 33. for example.
+//  Those numbers for the start and end though are inclusive. so the first shader engine asset will also be 1.
+//  -
+//  Another Thing I'd like is for all engine asset related things to be named AxrEngineAsset<something something>. In other words,
+//  it should always start with EngineAsset, then Uniform Buffer, or Push Constats, or Shader or whatever.
+//  I think it'll help with intellisense and autocomplete.
 
 // ----------------------------------------- //
 // Enums
@@ -584,7 +620,7 @@ enum AxrShaderEngineAssetEnum {
 /// Axr engine defined uniform buffer enum
 enum AxrUniformBufferEngineAssetEnum {
     AXR_UNIFORM_BUFFER_ENGINE_ASSET_UNDEFINED = 0,
-    AXR_UNIFORM_BUFFER_ENGINE_ASSET_VIEW_PROJ_MATRICES,
+    AXR_UNIFORM_BUFFER_ENGINE_ASSET_SCENE_DATA,
 };
 
 /// Axr engine defined push constants buffer enum
@@ -607,6 +643,12 @@ enum AxrModelEngineAssetEnum {
 // ----------------------------------------- //
 
 // ---- Buffers ----
+
+/// Engine asset uniform buffer named 'Scene Data' structure
+struct AxrUniformBufferEngineAsset_SceneData {
+    alignas(16) glm::mat4 ViewMatrix;
+    alignas(16) glm::mat4 ProjectionMatrix;
+};
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 /// Engine asset push constants buffer named 'Model Matrix' structure
@@ -639,23 +681,36 @@ extern "C" {
 
     // ---- Buffers ----
 
-    /// Check if the given name is reserved as a uniform buffer engine asset name
+    /// Check if the given name is reserved for any engine asset buffer
     /// @param name Name to check
-    /// @returns True if the given name is reserved as a uniform buffer engine asset name
+    /// @returns True if the given name is reserved for any engine asset buffer
+    AXR_API bool axrIsBufferNameReserved(const char* name);
+
+    /// Check if the given name is reserved for a uniform buffer engine asset
+    /// @param name Name to check
+    /// @returns True if the given name is reserved for a uniform buffer engine asset
     AXR_API bool axrIsUniformBufferNameReserved(const char* name);
     /// Get the name for the given uniform buffer engine asset
     /// @param engineAssetEnum Engine asset to get the name of
     /// @returns The name of the given engine asset
     AXR_API const char* axrGetUniformBufferEngineAssetName(AxrUniformBufferEngineAssetEnum engineAssetEnum);
+    /// Get the data size for the given uniform buffer engine asset
+    /// @param engineAssetEnum Engine asset to get the data size of
+    /// @returns The data size for the given uniform buffer engine asset
+    AXR_API uint64_t axrGetUniformBufferEngineAssetDataSize(AxrUniformBufferEngineAssetEnum engineAssetEnum);
 
-    /// Check if the given name is reserved as a push constants buffer engine asset name
+    /// Check if the given name is reserved for a push constants buffer engine asset
     /// @param name Name to check
-    /// @returns True if the given name is reserved as a push constants buffer engine asset name
+    /// @returns True if the given name is reserved for a push constants buffer engine asset
     AXR_API bool axrIsPushConstantsBufferNameReserved(const char* name);
     /// Get the name for the given push constants buffer engine asset
     /// @param engineAssetEnum Engine asset to get the name of
     /// @returns The name of the given engine asset
     AXR_API const char* axrGetPushConstantsBufferEngineAssetName(AxrPushConstantsBufferEngineAssetEnum engineAssetEnum);
+    /// Get the data size for the given push constants buffer engine asset
+    /// @param engineAssetEnum Engine asset to get the data size of
+    /// @returns The data size for the given push constants buffer engine asset
+    AXR_API uint32_t axrGetPushConstantsBufferEngineAssetDataSize(AxrPushConstantsBufferEngineAssetEnum engineAssetEnum);
 }
 
 // ---------------------------------------------------------------------------------- //
@@ -733,6 +788,17 @@ extern "C" {
         AxrAssetCollection_T assetCollection,
         const char* modelName,
         AxrModelEngineAssetEnum engineAssetEnum
+    );
+
+    // ---- Uniform Buffer ----
+
+    /// Create a new uniform buffer
+    /// @param assetCollection Asset collection to use
+    /// @param uniformBufferConfig Uniform buffer config
+    /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrAssetCollectionCreateUniformBuffer(
+        AxrAssetCollection_T assetCollection,
+        const AxrUniformBufferConfig* uniformBufferConfig
     );
 
     // ---- Push Constants Buffer ----

@@ -4,7 +4,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/windowSystem.h"
-#include "axr-hpp/common/result.hpp"
+#include "axr-hpp/common/enums.hpp"
 
 namespace axr {
     // ----------------------------------------- //

@@ -24,6 +24,7 @@ public:
         vk::Device Device;
         vk::CommandPool TransferCommandPool;
         vk::Queue TransferQueue;
+        uint32_t MaxFramesInFlight;
         vk::DispatchLoaderDynamic* Dispatch;
     };
 
@@ -78,13 +79,14 @@ public:
     /// @param sceneName Name of the scene
     /// @param assetCollection Asset collection to use
     /// @param ecsRegistryHandle ECS registry to use
-    /// @param sharedSceneData Shared scene assets
+    /// @param globalSceneData Global scene assets
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult loadScene(
         const char* sceneName,
         AxrAssetCollection_T assetCollection,
         entt::registry* ecsRegistryHandle,
-        AxrVulkanSceneData* sharedSceneData
+        // TODO: I think we can remove this param and get the global assets from within this class
+        AxrVulkanSceneData* globalSceneData
     );
     /// Unload the named scene
     /// @param sceneName Name of the scene 
@@ -123,6 +125,7 @@ private:
     vk::Device m_Device;
     vk::CommandPool m_TransferCommandPool;
     vk::Queue m_TransferQueue;
+    uint32_t m_MaxFramesInFlight;
     vk::DispatchLoaderDynamic* m_Dispatch;
 
     bool m_IsSetup;
@@ -147,13 +150,13 @@ private:
     /// @param sceneName Name of the scene
     /// @param assetCollection Asset collection to use
     /// @param ecsRegistryHandle ECS registry to use
-    /// @param sharedSceneData Shared scene data
+    /// @param globalSceneData Global scene data
     /// @returns A handle to the created vulkan scene data
     [[nodiscard]] AxrVulkanSceneData* createSceneData(
         const char* sceneName,
         AxrAssetCollection_T assetCollection,
         entt::registry* ecsRegistryHandle,
-        AxrVulkanSceneData* sharedSceneData
+        AxrVulkanSceneData* globalSceneData
     ) const;
     /// Destroy the given vulkan scene data
     void destroySceneData(AxrVulkanSceneData*& sceneData) const;

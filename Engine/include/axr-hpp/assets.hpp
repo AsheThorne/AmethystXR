@@ -3,7 +3,7 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "common/result.hpp"
+#include "common/enums.hpp"
 #include "axr/assets.h"
 
 namespace axr {
@@ -1563,6 +1563,133 @@ namespace axr {
     //                                    Buffer Assets                                   //
     // ---------------------------------------------------------------------------------- //
 
+    /// Uniform Buffer Config
+    struct UniformBufferConfig {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+
+        const char* Name;
+        uint64_t DataSize;
+        void* Data;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        UniformBufferConfig():
+            Name(""),
+            DataSize(0),
+            Data(nullptr) {
+        }
+
+        /// Constructor
+        /// @param name Name of the uniform buffer
+        /// @param dataSize Data size
+        /// @param data Data
+        UniformBufferConfig(const char* name, const uint64_t dataSize, const void* data):
+            Name(name),
+            DataSize(dataSize) {
+            Data = axrUniformBufferCloneData(dataSize, data);
+        }
+
+        /// Copy Constructor
+        /// @param src Source UniformBufferConfig to copy from
+        UniformBufferConfig(const UniformBufferConfig& src) {
+            Name = src.Name;
+            DataSize = src.DataSize;
+            Data = axrUniformBufferCloneData(src.DataSize, src.Data);
+        }
+
+        /// Move Constructor
+        /// @param src Source UniformBufferConfig to move from
+        UniformBufferConfig(UniformBufferConfig&& src) noexcept {
+            Name = src.Name;
+            DataSize = src.DataSize;
+            Data = src.Data;
+
+            src.Name = "";
+            src.DataSize = 0;
+            src.Data = nullptr;
+        }
+
+        // ---- Destructor ----
+
+        /// Destructor
+        ~UniformBufferConfig() {
+            cleanup();
+        }
+
+        // ---- Operator Overloads ----
+
+        /// Copy Assignment Operator
+        /// @param src Source UniformBufferConfig to copy from
+        UniformBufferConfig& operator=(const UniformBufferConfig& src) {
+            if (this != &src) {
+                cleanup();
+
+                Name = src.Name;
+                DataSize = src.DataSize;
+                Data = axrUniformBufferCloneData(src.DataSize, src.Data);
+            }
+
+            return *this;
+        }
+
+        /// Move Assignment Operator
+        /// @param src Source UniformBufferConfig to move from
+        UniformBufferConfig& operator=(UniformBufferConfig&& src) noexcept {
+            if (this != &src) {
+                cleanup();
+
+                Name = src.Name;
+                DataSize = src.DataSize;
+                Data = src.Data;
+
+                src.Name = "";
+                src.DataSize = 0;
+                src.Data = nullptr;
+            }
+
+            return *this;
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the UniformBufferConfig as an AxrUniformBufferConfig
+        /// @returns This as an AxrUniformBufferConfig
+        const AxrUniformBufferConfig* toRaw() const {
+            return reinterpret_cast<const AxrUniformBufferConfig*>(this);
+        }
+
+        /// Get a handle to the UniformBufferConfig as an AxrUniformBufferConfig
+        /// @returns This as an AxrUniformBufferConfig
+        AxrUniformBufferConfig* toRaw() {
+            return reinterpret_cast<AxrUniformBufferConfig*>(this);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Functions
+        // ----------------------------------------- //
+
+        /// Clean up this class
+        void cleanup() {
+            Name = "";
+            axrUniformBufferDestroyData(&DataSize, &Data);
+        }
+    };
+
+    static_assert(
+        sizeof(AxrUniformBufferConfig) == sizeof(axr::UniformBufferConfig),
+        "Original type and wrapper have different size!"
+    );
+
     /// Push Constants Buffer Config
     struct PushConstantsBufferConfig {
         // ----------------------------------------- //
@@ -1570,7 +1697,7 @@ namespace axr {
         // ----------------------------------------- //
 
         const char* Name;
-        uint32_t BufferSize;
+        uint32_t DataSize;
         void* Data;
 
         // ----------------------------------------- //
@@ -1582,37 +1709,37 @@ namespace axr {
         /// Default Constructor
         PushConstantsBufferConfig():
             Name(""),
-            BufferSize(0),
+            DataSize(0),
             Data(nullptr) {
         }
 
         /// Constructor
         /// @param name Name of the push constants buffer
-        /// @param bufferSize Buffer size
+        /// @param dataSize Data size
         /// @param data Data
-        PushConstantsBufferConfig(const char* name, const uint32_t bufferSize, const void* data):
+        PushConstantsBufferConfig(const char* name, const uint32_t dataSize, const void* data):
             Name(name),
-            BufferSize(bufferSize) {
-            Data = axrPushConstantsCloneData(bufferSize, data);
+            DataSize(dataSize) {
+            Data = axrPushConstantsBufferCloneData(dataSize, data);
         }
 
         /// Copy Constructor
         /// @param src Source PushConstantsBufferConfig to copy from
         PushConstantsBufferConfig(const PushConstantsBufferConfig& src) {
             Name = src.Name;
-            BufferSize = src.BufferSize;
-            Data = axrPushConstantsCloneData(src.BufferSize, src.Data);
+            DataSize = src.DataSize;
+            Data = axrPushConstantsBufferCloneData(src.DataSize, src.Data);
         }
 
         /// Move Constructor
         /// @param src Source PushConstantsBufferConfig to move from
         PushConstantsBufferConfig(PushConstantsBufferConfig&& src) noexcept {
             Name = src.Name;
-            BufferSize = src.BufferSize;
+            DataSize = src.DataSize;
             Data = src.Data;
 
             src.Name = "";
-            src.BufferSize = 0;
+            src.DataSize = 0;
             src.Data = nullptr;
         }
 
@@ -1632,8 +1759,8 @@ namespace axr {
                 cleanup();
 
                 Name = src.Name;
-                BufferSize = src.BufferSize;
-                Data = axrPushConstantsCloneData(src.BufferSize, src.Data);
+                DataSize = src.DataSize;
+                Data = axrPushConstantsBufferCloneData(src.DataSize, src.Data);
             }
 
             return *this;
@@ -1646,11 +1773,11 @@ namespace axr {
                 cleanup();
 
                 Name = src.Name;
-                BufferSize = src.BufferSize;
+                DataSize = src.DataSize;
                 Data = src.Data;
 
                 src.Name = "";
-                src.BufferSize = 0;
+                src.DataSize = 0;
                 src.Data = nullptr;
             }
 
@@ -1681,7 +1808,7 @@ namespace axr {
         /// Clean up this class
         void cleanup() {
             Name = "";
-            axrPushConstantsDestroyData(&BufferSize, &Data);
+            axrPushConstantsBufferDestroyData(&DataSize, &Data);
         }
     };
 
@@ -1712,7 +1839,7 @@ namespace axr {
     /// Engine defined uniform buffer enum
     enum class UniformBufferEngineAssetEnum {
         Undefined = AXR_UNIFORM_BUFFER_ENGINE_ASSET_UNDEFINED,
-        ViewProjMatrices = AXR_UNIFORM_BUFFER_ENGINE_ASSET_VIEW_PROJ_MATRICES,
+        SceneData = AXR_UNIFORM_BUFFER_ENGINE_ASSET_SCENE_DATA,
     };
 
     /// Engine defined push constants buffer enum
@@ -1804,9 +1931,16 @@ namespace axr {
 
     // ---- Buffers ----
 
-    /// Check if the given name is reserved as a uniform buffer engine asset name
+    /// Check if the given name is reserved for any engine asset buffer
     /// @param name Name to check
-    /// @returns True if the given name is reserved as a uniform buffer engine asset name
+    /// @returns True if the given name is reserved for any engine asset buffer
+    inline bool isBufferNameReserved(const char* name) {
+        return axrIsBufferNameReserved(name);
+    }
+
+    /// Check if the given name is reserved for a uniform buffer engine asset
+    /// @param name Name to check
+    /// @returns True if the given name is reserved for a uniform buffer engine asset
     inline bool isUniformBufferNameReserved(const char* name) {
         return axrIsUniformBufferNameReserved(name);
     }
@@ -1818,9 +1952,16 @@ namespace axr {
         return axrGetUniformBufferEngineAssetName(static_cast<AxrUniformBufferEngineAssetEnum>(engineAssetEnum));
     }
 
-    /// Check if the given name is reserved as a push constants buffer engine asset name
+    /// Get the data size for the given uniform buffer engine asset
+    /// @param engineAssetEnum Engine asset to get the name of
+    /// @returns The data size of the given engine asset
+    inline uint64_t getUniformBufferEngineAssetDataSize(axr::UniformBufferEngineAssetEnum engineAssetEnum) {
+        return axrGetUniformBufferEngineAssetDataSize(static_cast<AxrUniformBufferEngineAssetEnum>(engineAssetEnum));
+    }
+
+    /// Check if the given name is reserved for a push constants buffer engine asset
     /// @param name Name to check
-    /// @returns True if the given name is reserved as a push constants buffer engine asset name
+    /// @returns True if the given name is reserved for a push constants buffer engine asset
     inline bool isPushConstantsBufferNameReserved(const char* name) {
         return axrIsPushConstantsBufferNameReserved(name);
     }
@@ -1830,6 +1971,17 @@ namespace axr {
     /// @returns The name of the given engine asset
     inline const char* getPushConstantsBufferEngineAssetName(axr::PushConstantsBufferEngineAssetEnum engineAssetEnum) {
         return axrGetPushConstantsBufferEngineAssetName(
+            static_cast<AxrPushConstantsBufferEngineAssetEnum>(engineAssetEnum)
+        );
+    }
+
+    /// Get the data size for the given push constants buffer engine asset
+    /// @param engineAssetEnum Engine asset to get the name of
+    /// @returns The data size of the given engine asset
+    inline uint32_t getPushConstantsBufferEngineAssetDataSize(
+        const axr::PushConstantsBufferEngineAssetEnum engineAssetEnum
+    ) {
+        return axrGetPushConstantsBufferEngineAssetDataSize(
             static_cast<AxrPushConstantsBufferEngineAssetEnum>(engineAssetEnum)
         );
     }
@@ -1937,6 +2089,20 @@ namespace axr {
                 m_AssetCollection,
                 modelName,
                 static_cast<AxrModelEngineAssetEnum>(engineAssetEnum)
+            ));
+        }
+
+        // ---- Uniform Buffer ----
+
+        /// Create a new uniform buffer
+        /// @param uniformBufferConfig Unuform buffer config
+        /// @returns AXR_SUCCESS if the function succeeded
+        [[nodiscard]] axr::Result createUniformBuffer(
+            const axr::UniformBufferConfig& uniformBufferConfig
+        ) const {
+            return static_cast<axr::Result>(axrAssetCollectionCreateUniformBuffer(
+                m_AssetCollection,
+                uniformBufferConfig.toRaw()
             ));
         }
 

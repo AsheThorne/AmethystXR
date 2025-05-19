@@ -99,7 +99,7 @@ vk::Extent2D AxrVulkanWindowGraphics::getSwapchainExtent() const {
 
 vk::ClearColorValue AxrVulkanWindowGraphics::getClearColorValue() const {
     // TODO: Don't hard code this
-    return vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
+    return vk::ClearColorValue(0.2f, 0.05f, 0.2f, 1.0f);
 }
 
 vk::CommandBuffer AxrVulkanWindowGraphics::getRenderingCommandBuffer() const {
@@ -120,6 +120,10 @@ std::vector<vk::Semaphore> AxrVulkanWindowGraphics::getRenderingSignalSemaphores
 
 vk::Fence AxrVulkanWindowGraphics::getRenderingFence() const {
     return {m_RenderingFences[m_CurrentFrame]};
+}
+
+uint32_t AxrVulkanWindowGraphics::getCurrentRenderingFrame() const {
+    return m_CurrentFrame;
 }
 
 AxrResult AxrVulkanWindowGraphics::acquireNextSwapchainImage() {
@@ -184,6 +188,47 @@ AxrResult AxrVulkanWindowGraphics::presentFrame() {
     m_CurrentFrame = (m_CurrentFrame + 1) % m_MaxFramesInFlight;
 
     return AXR_SUCCESS;
+}
+
+AxrResult AxrVulkanWindowGraphics::updateSceneDataUniformBuffer(const AxrVulkanSceneData* sceneData) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (sceneData == nullptr) {
+        axrLogErrorLocation("Scene data is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    // TODO: Use the active camera's properties
+    AxrUniformBufferEngineAsset_SceneData sceneDataEngineAsset{
+        .ViewMatrix = glm::lookAt(
+            glm::vec3(2.0f, 0.5f, 2.0f),
+            glm::vec3(0.0f, 0.5f, 0.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f)
+        ),
+        .ProjectionMatrix = glm::perspective(
+            glm::radians(45.0f),
+            static_cast<float>(m_SwapchainExtent.width) / static_cast<float>(m_SwapchainExtent.height),
+            0.1f,
+            100.0f
+        )
+    };
+    sceneDataEngineAsset.ProjectionMatrix[1][1] *= -1.0f;
+
+    // TODO: I don't think we should set the whole scene data object in the window graphics class.
+    //  We just need to get the view matrix and projection matrix for the window.
+    return sceneData->setWindowUniformBufferData(
+        axrGetUniformBufferEngineAssetName(AXR_UNIFORM_BUFFER_ENGINE_ASSET_SCENE_DATA),
+        m_CurrentFrame,
+        0,
+        sizeof(sceneDataEngineAsset),
+        &sceneDataEngineAsset
+    );
 }
 
 // ---- Private Functions ----

@@ -5,6 +5,11 @@
 // ----------------------------------------- //
 #include "axr/assets.h"
 
+// ----------------------------------------- //
+// C/C++ Headers
+// ----------------------------------------- //
+#include <vector>
+
 /// Shader values RAII wrapper
 class AxrShaderValuesRAII {
 public:
@@ -51,6 +56,18 @@ public:
     /// Check if the shader values are valid
     /// @returns True if the shader values are valid
     [[nodiscard]] bool isValid() const;
+
+    /// Get all uniform buffer links
+    /// @returns A collection of uniform buffer links
+    [[nodiscard]] std::vector<AxrShaderUniformBufferLinkConst_T> getUniformBufferLinks() const;
+    /// Get all image sampler buffer links
+    /// @returns A collection of image sampler buffer links
+    [[nodiscard]] std::vector<AxrShaderImageSamplerBufferLinkConst_T> getImageSamplerBufferLinks() const;
+
+    /// Find the shader buffer name at the given binding
+    /// @param binding Binding to use
+    /// @returns The name of the buffer at the given binding
+    [[nodiscard]] const char* findShaderBufferName(uint32_t binding) const;
 
     /// Clean up this class
     void cleanup();

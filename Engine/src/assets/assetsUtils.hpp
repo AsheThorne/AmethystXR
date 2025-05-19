@@ -8,7 +8,7 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/common/result.h"
+#include "axr/common/enums.h"
 
 /// Read file bytes on disk
 /// @param path Path to the file

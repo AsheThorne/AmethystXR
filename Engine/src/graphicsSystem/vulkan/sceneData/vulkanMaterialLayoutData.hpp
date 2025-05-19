@@ -4,7 +4,7 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/common.h"
+#include "axr/common/enums.h"
 #include "../../../assets/shader.hpp"
 
 // ----------------------------------------- //
@@ -85,6 +85,12 @@ public:
     /// Get the push constants shader stages
     /// @returns The push constants shader stages
     [[nodiscard]] const vk::ShaderStageFlags& getPushConstantsShaderStages() const;
+    /// Get the descriptor set layout
+    /// @returns The descriptor set layout 
+    [[nodiscard]] const vk::DescriptorSetLayout& getDescriptorSetLayout() const;
+    /// Get the descriptor set item locations
+    /// @returns The descriptor set item locations
+    [[nodiscard]] const std::vector<DescriptorSetItemLocation>& getDescriptorSetItemLocations() const;
 
     /// Check if the data exists
     /// @returns True if the data exists
@@ -145,7 +151,7 @@ private:
         vk::ShaderStageFlagBits stageFlag,
         std::vector<vk::DescriptorSetLayoutBinding>& bindings,
         std::vector<DescriptorSetItemLocation>& descriptorSetItemLocations
-    );
+    ) const;
 
     /// Create the pipeline layout
     /// @returns AXR_SUCCESS if the function succeeded

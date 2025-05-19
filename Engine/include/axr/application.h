@@ -8,18 +8,12 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/common.h"
+#include "axr/common/defines.h"
+#include "axr/common/enums.h"
 #include "axr/windowSystem.h"
 #include "axr/graphicsSystem.h"
 #include "axr/assets.h"
 #include "axr/scene.h"
-
-// ----------------------------------------- //
-// Forward Declared Handles
-// ----------------------------------------- //
-
-/// AxrApplication Handle
-typedef class AxrApplication* AxrApplication_T;
 
 // ----------------------------------------- //
 // Structs
@@ -32,6 +26,13 @@ struct AxrApplicationConfig {
     AxrWindowSystemConfig WindowSystemConfig;
     AxrGraphicsSystemConfig GraphicsSystemConfig;
 };
+
+// ----------------------------------------- //
+// Forward Declared Handles
+// ----------------------------------------- //
+
+/// AxrApplication Handle
+typedef class AxrApplication* AxrApplication_T;
 
 // ----------------------------------------- //
 // External Function Definitions

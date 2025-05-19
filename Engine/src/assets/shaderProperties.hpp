@@ -67,6 +67,7 @@ public:
     /// Get all image sampler buffer layouts
     /// @returns A collection of image sampler buffer layouts
     [[nodiscard]] std::vector<AxrShaderImageSamplerBufferLayoutConst_T> getImageSamplerBufferLayouts() const;
+    // TODO: Shouldn't this be in the AXR_SUPPORTED_GRAPHICS_VULKAN macro??
     /// Get the push constants buffer layout
     /// @returns The push constants buffer layout
     [[nodiscard]] AxrShaderPushConstantsBufferLayoutConst_T getPushConstantsBufferLayout() const;

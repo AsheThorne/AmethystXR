@@ -3,7 +3,7 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/common/result.h"
+#include "axr/common/enums.h"
 #include "axr/graphicsSystem.h"
 #include "axr/windowSystem.h"
 #include "axr/assets.h"
