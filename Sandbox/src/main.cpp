@@ -9,7 +9,7 @@
 #include <axr.hpp>
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd) {
-    const char* applicationName = "Sandbox";
+    const std::string applicationName = "Sandbox";
 
     const auto engineSetupConfig = axr::SetupConfig(axr::LogLevelEnum::Info);
     axr::setup(engineSetupConfig);
@@ -43,7 +43,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     );
 
     const auto appConfig = axr::ApplicationConfig(
-        applicationName,
+        applicationName.c_str(),
         AXR_MAKE_VERSION(1, 0, 0),
         windowSystemConfig,
         graphicsSystemConfig
@@ -96,9 +96,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
     if (AXR_FAILED(globalAssetCollection.createModel("Triangle", axr::EngineAssetEnum::ModelTriangle))) return 0;
 
-    const char* scene1Name = "Scene1";
-    if (AXR_FAILED(app.createScene(scene1Name))) return 0;
-    const axr::Scene scene1 = app.findScene(scene1Name);
+    const std::string scene1Name = "Scene1";
+    if (AXR_FAILED(app.createScene(scene1Name.c_str()))) return 0;
+    const axr::Scene scene1 = app.findScene(scene1Name.c_str());
     const axr::Entity_T triangleEntity = scene1.createEntity();
 
     triangleEntity.emplace<AxrTransformComponent>(
@@ -124,8 +124,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
     if (AXR_FAILED(app.setup())) return 0;
 
-    if (AXR_FAILED(app.loadScene(scene1Name))) return 0;
-    if (AXR_FAILED(app.setActiveScene(scene1Name))) return 0;
+    if (AXR_FAILED(app.loadScene(scene1Name.c_str()))) return 0;
+    if (AXR_FAILED(app.setActiveScene(scene1Name.c_str()))) return 0;
 
     axr::WindowSystem windowSystem = app.getWindowSystem();
     if (AXR_FAILED(windowSystem.openWindow())) return 0;

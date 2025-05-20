@@ -22,7 +22,7 @@ const char* axrUniformBufferGetName(const AxrUniformBuffer_T uniformBuffer) {
         return "";
     }
 
-    return uniformBuffer->getName();
+    return uniformBuffer->getName().c_str();
 }
 
 
@@ -96,7 +96,7 @@ AxrUniformBuffer& AxrUniformBuffer::operator=(AxrUniformBuffer&& src) noexcept {
 
 // ---- Public Functions ----
 
-const char* AxrUniformBuffer::getName() const {
+const std::string& AxrUniformBuffer::getName() const {
     return m_Name;
 }
 

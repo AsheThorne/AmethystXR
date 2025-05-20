@@ -182,7 +182,7 @@ AxrResult AxrVulkanGraphicsSystem::loadScene(const AxrScene_T scene) {
     return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanGraphicsSystem::setActiveScene(const char* sceneName) {
+AxrResult AxrVulkanGraphicsSystem::setActiveScene(const std::string& sceneName) {
     return m_LoadedScenes.setActiveScene(sceneName);
 }
 
@@ -213,7 +213,7 @@ AxrResult AxrVulkanGraphicsSystem::createInstance() {
     // ----------------------------------------- //
 
     const vk::ApplicationInfo appInfo(
-        m_ApplicationName,
+        m_ApplicationName.c_str(),
         m_ApplicationVersion,
         AxrEngineName,
         AXR_ENGINE_VERSION,

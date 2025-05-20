@@ -9,6 +9,7 @@
 // C/C++ Headers
 // ----------------------------------------- //
 #include <vector>
+#include <string>
 
 /// Shader values RAII wrapper
 class AxrShaderValuesRAII {
@@ -67,7 +68,7 @@ public:
     /// Find the shader buffer name at the given binding
     /// @param binding Binding to use
     /// @returns The name of the buffer at the given binding
-    [[nodiscard]] const char* findShaderBufferName(uint32_t binding) const;
+    [[nodiscard]] std::string findShaderBufferName(uint32_t binding) const;
 
     /// Clean up this class
     void cleanup();

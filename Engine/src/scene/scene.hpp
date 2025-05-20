@@ -47,7 +47,7 @@ public:
 
     /// Get the scene name
     /// @returns The name of the scene
-    [[nodiscard]] const char* getName() const;
+    [[nodiscard]] const std::string& getName() const;
     /// Get the scene asset collection
     /// @returns A handle to the scene asset collection
     [[nodiscard]] AxrAssetCollection_T getAssetCollection();
@@ -63,7 +63,7 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
-    const char* m_Name;
+    std::string m_Name;
     AxrAssetCollection m_AssetCollection;
     entt::registry m_Registry;
 

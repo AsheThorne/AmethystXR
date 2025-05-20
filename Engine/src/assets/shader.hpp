@@ -7,6 +7,11 @@
 #include "shaderProperties.hpp"
 #include "axr/graphicsSystem.h"
 
+// ----------------------------------------- //
+// C/C++ Headers
+// ----------------------------------------- //
+#include <string>
+
 /// Axr Shader
 class AxrShader {
 public:
@@ -48,7 +53,7 @@ public:
 
     /// Get the shader's name
     /// @returns The shader's name
-    [[nodiscard]] const char* getName() const;
+    [[nodiscard]] const std::string& getName() const;
 
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
@@ -92,8 +97,8 @@ private:
     // ----------------------------------------- //
 
     // ---- Config Variables ----
-    const char* m_Name;
-    const char* m_FilePath;
+    std::string m_Name;
+    std::string m_FilePath;
     AxrShaderPropertiesRAII m_Properties;
     mutable std::vector<char> m_FileData;
 

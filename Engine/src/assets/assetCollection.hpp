@@ -73,7 +73,7 @@ public:
     /// @param materialValues Material values
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult createMaterial(
-        const char* materialName,
+        const std::string& materialName,
         AxrEngineAssetMaterial_DefaultMaterial materialValues
     );
 
@@ -87,7 +87,7 @@ public:
     /// @param modelName Model name
     /// @param engineAssetEnum Engine asset enum
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createModel(const char* modelName, AxrEngineAssetEnum engineAssetEnum);
+    [[nodiscard]] AxrResult createModel(const std::string& modelName, AxrEngineAssetEnum engineAssetEnum);
 
     // ---- Uniform Buffer ----
 

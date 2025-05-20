@@ -52,7 +52,7 @@ public:
 
     /// Get the material's name
     /// @returns The material's name
-    [[nodiscard]] const char* getName() const;
+    [[nodiscard]] const std::string& getName() const;
     
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
@@ -60,10 +60,10 @@ public:
 
     /// Get the vertex shader's name
     /// @returns The vertex shader's name
-    [[nodiscard]] const char* getVertexShaderName() const;
+    [[nodiscard]] const std::string& getVertexShaderName() const;
     /// Get the fragment shader's name
     /// @returns The fragment shader's name
-    [[nodiscard]] const char* getFragmentShaderName() const;
+    [[nodiscard]] const std::string& getFragmentShaderName() const;
 
     /// Get the vertex shader values
     /// @returns The vertex shader values
@@ -75,7 +75,7 @@ public:
     /// Find the shader buffer name at the given binding
     /// @param binding Binding to use
     /// @returns The name of the buffer at the given binding
-    [[nodiscard]] const char* findShaderBufferName(uint32_t binding) const;
+    [[nodiscard]] std::string findShaderBufferName(uint32_t binding) const;
 
     /// Get the material layout's name
     /// @returns The material layout's name
@@ -96,9 +96,9 @@ private:
     // ----------------------------------------- //
 
     // ---- Config Variables ----
-    const char* m_Name;
-    const char* m_VertexShaderName;
-    const char* m_FragmentShaderName;
+    std::string m_Name;
+    std::string m_VertexShaderName;
+    std::string m_FragmentShaderName;
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     std::string m_PushConstantBufferName;
 #endif

@@ -14,7 +14,7 @@ const char* axrSceneGetName(const AxrScene_T scene) {
         return "";
     }
 
-    return scene->getName();
+    return scene->getName().c_str();
 }
 
 AxrAssetCollection_T axrSceneGetAssetCollection(const AxrScene_T scene) {
@@ -86,7 +86,7 @@ AxrScene& AxrScene::operator=(AxrScene&& src) noexcept {
     return *this;
 }
 
-const char* AxrScene::getName() const {
+const std::string& AxrScene::getName() const {
     return m_Name;
 }
 

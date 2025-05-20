@@ -10,6 +10,7 @@
 // ----------------------------------------- //
 #include <ranges>
 #include <unordered_map>
+#include <string>
 
 // ---------------------------------------------------------------------------------- //
 //                                 Global Variables                                   //
@@ -297,7 +298,7 @@ bool axrEngineAssetIsPushConstantBufferNameReserved(const char* name) {
 // ----------------------------------------- //
 
 AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
-    const char* materialName,
+    const std::string& materialName,
     AxrEngineAssetMaterial_DefaultMaterial materialValues,
     AxrMaterial& material
 ) {
@@ -315,7 +316,7 @@ bool axrEngineAssetIsModel(const AxrEngineAssetEnum engineAssetEnum) {
         engineAssetEnum <= AXR_ENGINE_ASSET_MODEL_END;
 }
 
-AxrResult axrEngineAssetCreateModel(const char* modelName, const AxrEngineAssetEnum engineAssetEnum, AxrModel& model) {
+AxrResult axrEngineAssetCreateModel(const std::string& modelName, const AxrEngineAssetEnum engineAssetEnum, AxrModel& model) {
     if (!axrEngineAssetIsModel(engineAssetEnum)) {
         axrLogErrorLocation("Engine asset is not a model.");
         return AXR_ERROR;
@@ -333,7 +334,7 @@ AxrResult axrEngineAssetCreateModel(const char* modelName, const AxrEngineAssetE
     }
 }
 
-AxrResult axrEngineAssetCreateModel_Triangle(const char* modelName, AxrModel& model) {
+AxrResult axrEngineAssetCreateModel_Triangle(const std::string& modelName, AxrModel& model) {
     std::vector<AxrVertex> vertices{
         AxrVertex{
             .Position = {0.0f, 0.866f, 0.0f},
@@ -364,8 +365,8 @@ AxrResult axrEngineAssetCreateModel_Triangle(const char* modelName, AxrModel& mo
     };
 
     const AxrModelConfig modelConfig{
-        .Name = modelName,
-        .FilePath = nullptr,
+        .Name = modelName.c_str(),
+        .FilePath = "",
         .MeshesCount = 1,
         .Meshes = &mesh
     };

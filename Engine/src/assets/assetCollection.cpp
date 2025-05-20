@@ -226,14 +226,14 @@ AxrResult AxrAssetCollection::createShader(const AxrEngineAssetEnum engineAssetE
         return AXR_ERROR;
     }
 
-    const char* shaderName = axrEngineAssetGetName(engineAssetEnum);
-    if (axrStringIsEmpty(shaderName)) {
+    const std::string& shaderName = axrEngineAssetGetName(engineAssetEnum);
+    if (shaderName.empty()) {
         axrLogError("Unable to create shader. Unknown shader engine asset name.");
         return AXR_ERROR;
     }
 
     if (m_Shaders.contains(shaderName)) {
-        axrLogError("Unable to create shader. A shader named: {0} already exists.", shaderName);
+        axrLogError("Unable to create shader. A shader named: {0} already exists.", shaderName.c_str());
         return AXR_ERROR;
     }
 
@@ -253,7 +253,7 @@ AxrResult AxrAssetCollection::createShader(const AxrEngineAssetEnum engineAssetE
     // Process
     // ----------------------------------------- //
 
-    const auto insertResult = m_Shaders.insert(std::pair(shader.getName(), std::move(shader)));
+    const auto insertResult = m_Shaders.insert(std::pair(shaderName, std::move(shader)));
     if (!insertResult.second) {
         // If the insertion failed
         return AXR_ERROR;
@@ -311,7 +311,7 @@ AxrResult AxrAssetCollection::createMaterial(const AxrMaterialConfig& materialCo
 }
 
 AxrResult AxrAssetCollection::createMaterial(
-    const char* materialName,
+    const std::string& materialName,
     const AxrEngineAssetMaterial_DefaultMaterial materialValues
 ) {
     // ----------------------------------------- //
@@ -319,12 +319,16 @@ AxrResult AxrAssetCollection::createMaterial(
     // ----------------------------------------- //
 
     if (m_Materials.contains(materialName)) {
-        axrLogError("Unable to create material. A material named: {0} already exists.", materialName);
+        axrLogError("Unable to create material. A material named: {0} already exists.", materialName.c_str());
         return AXR_ERROR;
     }
 
     AxrMaterial material;
-    const AxrResult axrResult = axrEngineAssetCreateMaterial_DefaultMaterial(materialName, materialValues, material);
+    const AxrResult axrResult = axrEngineAssetCreateMaterial_DefaultMaterial(
+        materialName,
+        materialValues,
+        material
+    );
     if (AXR_FAILED(axrResult)) {
         axrLogErrorLocation("Failed to create material engine asset.");
         return axrResult;
@@ -391,7 +395,7 @@ AxrResult AxrAssetCollection::createModel(const AxrModelConfig& modelConfig) {
     return AXR_SUCCESS;
 }
 
-AxrResult AxrAssetCollection::createModel(const char* modelName, const AxrEngineAssetEnum engineAssetEnum) {
+AxrResult AxrAssetCollection::createModel(const std::string& modelName, const AxrEngineAssetEnum engineAssetEnum) {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -402,7 +406,7 @@ AxrResult AxrAssetCollection::createModel(const char* modelName, const AxrEngine
     }
 
     if (m_Models.contains(modelName)) {
-        axrLogError("Unable to create model. A model named: {0} already exists.", modelName);
+        axrLogError("Unable to create model. A model named: {0} already exists.", modelName.c_str());
         return AXR_ERROR;
     }
 
@@ -417,7 +421,7 @@ AxrResult AxrAssetCollection::createModel(const char* modelName, const AxrEngine
     // Process
     // ----------------------------------------- //
 
-    const auto insertResult = m_Models.insert(std::pair(model.getName(), std::move(model)));
+    const auto insertResult = m_Models.insert(std::pair(modelName, std::move(model)));
     if (!insertResult.second) {
         // If the insertion failed
         return AXR_ERROR;

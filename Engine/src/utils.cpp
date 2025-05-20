@@ -11,21 +11,21 @@
 
 // ---- String Utils ----
 
-std::wstring axrToWString(const char* string) {
-    const size_t stringLength = strlen(string) + 1;
+std::wstring axrToWString(const std::string& string) {
     size_t numOfConvertedChars;
-    std::wstring convertedChars(stringLength, L'\0');
+    std::wstring convertedChars(string.size(), L'\0');
 
     const errno_t error = mbstowcs_s(
         &numOfConvertedChars,
         convertedChars.data(),
-        stringLength,
-        string,
-        stringLength - 1
+        // + 1 to include the null character
+        string.size() + 1,
+        string.c_str(),
+        string.size()
     );
 
     if (error != 0) {
-        axrLogErrorLocation("mbstowcs_s() failed for string: {0}", string);
+        axrLogErrorLocation("mbstowcs_s() failed for string: {0}", string.c_str());
         return L"";
     }
 
@@ -33,11 +33,11 @@ std::wstring axrToWString(const char* string) {
 }
 
 bool axrContainsString(
-    const char* string,
+    const std::string& string,
     const std::vector<std::string>& stringCollection
 ) {
     for (const std::string& str : stringCollection) {
-        if (std::strcmp(string, str.c_str()) == 0) {
+        if (string == str) {
             return true;
         }
     }

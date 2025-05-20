@@ -68,19 +68,19 @@ public:
     /// Create a new scene
     /// @param sceneName Name of the scene
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createScene(const char* sceneName);
+    [[nodiscard]] AxrResult createScene(const std::string& sceneName);
     /// Find the named scene
     /// @param sceneName Name of the scene
     /// @returns A handle to the scene
-    [[nodiscard]] AxrScene_T findScene(const char* sceneName);
+    [[nodiscard]] AxrScene_T findScene(const std::string& sceneName);
     /// Load the named scene
     /// @param sceneName Name of the scene
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult loadScene(const char* sceneName);
+    [[nodiscard]] AxrResult loadScene(const std::string& sceneName);
     /// Set the active scene to the named scene
     /// @param sceneName Name of the scene
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setActiveScene(const char* sceneName);
+    [[nodiscard]] AxrResult setActiveScene(const std::string& sceneName);
 
 private:
     // ----------------------------------------- //
@@ -88,7 +88,7 @@ private:
     // ----------------------------------------- //
 
     // ---- Config Variables ----
-    const char* m_ApplicationName;
+    std::string m_ApplicationName;
     uint32_t m_ApplicationVersion;
 
     AxrWindowSystem m_WindowSystem;

@@ -82,7 +82,7 @@ public:
     /// @param globalSceneData Global scene assets
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult loadScene(
-        const char* sceneName,
+        const std::string& sceneName,
         AxrAssetCollection_T assetCollection,
         entt::registry* ecsRegistryHandle,
         // TODO: I think we can remove this param and get the global assets from within this class
@@ -90,7 +90,7 @@ public:
     );
     /// Unload the named scene
     /// @param sceneName Name of the scene 
-    void unloadScene(const char* sceneName);
+    void unloadScene(const std::string& sceneName);
 
     /// Unload and remove all loaded scenes
     void clear();
@@ -98,12 +98,12 @@ public:
     /// Find the named loaded scene data
     /// @param sceneName Scene name
     /// @returns The named loaded scene data. Or nullptr if it wasn't found
-    [[nodiscard]] AxrVulkanSceneData* findLoadedScene(const char* sceneName);
+    [[nodiscard]] AxrVulkanSceneData* findLoadedScene(const std::string& sceneName);
 
     /// Set the active scene to the named scene
     /// @param sceneName Scene name
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setActiveScene(const char* sceneName);
+    [[nodiscard]] AxrResult setActiveScene(const std::string& sceneName);
     /// Get the active scene
     /// @returns A handle to the active scene data or nullptr if an active scene isn't set
     [[nodiscard]] AxrVulkanSceneData* getActiveScene() const;
@@ -144,7 +144,7 @@ private:
     /// Find the named loaded scene data iterator
     /// @param sceneName Scene name
     /// @returns The named loaded scene data iterator. Or m_LoadedScenes.end() if it wasn't found
-    [[nodiscard]] std::vector<AxrVulkanSceneData*>::iterator findLoadedSceneIterator(const char* sceneName);
+    [[nodiscard]] std::vector<AxrVulkanSceneData*>::iterator findLoadedSceneIterator(const std::string& sceneName);
 
     /// Create vulkan scene data
     /// @param sceneName Name of the scene
@@ -153,7 +153,7 @@ private:
     /// @param globalSceneData Global scene data
     /// @returns A handle to the created vulkan scene data
     [[nodiscard]] AxrVulkanSceneData* createSceneData(
-        const char* sceneName,
+        const std::string& sceneName,
         AxrAssetCollection_T assetCollection,
         entt::registry* ecsRegistryHandle,
         AxrVulkanSceneData* globalSceneData

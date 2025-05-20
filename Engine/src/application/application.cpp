@@ -185,13 +185,13 @@ AxrAssetCollection_T AxrApplication::getGlobalAssetCollection() {
     return &m_GlobalAssetCollection;
 }
 
-AxrResult AxrApplication::createScene(const char* sceneName) {
+AxrResult AxrApplication::createScene(const std::string& sceneName) {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
 
     if (m_Scenes.contains(sceneName)) {
-        axrLogErrorLocation("Scene already exists with the name: {0}.", sceneName);
+        axrLogErrorLocation("Scene already exists with the name: {0}.", sceneName.c_str());
         return AXR_ERROR;
     }
 
@@ -208,26 +208,26 @@ AxrResult AxrApplication::createScene(const char* sceneName) {
     return AXR_SUCCESS;
 }
 
-AxrScene_T AxrApplication::findScene(const char* sceneName) {
+AxrScene_T AxrApplication::findScene(const std::string& sceneName) {
     const auto foundScene = m_Scenes.find(sceneName);
     if (foundScene == m_Scenes.end()) {
-        axrLogErrorLocation("Failed to find scene with the name: {0}.", sceneName);
+        axrLogErrorLocation("Failed to find scene with the name: {0}.", sceneName.c_str());
         return nullptr;
     }
 
     return &foundScene->second;
 }
 
-AxrResult AxrApplication::loadScene(const char* sceneName) {
+AxrResult AxrApplication::loadScene(const std::string& sceneName) {
     AxrScene_T foundScene = findScene(sceneName);
     if (foundScene == nullptr) {
-        axrLogErrorLocation("Failed to find scene with the name: {0}.", sceneName);
+        axrLogErrorLocation("Failed to find scene with the name: {0}.", sceneName.c_str());
         return AXR_ERROR;
     }
 
     return m_GraphicsSystem.loadScene(foundScene);
 }
 
-AxrResult AxrApplication::setActiveScene(const char* sceneName) {
+AxrResult AxrApplication::setActiveScene(const std::string& sceneName) {
     return m_GraphicsSystem.setActiveScene(sceneName);
 }

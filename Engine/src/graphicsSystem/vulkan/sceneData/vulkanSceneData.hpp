@@ -101,7 +101,7 @@ public:
 
     /// Get the scene name
     /// @returns The scene name
-    [[nodiscard]] const char* getSceneName() const;
+    [[nodiscard]] const std::string& getSceneName() const;
 
     /// Load the scene data
     /// @returns AXR_SUCCESS if the function succeeded
@@ -153,7 +153,7 @@ private:
     // ----------------------------------------- //
 
     // ---- Config Variables ----
-    const char* m_SceneName;
+    std::string m_SceneName;
     AxrAssetCollection_T m_AssetCollection;
     entt::registry* m_EcsRegistryHandle;
     AxrVulkanSceneData* m_GlobalSceneData;

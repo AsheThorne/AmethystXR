@@ -82,7 +82,7 @@ public:
     /// Set the active scene to the named scene
     /// @param sceneName Name of the scene
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setActiveScene(const char* sceneName);
+    [[nodiscard]] AxrResult setActiveScene(const std::string& sceneName);
 
 private:
     // ----------------------------------------- //

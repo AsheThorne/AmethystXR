@@ -28,7 +28,7 @@ const char* axrMaterialGetName(const AxrMaterial_T material) {
         return "";
     }
 
-    return material->getName();
+    return material->getName().c_str();
 }
 
 // ----------------------------------------- //
@@ -129,15 +129,15 @@ AxrMaterial& AxrMaterial::operator=(AxrMaterial&& src) noexcept {
 
 // ---- Public Functions ----
 
-const char* AxrMaterial::getName() const {
+const std::string& AxrMaterial::getName() const {
     return m_Name;
 }
 
-const char* AxrMaterial::getVertexShaderName() const {
+const std::string& AxrMaterial::getVertexShaderName() const {
     return m_VertexShaderName;
 }
 
-const char* AxrMaterial::getFragmentShaderName() const {
+const std::string& AxrMaterial::getFragmentShaderName() const {
     return m_FragmentShaderName;
 }
 
@@ -149,14 +149,14 @@ const AxrShaderValuesRAII& AxrMaterial::getFragmentShaderValues() const {
     return m_FragmentShaderValues;
 }
 
-const char* AxrMaterial::findShaderBufferName(const uint32_t binding) const {
-    const char* bufferName = m_VertexShaderValues.findShaderBufferName(binding);
-    if (!axrStringIsEmpty(bufferName)) {
+std::string AxrMaterial::findShaderBufferName(const uint32_t binding) const {
+    std::string bufferName = m_VertexShaderValues.findShaderBufferName(binding);
+    if (!bufferName.empty()) {
         return bufferName;
     }
 
     bufferName = m_FragmentShaderValues.findShaderBufferName(binding);
-    if (!axrStringIsEmpty(bufferName)) {
+    if (!bufferName.c_str()) {
         return bufferName;
     }
 
@@ -174,9 +174,9 @@ const std::string& AxrMaterial::getPushConstantBufferName() const {
 #endif
 
 bool AxrMaterial::isValid() const {
-    return !axrStringIsEmpty(m_Name) &&
-        !axrStringIsEmpty(m_VertexShaderName) &&
-        !axrStringIsEmpty(m_FragmentShaderName) &&
+    return !m_Name.empty() &&
+        !m_VertexShaderName.empty() &&
+        !m_FragmentShaderName.empty() &&
         m_VertexShaderValues.isValid() &&
         m_FragmentShaderValues.isValid();
 }

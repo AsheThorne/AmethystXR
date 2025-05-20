@@ -125,7 +125,7 @@ AxrVulkanSceneData* AxrVulkanLoadedScenesCollection::getGlobalSceneData() const 
 }
 
 AxrResult AxrVulkanLoadedScenesCollection::loadScene(
-    const char* sceneName,
+    const std::string& sceneName,
     const AxrAssetCollection_T assetCollection,
     entt::registry* ecsRegistryHandle,
     AxrVulkanSceneData* globalSceneData
@@ -157,14 +157,14 @@ AxrResult AxrVulkanLoadedScenesCollection::loadScene(
     return AXR_SUCCESS;
 }
 
-void AxrVulkanLoadedScenesCollection::unloadScene(const char* sceneName) {
-    if (m_ActiveScene != nullptr && strcmp(m_ActiveScene->getSceneName(), sceneName) == 0) {
+void AxrVulkanLoadedScenesCollection::unloadScene(const std::string& sceneName) {
+    if (m_ActiveScene != nullptr && m_ActiveScene->getSceneName() == sceneName) {
         m_ActiveScene = nullptr;
     }
 
     const auto foundScene = findLoadedSceneIterator(sceneName);
     if (foundScene == m_LoadedScenes.end()) {
-        axrLogErrorLocation("Scene named: {0} not found.", sceneName);
+        axrLogErrorLocation("Scene named: {0} not found.", sceneName.c_str());
         return;
     }
 
@@ -186,7 +186,7 @@ void AxrVulkanLoadedScenesCollection::clear() {
     m_ActiveScene = nullptr;
 }
 
-AxrVulkanSceneData* AxrVulkanLoadedScenesCollection::findLoadedScene(const char* sceneName) {
+AxrVulkanSceneData* AxrVulkanLoadedScenesCollection::findLoadedScene(const std::string& sceneName) {
     const auto foundScene = findLoadedSceneIterator(sceneName);
     if (foundScene == m_LoadedScenes.end()) {
         return nullptr;
@@ -195,10 +195,10 @@ AxrVulkanSceneData* AxrVulkanLoadedScenesCollection::findLoadedScene(const char*
     return *foundScene;
 }
 
-AxrResult AxrVulkanLoadedScenesCollection::setActiveScene(const char* sceneName) {
+AxrResult AxrVulkanLoadedScenesCollection::setActiveScene(const std::string& sceneName) {
     AxrVulkanSceneData* foundScene = findLoadedScene(sceneName);
     if (foundScene == nullptr) {
-        axrLogErrorLocation("Failed to find loaded scene named: {0}.", sceneName);
+        axrLogErrorLocation("Failed to find loaded scene named: {0}.", sceneName.c_str());
         return AXR_ERROR;
     }
 
@@ -261,10 +261,10 @@ void AxrVulkanLoadedScenesCollection::resetSetupWindowData() {
 // ---- Private Functions ----
 
 std::vector<AxrVulkanSceneData*>::iterator AxrVulkanLoadedScenesCollection::findLoadedSceneIterator(
-    const char* sceneName
+    const std::string& sceneName
 ) {
     for (auto i = m_LoadedScenes.begin(); i != m_LoadedScenes.end(); ++i) {
-        if (strcmp((*i)->getSceneName(), sceneName) == 0) {
+        if ((*i)->getSceneName() == sceneName) {
             return i;
         }
     }
@@ -273,14 +273,14 @@ std::vector<AxrVulkanSceneData*>::iterator AxrVulkanLoadedScenesCollection::find
 }
 
 AxrVulkanSceneData* AxrVulkanLoadedScenesCollection::createSceneData(
-    const char* sceneName,
+    const std::string& sceneName,
     const AxrAssetCollection_T assetCollection,
     entt::registry* ecsRegistryHandle,
     AxrVulkanSceneData* globalSceneData
 ) const {
     return new AxrVulkanSceneData(
         {
-            .SceneName = sceneName,
+            .SceneName = sceneName.c_str(),
             .AssetCollection = assetCollection,
             .EcsRegistryHandle = ecsRegistryHandle,
             .GlobalSceneData = globalSceneData,

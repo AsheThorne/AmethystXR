@@ -6,6 +6,11 @@
 // ----------------------------------------- //
 #include "axr/assets.h"
 
+// ----------------------------------------- //
+// C/C++ Headers
+// ----------------------------------------- //
+#include <string>
+
 /// Push constant buffer
 class AxrPushConstantBuffer {
 public:
@@ -47,7 +52,7 @@ public:
 
     /// Get the push constant buffer's name
     /// @returns The push constant buffer's name
-    [[nodiscard]] const char* getName() const;
+    [[nodiscard]] const std::string& getName() const;
 
     /// Clone the given data
     /// @param size Size of the data
@@ -80,7 +85,7 @@ private:
     // ----------------------------------------- //
 
     // ---- Config Variables ----
-    const char* m_Name;
+    std::string m_Name;
     uint32_t m_DataSize;
     void* m_Data;
 

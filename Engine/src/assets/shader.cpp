@@ -33,7 +33,7 @@ const char* axrShaderGetName(const AxrShader_T shader) {
         return "";
     }
 
-    return shader->getName();
+    return shader->getName().c_str();
 }
 
 // ----------------------------------------- //
@@ -110,7 +110,7 @@ AxrShader& AxrShader::operator=(AxrShader&& src) noexcept {
 
 // ---- Public Functions ----
 
-const char* AxrShader::getName() const {
+const std::string& AxrShader::getName() const {
     return m_Name;
 }
 
@@ -131,7 +131,7 @@ AxrResult AxrShader::loadFile(const AxrGraphicsApiEnum graphicsApi) const {
         return AXR_SUCCESS;
     }
 
-    if (std::strcmp(m_FilePath, "") == 0) {
+    if (m_FilePath.empty()) {
         axrLogErrorLocation("File path is empty.");
         return AXR_ERROR;
     }
@@ -160,8 +160,8 @@ const AxrShaderPropertiesRAII& AxrShader::getProperties() const {
 
 bool AxrShader::isValid() const {
     // TODO: Maybe check that the file path is a valid path and the file exists
-    return !axrStringIsEmpty(m_Name) &&
-        !axrStringIsEmpty(m_FilePath) &&
+    return !m_Name.empty() &&
+        !m_FilePath.empty() &&
         m_Properties.isValid();
 }
 

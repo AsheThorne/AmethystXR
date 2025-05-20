@@ -32,7 +32,7 @@ AxrVulkanSceneData::~AxrVulkanSceneData() {
 
 // ---- Public Functions ----
 
-const char* AxrVulkanSceneData::getSceneName() const {
+const std::string& AxrVulkanSceneData::getSceneName() const {
     return m_SceneName;
 }
 
@@ -140,7 +140,7 @@ AxrResult AxrVulkanSceneData::loadWindowData(const vk::RenderPass renderPass) {
 
 void AxrVulkanSceneData::unloadWindowData() {
     m_IsWindowDataLoaded = false;
-    
+
     // TODO: See if we can wait for all the scene specific fences to be finished instead of doing this.
     const vk::Result vkResult = m_Device.waitIdle(*m_DispatchHandle);
     axrLogVkResult(vkResult, "m_Device.waitIdle");
@@ -1192,8 +1192,9 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
     descriptorImageInfos.reserve(descriptorSetItemLocations.size() + m_MaxFramesInFlight);
 
     for (auto descriptorSetItemLocation : descriptorSetItemLocations) {
-        const char* bufferName = material->findShaderBufferName(descriptorSetItemLocation.ShaderBinding);
-        if (axrEngineAssetIsBufferNameReserved(bufferName) && axrEngineAssetGetBufferScope(bufferName) != bufferScope) {
+        const std::string& bufferName = material->findShaderBufferName(descriptorSetItemLocation.ShaderBinding);
+        if (axrEngineAssetIsBufferNameReserved(bufferName.c_str()) &&
+            axrEngineAssetGetBufferScope(bufferName.c_str()) != bufferScope) {
             // If the buffer's scope doesn't match the current scope we are writing for, we skip it.
             // We also check if it's an engine asset because they're the only buffers with a scope.
             continue;
@@ -1334,17 +1335,17 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
             .BufferVerticesOffset = foundModelData->getMeshBufferVerticesOffset(i),
             .IndexCount = foundModelData->getMeshIndexCount(i),
             .PushConstant = axrStringIsEmpty(modelComponent.PushConstantBufferName) ||
-                             pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
-                                 ? PushConstantForRendering{}
-                                 : PushConstantForRendering{
-                                     .ShaderStages = &pushConstantStageFlags,
-                                     .BufferName = modelComponent.PushConstantBufferName,
-                                     .TransformComponent = &transformComponent,
-                                 },
+                            pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
+                                ? PushConstantForRendering{}
+                                : PushConstantForRendering{
+                                    .ShaderStages = &pushConstantStageFlags,
+                                    .BufferName = modelComponent.PushConstantBufferName,
+                                    .TransformComponent = &transformComponent,
+                                },
         };
 
         if (foundMaterialForRendering == materialsForRendering.end()) {
-            const char* materialPushConstantBufferName = foundMaterialData->getPushConstantBufferName().c_str();
+            const std::string& materialPushConstantBufferName = foundMaterialData->getPushConstantBufferName();
 
             materialsForRendering.insert(
                 std::pair(
@@ -1353,14 +1354,14 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
                         .PipelineLayout = foundMaterialData->getMaterialLayoutData()->getPipelineLayout(),
                         .WindowPipeline = foundMaterialData->getWindowPipeline(),
                         .WindowDescriptorSets = foundMaterialData->getWindowDescriptorSets(),
-                        .PushConstant = axrStringIsEmpty(materialPushConstantBufferName) ||
-                                         pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
-                                             ? PushConstantForRendering{}
-                                             : PushConstantForRendering{
-                                                 .ShaderStages = &pushConstantStageFlags,
-                                                 .BufferName = materialPushConstantBufferName,
-                                                 .TransformComponent = &transformComponent,
-                                             },
+                        .PushConstant = materialPushConstantBufferName.empty() ||
+                                        pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
+                                            ? PushConstantForRendering{}
+                                            : PushConstantForRendering{
+                                                .ShaderStages = &pushConstantStageFlags,
+                                                .BufferName = materialPushConstantBufferName.c_str(),
+                                                .TransformComponent = &transformComponent,
+                                            },
                         .Meshes = {meshForRendering}
                     }
                 )

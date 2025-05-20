@@ -24,7 +24,7 @@ const char* axrPushConstantBufferGetName(const AxrPushConstantBuffer_T pushConst
         return "";
     }
 
-    return pushConstantBuffer->getName();
+    return pushConstantBuffer->getName().c_str();
 }
 
 
@@ -99,7 +99,7 @@ AxrPushConstantBuffer& AxrPushConstantBuffer::operator=(AxrPushConstantBuffer&& 
 
 // ---- Public Functions ----
 
-const char* AxrPushConstantBuffer::getName() const {
+const std::string& AxrPushConstantBuffer::getName() const {
     return m_Name;
 }
 

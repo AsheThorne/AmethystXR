@@ -5,6 +5,11 @@
 // ----------------------------------------- //
 #include "axr/assets.h"
 
+// ----------------------------------------- //
+// C/C++ Headers
+// ----------------------------------------- //
+#include <string>
+
 /// Uniform buffer
 class AxrUniformBuffer {
 public:
@@ -46,7 +51,7 @@ public:
 
     /// Get the uniform buffer's name
     /// @returns The uniform buffer's name
-    [[nodiscard]] const char* getName() const;
+    [[nodiscard]] const std::string& getName() const;
 
     /// Clone the given data
     /// @param size Size of the data
@@ -80,7 +85,7 @@ private:
     // ----------------------------------------- //
 
     // ---- Config Variables ----
-    const char* m_Name;
+    std::string m_Name;
     uint64_t m_DataSize;
     void* m_Data;
 

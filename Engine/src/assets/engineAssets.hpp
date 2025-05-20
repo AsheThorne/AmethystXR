@@ -5,6 +5,11 @@
 // ----------------------------------------- //
 #include "axr/assets.h"
 
+// ----------------------------------------- //
+// C/C++ Headers
+// ----------------------------------------- //
+#include <string>
+
 // ---------------------------------------------------------------------------------- //
 //                               Shader Engine Assets                                 //
 // ---------------------------------------------------------------------------------- //
@@ -112,7 +117,7 @@ bool axrEngineAssetIsPushConstantBufferNameReserved(const char* name);
 /// @param material Output created material
 /// @returns AXR_SUCCESS if the function succeeded
 AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
-    const char* materialName,
+    const std::string& materialName,
     AxrEngineAssetMaterial_DefaultMaterial materialValues,
     AxrMaterial& material
 );
@@ -131,10 +136,10 @@ bool axrEngineAssetIsModel(AxrEngineAssetEnum engineAssetEnum);
 /// @param engineAssetEnum Model engine asset
 /// @param model Output created model
 /// @returns AXR_SUCCESS if the function succeeded
-AxrResult axrEngineAssetCreateModel(const char* modelName, AxrEngineAssetEnum engineAssetEnum, AxrModel& model);
+AxrResult axrEngineAssetCreateModel(const std::string& modelName, AxrEngineAssetEnum engineAssetEnum, AxrModel& model);
 
 /// Create the 'Triangle' engine asset model
 /// @param modelName Model name
 /// @param model Output created model
 /// @returns AXR_SUCCESS if the function succeeded
-AxrResult axrEngineAssetCreateModel_Triangle(const char* modelName, AxrModel& model);
+AxrResult axrEngineAssetCreateModel_Triangle(const std::string& modelName, AxrModel& model);

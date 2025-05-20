@@ -183,7 +183,7 @@ std::vector<AxrShaderImageSamplerBufferLinkConst_T> AxrShaderValuesRAII::getImag
     return imageSamplerBufferLinks;
 }
 
-const char* AxrShaderValuesRAII::findShaderBufferName(const uint32_t binding) const {
+std::string AxrShaderValuesRAII::findShaderBufferName(const uint32_t binding) const {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //

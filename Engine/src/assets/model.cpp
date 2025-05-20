@@ -38,7 +38,7 @@ const char* axrModelGetName(const AxrModel_T model) {
         return "";
     }
 
-    return model->getName();
+    return model->getName().c_str();
 }
 
 // ----------------------------------------- //
@@ -49,7 +49,7 @@ const char* axrModelGetName(const AxrModel_T model) {
 
 AxrModel::AxrModel():
     m_Name(""),
-    m_FilePath(nullptr) {
+    m_FilePath("") {
 }
 
 AxrModel::AxrModel(const AxrModelConfig& config):
@@ -71,7 +71,7 @@ AxrModel::AxrModel(AxrModel&& src) noexcept {
     m_FilePath = src.m_FilePath;
 
     src.m_Name = "";
-    src.m_FilePath = nullptr;
+    src.m_FilePath = "";
 }
 
 AxrModel::~AxrModel() {
@@ -100,7 +100,7 @@ AxrModel& AxrModel::operator=(AxrModel&& src) noexcept {
         m_FilePath = src.m_FilePath;
 
         src.m_Name = "";
-        src.m_FilePath = nullptr;
+        src.m_FilePath = "";
     }
 
     return *this;
@@ -108,7 +108,7 @@ AxrModel& AxrModel::operator=(AxrModel&& src) noexcept {
 
 // ---- Public Functions ----
 
-const char* AxrModel::getName() const {
+const std::string& AxrModel::getName() const {
     return m_Name;
 }
 
@@ -117,7 +117,7 @@ bool AxrModel::isLoaded() const {
 }
 
 AxrResult AxrModel::loadFile() const {
-    if (axrStringIsEmpty(m_FilePath)) {
+    if (m_FilePath.empty()) {
         if (m_Meshes.empty()) {
             axrLogErrorLocation("There is no file path for the model and no meshes were assigned.");
             return AXR_ERROR;
@@ -134,7 +134,7 @@ AxrResult AxrModel::loadFile() const {
 
 void AxrModel::unloadFile() const {
     // Don't clear the meshes if there is no original data file to be loaded again
-    if (axrStringIsEmpty(m_FilePath)) {
+    if (m_FilePath.empty()) {
         return;
     }
 
@@ -175,7 +175,7 @@ void AxrModel::destroyMeshes(uint32_t& meshesCount, AxrMesh*& meshes) {
 
 void AxrModel::cleanup() {
     m_Name = "";
-    m_FilePath = nullptr;
+    m_FilePath = "";
     m_Meshes.clear();
 }
 

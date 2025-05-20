@@ -97,7 +97,7 @@ public:
     /// Set the active scene to the named scene
     /// @param sceneName Name of the scene
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setActiveScene(const char* sceneName);
+    [[nodiscard]] AxrResult setActiveScene(const std::string& sceneName);
 
 private:
     // ----------------------------------------- //
@@ -105,7 +105,7 @@ private:
     // ----------------------------------------- //
 
     // ---- Config Variables ----
-    const char* m_ApplicationName;
+    std::string m_ApplicationName;
     uint32_t m_ApplicationVersion;
     AxrAssetCollection_T m_GlobalAssetCollection;
     AxrVulkanExtensionCollection<AxrVulkanApiLayer_T, AxrVulkanApiLayerTypeEnum> m_ApiLayers;
@@ -173,13 +173,13 @@ private:
 
     /// Get a collection of all api layer names to use
     /// @returns A collection of api layer names
-    std::vector<const char*> getAllApiLayerNames() const;
+    [[nodiscard]] std::vector<const char*> getAllApiLayerNames() const;
     /// Get a collection of all instance extension names to use
     /// @returns A collection of instance extension names
-    std::vector<const char*> getAllInstanceExtensionNames() const;
+    [[nodiscard]] std::vector<const char*> getAllInstanceExtensionNames() const;
     /// Get a collection of all device extension names to use
     /// @returns A collection of device extension names
-    std::vector<const char*> getAllDeviceExtensionNames() const;
+    [[nodiscard]] std::vector<const char*> getAllDeviceExtensionNames() const;
 
     /// Add the required instance extensions to m_Extensions
     void addRequiredInstanceExtensions();

@@ -127,7 +127,7 @@ AxrResult AxrGraphicsSystem::loadScene(const AxrScene_T scene) {
     }
 }
 
-AxrResult AxrGraphicsSystem::setActiveScene(const char* sceneName) {
+AxrResult AxrGraphicsSystem::setActiveScene(const std::string& sceneName) {
     switch (m_GraphicsApi) {
         case AXR_GRAPHICS_API_VULKAN: {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN

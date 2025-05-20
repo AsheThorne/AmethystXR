@@ -6,6 +6,11 @@
 #include <axr/assets.h>
 #include "mesh.hpp"
 
+// ----------------------------------------- //
+// C/C++ Headers
+// ----------------------------------------- //
+#include <string>
+
 /// Model
 class AxrModel {
 public:
@@ -47,7 +52,7 @@ public:
 
     /// Get the model name
     /// @returns The name of the model
-    const char* getName() const;
+    const std::string& getName() const;
 
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
@@ -86,8 +91,8 @@ private:
     // ----------------------------------------- //
 
     // ---- Config Variables ----
-    const char* m_Name;
-    const char* m_FilePath;
+    std::string m_Name;
+    std::string m_FilePath;
     mutable std::vector<AxrMeshRAII> m_Meshes;
 
     // ----------------------------------------- //
