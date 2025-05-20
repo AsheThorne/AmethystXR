@@ -8,7 +8,7 @@
 // ----------------------------------------- //
 #include <axr.hpp>
 
-int wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd) {
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd) {
     const char* applicationName = "Sandbox";
 
     const auto engineSetupConfig = axr::SetupConfig(axr::LogLevelEnum::Info);
@@ -68,7 +68,6 @@ int wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int
     if (AXR_FAILED(globalAssetCollection.createShader(fragmentShaderConfig))) return 0;
 
     // TODO: These objects should have a hpp equivalent
-    // TODO: Remove the struct and just use a mat4.
     constexpr auto defaultModelMatrixBuffer = AxrPushConstantsBufferEngineAsset_ModelMatrix{
         .ModelMatrix = glm::mat4(1.0f)
     };
