@@ -1,7 +1,7 @@
 # Directories
 build/
 cmake-build/
-cmake-build-sln/
+cmake-build-*/
 obj/
 /packages/
 /_ReSharper.Caches/

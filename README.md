@@ -20,8 +20,8 @@ Open OpenXR.sln and build the solution in release mode.
 Open AmethystXR root folder in cmd
 
 ```
-mkdir cmake-build
-cd cmake-build
+mkdir cmake-build-sln
+cd cmake-build-sln
 cmake ../
 ```
 
