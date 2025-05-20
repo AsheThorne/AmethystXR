@@ -22,7 +22,8 @@ AxrVulkanSceneData::AxrVulkanSceneData(const Config& config):
     m_TransferCommandPool(config.TransferCommandPool),
     m_TransferQueue(config.TransferQueue),
     m_MaxFramesInFlight(config.MaxFramesInFlight),
-    m_DispatchHandle(config.DispatchHandle) {
+    m_DispatchHandle(config.DispatchHandle),
+    m_IsWindowDataLoaded(false) {
 }
 
 AxrVulkanSceneData::~AxrVulkanSceneData() {
@@ -132,10 +133,14 @@ AxrResult AxrVulkanSceneData::loadWindowData(const vk::RenderPass renderPass) {
         return axrResult;
     }
 
+    m_IsWindowDataLoaded = true;
+
     return AXR_SUCCESS;
 }
 
 void AxrVulkanSceneData::unloadWindowData() {
+    m_IsWindowDataLoaded = false;
+    
     // TODO: See if we can wait for all the scene specific fences to be finished instead of doing this.
     const vk::Result vkResult = m_Device.waitIdle(*m_DispatchHandle);
     axrLogVkResult(vkResult, "m_Device.waitIdle");
@@ -220,6 +225,23 @@ const AxrPushConstantsBuffer* AxrVulkanSceneData::findPushConstantsBuffer_shared
 
 bool AxrVulkanSceneData::isThisGlobalSceneData() const {
     return m_GlobalSceneData == nullptr;
+}
+
+bool AxrVulkanSceneData::isPlatformLoaded(const AxrPlatformType platformType) const {
+    switch (platformType) {
+        case AXR_PLATFORM_TYPE_WINDOW: {
+            return m_IsWindowDataLoaded;
+        }
+        case AXR_PLATFORM_TYPE_XR_DEVICE: {
+            // NOTE: Add m_IsXrDataLoaded
+            return false;
+        }
+        case AXR_PLATFORM_TYPE_UNDEFINED:
+        default: {
+            axrLogErrorLocation("Unknown platform type");
+            return false;
+        }
+    }
 }
 
 void AxrVulkanSceneData::destroyUniformBufferData(
@@ -1109,7 +1131,10 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
     // Validation
     // ----------------------------------------- //
 
-    // TODO: Add check that the chosen platform in platformType is loaded before continuing
+    if (!isPlatformLoaded(platformType)) {
+        // The platform hasn't loaded so nothing to do
+        return AXR_SUCCESS;
+    }
 
     if (m_Device == VK_NULL_HANDLE) {
         axrLogErrorLocation("Device is null.");
@@ -1141,8 +1166,7 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
     const std::vector<vk::DescriptorSet>& descriptorSets = materialData.getWindowDescriptorSets();
     if (descriptorSets.empty()) {
         axrLogErrorLocation("Descriptor sets are empty.");
-        // TODO: Replace with AXR_ERROR. Just needing to test things like this for now
-        return AXR_SUCCESS;
+        return AXR_ERROR;
     }
 
     // ----------------------------------------- //

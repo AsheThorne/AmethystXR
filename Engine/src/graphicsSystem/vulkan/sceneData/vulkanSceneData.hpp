@@ -163,6 +163,7 @@ private:
     vk::Queue m_TransferQueue;
     uint32_t m_MaxFramesInFlight;
     vk::DispatchLoaderDynamic* m_DispatchHandle;
+    bool m_IsWindowDataLoaded;
 
     /// Window specific engine defined uniform buffers
     std::unordered_map<std::string, AxrVulkanUniformBufferData> m_WindowUniformBufferData;
@@ -180,6 +181,11 @@ private:
     /// Check if this class is the global scene data
     /// @returns True if this class is the global scene data
     [[nodiscard]] bool isThisGlobalSceneData() const;
+
+    /// Check if the given platform's data is loaded
+    /// @param platformType Platform type
+    /// @returns True if the given platform's data is loaded
+    [[nodiscard]] bool isPlatformLoaded(AxrPlatformType platformType) const;
 
     // ---- Uniform Buffer ----
 
