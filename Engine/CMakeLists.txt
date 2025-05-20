@@ -162,6 +162,8 @@ set(AXR_CPP_FILES
 
 set(AXR_ASSET_FILES
     # ---- Shaders ----
+    ${AXR_SHADERS_DIR}/shader.vert
+    ${AXR_SHADERS_DIR}/shader.frag
 )
 
 # ---------------------------------------------

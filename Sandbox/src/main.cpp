@@ -51,48 +51,20 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
     auto app = axr::Application(appConfig);
 
+    const std::string materialName = "MyMaterial";
+
     axr::AssetCollection globalAssetCollection = app.getGlobalAssetCollection();
-
-    axr::VertexShaderProperties vertexShaderProperties;
-    vertexShaderProperties.addVertexAttribute(axr::ShaderVertexAttributeEnum::Position, 0, 0);
-    vertexShaderProperties.addVertexAttribute(axr::ShaderVertexAttributeEnum::Color, 0, 1);
-    vertexShaderProperties.addUniformBufferLayout(0, axr::engineAssetGetUniformBufferSize(axr::EngineAssetEnum::UniformBufferSceneData));
-    vertexShaderProperties.addPushConstantBufferLayout(axr::engineAssetGetPushConstantBufferSize(axr::EngineAssetEnum::PushConstantBufferModelMatrix));
-    const axr::ShaderConfig vertexShaderConfig("VertexShader", "shaders/shader.vert", vertexShaderProperties);
-    if (!vertexShaderConfig.isValid()) return 0;
-    if (AXR_FAILED(globalAssetCollection.createShader(vertexShaderConfig))) return 0;
-
-    const axr::FragmentShaderProperties fragmentShaderProperties;
-    const axr::ShaderConfig fragmentShaderConfig("FragmentShader", "shaders/shader.frag", fragmentShaderProperties);
-    if (!fragmentShaderConfig.isValid()) return 0;
-    if (AXR_FAILED(globalAssetCollection.createShader(fragmentShaderConfig))) return 0;
-
-    const auto defaultModelMatrixBuffer = axr::EngineAssetPushConstantBuffer_ModelMatrix(glm::mat4(1.0f));
-
-    const axr::PushConstantBufferConfig defaultModelMatrixBufferConfig(
-        "DefaultModelMatrix",
-        axr::engineAssetGetPushConstantBufferSize(axr::EngineAssetEnum::PushConstantBufferModelMatrix),
-        &defaultModelMatrixBuffer
-    );
-    if (AXR_FAILED(globalAssetCollection.createPushConstantBuffer(defaultModelMatrixBufferConfig))) return 0;
-
-    axr::ShaderValues vertexShaderValues;
-    vertexShaderValues.addUniformBufferLink(
-        0,
-        axr::engineAssetGetName(axr::EngineAssetEnum::UniformBufferSceneData)
-    );
-    const axr::ShaderValues fragmentShaderValues;
-    const char* materialName = "MyMaterial";
-    const axr::MaterialConfig materialConfig(
-        materialName,
-        vertexShaderConfig.Name,
-        fragmentShaderConfig.Name,
-        defaultModelMatrixBufferConfig.Name,
-        vertexShaderValues,
-        fragmentShaderValues
-    );
-    if (!materialConfig.isValid()) return 0;
-    if (AXR_FAILED(globalAssetCollection.createMaterial(materialConfig))) return 0;
+    if (AXR_FAILED(globalAssetCollection.createShader(axr::EngineAssetEnum::ShaderDefaultFrag))) return 0;
+    if (AXR_FAILED(globalAssetCollection.createShader(axr::EngineAssetEnum::ShaderDefaultVert))) return 0;
+    if (AXR_FAILED(
+        globalAssetCollection.createMaterial(
+            materialName.c_str(),
+            // TODO: Use an image when that gets implemented
+            axr::EngineAssetMaterial_DefaultMaterial("")
+        )
+    )) {
+        return 0;
+    }
 
     if (AXR_FAILED(globalAssetCollection.createModel("Triangle", axr::EngineAssetEnum::ModelTriangle))) return 0;
 
@@ -109,7 +81,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         }
     );
     AxrModelComponent::Mesh mesh{
-        .MaterialName = materialName,
+        .MaterialName = materialName.c_str(),
     };
     triangleEntity.emplace<AxrModelComponent>(
         AxrModelComponent{

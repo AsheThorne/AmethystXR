@@ -27,9 +27,6 @@ set(AXR_SANDBOX_CPP_FILES
 # ---------------------------------------------
 
 set(AXR_SANDBOX_ASSET_FILES
-    # ---- Shaders ----
-    ${AXR_SANDBOX_SHADERS_DIR}/shader.vert
-    ${AXR_SANDBOX_SHADERS_DIR}/shader.frag
 )
 
 # ---------------------------------------------

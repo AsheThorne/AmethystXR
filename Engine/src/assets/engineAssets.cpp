@@ -4,6 +4,9 @@
 #include "engineAssets.hpp"
 #include "axr/logger.h"
 #include "model.hpp"
+#include "assetsUtils.hpp"
+#include "shader.hpp"
+#include "material.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -178,13 +181,82 @@ AxrResult axrEngineAssetCreateShader(const AxrEngineAssetEnum engineAssetEnum, A
 }
 
 AxrResult axrEngineAssetCreateShader_DefaultVert(AxrShader& shader) {
-    // TODO...
-    return AXR_ERROR;
+    std::array vertexAttributes{
+        AxrShaderVertexAttribute{
+            .Type = AXR_SHADER_VERTEX_ATTRIBUTE_POSITION,
+            .Binding = 0,
+            .Location = 0,
+        },
+        AxrShaderVertexAttribute{
+            .Type = AXR_SHADER_VERTEX_ATTRIBUTE_COLOR,
+            .Binding = 0,
+            .Location = 1,
+        }
+    };
+
+    AxrShaderUniformBufferLayout sceneDataBufferLayout{
+        .Binding = 0,
+        .BufferSize = axrEngineAssetGetUniformBufferSize(AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA)
+    };
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    AxrShaderPushConstantBufferLayout modelMatrixBufferLayout{
+        .BufferSize = axrEngineAssetGetPushConstantBufferSize(AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX)
+    };
+#endif
+
+    std::array bufferLayouts{
+        reinterpret_cast<AxrShaderBufferLayout_T>(&sceneDataBufferLayout),
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+        reinterpret_cast<AxrShaderBufferLayout_T>(&modelMatrixBufferLayout),
+#endif
+    };
+
+    AxrVertexShaderProperties shaderProperties{
+        .VertexAttributesCount = static_cast<uint32_t>(vertexAttributes.size()),
+        .VertexAttributes = vertexAttributes.data(),
+        .BufferLayoutsCount = static_cast<uint32_t>(bufferLayouts.size()),
+        .BufferLayouts = bufferLayouts.data(),
+    };
+
+    const auto shaderPath = axrGetEngineAssetsDirectoryPath().append("shaders/shader.vert").generic_string();
+
+    const AxrShaderConfig shaderConfig{
+        .Name = axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT),
+        .FilePath = shaderPath.c_str(),
+        .Properties = reinterpret_cast<AxrShaderProperties_T>(&shaderProperties)
+    };
+
+    if (!axrShaderConfigIsValid(&shaderConfig)) {
+        return AXR_ERROR;
+    }
+
+    shader = AxrShader(shaderConfig);
+
+    return AXR_SUCCESS;
 }
 
 AxrResult axrEngineAssetCreateShader_DefaultFrag(AxrShader& shader) {
-    // TODO...
-    return AXR_ERROR;
+    AxrFragmentShaderProperties shaderProperties{
+        .BufferLayoutsCount = 0,
+        .BufferLayouts = nullptr,
+    };
+
+    const auto shaderPath = axrGetEngineAssetsDirectoryPath().append("shaders/shader.frag").generic_string();
+
+    const AxrShaderConfig shaderConfig{
+        .Name = axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG),
+        .FilePath = shaderPath.c_str(),
+        .Properties = reinterpret_cast<AxrShaderProperties_T>(&shaderProperties)
+    };
+
+    if (!axrShaderConfigIsValid(&shaderConfig)) {
+        return AXR_ERROR;
+    }
+
+    shader = AxrShader(shaderConfig);
+
+    return AXR_SUCCESS;
 }
 
 // ----------------------------------------- //
@@ -302,8 +374,41 @@ AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
     AxrEngineAssetMaterial_DefaultMaterial materialValues,
     AxrMaterial& material
 ) {
-    // TODO...
-    return AXR_ERROR;
+    AxrShaderUniformBufferLink sceneDataBufferLink{
+        .Binding = 0,
+        .BufferName = axrEngineAssetGetUniformBufferName(AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA)
+    };
+
+    std::array vertexBufferLinks{
+        reinterpret_cast<AxrShaderBufferLink_T>(&sceneDataBufferLink),
+    };
+
+    AxrShaderValues vertexShaderValues{
+        .BufferLinksCount = static_cast<uint32_t>(vertexBufferLinks.size()),
+        .BufferLinks = vertexBufferLinks.data(),
+    };
+
+    AxrShaderValues fragmentShaderValues{
+        .BufferLinksCount = 0,
+        .BufferLinks = nullptr
+    };
+
+    const AxrMaterialConfig materialConfig{
+        .Name = materialName.c_str(),
+        .VertexShaderName = axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT),
+        .FragmentShaderName = axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG),
+        .PushConstantBufferName = "",
+        .VertexShaderValues = &vertexShaderValues,
+        .FragmentShaderValues = &fragmentShaderValues
+    };
+
+    if (!axrMaterialConfigIsValid(&materialConfig)) {
+        return AXR_ERROR;
+    }
+
+    material = AxrMaterial(materialConfig);
+
+    return AXR_SUCCESS;
 }
 
 // ----------------------------------------- //

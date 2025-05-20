@@ -207,7 +207,7 @@ AxrResult AxrAssetCollection::createShader(const AxrShaderConfig& shaderConfig) 
 
     const auto insertResult = m_Shaders.insert(std::pair(shaderConfig.Name, AxrShader(shaderConfig)));
     if (!insertResult.second) {
-        // If the insertion failed
+        axrLogErrorLocation("Failed to insert shader.");
         return AXR_ERROR;
     }
 
@@ -255,7 +255,7 @@ AxrResult AxrAssetCollection::createShader(const AxrEngineAssetEnum engineAssetE
 
     const auto insertResult = m_Shaders.insert(std::pair(shaderName, std::move(shader)));
     if (!insertResult.second) {
-        // If the insertion failed
+        axrLogErrorLocation("Failed to insert shader.");
         return AXR_ERROR;
     }
 
@@ -301,7 +301,7 @@ AxrResult AxrAssetCollection::createMaterial(const AxrMaterialConfig& materialCo
 
     const auto insertResult = m_Materials.insert(std::pair(materialConfig.Name, AxrMaterial(materialConfig)));
     if (!insertResult.second) {
-        // If the insertion failed
+        axrLogErrorLocation("Failed to insert material.");
         return AXR_ERROR;
     }
 
@@ -361,7 +361,7 @@ AxrResult AxrAssetCollection::createMaterial(
 
     const auto insertResult = m_Materials.insert(std::pair(materialName, std::move(material)));
     if (!insertResult.second) {
-        // If the insertion failed
+        axrLogErrorLocation("Failed to insert material.");
         return AXR_ERROR;
     }
 
@@ -386,7 +386,7 @@ AxrResult AxrAssetCollection::createModel(const AxrModelConfig& modelConfig) {
 
     const auto insertResult = m_Models.insert(std::pair(modelConfig.Name, AxrModel(modelConfig)));
     if (!insertResult.second) {
-        // If the insertion failed
+        axrLogErrorLocation("Failed to insert model.");
         return AXR_ERROR;
     }
 
@@ -423,7 +423,7 @@ AxrResult AxrAssetCollection::createModel(const std::string& modelName, const Ax
 
     const auto insertResult = m_Models.insert(std::pair(modelName, std::move(model)));
     if (!insertResult.second) {
-        // If the insertion failed
+        axrLogErrorLocation("Failed to insert model.");
         return AXR_ERROR;
     }
 
@@ -461,7 +461,7 @@ AxrResult AxrAssetCollection::createUniformBuffer(const AxrUniformBufferConfig& 
         std::pair(uniformBufferConfig.Name, AxrUniformBuffer(uniformBufferConfig))
     );
     if (!insertResult.second) {
-        // If the insertion failed
+        axrLogErrorLocation("Failed to insert uniform buffer.");
         return AXR_ERROR;
     }
 
@@ -500,7 +500,7 @@ AxrResult AxrAssetCollection::createPushConstantBuffer(const AxrPushConstantBuff
         std::pair(pushConstantBufferConfig.Name, AxrPushConstantBuffer(pushConstantBufferConfig))
     );
     if (!insertResult.second) {
-        // If the insertion failed
+        axrLogErrorLocation("Failed to insert push constant buffer.");
         return AXR_ERROR;
     }
 
