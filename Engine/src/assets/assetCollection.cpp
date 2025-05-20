@@ -3,9 +3,12 @@
 // ----------------------------------------- //
 #include "assetCollection.hpp"
 #include "axr/logger.h"
-#include "shaderEngineAssets.hpp"
-#include "materialEngineAssets.hpp"
-#include "modelEngineAssets.hpp"
+#include "engineAssets.hpp"
+#include "../utils.hpp"
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+#include "pushConstantBuffer.hpp"
+#endif
 
 // ----------------------------------------- //
 // External Functions
@@ -30,7 +33,7 @@ AxrResult axrAssetCollectionCreateShader(
 
 AxrResult axrAssetCollectionCreateEngineAssetShader(
     const AxrAssetCollection_T assetCollection,
-    const AxrShaderEngineAssetEnum engineAssetEnum
+    const AxrEngineAssetEnum engineAssetEnum
 ) {
     if (assetCollection == nullptr) {
         axrLogErrorLocation("`assetCollection` is null.");
@@ -60,7 +63,7 @@ AxrResult axrAssetCollectionCreateMaterial(
 AxrResult axrAssetCollectionCreateEngineAssetMaterial_DefaultMaterial(
     const AxrAssetCollection_T assetCollection,
     const char* materialName,
-    const AxrMaterialEngineAsset_DefaultMaterial materialValues
+    const AxrEngineAssetMaterial_DefaultMaterial materialValues
 ) {
     if (assetCollection == nullptr) {
         axrLogErrorLocation("`assetCollection` is null.");
@@ -90,7 +93,7 @@ AxrResult axrAssetCollectionCreateModel(
 AxrResult axrAssetCollectionCreateEngineAssetModel(
     const AxrAssetCollection_T assetCollection,
     const char* modelName,
-    const AxrModelEngineAssetEnum engineAssetEnum
+    const AxrEngineAssetEnum engineAssetEnum
 ) {
     if (assetCollection == nullptr) {
         axrLogErrorLocation("`assetCollection` is null.");
@@ -118,21 +121,21 @@ AxrResult axrAssetCollectionCreateUniformBuffer(
 }
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-AxrResult axrAssetCollectionCreatePushConstantsBuffer(
+AxrResult axrAssetCollectionCreatePushConstantBuffer(
     const AxrAssetCollection_T assetCollection,
-    const AxrPushConstantsBufferConfig* pushConstantsBufferConfig
+    const AxrPushConstantBufferConfig* pushConstantBufferConfig
 ) {
     if (assetCollection == nullptr) {
         axrLogErrorLocation("`assetCollection` is null.");
         return AXR_ERROR;
     }
 
-    if (pushConstantsBufferConfig == nullptr) {
-        axrLogErrorLocation("`pushConstantsBufferConfig` is null.");
+    if (pushConstantBufferConfig == nullptr) {
+        axrLogErrorLocation("`pushConstantBufferConfig` is null.");
         return AXR_ERROR;
     }
 
-    return assetCollection->createPushConstantsBuffer(*pushConstantsBufferConfig);
+    return assetCollection->createPushConstantBuffer(*pushConstantBufferConfig);
 }
 #endif
 
@@ -151,7 +154,7 @@ AxrAssetCollection::AxrAssetCollection(AxrAssetCollection&& src) noexcept {
     m_UniformBuffers = std::move(src.m_UniformBuffers);
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    m_PushConstantsBuffers = std::move(src.m_PushConstantsBuffers);
+    m_PushConstantBuffers = std::move(src.m_PushConstantBuffers);
 #endif
 }
 
@@ -169,7 +172,7 @@ AxrAssetCollection& AxrAssetCollection::operator=(AxrAssetCollection&& src) noex
         m_UniformBuffers = std::move(src.m_UniformBuffers);
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-        m_PushConstantsBuffers = std::move(src.m_PushConstantsBuffers);
+        m_PushConstantBuffers = std::move(src.m_PushConstantBuffers);
 #endif
     }
 
@@ -183,7 +186,7 @@ AxrResult AxrAssetCollection::createShader(const AxrShaderConfig& shaderConfig) 
     // Validation
     // ----------------------------------------- //
 
-    if (axrIsShaderNameReserved(shaderConfig.Name)) {
+    if (axrEngineAssetIsShaderNameReserved(shaderConfig.Name)) {
         axrLogError("Unable to create shader. The shader name: {0} is reserved by the engine.", shaderConfig.Name);
         return AXR_ERROR;
     }
@@ -213,14 +216,20 @@ AxrResult AxrAssetCollection::createShader(const AxrShaderConfig& shaderConfig) 
     return AXR_SUCCESS;
 }
 
-AxrResult AxrAssetCollection::createShader(const AxrShaderEngineAssetEnum engineAssetEnum) {
+AxrResult AxrAssetCollection::createShader(const AxrEngineAssetEnum engineAssetEnum) {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
 
-    const char* shaderName = axrGetShaderEngineAssetName(engineAssetEnum);
-    if (std::strcmp(shaderName, "") != 0) {
-        axrLogError("Unable to create shader. Unknown shader engine asset.");
+    if (!axrEngineAssetIsShader(engineAssetEnum)) {
+        axrLogError("Unable to create shader. Engine asset is not a shader.");
+        return AXR_ERROR;
+    }
+
+    const char* shaderName = axrEngineAssetGetName(engineAssetEnum);
+    if (axrStringIsEmpty(shaderName)) {
+        axrLogError("Unable to create shader. Unknown shader engine asset name.");
+        return AXR_ERROR;
     }
 
     if (m_Shaders.contains(shaderName)) {
@@ -229,7 +238,7 @@ AxrResult AxrAssetCollection::createShader(const AxrShaderEngineAssetEnum engine
     }
 
     AxrShader shader;
-    const AxrResult axrResult = axrCreateEngineAssetShader(engineAssetEnum, shader);
+    const AxrResult axrResult = axrEngineAssetCreateShader(engineAssetEnum, shader);
     if (AXR_FAILED(axrResult)) {
         axrLogErrorLocation("Failed to create shader engine asset.");
         return axrResult;
@@ -303,7 +312,7 @@ AxrResult AxrAssetCollection::createMaterial(const AxrMaterialConfig& materialCo
 
 AxrResult AxrAssetCollection::createMaterial(
     const char* materialName,
-    const AxrMaterialEngineAsset_DefaultMaterial materialValues
+    const AxrEngineAssetMaterial_DefaultMaterial materialValues
 ) {
     // ----------------------------------------- //
     // Validation
@@ -315,7 +324,7 @@ AxrResult AxrAssetCollection::createMaterial(
     }
 
     AxrMaterial material;
-    const AxrResult axrResult = axrCreateEngineAssetMaterial_DefaultMaterial(materialName, materialValues, material);
+    const AxrResult axrResult = axrEngineAssetCreateMaterial_DefaultMaterial(materialName, materialValues, material);
     if (AXR_FAILED(axrResult)) {
         axrLogErrorLocation("Failed to create material engine asset.");
         return axrResult;
@@ -382,10 +391,15 @@ AxrResult AxrAssetCollection::createModel(const AxrModelConfig& modelConfig) {
     return AXR_SUCCESS;
 }
 
-AxrResult AxrAssetCollection::createModel(const char* modelName, AxrModelEngineAssetEnum engineAssetEnum) {
+AxrResult AxrAssetCollection::createModel(const char* modelName, const AxrEngineAssetEnum engineAssetEnum) {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
+
+    if (!axrEngineAssetIsModel(engineAssetEnum)) {
+        axrLogError("Unable to create model. Engine asset is not a model.");
+        return AXR_ERROR;
+    }
 
     if (m_Models.contains(modelName)) {
         axrLogError("Unable to create model. A model named: {0} already exists.", modelName);
@@ -393,7 +407,7 @@ AxrResult AxrAssetCollection::createModel(const char* modelName, AxrModelEngineA
     }
 
     AxrModel model;
-    const AxrResult axrResult = axrCreateEngineAssetModel(modelName, engineAssetEnum, model);
+    const AxrResult axrResult = axrEngineAssetCreateModel(modelName, engineAssetEnum, model);
     if (AXR_FAILED(axrResult)) {
         axrLogErrorLocation("Failed to create model engine asset.");
         return axrResult;
@@ -419,7 +433,7 @@ AxrResult AxrAssetCollection::createUniformBuffer(const AxrUniformBufferConfig& 
     // Validation
     // ----------------------------------------- //
 
-    if (axrIsUniformBufferNameReserved(uniformBufferConfig.Name)) {
+    if (axrEngineAssetIsUniformBufferNameReserved(uniformBufferConfig.Name)) {
         axrLogError(
             "Unable to create uniform buffer. The uniform buffer name: {0} is reserved by the engine.",
             uniformBufferConfig.Name
@@ -453,23 +467,23 @@ AxrResult AxrAssetCollection::createUniformBuffer(const AxrUniformBufferConfig& 
 }
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-AxrResult AxrAssetCollection::createPushConstantsBuffer(const AxrPushConstantsBufferConfig& pushConstantsBufferConfig) {
+AxrResult AxrAssetCollection::createPushConstantBuffer(const AxrPushConstantBufferConfig& pushConstantBufferConfig) {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
 
-    if (axrIsPushConstantsBufferNameReserved(pushConstantsBufferConfig.Name)) {
+    if (axrEngineAssetIsPushConstantBufferNameReserved(pushConstantBufferConfig.Name)) {
         axrLogError(
-            "Unable to create push constants buffer. The push constants buffer name: {0} is reserved by the engine.",
-            pushConstantsBufferConfig.Name
+            "Unable to create push constant buffer. The push constant buffer name: {0} is reserved by the engine.",
+            pushConstantBufferConfig.Name
         );
         return AXR_ERROR;
     }
 
-    if (m_PushConstantsBuffers.contains(pushConstantsBufferConfig.Name)) {
+    if (m_PushConstantBuffers.contains(pushConstantBufferConfig.Name)) {
         axrLogError(
-            "Unable to create push constants buffer. A push constants buffer named: {0} already exists.",
-            pushConstantsBufferConfig.Name
+            "Unable to create push constant buffer. A push constant buffer named: {0} already exists.",
+            pushConstantBufferConfig.Name
         );
         return AXR_ERROR;
     }
@@ -478,8 +492,8 @@ AxrResult AxrAssetCollection::createPushConstantsBuffer(const AxrPushConstantsBu
     // Process
     // ----------------------------------------- //
 
-    const auto insertResult = m_PushConstantsBuffers.insert(
-        std::pair(pushConstantsBufferConfig.Name, AxrPushConstantsBuffer(pushConstantsBufferConfig))
+    const auto insertResult = m_PushConstantBuffers.insert(
+        std::pair(pushConstantBufferConfig.Name, AxrPushConstantBuffer(pushConstantBufferConfig))
     );
     if (!insertResult.second) {
         // If the insertion failed
@@ -501,7 +515,7 @@ void AxrAssetCollection::cleanup() {
     m_UniformBuffers.clear();
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    m_PushConstantsBuffers.clear();
+    m_PushConstantBuffers.clear();
 #endif
 }
 
@@ -561,13 +575,13 @@ const AxrShader* AxrAssetCollection::findShader(const std::string& name) {
 }
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-const AxrPushConstantsBuffer* AxrAssetCollection::findPushConstantsBuffer(const std::string& name) {
-    const auto foundPushConstantsBufferIterator = m_PushConstantsBuffers.find(name);
-    if (foundPushConstantsBufferIterator == m_PushConstantsBuffers.end()) {
+const AxrPushConstantBuffer* AxrAssetCollection::findPushConstantBuffer(const std::string& name) {
+    const auto foundPushConstantBufferIterator = m_PushConstantBuffers.find(name);
+    if (foundPushConstantBufferIterator == m_PushConstantBuffers.end()) {
         return nullptr;
     }
 
-    return &foundPushConstantsBufferIterator->second;
+    return &foundPushConstantBufferIterator->second;
 }
 #endif
 
@@ -588,7 +602,7 @@ const std::unordered_map<std::string, AxrUniformBuffer>& AxrAssetCollection::get
 }
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-const std::unordered_map<std::string, AxrPushConstantsBuffer>& AxrAssetCollection::getPushConstantsBuffers() {
-    return m_PushConstantsBuffers;
+const std::unordered_map<std::string, AxrPushConstantBuffer>& AxrAssetCollection::getPushConstantBuffers() {
+    return m_PushConstantBuffers;
 }
 #endif

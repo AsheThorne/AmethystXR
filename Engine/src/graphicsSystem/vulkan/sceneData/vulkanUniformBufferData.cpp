@@ -5,6 +5,7 @@
 // ----------------------------------------- //
 #include "vulkanUniformBufferData.hpp"
 #include "axr/logger.h"
+#include "../../../assets/engineAssets.hpp"
 
 // ----------------------------------------- //
 // Internal Functions
@@ -14,7 +15,7 @@
 
 AxrVulkanUniformBufferData::AxrVulkanUniformBufferData():
     m_UniformBufferHandle(nullptr),
-    m_UniformBufferEngineAsset(AXR_UNIFORM_BUFFER_ENGINE_ASSET_UNDEFINED),
+    m_UniformBufferEngineAsset(AXR_ENGINE_ASSET_UNDEFINED),
     m_MaxFramesInFlight(0),
     m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
@@ -34,8 +35,8 @@ AxrVulkanUniformBufferData::AxrVulkanUniformBufferData(const Config& config):
     m_DispatchHandle(config.DispatchHandle) {
     if (m_UniformBufferHandle != nullptr) {
         m_Name = m_UniformBufferHandle->getName();
-    } else if (m_UniformBufferEngineAsset != AXR_UNIFORM_BUFFER_ENGINE_ASSET_UNDEFINED) {
-        m_Name = axrGetUniformBufferEngineAssetName(m_UniformBufferEngineAsset);
+    } else if (m_UniformBufferEngineAsset != AXR_ENGINE_ASSET_UNDEFINED) {
+        m_Name = axrEngineAssetGetUniformBufferName(m_UniformBufferEngineAsset);
     } else {
         axrLogErrorLocation("Unable to get uniform buffer name.");
     }
@@ -54,7 +55,7 @@ AxrVulkanUniformBufferData::AxrVulkanUniformBufferData(AxrVulkanUniformBufferDat
     m_DispatchHandle = src.m_DispatchHandle;
 
     src.m_UniformBufferHandle = nullptr;
-    src.m_UniformBufferEngineAsset = AXR_UNIFORM_BUFFER_ENGINE_ASSET_UNDEFINED;
+    src.m_UniformBufferEngineAsset = AXR_ENGINE_ASSET_UNDEFINED;
     src.m_MaxFramesInFlight = 0;
     src.m_PhysicalDevice = VK_NULL_HANDLE;
     src.m_Device = VK_NULL_HANDLE;
@@ -83,7 +84,7 @@ AxrVulkanUniformBufferData& AxrVulkanUniformBufferData::operator=(AxrVulkanUnifo
         m_DispatchHandle = src.m_DispatchHandle;
 
         src.m_UniformBufferHandle = nullptr;
-        src.m_UniformBufferEngineAsset = AXR_UNIFORM_BUFFER_ENGINE_ASSET_UNDEFINED;
+        src.m_UniformBufferEngineAsset = AXR_ENGINE_ASSET_UNDEFINED;
         src.m_MaxFramesInFlight = 0;
         src.m_PhysicalDevice = VK_NULL_HANDLE;
         src.m_Device = VK_NULL_HANDLE;
@@ -110,7 +111,7 @@ vk::DeviceSize AxrVulkanUniformBufferData::getBufferSize() const {
         return m_UniformBufferHandle->getSize();
     }
 
-    return axrGetUniformBufferEngineAssetDataSize(m_UniformBufferEngineAsset);
+    return axrEngineAssetGetUniformBufferSize(m_UniformBufferEngineAsset);
 }
 
 bool AxrVulkanUniformBufferData::doesDataExist() const {
@@ -222,7 +223,7 @@ AxrResult AxrVulkanUniformBufferData::createUniformBuffer(AxrVulkanBuffer& buffe
         return AXR_ERROR;
     }
 
-    if (m_UniformBufferHandle == nullptr && m_UniformBufferEngineAsset == AXR_UNIFORM_BUFFER_ENGINE_ASSET_UNDEFINED) {
+    if (m_UniformBufferHandle == nullptr && m_UniformBufferEngineAsset == AXR_ENGINE_ASSET_UNDEFINED) {
         axrLogErrorLocation(
             "Uniform buffer handle is null and uniform buffer engine asset is undefined. One of these must be defined."
         );
@@ -241,7 +242,7 @@ AxrResult AxrVulkanUniformBufferData::createUniformBuffer(AxrVulkanBuffer& buffe
         size = m_UniformBufferHandle->getSize();
         data = m_UniformBufferHandle->getData();
     } else {
-        size = axrGetUniformBufferEngineAssetDataSize(m_UniformBufferEngineAsset);
+        size = axrEngineAssetGetUniformBufferSize(m_UniformBufferEngineAsset);
     }
 
     axrResult = buffer.createBuffer(

@@ -82,9 +82,9 @@ public:
     /// Get the pipeline layout
     /// @returns The pipeline layout
     [[nodiscard]] const vk::PipelineLayout& getPipelineLayout() const;
-    /// Get the push constants shader stages
-    /// @returns The push constants shader stages
-    [[nodiscard]] const vk::ShaderStageFlags& getPushConstantsShaderStages() const;
+    /// Get the push constant shader stages
+    /// @returns The push constant shader stages
+    [[nodiscard]] const vk::ShaderStageFlags& getPushConstantShaderStages() const;
     /// Get the descriptor set layout
     /// @returns The descriptor set layout 
     [[nodiscard]] const vk::DescriptorSetLayout& getDescriptorSetLayout() const;
@@ -118,7 +118,7 @@ private:
     std::vector<DescriptorSetItemLocation> m_DescriptorSetItemLocations;
     vk::DescriptorSetLayout m_DescriptorSetLayout;
     vk::PipelineLayout m_PipelineLayout;
-    vk::ShaderStageFlags m_PushConstantsShaderStage;
+    vk::ShaderStageFlags m_PushConstantShaderStage;
 
     // ----------------------------------------- //
     // Private Functions

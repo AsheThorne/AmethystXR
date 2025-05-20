@@ -42,7 +42,7 @@ struct AxrModelComponent {
     }* Meshes;
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    const char* PushConstantsBufferName;
+    const char* PushConstantBufferName;
 #endif
 };
 

@@ -68,10 +68,11 @@ public:
     /// Get all image sampler buffer layouts
     /// @returns A collection of image sampler buffer layouts
     [[nodiscard]] std::vector<AxrShaderImageSamplerBufferLayoutConst_T> getImageSamplerBufferLayouts() const;
-    // TODO: Shouldn't this be in the AXR_SUPPORTED_GRAPHICS_VULKAN macro??
-    /// Get the push constants buffer layout
-    /// @returns The push constants buffer layout
-    [[nodiscard]] AxrShaderPushConstantsBufferLayoutConst_T getPushConstantsBufferLayout() const;
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    /// Get the push constant buffer layout
+    /// @returns The push constant buffer layout
+    [[nodiscard]] AxrShaderPushConstantBufferLayoutConst_T getPushConstantBufferLayout() const;
+#endif
 
     /// Clean up this class
     void cleanup();
@@ -158,15 +159,15 @@ public:
     static void destroy(AxrShaderImageSamplerBufferLayout_T& shaderBufferLayout);
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    /// Clone the given shader push constants buffer layout
+    /// Clone the given shader push constant buffer layout
     /// @param shaderBufferLayout Shader buffer layout to clone
     /// @returns The cloned shader buffer layout
-    [[nodiscard]] static AxrShaderPushConstantsBufferLayout_T clone(
-        AxrShaderPushConstantsBufferLayoutConst_T shaderBufferLayout
+    [[nodiscard]] static AxrShaderPushConstantBufferLayout_T clone(
+        AxrShaderPushConstantBufferLayoutConst_T shaderBufferLayout
     );
-    /// Destroy the given shader push constants buffer layout
+    /// Destroy the given shader push constant buffer layout
     /// @param shaderBufferLayout Shader buffer layout to destroy
-    static void destroy(AxrShaderPushConstantsBufferLayout_T& shaderBufferLayout);
+    static void destroy(AxrShaderPushConstantBufferLayout_T& shaderBufferLayout);
 #endif
 
     // ---- Vertex Attribute ----
@@ -251,14 +252,16 @@ public:
         uint32_t bufferLayoutsCount,
         const AxrShaderBufferLayoutConst_T* bufferLayouts
     );
-    /// Get the push constants buffer layout from the given shader buffer layouts
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    /// Get the push constant buffer layout from the given shader buffer layouts
     /// @param bufferLayoutsCount Buffer layouts array length
     /// @param bufferLayouts Buffer layouts array
-    /// @returns The push constants buffer layout
-    [[nodiscard]] static AxrShaderPushConstantsBufferLayoutConst_T getPushConstantsBufferLayout(
+    /// @returns The push constant buffer layout
+    [[nodiscard]] static AxrShaderPushConstantBufferLayoutConst_T getPushConstantBufferLayout(
         uint32_t bufferLayoutsCount,
         const AxrShaderBufferLayoutConst_T* bufferLayouts
     );
+#endif
 
 private:
     // ----------------------------------------- //

@@ -12,7 +12,7 @@ set(AXR_SHADERS_DIR ${AXR_ASSETS_DIR}/shaders)
 # Generate defines.h from defines.h.in
 # ---------------------------------------------
 configure_file(
-    ${AXR_INCLUDE_DIR}/axr/common/defines.h.in 
+    ${AXR_INCLUDE_DIR}/axr/common/defines.h.in
     ${AXR_INCLUDE_DIR}/axr/common/defines.h
 )
 
@@ -97,15 +97,12 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/assets/material.hpp
     ${AXR_SRC_DIR}/assets/model.hpp
     ${AXR_SRC_DIR}/assets/mesh.hpp
-    ${AXR_SRC_DIR}/assets/shaderEngineAssets.hpp
-    ${AXR_SRC_DIR}/assets/materialEngineAssets.hpp
-    ${AXR_SRC_DIR}/assets/modelEngineAssets.hpp
-    ${AXR_SRC_DIR}/assets/bufferEngineAssets.hpp
+    ${AXR_SRC_DIR}/assets/engineAssets.hpp
     ${AXR_SRC_DIR}/assets/shaderProperties.hpp
     ${AXR_SRC_DIR}/assets/shaderValues.hpp
     ${AXR_SRC_DIR}/assets/assetsUtils.hpp
     ${AXR_SRC_DIR}/assets/uniformBuffer.hpp
-    ${AXR_SRC_DIR}/assets/pushConstantsBuffer.hpp
+    ${AXR_SRC_DIR}/assets/pushConstantBuffer.hpp
     # ---- Scene ----
     ${AXR_SRC_DIR}/scene/scene.hpp
     ${AXR_SRC_DIR}/scene/sceneUtils.hpp
@@ -148,15 +145,12 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/assets/material.cpp
     ${AXR_SRC_DIR}/assets/model.cpp
     ${AXR_SRC_DIR}/assets/mesh.cpp
-    ${AXR_SRC_DIR}/assets/shaderEngineAssets.cpp
-    ${AXR_SRC_DIR}/assets/materialEngineAssets.cpp
-    ${AXR_SRC_DIR}/assets/modelEngineAssets.cpp
-    ${AXR_SRC_DIR}/assets/bufferEngineAssets.cpp
+    ${AXR_SRC_DIR}/assets/engineAssets.cpp
     ${AXR_SRC_DIR}/assets/shaderProperties.cpp
     ${AXR_SRC_DIR}/assets/shaderValues.cpp
     ${AXR_SRC_DIR}/assets/assetsUtils.cpp
     ${AXR_SRC_DIR}/assets/uniformBuffer.cpp
-    ${AXR_SRC_DIR}/assets/pushConstantsBuffer.cpp
+    ${AXR_SRC_DIR}/assets/pushConstantBuffer.cpp
     # ---- Scene ----
     ${AXR_SRC_DIR}/scene/scene.cpp
     ${AXR_SRC_DIR}/scene/sceneUtils.cpp
@@ -194,8 +188,8 @@ target_link_libraries(AXR_Engine
 # ---------------------------------------------
 # AXR_Engine Include Directories
 # ---------------------------------------------
-target_include_directories(AXR_Engine 
-    PUBLIC ${AXR_INCLUDE_DIR} 
+target_include_directories(AXR_Engine
+    PUBLIC ${AXR_INCLUDE_DIR}
     ${SPDLOG_DIRECTORY}/include
     ${EnTT_DIRECTORY}/single_include
     # ${STB_DIRECTORY}/include
@@ -203,11 +197,11 @@ target_include_directories(AXR_Engine
     # ${JSON_DIRECTORY}/include
 )
 
-if(VULKAN_HPP_DIRECTORY)
+if (VULKAN_HPP_DIRECTORY)
     target_include_directories(AXR_Engine
         PUBLIC ${VULKAN_HPP_DIRECTORY}
     )
-endif()
+endif ()
 
 # ---------------------------------------------
 # Set AXR_Engine compile definitions
@@ -215,21 +209,21 @@ endif()
 add_compile_definitions(UNICODE)
 add_compile_definitions(AXR_BUILD_DLL)
 
-if(WIN32)
+if (WIN32)
     add_compile_definitions(AXR_USE_PLATFORM_WIN32)
     add_compile_definitions(NOMINMAX)
-endif()
+endif ()
 
-if(Vulkan_FOUND)
+if (Vulkan_FOUND)
     add_compile_definitions(AXR_SUPPORTED_GRAPHICS_VULKAN)
     # This definition is for OpenXR
     add_compile_definitions(XR_USE_GRAPHICS_API_VULKAN)
     add_compile_definitions(VULKAN_HPP_NO_EXCEPTIONS)
     add_compile_definitions(VULKAN_HPP_NO_DEFAULT_DISPATCHER)
-    if(WIN32)
+    if (WIN32)
         add_compile_definitions(VK_USE_PLATFORM_WIN32_KHR)
-    endif()
-endif()
+    endif ()
+endif ()
 
 # ---------------------------------------------
 # Generate vulkan shaders

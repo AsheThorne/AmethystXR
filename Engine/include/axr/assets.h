@@ -5,7 +5,6 @@
 // ----------------------------------------- //
 #include "axr/common/defines.h"
 #include "axr/common/enums.h"
-#include "axr/graphicsSystem.h"
 
 // ----------------------------------------- //
 // GLM Headers
@@ -36,7 +35,7 @@ enum AxrShaderBufferLayoutEnum {
     AXR_SHADER_BUFFER_LAYOUT_UNDEFINED = 0,
     AXR_SHADER_BUFFER_LAYOUT_UNIFORM_BUFFER,
     AXR_SHADER_BUFFER_LAYOUT_IMAGE_SAMPLER_BUFFER,
-    AXR_SHADER_BUFFER_LAYOUT_PUSH_CONSTANTS_BUFFER,
+    AXR_SHADER_BUFFER_LAYOUT_PUSH_CONSTANT_BUFFER,
 };
 
 // ---- Vertex Attributes ----
@@ -89,16 +88,16 @@ typedef AxrShaderImageSamplerBufferLayout* AxrShaderImageSamplerBufferLayout_T;
 typedef const AxrShaderImageSamplerBufferLayout* AxrShaderImageSamplerBufferLayoutConst_T;
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-/// Shader Push Constants Buffer Layout
-struct AxrShaderPushConstantsBufferLayout {
-    const AxrShaderBufferLayoutEnum Type = AXR_SHADER_BUFFER_LAYOUT_PUSH_CONSTANTS_BUFFER;
+/// Shader Push Constant Buffer Layout
+struct AxrShaderPushConstantBufferLayout {
+    const AxrShaderBufferLayoutEnum Type = AXR_SHADER_BUFFER_LAYOUT_PUSH_CONSTANT_BUFFER;
     uint32_t BufferSize;
 };
 
-/// AxrShaderPushConstantsBufferLayout Handle Type
-typedef AxrShaderPushConstantsBufferLayout* AxrShaderPushConstantsBufferLayout_T;
-/// Const AxrShaderPushConstantsBufferLayout Handle Type
-typedef const AxrShaderPushConstantsBufferLayout* AxrShaderPushConstantsBufferLayoutConst_T;
+/// AxrShaderPushConstantBufferLayout Handle Type
+typedef AxrShaderPushConstantBufferLayout* AxrShaderPushConstantBufferLayout_T;
+/// Const AxrShaderPushConstantBufferLayout Handle Type
+typedef const AxrShaderPushConstantBufferLayout* AxrShaderPushConstantBufferLayoutConst_T;
 #endif
 
 // ---- Shader Vertex Attribute ----
@@ -183,15 +182,15 @@ extern "C" {
     AXR_API void axrShaderImageSamplerBufferLayoutDestroy(AxrShaderImageSamplerBufferLayout_T* bufferLayout);
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    /// Clone the given shader push constants buffer layout
+    /// Clone the given shader push constant buffer layout
     /// @param bufferLayout Shader buffer layout to clone
     /// @returns The cloned shader buffer layout
-    AXR_API AxrShaderPushConstantsBufferLayout_T axrShaderPushConstantsBufferLayoutClone(
-        AxrShaderPushConstantsBufferLayoutConst_T bufferLayout
+    AXR_API AxrShaderPushConstantBufferLayout_T axrShaderPushConstantBufferLayoutClone(
+        AxrShaderPushConstantBufferLayoutConst_T bufferLayout
     );
-    /// Destroy the given shader push constants buffer layout
+    /// Destroy the given shader push constant buffer layout
     /// @param bufferLayout Shader buffer layout to destroy
-    AXR_API void axrShaderPushConstantsBufferLayoutDestroy(AxrShaderPushConstantsBufferLayout_T* bufferLayout);
+    AXR_API void axrShaderPushConstantBufferLayoutDestroy(AxrShaderPushConstantBufferLayout_T* bufferLayout);
 #endif
 
     // ---- Shader Vertex Attributes ----
@@ -410,7 +409,7 @@ struct AxrMaterialConfig {
     const char* VertexShaderName;
     const char* FragmentShaderName;
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    const char* PushConstantsBufferName;
+    const char* PushConstantBufferName;
 #endif
     AxrShaderValues_T VertexShaderValues;
     AxrShaderValues_T FragmentShaderValues;
@@ -531,8 +530,8 @@ struct AxrUniformBufferConfig {
 };
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-/// Push Constants Buffer Config
-struct AxrPushConstantsBufferConfig {
+/// Push Constant Buffer Config
+struct AxrPushConstantBufferConfig {
     const char* Name;
     uint32_t DataSize;
     void* Data;
@@ -547,8 +546,8 @@ struct AxrPushConstantsBufferConfig {
 typedef class AxrUniformBuffer* AxrUniformBuffer_T;
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-/// AxrPushConstantsBuffer Handle
-typedef class AxrPushConstantsBuffer* AxrPushConstantsBuffer_T;
+/// AxrPushConstantBuffer Handle
+typedef class AxrPushConstantBuffer* AxrPushConstantBuffer_T;
 #endif
 
 // ----------------------------------------- //
@@ -571,20 +570,20 @@ extern "C" {
     AXR_API const char* axrUniformBufferGetName(AxrUniformBuffer_T uniformBuffer);
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    /// Clone the given push constants buffer data
+    /// Clone the given push constant buffer data
     /// @param size Buffer size
     /// @param data Buffer data
-    /// @returns The cloned push constants buffer data
-    AXR_API void* axrPushConstantsBufferCloneData(uint32_t size, const void* data);
-    /// Destroy the given push constants buffer data
+    /// @returns The cloned push constant buffer data
+    AXR_API void* axrPushConstantBufferCloneData(uint32_t size, const void* data);
+    /// Destroy the given push constant buffer data
     /// @param size Buffer size
     /// @param data Buffer data
-    AXR_API void axrPushConstantsBufferDestroyData(uint32_t* size, void** data);
-    
-    /// Get the push constants buffer's name
-    /// @param pushConstantsBuffer Push constants buffer to use
-    /// @returns The push constants buffer's name
-    AXR_API const char* axrPushConstantsBufferGetName(AxrPushConstantsBuffer_T pushConstantsBuffer);
+    AXR_API void axrPushConstantBufferDestroyData(uint32_t* size, void** data);
+
+    /// Get the push constant buffer's name
+    /// @param pushConstantBuffer Push constant buffer to use
+    /// @returns The push constant buffer's name
+    AXR_API const char* axrPushConstantBufferGetName(AxrPushConstantBuffer_T pushConstantBuffer);
 #endif
 }
 
@@ -592,51 +591,35 @@ extern "C" {
 //                               Engine Defined Assets                                //
 // ---------------------------------------------------------------------------------- //
 
-// TODO: I don't like the long names for all engine asset related stuff.
-//  I think we should merge all the enums into a single AxrEngineAssetEnum. Then the enums themselves can be something like,
-//  AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT, AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA.
-//  And have bounds for each category. So, AXR_ENGINE_ASSET_SHADER_START = 1 and AXR_ENGINE_ASSET_SHADER_END = 33. for example.
-//  Those numbers for the start and end though are inclusive. so the first shader engine asset will also be 1.
-//  -
-//  Another Thing I'd like is for all engine asset related things to be named AxrEngineAsset<something something>. In other words,
-//  it should always start with EngineAsset, then Uniform Buffer, or Push Constats, or Shader or whatever.
-//  I think it'll help with intellisense and autocomplete.
-
 // ----------------------------------------- //
 // Enums
 // ----------------------------------------- //
 
-// ---- Shaders ----
+/// Axr engine defined assets enum
+enum AxrEngineAssetEnum {
+    AXR_ENGINE_ASSET_UNDEFINED = 0,
 
-/// Axr engine defined shader enum
-enum AxrShaderEngineAssetEnum {
-    AXR_SHADER_ENGINE_ASSET_UNDEFINED = 0,
-    AXR_SHADER_ENGINE_ASSET_DEFAULT_VERT,
-    AXR_SHADER_ENGINE_ASSET_DEFAULT_FRAG,
+    // ---- Shaders ----
+    AXR_ENGINE_ASSET_SHADER_START = 1,
+    AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT = 1,
+    AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG = 2,
+    AXR_ENGINE_ASSET_SHADER_END = 64,
+
+    // ---- Uniform Buffers ----
+    AXR_ENGINE_ASSET_UNIFORM_BUFFER_START = 65,
+    AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA = 65,
+    AXR_ENGINE_ASSET_UNIFORM_BUFFER_END = 96,
+
+    // ---- Push Constant Buffers ----
+    AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_START = 97,
+    AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX = 97,
+    AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_END = 128,
+
+    // ---- Models ----
+    AXR_ENGINE_ASSET_MODEL_START = 129,
+    AXR_ENGINE_ASSET_MODEL_TRIANGLE = 129,
+    AXR_ENGINE_ASSET_MODEL_END = 192,
 };
-
-// ---- Buffers ----
-
-/// Axr engine defined uniform buffer enum
-enum AxrUniformBufferEngineAssetEnum {
-    AXR_UNIFORM_BUFFER_ENGINE_ASSET_UNDEFINED = 0,
-    AXR_UNIFORM_BUFFER_ENGINE_ASSET_SCENE_DATA,
-};
-
-/// Axr engine defined push constants buffer enum
-enum AxrPushConstantsBufferEngineAssetEnum {
-    AXR_PUSH_CONSTANTS_BUFFER_ENGINE_ASSET_UNDEFINED = 0,
-    AXR_PUSH_CONSTANTS_BUFFER_ENGINE_ASSET_MODEL_MATRIX,
-};
-
-// ---- Models ----
-
-/// Axr engine defined model enum
-enum AxrModelEngineAssetEnum {
-    AXR_MODEL_ENGINE_ASSET_UNDEFINED = 0,
-    AXR_MODEL_ENGINE_ASSET_TRIANGLE,
-};
-
 
 // ----------------------------------------- //
 // Structs
@@ -645,14 +628,14 @@ enum AxrModelEngineAssetEnum {
 // ---- Buffers ----
 
 /// Engine asset uniform buffer named 'Scene Data' structure
-struct AxrUniformBufferEngineAsset_SceneData {
+struct AxrEngineAssetUniformBuffer_SceneData {
     alignas(16) glm::mat4 ViewMatrix;
     alignas(16) glm::mat4 ProjectionMatrix;
 };
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-/// Engine asset push constants buffer named 'Model Matrix' structure
-struct AxrPushConstantsBufferEngineAsset_ModelMatrix {
+/// Engine asset push constant buffer named 'Model Matrix' structure
+struct AxrEngineAssetPushConstantBuffer_ModelMatrix {
     glm::mat4 ModelMatrix;
 };
 #endif
@@ -660,7 +643,7 @@ struct AxrPushConstantsBufferEngineAsset_ModelMatrix {
 // ---- Materials ----
 
 /// Engine asset material named 'Default Material' values
-struct AxrMaterialEngineAsset_DefaultMaterial {
+struct AxrEngineAssetMaterial_DefaultMaterial {
     const char* ImageName;
 };
 
@@ -668,49 +651,27 @@ struct AxrMaterialEngineAsset_DefaultMaterial {
 // External Function Definitions
 // ----------------------------------------- //
 extern "C" {
-    // ---- Shaders ----
-
-    /// Check if the given name is reserved as a shader engine asset name
+    /// Check if the given name is reserved for an engine asset
     /// @param name Name to check
-    /// @returns True if the given name is reserved as a shader engine asset name
-    AXR_API bool axrIsShaderNameReserved(const char* name);
-    /// Get the name for the given shader engine asset
+    /// @returns True if the given name is reserved for an engine asset
+    AXR_API bool axrEngineAssetIsNameReserved(const char* name);
+    /// Get the name for the given engine asset
     /// @param engineAssetEnum Engine asset to get the name of
     /// @returns The name of the given engine asset
-    AXR_API const char* axrGetShaderEngineAssetName(AxrShaderEngineAssetEnum engineAssetEnum);
+    AXR_API const char* axrEngineAssetGetName(AxrEngineAssetEnum engineAssetEnum);
 
     // ---- Buffers ----
 
-    /// Check if the given name is reserved for any engine asset buffer
-    /// @param name Name to check
-    /// @returns True if the given name is reserved for any engine asset buffer
-    AXR_API bool axrIsBufferNameReserved(const char* name);
-
-    /// Check if the given name is reserved for a uniform buffer engine asset
-    /// @param name Name to check
-    /// @returns True if the given name is reserved for a uniform buffer engine asset
-    AXR_API bool axrIsUniformBufferNameReserved(const char* name);
-    /// Get the name for the given uniform buffer engine asset
-    /// @param engineAssetEnum Engine asset to get the name of
-    /// @returns The name of the given engine asset
-    AXR_API const char* axrGetUniformBufferEngineAssetName(AxrUniformBufferEngineAssetEnum engineAssetEnum);
-    /// Get the data size for the given uniform buffer engine asset
-    /// @param engineAssetEnum Engine asset to get the data size of
-    /// @returns The data size for the given uniform buffer engine asset
-    AXR_API uint64_t axrGetUniformBufferEngineAssetDataSize(AxrUniformBufferEngineAssetEnum engineAssetEnum);
-
-    /// Check if the given name is reserved for a push constants buffer engine asset
-    /// @param name Name to check
-    /// @returns True if the given name is reserved for a push constants buffer engine asset
-    AXR_API bool axrIsPushConstantsBufferNameReserved(const char* name);
-    /// Get the name for the given push constants buffer engine asset
-    /// @param engineAssetEnum Engine asset to get the name of
-    /// @returns The name of the given engine asset
-    AXR_API const char* axrGetPushConstantsBufferEngineAssetName(AxrPushConstantsBufferEngineAssetEnum engineAssetEnum);
-    /// Get the data size for the given push constants buffer engine asset
-    /// @param engineAssetEnum Engine asset to get the data size of
-    /// @returns The data size for the given push constants buffer engine asset
-    AXR_API uint32_t axrGetPushConstantsBufferEngineAssetDataSize(AxrPushConstantsBufferEngineAssetEnum engineAssetEnum);
+    /// Get the size for the given uniform buffer engine asset
+    /// @param engineAssetEnum Engine asset to use
+    /// @returns The size for the given uniform buffer engine asset
+    AXR_API uint64_t axrEngineAssetGetUniformBufferSize(AxrEngineAssetEnum engineAssetEnum);
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    /// Get the size for the given push constant buffer engine asset
+    /// @param engineAssetEnum Engine asset to use
+    /// @returns The size for the given push constant buffer engine asset
+    AXR_API uint32_t axrEngineAssetGetPushConstantBufferSize(AxrEngineAssetEnum engineAssetEnum);
+#endif
 }
 
 // ---------------------------------------------------------------------------------- //
@@ -744,7 +705,7 @@ extern "C" {
     /// @returns AXR_SUCCESS if the function succeeded
     AXR_API AxrResult axrAssetCollectionCreateEngineAssetShader(
         AxrAssetCollection_T assetCollection,
-        AxrShaderEngineAssetEnum engineAssetEnum
+        AxrEngineAssetEnum engineAssetEnum
     );
 
     // ---- Material ----
@@ -765,7 +726,7 @@ extern "C" {
     AXR_API AxrResult axrAssetCollectionCreateEngineAssetMaterial_DefaultMaterial(
         AxrAssetCollection_T assetCollection,
         const char* materialName,
-        AxrMaterialEngineAsset_DefaultMaterial materialValues
+        AxrEngineAssetMaterial_DefaultMaterial materialValues
     );
 
     // ---- Model ----
@@ -787,7 +748,7 @@ extern "C" {
     AXR_API AxrResult axrAssetCollectionCreateEngineAssetModel(
         AxrAssetCollection_T assetCollection,
         const char* modelName,
-        AxrModelEngineAssetEnum engineAssetEnum
+        AxrEngineAssetEnum engineAssetEnum
     );
 
     // ---- Uniform Buffer ----
@@ -801,16 +762,16 @@ extern "C" {
         const AxrUniformBufferConfig* uniformBufferConfig
     );
 
-    // ---- Push Constants Buffer ----
-
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    /// Create a new push constants buffer
+    // ---- Push Constant Buffer ----
+
+    /// Create a new push constant buffer
     /// @param assetCollection Asset collection to use
-    /// @param pushConstantsBufferConfig Push constants buffer config
+    /// @param pushConstantBufferConfig Push constant buffer config
     /// @returns AXR_SUCCESS if the function succeeded
-    AXR_API AxrResult axrAssetCollectionCreatePushConstantsBuffer(
+    AXR_API AxrResult axrAssetCollectionCreatePushConstantBuffer(
         AxrAssetCollection_T assetCollection,
-        const AxrPushConstantsBufferConfig* pushConstantsBufferConfig
+        const AxrPushConstantBufferConfig* pushConstantBufferConfig
     );
 #endif
 }

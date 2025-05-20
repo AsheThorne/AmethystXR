@@ -1191,10 +1191,10 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
         renderCommands.bindPipeline(material.WindowPipeline);
         // TODO: Don't hardcode the window descriptor sets here
         renderCommands.bindDescriptorSets(material.PipelineLayout, material.WindowDescriptorSets);
-        renderCommands.pushConstants(material.PipelineLayout, material.PushConstants, sceneData);
+        renderCommands.pushConstants(material.PipelineLayout, material.PushConstant, sceneData);
 
         for (const AxrVulkanSceneData::MeshForRendering& mesh : material.Meshes) {
-            renderCommands.pushConstants(material.PipelineLayout, mesh.PushConstants, sceneData);
+            renderCommands.pushConstants(material.PipelineLayout, mesh.PushConstant, sceneData);
             renderCommands.draw(mesh);
         }
     }

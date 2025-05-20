@@ -205,7 +205,7 @@ AxrResult AxrVulkanWindowGraphics::updateSceneDataUniformBuffer(const AxrVulkanS
     // ----------------------------------------- //
 
     // TODO: Use the active camera's properties
-    AxrUniformBufferEngineAsset_SceneData sceneDataEngineAsset{
+    AxrEngineAssetUniformBuffer_SceneData sceneDataEngineAsset{
         .ViewMatrix = glm::lookAt(
             glm::vec3(2.0f, 0.5f, 2.0f),
             glm::vec3(0.0f, 0.5f, 0.0f),
@@ -223,7 +223,7 @@ AxrResult AxrVulkanWindowGraphics::updateSceneDataUniformBuffer(const AxrVulkanS
     // TODO: I don't think we should set the whole scene data object in the window graphics class.
     //  We just need to get the view matrix and projection matrix for the window.
     return sceneData->setWindowUniformBufferData(
-        axrGetUniformBufferEngineAssetName(AXR_UNIFORM_BUFFER_ENGINE_ASSET_SCENE_DATA),
+        axrEngineAssetGetUniformBufferName(AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA),
         m_CurrentFrame,
         0,
         sizeof(sceneDataEngineAsset),

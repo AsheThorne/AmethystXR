@@ -3,28 +3,28 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "pushConstantsBuffer.hpp"
+#include "pushConstantBuffer.hpp"
 #include "axr/logger.h"
 
 // ----------------------------------------- //
 // External Functions
 // ----------------------------------------- //
 
-void* axrPushConstantsBufferCloneData(const uint32_t size, const void* data) {
-    return AxrPushConstantsBuffer::cloneData(size, data);
+void* axrPushConstantBufferCloneData(const uint32_t size, const void* data) {
+    return AxrPushConstantBuffer::cloneData(size, data);
 }
 
-void axrPushConstantsBufferDestroyData(uint32_t* size, void** data) {
-    return AxrPushConstantsBuffer::destroyData(*size, *data);
+void axrPushConstantBufferDestroyData(uint32_t* size, void** data) {
+    return AxrPushConstantBuffer::destroyData(*size, *data);
 }
 
-const char* axrPushConstantsBufferGetName(const AxrPushConstantsBuffer_T pushConstantsBuffer) {
-    if (pushConstantsBuffer == nullptr) {
-        axrLogErrorLocation("`pushConstantsBuffer` is null.");
+const char* axrPushConstantBufferGetName(const AxrPushConstantBuffer_T pushConstantBuffer) {
+    if (pushConstantBuffer == nullptr) {
+        axrLogErrorLocation("`pushConstantBuffer` is null.");
         return "";
     }
 
-    return pushConstantsBuffer->getName();
+    return pushConstantBuffer->getName();
 }
 
 
@@ -34,13 +34,13 @@ const char* axrPushConstantsBufferGetName(const AxrPushConstantsBuffer_T pushCon
 
 // ---- Special Functions ----
 
-AxrPushConstantsBuffer::AxrPushConstantsBuffer():
+AxrPushConstantBuffer::AxrPushConstantBuffer():
     m_Name(""),
     m_DataSize(0),
     m_Data(nullptr) {
 }
 
-AxrPushConstantsBuffer::AxrPushConstantsBuffer(const AxrPushConstantsBufferConfig& config):
+AxrPushConstantBuffer::AxrPushConstantBuffer(const AxrPushConstantBufferConfig& config):
     m_Name(config.Name),
     m_DataSize(config.DataSize),
     m_Data(nullptr) {
@@ -51,13 +51,13 @@ AxrPushConstantsBuffer::AxrPushConstantsBuffer(const AxrPushConstantsBufferConfi
     }
 }
 
-AxrPushConstantsBuffer::AxrPushConstantsBuffer(const AxrPushConstantsBuffer& src) {
+AxrPushConstantBuffer::AxrPushConstantBuffer(const AxrPushConstantBuffer& src) {
     m_Name = src.m_Name;
     m_DataSize = src.m_DataSize;
     m_Data = cloneData(src.m_DataSize, src.m_Data);
 }
 
-AxrPushConstantsBuffer::AxrPushConstantsBuffer(AxrPushConstantsBuffer&& src) noexcept {
+AxrPushConstantBuffer::AxrPushConstantBuffer(AxrPushConstantBuffer&& src) noexcept {
     m_Name = src.m_Name;
     m_DataSize = src.m_DataSize;
     m_Data = src.m_Data;
@@ -67,11 +67,11 @@ AxrPushConstantsBuffer::AxrPushConstantsBuffer(AxrPushConstantsBuffer&& src) noe
     src.m_Data = nullptr;
 }
 
-AxrPushConstantsBuffer::~AxrPushConstantsBuffer() {
+AxrPushConstantBuffer::~AxrPushConstantBuffer() {
     cleanup();
 }
 
-AxrPushConstantsBuffer& AxrPushConstantsBuffer::operator=(const AxrPushConstantsBuffer& src) {
+AxrPushConstantBuffer& AxrPushConstantBuffer::operator=(const AxrPushConstantBuffer& src) {
     if (this != &src) {
         cleanup();
 
@@ -82,7 +82,7 @@ AxrPushConstantsBuffer& AxrPushConstantsBuffer::operator=(const AxrPushConstants
     return *this;
 }
 
-AxrPushConstantsBuffer& AxrPushConstantsBuffer::operator=(AxrPushConstantsBuffer&& src) noexcept {
+AxrPushConstantBuffer& AxrPushConstantBuffer::operator=(AxrPushConstantBuffer&& src) noexcept {
     if (this != &src) {
         cleanup();
 
@@ -99,11 +99,11 @@ AxrPushConstantsBuffer& AxrPushConstantsBuffer::operator=(AxrPushConstantsBuffer
 
 // ---- Public Functions ----
 
-const char* AxrPushConstantsBuffer::getName() const {
+const char* AxrPushConstantBuffer::getName() const {
     return m_Name;
 }
 
-void* AxrPushConstantsBuffer::cloneData(const uint32_t size, const void* data) {
+void* AxrPushConstantBuffer::cloneData(const uint32_t size, const void* data) {
     if (data == nullptr) return nullptr;
 
     void* newData = malloc(size);
@@ -111,11 +111,11 @@ void* AxrPushConstantsBuffer::cloneData(const uint32_t size, const void* data) {
     return newData;
 }
 
-void* AxrPushConstantsBuffer::createData(const uint32_t size) {
+void* AxrPushConstantBuffer::createData(const uint32_t size) {
     return calloc(1, size);
 }
 
-void AxrPushConstantsBuffer::destroyData(uint32_t& size, void*& data) {
+void AxrPushConstantBuffer::destroyData(uint32_t& size, void*& data) {
     if (data == nullptr) return;
 
     size = 0;
@@ -123,17 +123,17 @@ void AxrPushConstantsBuffer::destroyData(uint32_t& size, void*& data) {
     data = nullptr;
 }
 
-const uint32_t& AxrPushConstantsBuffer::getSize() const {
+const uint32_t& AxrPushConstantBuffer::getSize() const {
     return m_DataSize;
 }
 
-const void* AxrPushConstantsBuffer::getData() const {
+const void* AxrPushConstantBuffer::getData() const {
     return m_Data;
 }
 
 // ---- Private Functions ----
 
-void AxrPushConstantsBuffer::cleanup() {
+void AxrPushConstantBuffer::cleanup() {
     destroyData(m_DataSize, m_Data);
 
     m_Name = "";

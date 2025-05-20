@@ -81,9 +81,9 @@ public:
     /// Get the window pipeline
     /// @returns The window pipeline
     [[nodiscard]] const vk::Pipeline& getWindowPipeline() const;
-    /// Get the push constants buffer name
-    /// @returns The push constants buffer name
-    [[nodiscard]] const std::string& getPushConstantsBufferName() const;
+    /// Get the push constant buffer name
+    /// @returns The push constant buffer name
+    [[nodiscard]] const std::string& getPushConstantBufferName() const;
     /// Get the window specific descriptor sets
     /// @returns The window specific descriptor sets
     [[nodiscard]] const std::vector<vk::DescriptorSet>& getWindowDescriptorSets() const;

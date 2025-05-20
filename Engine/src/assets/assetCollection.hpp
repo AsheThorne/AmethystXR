@@ -15,10 +15,6 @@
 #include "model.hpp"
 #include "uniformBuffer.hpp"
 
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-#include "pushConstantsBuffer.hpp"
-#endif
-
 /// Axr Asset Collection
 class AxrAssetCollection {
 public:
@@ -64,7 +60,7 @@ public:
     /// Create a new engine asset shader
     /// @param engineAssetEnum Engine asset enum
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createShader(AxrShaderEngineAssetEnum engineAssetEnum);
+    [[nodiscard]] AxrResult createShader(AxrEngineAssetEnum engineAssetEnum);
 
     // ---- Material ----
 
@@ -78,7 +74,7 @@ public:
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult createMaterial(
         const char* materialName,
-        AxrMaterialEngineAsset_DefaultMaterial materialValues
+        AxrEngineAssetMaterial_DefaultMaterial materialValues
     );
 
     // ---- Model ----
@@ -91,7 +87,7 @@ public:
     /// @param modelName Model name
     /// @param engineAssetEnum Engine asset enum
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createModel(const char* modelName, AxrModelEngineAssetEnum engineAssetEnum);
+    [[nodiscard]] AxrResult createModel(const char* modelName, AxrEngineAssetEnum engineAssetEnum);
 
     // ---- Uniform Buffer ----
 
@@ -101,12 +97,12 @@ public:
     [[nodiscard]] AxrResult createUniformBuffer(const AxrUniformBufferConfig& uniformBufferConfig);
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    // ---- Push Constants Buffer ----
+    // ---- Push Constant Buffer ----
 
-    /// Create a new push constants buffer
-    /// @param pushConstantsBufferConfig Push constants buffer config
+    /// Create a new push constant buffer
+    /// @param pushConstantBufferConfig Push constant buffer config
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createPushConstantsBuffer(const AxrPushConstantsBufferConfig& pushConstantsBufferConfig);
+    [[nodiscard]] AxrResult createPushConstantBuffer(const AxrPushConstantBufferConfig& pushConstantBufferConfig);
 #endif
 
     // ---- For Internal Use ----
@@ -133,10 +129,10 @@ public:
     /// @returns A handle to the shader if it was found. nullptr if it wasn't found
     [[nodiscard]] const AxrShader* findShader(const std::string& name);
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    /// Find the named push constants buffer
-    /// @param name Name of the push constants buffer
-    /// @returns A handle to the push constants buffer if it was found. nullptr if it wasn't found
-    [[nodiscard]] const AxrPushConstantsBuffer* findPushConstantsBuffer(const std::string& name);
+    /// Find the named push constant buffer
+    /// @param name Name of the push constant buffer
+    /// @returns A handle to the push constant buffer if it was found. nullptr if it wasn't found
+    [[nodiscard]] const AxrPushConstantBuffer* findPushConstantBuffer(const std::string& name);
 #endif
 
     /// Get the shaders
@@ -152,9 +148,9 @@ public:
     /// @returns A map of the uniform buffers
     [[nodiscard]] const std::unordered_map<std::string, AxrUniformBuffer>& getUniformBuffers();
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    /// Get the push constants buffers
-    /// @returns A map of the push constants buffers
-    [[nodiscard]] const std::unordered_map<std::string, AxrPushConstantsBuffer>& getPushConstantsBuffers();
+    /// Get the push constant buffers
+    /// @returns A map of the push constant buffers
+    [[nodiscard]] const std::unordered_map<std::string, AxrPushConstantBuffer>& getPushConstantBuffers();
 #endif
 
 private:
@@ -167,6 +163,6 @@ private:
     std::unordered_map<std::string, AxrUniformBuffer> m_UniformBuffers;
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    std::unordered_map<std::string, AxrPushConstantsBuffer> m_PushConstantsBuffers;
+    std::unordered_map<std::string, AxrPushConstantBuffer> m_PushConstantBuffers;
 #endif
 };

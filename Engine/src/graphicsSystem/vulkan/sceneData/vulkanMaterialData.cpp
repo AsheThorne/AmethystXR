@@ -116,8 +116,8 @@ const vk::Pipeline& AxrVulkanMaterialData::getWindowPipeline() const {
     return m_WindowPipeline;
 }
 
-const std::string& AxrVulkanMaterialData::getPushConstantsBufferName() const {
-    return m_MaterialHandle->getPushConstantsBufferName();
+const std::string& AxrVulkanMaterialData::getPushConstantBufferName() const {
+    return m_MaterialHandle->getPushConstantBufferName();
 }
 
 const std::vector<vk::DescriptorSet>& AxrVulkanMaterialData::getWindowDescriptorSets() const {

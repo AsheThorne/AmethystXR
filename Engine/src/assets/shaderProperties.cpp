@@ -56,16 +56,15 @@ void axrShaderImageSamplerBufferLayoutDestroy(AxrShaderImageSamplerBufferLayout_
 }
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-
-AxrShaderPushConstantsBufferLayout_T axrShaderPushConstantsBufferLayoutClone(
-    const AxrShaderPushConstantsBufferLayoutConst_T bufferLayout
+AxrShaderPushConstantBufferLayout_T axrShaderPushConstantBufferLayoutClone(
+    const AxrShaderPushConstantBufferLayoutConst_T bufferLayout
 ) {
     if (bufferLayout == nullptr) return nullptr;
 
     return AxrShaderPropertiesRAII::clone(bufferLayout);
 }
 
-void axrShaderPushConstantsBufferLayoutDestroy(AxrShaderPushConstantsBufferLayout_T* bufferLayout) {
+void axrShaderPushConstantBufferLayoutDestroy(AxrShaderPushConstantBufferLayout_T* bufferLayout) {
     if (bufferLayout == nullptr) return;
 
     AxrShaderPropertiesRAII::destroy(*bufferLayout);
@@ -271,8 +270,8 @@ std::vector<AxrShaderImageSamplerBufferLayoutConst_T> AxrShaderPropertiesRAII::g
     }
 }
 
-// TODO: Shouldn't this be in the AXR_SUPPORTED_GRAPHICS_VULKAN macro??
-AxrShaderPushConstantsBufferLayoutConst_T AxrShaderPropertiesRAII::getPushConstantsBufferLayout() const {
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+AxrShaderPushConstantBufferLayoutConst_T AxrShaderPropertiesRAII::getPushConstantBufferLayout() const {
     if (m_RawProperties == nullptr) {
         axrLogErrorLocation("Raw properties are null.");
         return {};
@@ -281,11 +280,11 @@ AxrShaderPushConstantsBufferLayoutConst_T AxrShaderPropertiesRAII::getPushConsta
     switch (m_RawProperties->Type) {
         case AXR_SHADER_STAGE_VERTEX: {
             const auto vertexProperties = reinterpret_cast<AxrVertexShaderPropertiesConst_T>(m_RawProperties);
-            return getPushConstantsBufferLayout(vertexProperties->BufferLayoutsCount, vertexProperties->BufferLayouts);
+            return getPushConstantBufferLayout(vertexProperties->BufferLayoutsCount, vertexProperties->BufferLayouts);
         }
         case AXR_SHADER_STAGE_FRAGMENT: {
             const auto fragmentProperties = reinterpret_cast<AxrFragmentShaderPropertiesConst_T>(m_RawProperties);
-            return getPushConstantsBufferLayout(
+            return getPushConstantBufferLayout(
                 fragmentProperties->BufferLayoutsCount,
                 fragmentProperties->BufferLayouts
             );
@@ -297,6 +296,7 @@ AxrShaderPushConstantsBufferLayoutConst_T AxrShaderPropertiesRAII::getPushConsta
         }
     }
 }
+#endif
 
 void AxrShaderPropertiesRAII::cleanup() {
     destroy(m_RawProperties);
@@ -439,10 +439,10 @@ AxrShaderBufferLayout_T AxrShaderPropertiesRAII::clone(const AxrShaderBufferLayo
                 reinterpret_cast<AxrShaderImageSamplerBufferLayoutConst_T>(shaderBufferLayout)
             ));
         }
-        case AXR_SHADER_BUFFER_LAYOUT_PUSH_CONSTANTS_BUFFER: {
+        case AXR_SHADER_BUFFER_LAYOUT_PUSH_CONSTANT_BUFFER: {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
             return reinterpret_cast<AxrShaderBufferLayout_T>(clone(
-                reinterpret_cast<AxrShaderPushConstantsBufferLayoutConst_T>(shaderBufferLayout)
+                reinterpret_cast<AxrShaderPushConstantBufferLayoutConst_T>(shaderBufferLayout)
             ));
 #else
             axrLogErrorLocation("Vulkan not supported.");
@@ -471,10 +471,10 @@ void AxrShaderPropertiesRAII::destroy(AxrShaderBufferLayout_T& shaderBufferLayou
             destroy(reinterpret_cast<AxrShaderImageSamplerBufferLayout_T&>(shaderBufferLayout));
             break;
         }
-        case AXR_SHADER_BUFFER_LAYOUT_PUSH_CONSTANTS_BUFFER: {
+        case AXR_SHADER_BUFFER_LAYOUT_PUSH_CONSTANT_BUFFER: {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
             // NOLINTNEXTLINE(clang-diagnostic-undefined-reinterpret-cast)
-            destroy(reinterpret_cast<AxrShaderPushConstantsBufferLayout_T&>(shaderBufferLayout));
+            destroy(reinterpret_cast<AxrShaderPushConstantBufferLayout_T&>(shaderBufferLayout));
             break;
 #else
             axrLogErrorLocation("Vulkan not supported.");
@@ -521,17 +521,17 @@ void AxrShaderPropertiesRAII::destroy(AxrShaderImageSamplerBufferLayout_T& shade
 }
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-AxrShaderPushConstantsBufferLayout_T AxrShaderPropertiesRAII::clone(
-    const AxrShaderPushConstantsBufferLayoutConst_T shaderBufferLayout
+AxrShaderPushConstantBufferLayout_T AxrShaderPropertiesRAII::clone(
+    const AxrShaderPushConstantBufferLayoutConst_T shaderBufferLayout
 ) {
     if (shaderBufferLayout == nullptr) return nullptr;
 
-    return new AxrShaderPushConstantsBufferLayout{
+    return new AxrShaderPushConstantBufferLayout{
         .BufferSize = shaderBufferLayout->BufferSize,
     };
 }
 
-void AxrShaderPropertiesRAII::destroy(AxrShaderPushConstantsBufferLayout_T& shaderBufferLayout) {
+void AxrShaderPropertiesRAII::destroy(AxrShaderPushConstantBufferLayout_T& shaderBufferLayout) {
     delete shaderBufferLayout;
     shaderBufferLayout = nullptr;
 }
@@ -661,7 +661,7 @@ bool AxrShaderPropertiesRAII::isValid(
                 bufferBindings.insert(imageSamplerBufferLayout->Binding);
                 break;
             }
-            case AXR_SHADER_BUFFER_LAYOUT_PUSH_CONSTANTS_BUFFER: {
+            case AXR_SHADER_BUFFER_LAYOUT_PUSH_CONSTANT_BUFFER: {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
                 pushConstantsCount++;
                 break;
@@ -680,7 +680,7 @@ bool AxrShaderPropertiesRAII::isValid(
 
     if (pushConstantsCount > 1) {
         axrLogError(
-            "Validation for shader buffer layouts failed. More than 1 push constants buffer was found."
+            "Validation for shader buffer layouts failed. More than 1 push constant buffer was found."
         );
         return false;
     }
@@ -847,7 +847,8 @@ std::vector<AxrShaderImageSamplerBufferLayoutConst_T> AxrShaderPropertiesRAII::g
     return imageSamplerBufferLayouts;
 }
 
-AxrShaderPushConstantsBufferLayoutConst_T AxrShaderPropertiesRAII::getPushConstantsBufferLayout(
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+AxrShaderPushConstantBufferLayoutConst_T AxrShaderPropertiesRAII::getPushConstantBufferLayout(
     const uint32_t bufferLayoutsCount,
     const AxrShaderBufferLayoutConst_T* bufferLayouts
 ) {
@@ -860,13 +861,14 @@ AxrShaderPushConstantsBufferLayoutConst_T AxrShaderPropertiesRAII::getPushConsta
             continue;
         }
 
-        if (bufferLayouts[i]->Type == AXR_SHADER_BUFFER_LAYOUT_PUSH_CONSTANTS_BUFFER) {
-            return reinterpret_cast<AxrShaderPushConstantsBufferLayoutConst_T>(bufferLayouts[i]);
+        if (bufferLayouts[i]->Type == AXR_SHADER_BUFFER_LAYOUT_PUSH_CONSTANT_BUFFER) {
+            return reinterpret_cast<AxrShaderPushConstantBufferLayoutConst_T>(bufferLayouts[i]);
         }
     }
 
     return nullptr;
 }
+#endif
 
 // ---- Static Private Functions ----
 

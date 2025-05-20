@@ -12,7 +12,7 @@
 #include <vulkan/vulkan.hpp>
 #include "vulkanUtils.hpp"
 #include "../../utils.hpp"
-#include "../../assets/pushConstantsBuffer.hpp"
+#include "../../assets/pushConstantBuffer.hpp"
 #include "sceneData/vulkanSceneData.hpp"
 #include "../../scene/sceneUtils.hpp"
 
@@ -235,51 +235,51 @@ public:
 
     /// Add a vkCmdPushConstants command to the render target's command buffer
     /// @param pipelineLayout Pipeline layout to use
-    /// @param pushConstants Push constants to use
-    /// @param sceneData Scene data to search for the push constants data in
+    /// @param pushConstant Push constant to use
+    /// @param sceneData Scene data to search for the push constant data in
     void pushConstants(
         const vk::PipelineLayout& pipelineLayout,
-        const AxrVulkanSceneData::PushConstantsForRendering& pushConstants,
+        const AxrVulkanSceneData::PushConstantForRendering& pushConstant,
         const AxrVulkanSceneData* sceneData
     ) const {
-        if (axrStringIsEmpty(pushConstants.BufferName)) return;
+        if (axrStringIsEmpty(pushConstant.BufferName)) return;
 
         const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer();
 
-        // ---- Set Model Matrix Push Constants Buffer ----
+        // ---- Set Model Matrix Push Constant Buffer ----
 
         if (strcmp(
-            axrGetPushConstantsBufferEngineAssetName(AXR_PUSH_CONSTANTS_BUFFER_ENGINE_ASSET_MODEL_MATRIX),
-            pushConstants.BufferName
+            axrEngineAssetGetPushConstantBufferName(AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX),
+            pushConstant.BufferName
         ) == 0) {
-            const auto engineAssetData = AxrPushConstantsBufferEngineAsset_ModelMatrix{
-                .ModelMatrix = axrTransformGetMatrix(*pushConstants.TransformComponent)
+            const auto engineAssetData = AxrEngineAssetPushConstantBuffer_ModelMatrix{
+                .ModelMatrix = axrTransformGetMatrix(*pushConstant.TransformComponent)
             };
 
             commandBuffer.pushConstants(
                 pipelineLayout,
-                *pushConstants.ShaderStages,
+                *pushConstant.ShaderStages,
                 0,
-                sizeof(AxrPushConstantsBufferEngineAsset_ModelMatrix),
+                sizeof(engineAssetData),
                 &engineAssetData,
                 m_Dispatch
             );
             return;
         }
 
-        // ---- Set User Defined Push Constants Buffer ----
+        // ---- Set User Defined Push Constant Buffer ----
 
-        const AxrPushConstantsBuffer* foundBuffer = sceneData->findPushConstantsBuffer_shared(
-            pushConstants.BufferName
+        const AxrPushConstantBuffer* foundBuffer = sceneData->findPushConstantBuffer_shared(
+            pushConstant.BufferName
         );
         if (foundBuffer == nullptr) {
-            axrLogErrorLocation("Failed to find push constants buffer named: {0}.", pushConstants.BufferName);
+            axrLogErrorLocation("Failed to find push constant buffer named: {0}.", pushConstant.BufferName);
             return;
         }
 
         commandBuffer.pushConstants(
             pipelineLayout,
-            *pushConstants.ShaderStages,
+            *pushConstant.ShaderStages,
             0,
             foundBuffer->getSize(),
             foundBuffer->getData(),

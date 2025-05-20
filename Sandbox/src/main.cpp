@@ -56,8 +56,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     axr::VertexShaderProperties vertexShaderProperties;
     vertexShaderProperties.addVertexAttribute(axr::ShaderVertexAttributeEnum::Position, 0, 0);
     vertexShaderProperties.addVertexAttribute(axr::ShaderVertexAttributeEnum::Color, 0, 1);
-    vertexShaderProperties.addUniformBufferLayout(0, axr::getUniformBufferEngineAssetDataSize(axr::UniformBufferEngineAssetEnum::SceneData));
-    vertexShaderProperties.addPushConstantsBufferLayout(axr::getPushConstantsBufferEngineAssetDataSize(axr::PushConstantsBufferEngineAssetEnum::ModelMatrix));
+    vertexShaderProperties.addUniformBufferLayout(0, axr::engineAssetGetUniformBufferSize(axr::EngineAssetEnum::UniformBufferSceneData));
+    vertexShaderProperties.addPushConstantBufferLayout(axr::engineAssetGetPushConstantBufferSize(axr::EngineAssetEnum::PushConstantBufferModelMatrix));
     const axr::ShaderConfig vertexShaderConfig("VertexShader", "shaders/shader.vert", vertexShaderProperties);
     if (!vertexShaderConfig.isValid()) return 0;
     if (AXR_FAILED(globalAssetCollection.createShader(vertexShaderConfig))) return 0;
@@ -67,22 +67,19 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     if (!fragmentShaderConfig.isValid()) return 0;
     if (AXR_FAILED(globalAssetCollection.createShader(fragmentShaderConfig))) return 0;
 
-    // TODO: These objects should have a hpp equivalent
-    constexpr auto defaultModelMatrixBuffer = AxrPushConstantsBufferEngineAsset_ModelMatrix{
-        .ModelMatrix = glm::mat4(1.0f)
-    };
+    const auto defaultModelMatrixBuffer = axr::EngineAssetPushConstantBuffer_ModelMatrix(glm::mat4(1.0f));
 
-    const axr::PushConstantsBufferConfig defaultModelMatrixBufferConfig(
+    const axr::PushConstantBufferConfig defaultModelMatrixBufferConfig(
         "DefaultModelMatrix",
-        axr::getPushConstantsBufferEngineAssetDataSize(axr::PushConstantsBufferEngineAssetEnum::ModelMatrix),
+        axr::engineAssetGetPushConstantBufferSize(axr::EngineAssetEnum::PushConstantBufferModelMatrix),
         &defaultModelMatrixBuffer
     );
-    if (AXR_FAILED(globalAssetCollection.createPushConstantsBuffer(defaultModelMatrixBufferConfig))) return 0;
+    if (AXR_FAILED(globalAssetCollection.createPushConstantBuffer(defaultModelMatrixBufferConfig))) return 0;
 
     axr::ShaderValues vertexShaderValues;
     vertexShaderValues.addUniformBufferLink(
         0,
-        axr::getUniformBufferEngineAssetName(axr::UniformBufferEngineAssetEnum::SceneData)
+        axr::engineAssetGetName(axr::EngineAssetEnum::UniformBufferSceneData)
     );
     const axr::ShaderValues fragmentShaderValues;
     const char* materialName = "MyMaterial";
@@ -97,7 +94,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     if (!materialConfig.isValid()) return 0;
     if (AXR_FAILED(globalAssetCollection.createMaterial(materialConfig))) return 0;
 
-    if (AXR_FAILED(globalAssetCollection.createModel("Triangle", axr::ModelEngineAssetEnum::Triangle))) return 0;
+    if (AXR_FAILED(globalAssetCollection.createModel("Triangle", axr::EngineAssetEnum::ModelTriangle))) return 0;
 
     const char* scene1Name = "Scene1";
     if (AXR_FAILED(app.createScene(scene1Name))) return 0;
@@ -119,8 +116,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
             .ModelName = "Triangle",
             .MeshCount = 1,
             .Meshes = &mesh,
-            .PushConstantsBufferName = axr::getPushConstantsBufferEngineAssetName(
-                axr::PushConstantsBufferEngineAssetEnum::ModelMatrix
+            .PushConstantBufferName = axr::engineAssetGetName(
+                axr::EngineAssetEnum::PushConstantBufferModelMatrix
             ),
         }
     );

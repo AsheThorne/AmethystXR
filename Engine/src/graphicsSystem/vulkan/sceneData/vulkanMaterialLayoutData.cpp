@@ -20,7 +20,7 @@ AxrVulkanMaterialLayoutData::AxrVulkanMaterialLayoutData():
     m_DispatchHandle(nullptr),
     m_DescriptorSetLayout(VK_NULL_HANDLE),
     m_PipelineLayout(VK_NULL_HANDLE),
-    m_PushConstantsShaderStage(0) {
+    m_PushConstantShaderStage(0) {
 }
 
 AxrVulkanMaterialLayoutData::AxrVulkanMaterialLayoutData(const Config& config):
@@ -31,7 +31,7 @@ AxrVulkanMaterialLayoutData::AxrVulkanMaterialLayoutData(const Config& config):
     m_DispatchHandle(config.DispatchHandle),
     m_DescriptorSetLayout(VK_NULL_HANDLE),
     m_PipelineLayout(VK_NULL_HANDLE),
-    m_PushConstantsShaderStage(0) {
+    m_PushConstantShaderStage(0) {
 }
 
 AxrVulkanMaterialLayoutData::AxrVulkanMaterialLayoutData(AxrVulkanMaterialLayoutData&& src) noexcept {
@@ -44,7 +44,7 @@ AxrVulkanMaterialLayoutData::AxrVulkanMaterialLayoutData(AxrVulkanMaterialLayout
     m_DispatchHandle = src.m_DispatchHandle;
     m_DescriptorSetLayout = src.m_DescriptorSetLayout;
     m_PipelineLayout = src.m_PipelineLayout;
-    m_PushConstantsShaderStage = src.m_PushConstantsShaderStage;
+    m_PushConstantShaderStage = src.m_PushConstantShaderStage;
 
     src.m_VertexShaderHandle = nullptr;
     src.m_FragmentShaderHandle = nullptr;
@@ -52,7 +52,7 @@ AxrVulkanMaterialLayoutData::AxrVulkanMaterialLayoutData(AxrVulkanMaterialLayout
     src.m_DispatchHandle = nullptr;
     src.m_DescriptorSetLayout = VK_NULL_HANDLE;
     src.m_PipelineLayout = VK_NULL_HANDLE;
-    src.m_PushConstantsShaderStage = static_cast<vk::ShaderStageFlagBits>(0);
+    src.m_PushConstantShaderStage = static_cast<vk::ShaderStageFlagBits>(0);
 }
 
 AxrVulkanMaterialLayoutData::~AxrVulkanMaterialLayoutData() {
@@ -72,7 +72,7 @@ AxrVulkanMaterialLayoutData& AxrVulkanMaterialLayoutData::operator=(AxrVulkanMat
         m_DispatchHandle = src.m_DispatchHandle;
         m_DescriptorSetLayout = src.m_DescriptorSetLayout;
         m_PipelineLayout = src.m_PipelineLayout;
-        m_PushConstantsShaderStage = src.m_PushConstantsShaderStage;
+        m_PushConstantShaderStage = src.m_PushConstantShaderStage;
 
         src.m_VertexShaderHandle = nullptr;
         src.m_FragmentShaderHandle = nullptr;
@@ -80,7 +80,7 @@ AxrVulkanMaterialLayoutData& AxrVulkanMaterialLayoutData::operator=(AxrVulkanMat
         src.m_DispatchHandle = nullptr;
         src.m_DescriptorSetLayout = VK_NULL_HANDLE;
         src.m_PipelineLayout = VK_NULL_HANDLE;
-        src.m_PushConstantsShaderStage = static_cast<vk::ShaderStageFlagBits>(0);
+        src.m_PushConstantShaderStage = static_cast<vk::ShaderStageFlagBits>(0);
     }
 
     return *this;
@@ -96,8 +96,8 @@ const vk::PipelineLayout& AxrVulkanMaterialLayoutData::getPipelineLayout() const
     return m_PipelineLayout;
 }
 
-const vk::ShaderStageFlags& AxrVulkanMaterialLayoutData::getPushConstantsShaderStages() const {
-    return m_PushConstantsShaderStage;
+const vk::ShaderStageFlags& AxrVulkanMaterialLayoutData::getPushConstantShaderStages() const {
+    return m_PushConstantShaderStage;
 }
 
 const vk::DescriptorSetLayout& AxrVulkanMaterialLayoutData::getDescriptorSetLayout() const {
@@ -413,37 +413,36 @@ AxrResult AxrVulkanMaterialLayoutData::createPipelineLayout() {
 
     std::vector<vk::PushConstantRange> pushConstantRanges;
 
-    const AxrShaderPushConstantsBufferLayoutConst_T vertexPushConstantsBufferLayout =
-        m_VertexShaderHandle->getProperties().getPushConstantsBufferLayout();
-    if (vertexPushConstantsBufferLayout != nullptr) {
+    const AxrShaderPushConstantBufferLayoutConst_T vertexPushConstantBufferLayout =
+        m_VertexShaderHandle->getProperties().getPushConstantBufferLayout();
+    if (vertexPushConstantBufferLayout != nullptr) {
         pushConstantRanges.push_back(
             {
                 vk::PushConstantRange(
                     vk::ShaderStageFlagBits::eVertex,
                     0,
-                    vertexPushConstantsBufferLayout->BufferSize
+                    vertexPushConstantBufferLayout->BufferSize
                 )
             }
         );
     }
 
-    const AxrShaderPushConstantsBufferLayoutConst_T fragmentPushConstantsBufferLayout =
-        m_FragmentShaderHandle->getProperties().getPushConstantsBufferLayout();
-    if (fragmentPushConstantsBufferLayout != nullptr) {
+    const AxrShaderPushConstantBufferLayoutConst_T fragmentPushConstantBufferLayout =
+        m_FragmentShaderHandle->getProperties().getPushConstantBufferLayout();
+    if (fragmentPushConstantBufferLayout != nullptr) {
         pushConstantRanges.push_back(
             {
                 vk::PushConstantRange(
                     vk::ShaderStageFlagBits::eFragment,
                     0,
-                    fragmentPushConstantsBufferLayout->BufferSize
+                    fragmentPushConstantBufferLayout->BufferSize
                 )
             }
         );
     }
 
     for (const vk::PushConstantRange& pushConstantRange : pushConstantRanges) {
-        // TODO: Rename, where appropriate, from push constants to push constant.
-        m_PushConstantsShaderStage |= pushConstantRange.stageFlags;
+        m_PushConstantShaderStage |= pushConstantRange.stageFlags;
     }
 
     /* TODO: Allow multiple descriptor sets.
@@ -528,7 +527,7 @@ void AxrVulkanMaterialLayoutData::destroyPipelineLayout() {
 
     m_Device.destroyPipelineLayout(m_PipelineLayout, nullptr, *m_DispatchHandle);
     m_PipelineLayout = VK_NULL_HANDLE;
-    m_PushConstantsShaderStage = static_cast<vk::ShaderStageFlagBits>(0);
+    m_PushConstantShaderStage = static_cast<vk::ShaderStageFlagBits>(0);
 }
 
 #endif

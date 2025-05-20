@@ -57,7 +57,7 @@ AxrResult AxrVulkanSceneData::loadScene() {
         return axrResult;
     }
 
-    // TODO: Maybe validate push constants buffers?
+    // TODO: Maybe validate push constant buffers?
 
     axrResult = createAllUniformBufferData();
     if (AXR_FAILED(axrResult)) {
@@ -196,7 +196,7 @@ AxrResult AxrVulkanSceneData::onSetActiveScene(const AxrVulkanSceneData* activeS
     return AXR_SUCCESS;
 }
 
-const AxrPushConstantsBuffer* AxrVulkanSceneData::findPushConstantsBuffer_shared(const std::string& name) const {
+const AxrPushConstantBuffer* AxrVulkanSceneData::findPushConstantBuffer_shared(const std::string& name) const {
     if (name.empty()) return nullptr;
 
     if (m_AssetCollection == nullptr) {
@@ -204,17 +204,17 @@ const AxrPushConstantsBuffer* AxrVulkanSceneData::findPushConstantsBuffer_shared
         return nullptr;
     }
 
-    const AxrPushConstantsBuffer* foundPushConstantsBuffer = m_AssetCollection->findPushConstantsBuffer(name);
+    const AxrPushConstantBuffer* foundPushConstantBuffer = m_AssetCollection->findPushConstantBuffer(name);
 
-    if (foundPushConstantsBuffer != nullptr) {
-        return foundPushConstantsBuffer;
+    if (foundPushConstantBuffer != nullptr) {
+        return foundPushConstantBuffer;
     }
 
     if (m_GlobalSceneData != nullptr) {
-        foundPushConstantsBuffer = m_GlobalSceneData->findPushConstantsBuffer_shared(name);
+        foundPushConstantBuffer = m_GlobalSceneData->findPushConstantBuffer_shared(name);
 
-        if (foundPushConstantsBuffer != nullptr) {
-            return foundPushConstantsBuffer;
+        if (foundPushConstantBuffer != nullptr) {
+            return foundPushConstantBuffer;
         }
     }
 
@@ -318,7 +318,7 @@ AxrResult AxrVulkanSceneData::initializeAllUniformBufferData() {
     for (const auto& [bufferName, buffer] : m_AssetCollection->getUniformBuffers()) {
         axrResult = initializeUniformBufferData(
             &buffer,
-            AXR_UNIFORM_BUFFER_ENGINE_ASSET_UNDEFINED,
+            AXR_ENGINE_ASSET_UNDEFINED,
             m_UniformBufferData
         );
         if (AXR_FAILED(axrResult)) {
@@ -337,7 +337,7 @@ AxrResult AxrVulkanSceneData::initializeAllUniformBufferData() {
 
 AxrResult AxrVulkanSceneData::initializeUniformBufferData(
     const AxrUniformBuffer* uniformBufferHandle,
-    const AxrUniformBufferEngineAssetEnum uniformBufferEngineAsset,
+    const AxrEngineAssetEnum engineAsset,
     std::unordered_map<std::string, AxrVulkanUniformBufferData>& uniformBufferDataCollection
 ) const {
     // ----------------------------------------- //
@@ -345,10 +345,15 @@ AxrResult AxrVulkanSceneData::initializeUniformBufferData(
     // ----------------------------------------- //
 
     if (
-        (uniformBufferHandle == nullptr && uniformBufferEngineAsset == AXR_UNIFORM_BUFFER_ENGINE_ASSET_UNDEFINED) ||
-        (uniformBufferHandle != nullptr && uniformBufferEngineAsset != AXR_UNIFORM_BUFFER_ENGINE_ASSET_UNDEFINED)
+        (uniformBufferHandle == nullptr && engineAsset == AXR_ENGINE_ASSET_UNDEFINED) ||
+        (uniformBufferHandle != nullptr && engineAsset != AXR_ENGINE_ASSET_UNDEFINED)
     ) {
         axrLogErrorLocation("Either a uniformBufferHandle must be defined, or a uniformBufferSize must be defined.");
+        return AXR_ERROR;
+    }
+
+    if (engineAsset != AXR_ENGINE_ASSET_UNDEFINED && !axrEngineAssetIsUniformBuffer(engineAsset)) {
+        axrLogErrorLocation("Engine asset is not a uniform buffer.");
         return AXR_ERROR;
     }
 
@@ -358,7 +363,7 @@ AxrResult AxrVulkanSceneData::initializeUniformBufferData(
 
     const AxrVulkanUniformBufferData::Config uniformBufferDataConfig{
         .UniformBufferHandle = uniformBufferHandle,
-        .UniformBufferEngineAsset = uniformBufferEngineAsset,
+        .UniformBufferEngineAsset = engineAsset,
         .MaxFramesInFlight = m_MaxFramesInFlight,
         .PhysicalDevice = m_PhysicalDevice,
         .Device = m_Device,
@@ -511,7 +516,7 @@ AxrResult AxrVulkanSceneData::initializeAllWindowUniformBufferData() {
 
         axrResult = initializeUniformBufferData(
             nullptr,
-            AXR_UNIFORM_BUFFER_ENGINE_ASSET_SCENE_DATA,
+            AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA,
             m_WindowUniformBufferData
         );
     }
@@ -1188,7 +1193,7 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
 
     for (auto descriptorSetItemLocation : descriptorSetItemLocations) {
         const char* bufferName = material->findShaderBufferName(descriptorSetItemLocation.ShaderBinding);
-        if (axrIsBufferNameReserved(bufferName) && axrGetBufferEngineAssetScope(bufferName) != bufferScope) {
+        if (axrEngineAssetIsBufferNameReserved(bufferName) && axrEngineAssetGetBufferScope(bufferName) != bufferScope) {
             // If the buffer's scope doesn't match the current scope we are writing for, we skip it.
             // We also check if it's an engine asset because they're the only buffers with a scope.
             continue;
@@ -1321,25 +1326,25 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
 
         auto foundMaterialForRendering = materialsForRendering.find(currentMesh.MaterialName);
         const vk::ShaderStageFlags& pushConstantStageFlags = foundMaterialData->getMaterialLayoutData()
-                                                                              ->getPushConstantsShaderStages();
+                                                                              ->getPushConstantShaderStages();
 
         auto meshForRendering = MeshForRendering{
             .Buffer = foundModelData->getMeshBuffer(i),
             .BufferIndicesOffset = foundModelData->getMeshBufferIndicesOffset(i),
             .BufferVerticesOffset = foundModelData->getMeshBufferVerticesOffset(i),
             .IndexCount = foundModelData->getMeshIndexCount(i),
-            .PushConstants = axrStringIsEmpty(modelComponent.PushConstantsBufferName) ||
+            .PushConstant = axrStringIsEmpty(modelComponent.PushConstantBufferName) ||
                              pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
-                                 ? PushConstantsForRendering{}
-                                 : PushConstantsForRendering{
+                                 ? PushConstantForRendering{}
+                                 : PushConstantForRendering{
                                      .ShaderStages = &pushConstantStageFlags,
-                                     .BufferName = modelComponent.PushConstantsBufferName,
+                                     .BufferName = modelComponent.PushConstantBufferName,
                                      .TransformComponent = &transformComponent,
                                  },
         };
 
         if (foundMaterialForRendering == materialsForRendering.end()) {
-            const char* materialPushConstantsBufferName = foundMaterialData->getPushConstantsBufferName().c_str();
+            const char* materialPushConstantBufferName = foundMaterialData->getPushConstantBufferName().c_str();
 
             materialsForRendering.insert(
                 std::pair(
@@ -1348,12 +1353,12 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
                         .PipelineLayout = foundMaterialData->getMaterialLayoutData()->getPipelineLayout(),
                         .WindowPipeline = foundMaterialData->getWindowPipeline(),
                         .WindowDescriptorSets = foundMaterialData->getWindowDescriptorSets(),
-                        .PushConstants = axrStringIsEmpty(materialPushConstantsBufferName) ||
+                        .PushConstant = axrStringIsEmpty(materialPushConstantBufferName) ||
                                          pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
-                                             ? PushConstantsForRendering{}
-                                             : PushConstantsForRendering{
+                                             ? PushConstantForRendering{}
+                                             : PushConstantForRendering{
                                                  .ShaderStages = &pushConstantStageFlags,
-                                                 .BufferName = materialPushConstantsBufferName,
+                                                 .BufferName = materialPushConstantBufferName,
                                                  .TransformComponent = &transformComponent,
                                              },
                         .Meshes = {meshForRendering}

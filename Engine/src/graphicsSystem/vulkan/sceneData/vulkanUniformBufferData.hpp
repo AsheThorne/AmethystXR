@@ -31,7 +31,7 @@ public:
         /// when the AxrUniformBuffer updates.
         const AxrUniformBuffer* UniformBufferHandle;
         /// We don't define both UniformBufferHandle and UniformBufferEngineAsset. It's one or the other.
-        AxrUniformBufferEngineAssetEnum UniformBufferEngineAsset;
+        AxrEngineAssetEnum UniformBufferEngineAsset;
         uint32_t MaxFramesInFlight;
         vk::PhysicalDevice PhysicalDevice;
         vk::Device Device;
@@ -115,7 +115,7 @@ private:
     //  It is needed here since a uniformBufferHandle isn't required. but other classes probably don't need it.
     std::string m_Name;
     const AxrUniformBuffer* m_UniformBufferHandle;
-    AxrUniformBufferEngineAssetEnum m_UniformBufferEngineAsset;
+    AxrEngineAssetEnum m_UniformBufferEngineAsset;
     uint32_t m_MaxFramesInFlight;
     vk::PhysicalDevice m_PhysicalDevice;
     vk::Device m_Device;

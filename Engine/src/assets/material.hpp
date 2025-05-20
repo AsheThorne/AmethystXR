@@ -81,9 +81,9 @@ public:
     /// @returns The material layout's name
     [[nodiscard]] std::string getMaterialLayoutName() const;
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    /// Get the push constants buffer name
-    /// @returns The push constants buffer name
-    [[nodiscard]] const std::string& getPushConstantsBufferName() const;
+    /// Get the push constant buffer name
+    /// @returns The push constant buffer name
+    [[nodiscard]] const std::string& getPushConstantBufferName() const;
 #endif
 
     /// Check if this material is valid
@@ -100,7 +100,7 @@ private:
     const char* m_VertexShaderName;
     const char* m_FragmentShaderName;
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    std::string m_PushConstantsBufferName;
+    std::string m_PushConstantBufferName;
 #endif
     AxrShaderValuesRAII m_VertexShaderValues;
     AxrShaderValuesRAII m_FragmentShaderValues;

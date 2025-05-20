@@ -10,7 +10,7 @@
 #include "vulkanMaterialLayoutData.hpp"
 #include "vulkanMaterialData.hpp"
 #include "axr/scene.h"
-#include "../../../assets/bufferEngineAssets.hpp"
+#include "../../../assets/engineAssets.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -39,8 +39,8 @@ public:
         vk::DispatchLoaderDynamic* DispatchHandle;
     };
 
-    /// Push constants references for rendering
-    struct PushConstantsForRendering {
+    /// Push constant references for rendering
+    struct PushConstantForRendering {
         const vk::ShaderStageFlags* ShaderStages = nullptr;
         const char* BufferName = "";
         const AxrTransformComponent* TransformComponent = nullptr;
@@ -52,7 +52,7 @@ public:
         const vk::DeviceSize& BufferIndicesOffset;
         const vk::DeviceSize& BufferVerticesOffset;
         const uint32_t& IndexCount;
-        PushConstantsForRendering PushConstants;
+        PushConstantForRendering PushConstant;
     };
 
     /// Material references for rendering
@@ -61,7 +61,7 @@ public:
         const vk::Pipeline& WindowPipeline;
         /// One for each frame in flight
         const std::vector<vk::DescriptorSet>& WindowDescriptorSets;
-        PushConstantsForRendering PushConstants;
+        PushConstantForRendering PushConstant;
         std::vector<MeshForRendering> Meshes;
     };
 
@@ -142,10 +142,10 @@ public:
 
     // ---- Find Assets ----
 
-    /// Find the named push constants buffer, including the global data in the search
-    /// @param name The name of the push constants buffer
-    /// @returns A handle to the found push constants buffer. Or nullptr if it wasn't found
-    [[nodiscard]] const AxrPushConstantsBuffer* findPushConstantsBuffer_shared(const std::string& name) const;
+    /// Find the named push constant buffer, including the global data in the search
+    /// @param name The name of the push constant buffer
+    /// @returns A handle to the found push constant buffer. Or nullptr if it wasn't found
+    [[nodiscard]] const AxrPushConstantBuffer* findPushConstantBuffer_shared(const std::string& name) const;
 
 private:
     // ----------------------------------------- //
@@ -202,14 +202,14 @@ private:
     /// Initialize all the uniform buffer data
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult initializeAllUniformBufferData();
-    /// Initialize a single uniform buffer's data. Define either a uniformBufferHandle or a uniformBufferEngineAsset
+    /// Initialize a single uniform buffer's data. Define either a uniformBufferHandle or a uniform buffer engineAsset
     /// @param uniformBufferHandle Uniform buffer handle to use
-    /// @param uniformBufferEngineAsset Uniform buffer engine asset to use
+    /// @param engineAsset Uniform buffer engine asset to use
     /// @param uniformBufferDataCollection Uniform buffer data collection to modify
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult initializeUniformBufferData(
         const AxrUniformBuffer* uniformBufferHandle,
-        AxrUniformBufferEngineAssetEnum uniformBufferEngineAsset,
+        AxrEngineAssetEnum engineAsset,
         std::unordered_map<std::string, AxrVulkanUniformBufferData>& uniformBufferDataCollection
     ) const;
 

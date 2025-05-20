@@ -31,7 +31,7 @@ namespace axr {
         Undefined = AXR_SHADER_BUFFER_LAYOUT_UNDEFINED,
         UniformBuffer = AXR_SHADER_BUFFER_LAYOUT_UNIFORM_BUFFER,
         ImageSamplerBuffer = AXR_SHADER_BUFFER_LAYOUT_IMAGE_SAMPLER_BUFFER,
-        PushConstantsBuffer = AXR_SHADER_BUFFER_LAYOUT_PUSH_CONSTANTS_BUFFER,
+        PushConstantBuffer = AXR_SHADER_BUFFER_LAYOUT_PUSH_CONSTANT_BUFFER,
     };
 
     // ---- Vertex Attribute ----
@@ -192,16 +192,16 @@ namespace axr {
         }
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-        /// Add a push constants buffer layout
-        /// @param bufferSize Push constants buffer layout buffer size
-        void addPushConstantsBufferLayout(const uint32_t bufferSize) {
+        /// Add a push constant buffer layout
+        /// @param bufferSize Push constant buffer layout buffer size
+        void addPushConstantBufferLayout(const uint32_t bufferSize) {
             resizeBufferLayouts(BufferLayoutsCount + 1);
 
-            const AxrShaderPushConstantsBufferLayout bufferLayout{
+            const AxrShaderPushConstantBufferLayout bufferLayout{
                 .BufferSize = bufferSize
             };
             BufferLayouts[BufferLayoutsCount - 1] = reinterpret_cast<AxrShaderBufferLayout_T>(
-                axrShaderPushConstantsBufferLayoutClone(&bufferLayout)
+                axrShaderPushConstantBufferLayoutClone(&bufferLayout)
             );
         }
 #endif
@@ -369,16 +369,16 @@ namespace axr {
         }
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-        /// Add a push constants buffer layout
-        /// @param bufferSize Push constants buffer layout buffer size
-        void addPushConstantsBufferLayout(const uint32_t bufferSize) {
+        /// Add a push constant buffer layout
+        /// @param bufferSize Push constant buffer layout buffer size
+        void addPushConstantBufferLayout(const uint32_t bufferSize) {
             resizeBufferLayouts(BufferLayoutsCount + 1);
 
-            const AxrShaderPushConstantsBufferLayout bufferLayout{
+            const AxrShaderPushConstantBufferLayout bufferLayout{
                 .BufferSize = bufferSize
             };
             BufferLayouts[BufferLayoutsCount - 1] = reinterpret_cast<AxrShaderBufferLayout_T>(
-                axrShaderPushConstantsBufferLayoutClone(&bufferLayout)
+                axrShaderPushConstantBufferLayoutClone(&bufferLayout)
             );
         }
 #endif
@@ -812,7 +812,7 @@ namespace axr {
         const char* VertexShaderName;
         const char* FragmentShaderName;
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-        const char* PushConstantsBufferName;
+        const char* PushConstantBufferName;
 #endif
         AxrShaderValues_T VertexShaderValues;
         AxrShaderValues_T FragmentShaderValues;
@@ -829,7 +829,7 @@ namespace axr {
             VertexShaderName(""),
             FragmentShaderName(""),
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            PushConstantsBufferName(""),
+            PushConstantBufferName(""),
 #endif
             VertexShaderValues(nullptr),
             FragmentShaderValues(nullptr) {
@@ -851,7 +851,7 @@ namespace axr {
             VertexShaderName(vertexShaderName),
             FragmentShaderName(fragmentShaderName),
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            PushConstantsBufferName(""),
+            PushConstantBufferName(""),
 #endif
             VertexShaderValues(vertexShaderValues.cloneRaw()),
             FragmentShaderValues(fragmentShaderValues.cloneRaw()) {
@@ -862,20 +862,20 @@ namespace axr {
         /// @param name The material name
         /// @param vertexShaderName The vertex shader name
         /// @param fragmentShaderName The fragment shader name
-        /// @param pushConstantsBufferName The push constants buffer name
+        /// @param pushConstantBufferName The push constant buffer name
         /// @param vertexShaderValues The vertex shader values to use
         /// @param fragmentShaderValues The fragment shader values to use
         MaterialConfig(
             const char* name,
             const char* vertexShaderName,
             const char* fragmentShaderName,
-            const char* pushConstantsBufferName,
+            const char* pushConstantBufferName,
             const axr::ShaderValues& vertexShaderValues,
             const axr::ShaderValues& fragmentShaderValues
         ) : Name(name),
             VertexShaderName(vertexShaderName),
             FragmentShaderName(fragmentShaderName),
-            PushConstantsBufferName(pushConstantsBufferName),
+            PushConstantBufferName(pushConstantBufferName),
             VertexShaderValues(vertexShaderValues.cloneRaw()),
             FragmentShaderValues(fragmentShaderValues.cloneRaw()) {
         }
@@ -888,7 +888,7 @@ namespace axr {
             VertexShaderName = src.VertexShaderName;
             FragmentShaderName = src.FragmentShaderName;
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            PushConstantsBufferName = src.PushConstantsBufferName;
+            PushConstantBufferName = src.PushConstantBufferName;
 #endif
 
             if (src.VertexShaderValues != nullptr) {
@@ -911,7 +911,7 @@ namespace axr {
             VertexShaderName = src.VertexShaderName;
             FragmentShaderName = src.FragmentShaderName;
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            PushConstantsBufferName = src.PushConstantsBufferName;
+            PushConstantBufferName = src.PushConstantBufferName;
 #endif
             VertexShaderValues = src.VertexShaderValues;
             FragmentShaderValues = src.FragmentShaderValues;
@@ -920,7 +920,7 @@ namespace axr {
             src.VertexShaderName = "";
             src.FragmentShaderName = "";
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            src.PushConstantsBufferName = "";
+            src.PushConstantBufferName = "";
 #endif
             src.VertexShaderValues = nullptr;
             src.FragmentShaderValues = nullptr;
@@ -945,7 +945,7 @@ namespace axr {
                 VertexShaderName = src.VertexShaderName;
                 FragmentShaderName = src.FragmentShaderName;
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-                PushConstantsBufferName = src.PushConstantsBufferName;
+                PushConstantBufferName = src.PushConstantBufferName;
 #endif
 
                 if (src.VertexShaderValues != nullptr) {
@@ -974,7 +974,7 @@ namespace axr {
                 VertexShaderName = src.VertexShaderName;
                 FragmentShaderName = src.FragmentShaderName;
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-                PushConstantsBufferName = src.PushConstantsBufferName;
+                PushConstantBufferName = src.PushConstantBufferName;
 #endif
                 VertexShaderValues = src.VertexShaderValues;
                 FragmentShaderValues = src.FragmentShaderValues;
@@ -983,7 +983,7 @@ namespace axr {
                 src.VertexShaderName = "";
                 src.FragmentShaderName = "";
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-                src.PushConstantsBufferName = "";
+                src.PushConstantBufferName = "";
 #endif
                 src.VertexShaderValues = nullptr;
                 src.FragmentShaderValues = nullptr;
@@ -1032,7 +1032,7 @@ namespace axr {
             VertexShaderName = "";
             FragmentShaderName = "";
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            PushConstantsBufferName = "";
+            PushConstantBufferName = "";
 #endif
         }
     };
@@ -1560,7 +1560,7 @@ namespace axr {
     };
 
     // ---------------------------------------------------------------------------------- //
-    //                                    Buffer Assets                                   //
+    //                                Uniform Buffer Assets                               //
     // ---------------------------------------------------------------------------------- //
 
     /// Uniform Buffer Config
@@ -1690,8 +1690,14 @@ namespace axr {
         "Original type and wrapper have different size!"
     );
 
-    /// Push Constants Buffer Config
-    struct PushConstantsBufferConfig {
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+
+    // ---------------------------------------------------------------------------------- //
+    //                             Push Constant Buffer Assets                            //
+    // ---------------------------------------------------------------------------------- //
+
+    /// Push Constant Buffer Config
+    struct PushConstantBufferConfig {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
@@ -1707,33 +1713,33 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        PushConstantsBufferConfig():
+        PushConstantBufferConfig():
             Name(""),
             DataSize(0),
             Data(nullptr) {
         }
 
         /// Constructor
-        /// @param name Name of the push constants buffer
+        /// @param name Name of the push constant buffer
         /// @param dataSize Data size
         /// @param data Data
-        PushConstantsBufferConfig(const char* name, const uint32_t dataSize, const void* data):
+        PushConstantBufferConfig(const char* name, const uint32_t dataSize, const void* data):
             Name(name),
             DataSize(dataSize) {
-            Data = axrPushConstantsBufferCloneData(dataSize, data);
+            Data = axrPushConstantBufferCloneData(dataSize, data);
         }
 
         /// Copy Constructor
-        /// @param src Source PushConstantsBufferConfig to copy from
-        PushConstantsBufferConfig(const PushConstantsBufferConfig& src) {
+        /// @param src Source PushConstantBufferConfig to copy from
+        PushConstantBufferConfig(const PushConstantBufferConfig& src) {
             Name = src.Name;
             DataSize = src.DataSize;
-            Data = axrPushConstantsBufferCloneData(src.DataSize, src.Data);
+            Data = axrPushConstantBufferCloneData(src.DataSize, src.Data);
         }
 
         /// Move Constructor
-        /// @param src Source PushConstantsBufferConfig to move from
-        PushConstantsBufferConfig(PushConstantsBufferConfig&& src) noexcept {
+        /// @param src Source PushConstantBufferConfig to move from
+        PushConstantBufferConfig(PushConstantBufferConfig&& src) noexcept {
             Name = src.Name;
             DataSize = src.DataSize;
             Data = src.Data;
@@ -1746,29 +1752,29 @@ namespace axr {
         // ---- Destructor ----
 
         /// Destructor
-        ~PushConstantsBufferConfig() {
+        ~PushConstantBufferConfig() {
             cleanup();
         }
 
         // ---- Operator Overloads ----
 
         /// Copy Assignment Operator
-        /// @param src Source PushConstantsBufferConfig to copy from
-        PushConstantsBufferConfig& operator=(const PushConstantsBufferConfig& src) {
+        /// @param src Source PushConstantBufferConfig to copy from
+        PushConstantBufferConfig& operator=(const PushConstantBufferConfig& src) {
             if (this != &src) {
                 cleanup();
 
                 Name = src.Name;
                 DataSize = src.DataSize;
-                Data = axrPushConstantsBufferCloneData(src.DataSize, src.Data);
+                Data = axrPushConstantBufferCloneData(src.DataSize, src.Data);
             }
 
             return *this;
         }
 
         /// Move Assignment Operator
-        /// @param src Source PushConstantsBufferConfig to move from
-        PushConstantsBufferConfig& operator=(PushConstantsBufferConfig&& src) noexcept {
+        /// @param src Source PushConstantBufferConfig to move from
+        PushConstantBufferConfig& operator=(PushConstantBufferConfig&& src) noexcept {
             if (this != &src) {
                 cleanup();
 
@@ -1788,16 +1794,16 @@ namespace axr {
         // Public Functions
         // ----------------------------------------- //
 
-        /// Get a handle to the PushConstantsBufferConfig as an AxrPushConstantsBufferConfig
-        /// @returns This as an AxrPushConstantsBufferConfig
-        const AxrPushConstantsBufferConfig* toRaw() const {
-            return reinterpret_cast<const AxrPushConstantsBufferConfig*>(this);
+        /// Get a handle to the PushConstantBufferConfig as an AxrPushConstantBufferConfig
+        /// @returns This as an AxrPushConstantBufferConfig
+        const AxrPushConstantBufferConfig* toRaw() const {
+            return reinterpret_cast<const AxrPushConstantBufferConfig*>(this);
         }
 
-        /// Get a handle to the PushConstantsBufferConfig as an AxrPushConstantsBufferConfig
-        /// @returns This as an AxrPushConstantsBufferConfig
-        AxrPushConstantsBufferConfig* toRaw() {
-            return reinterpret_cast<AxrPushConstantsBufferConfig*>(this);
+        /// Get a handle to the PushConstantBufferConfig as an AxrPushConstantBufferConfig
+        /// @returns This as an AxrPushConstantBufferConfig
+        AxrPushConstantBufferConfig* toRaw() {
+            return reinterpret_cast<AxrPushConstantBufferConfig*>(this);
         }
 
     private:
@@ -1808,14 +1814,15 @@ namespace axr {
         /// Clean up this class
         void cleanup() {
             Name = "";
-            axrPushConstantsBufferDestroyData(&DataSize, &Data);
+            axrPushConstantBufferDestroyData(&DataSize, &Data);
         }
     };
 
     static_assert(
-        sizeof(AxrPushConstantsBufferConfig) == sizeof(axr::PushConstantsBufferConfig),
+        sizeof(AxrPushConstantBufferConfig) == sizeof(axr::PushConstantBufferConfig),
         "Original type and wrapper have different size!"
     );
+#endif
 
     // ---------------------------------------------------------------------------------- //
     //                               Engine Defined Assets                                //
@@ -1825,45 +1832,145 @@ namespace axr {
     // Enums
     // ----------------------------------------- //
 
-    // ---- Shaders ----
+    /// Axr engine defined assets enum
+    enum class EngineAssetEnum {
+        Undefined = AXR_ENGINE_ASSET_UNDEFINED,
 
-    /// Engine defined shader enum
-    enum class ShaderEngineAssetEnum {
-        Undefined = AXR_SHADER_ENGINE_ASSET_UNDEFINED,
-        DefaultVert = AXR_SHADER_ENGINE_ASSET_DEFAULT_VERT,
-        DefaultFrag = AXR_SHADER_ENGINE_ASSET_DEFAULT_FRAG,
-    };
+        // ---- Shaders ----
+        ShaderStart = AXR_ENGINE_ASSET_SHADER_START,
+        ShaderDefaultVert = AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT,
+        ShaderDefaultFrag = AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG,
+        ShaderEnd = AXR_ENGINE_ASSET_SHADER_END,
 
-    // ---- Buffers ----
+        // ---- Uniform Buffers ----
+        UniformBufferStart = AXR_ENGINE_ASSET_UNIFORM_BUFFER_START,
+        UniformBufferSceneData = AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA,
+        UniformBufferEnd = AXR_ENGINE_ASSET_UNIFORM_BUFFER_END,
 
-    /// Engine defined uniform buffer enum
-    enum class UniformBufferEngineAssetEnum {
-        Undefined = AXR_UNIFORM_BUFFER_ENGINE_ASSET_UNDEFINED,
-        SceneData = AXR_UNIFORM_BUFFER_ENGINE_ASSET_SCENE_DATA,
-    };
+        // ---- Push Constant Buffers ----
+        PushConstantBufferStart = AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_START,
+        PushConstantBufferModelMatrix = AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX,
+        PushConstantBufferEnd = AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_END,
 
-    /// Engine defined push constants buffer enum
-    enum class PushConstantsBufferEngineAssetEnum {
-        Undefined = AXR_PUSH_CONSTANTS_BUFFER_ENGINE_ASSET_UNDEFINED,
-        ModelMatrix = AXR_PUSH_CONSTANTS_BUFFER_ENGINE_ASSET_MODEL_MATRIX,
-    };
-
-    // ---- Models ----
-
-    /// Engine defined model enum
-    enum class ModelEngineAssetEnum {
-        Undefined = AXR_MODEL_ENGINE_ASSET_UNDEFINED,
-        Triangle = AXR_MODEL_ENGINE_ASSET_TRIANGLE,
+        // ---- Models ----
+        ModelStart = AXR_ENGINE_ASSET_MODEL_START,
+        ModelTriangle = AXR_ENGINE_ASSET_MODEL_TRIANGLE,
+        ModelEnd = AXR_ENGINE_ASSET_MODEL_END,
     };
 
     // ----------------------------------------- //
     // Structs
     // ----------------------------------------- //
 
+    // ---- Uniform Buffers ----
+
+    /// Engine asset uniform buffer named 'Scene Data' structure
+    struct EngineAssetUniformBuffer_SceneData {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        alignas(16) glm::mat4 ViewMatrix;
+        alignas(16) glm::mat4 ProjectionMatrix;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        EngineAssetUniformBuffer_SceneData() :
+            ViewMatrix{},
+            ProjectionMatrix{} {
+        }
+
+        /// Constructor
+        /// @param viewMatrix The view matrix
+        /// @param projectionMatrix The projection matrix
+        EngineAssetUniformBuffer_SceneData(
+            const glm::mat4& viewMatrix,
+            const glm::mat4& projectionMatrix
+        ) : ViewMatrix(viewMatrix),
+            ProjectionMatrix(projectionMatrix) {
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the EngineAssetUniformBuffer_SceneData as an AxrEngineAssetUniformBuffer_SceneData
+        /// @returns This as an AxrEngineAssetUniformBuffer_SceneData
+        const AxrEngineAssetUniformBuffer_SceneData* toRaw() const {
+            return reinterpret_cast<const AxrEngineAssetUniformBuffer_SceneData*>(this);
+        }
+
+        /// Get a handle to the EngineAssetUniformBuffer_SceneData as an AxrEngineAssetUniformBuffer_SceneData
+        /// @returns This as an AxrEngineAssetUniformBuffer_SceneData
+        AxrEngineAssetUniformBuffer_SceneData* toRaw() {
+            return reinterpret_cast<AxrEngineAssetUniformBuffer_SceneData*>(this);
+        }
+    };
+
+    static_assert(
+        sizeof(AxrEngineAssetUniformBuffer_SceneData) == sizeof(axr::EngineAssetUniformBuffer_SceneData),
+        "Original type and wrapper have different size!"
+    );
+
+    // ---- Push Constant Buffers ----
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    /// Engine asset push constant buffer named 'Model Matrix' structure
+    struct EngineAssetPushConstantBuffer_ModelMatrix {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        glm::mat4 ModelMatrix;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        EngineAssetPushConstantBuffer_ModelMatrix() :
+            ModelMatrix{} {
+        }
+
+        /// Constructor
+        /// @param modelMatrix The model matrix
+        EngineAssetPushConstantBuffer_ModelMatrix(
+            const glm::mat4& modelMatrix
+        ) : ModelMatrix(modelMatrix) {
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the EngineAssetPushConstantBuffer_ModelMatrix as an AxrEngineAssetPushConstantBuffer_ModelMatrix
+        /// @returns This as an AxrEngineAssetPushConstantBuffer_ModelMatrix
+        const AxrEngineAssetPushConstantBuffer_ModelMatrix* toRaw() const {
+            return reinterpret_cast<const AxrEngineAssetPushConstantBuffer_ModelMatrix*>(this);
+        }
+
+        /// Get a handle to the EngineAssetPushConstantBuffer_ModelMatrix as an AxrEngineAssetPushConstantBuffer_ModelMatrix
+        /// @returns This as an AxrEngineAssetPushConstantBuffer_ModelMatrix
+        AxrEngineAssetPushConstantBuffer_ModelMatrix* toRaw() {
+            return reinterpret_cast<AxrEngineAssetPushConstantBuffer_ModelMatrix*>(this);
+        }
+    };
+
+    static_assert(
+        sizeof(AxrEngineAssetPushConstantBuffer_ModelMatrix) == sizeof(axr::EngineAssetPushConstantBuffer_ModelMatrix),
+        "Original type and wrapper have different size!"
+    );
+#endif
+
     // ---- Materials ----
 
     /// Engine asset material named 'Default Material' values
-    struct MaterialEngineAsset_DefaultMaterial {
+    struct EngineAssetMaterial_DefaultMaterial {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
@@ -1876,13 +1983,13 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        MaterialEngineAsset_DefaultMaterial() :
+        EngineAssetMaterial_DefaultMaterial() :
             ImageName{} {
         }
 
         /// Constructor
         /// @param imageName The image name
-        MaterialEngineAsset_DefaultMaterial(
+        EngineAssetMaterial_DefaultMaterial(
             const char* imageName
         ) : ImageName(imageName) {
         }
@@ -1891,21 +1998,21 @@ namespace axr {
         // Public Functions
         // ----------------------------------------- //
 
-        /// Get a handle to the MaterialEngineAsset_DefaultMaterial as an AxrMaterialEngineAsset_DefaultMaterial
-        /// @returns This as an AxrMaterialEngineAsset_DefaultMaterial
-        const AxrMaterialEngineAsset_DefaultMaterial* toRaw() const {
-            return reinterpret_cast<const AxrMaterialEngineAsset_DefaultMaterial*>(this);
+        /// Get a handle to the EngineAssetMaterial_DefaultMaterial as an AxrEngineAssetMaterial_DefaultMaterial
+        /// @returns This as an AxrEngineAssetMaterial_DefaultMaterial
+        const AxrEngineAssetMaterial_DefaultMaterial* toRaw() const {
+            return reinterpret_cast<const AxrEngineAssetMaterial_DefaultMaterial*>(this);
         }
 
-        /// Get a handle to the MaterialEngineAsset_DefaultMaterial as an AxrMaterialEngineAsset_DefaultMaterial
-        /// @returns This as an AxrMaterialEngineAsset_DefaultMaterial
-        AxrMaterialEngineAsset_DefaultMaterial* toRaw() {
-            return reinterpret_cast<AxrMaterialEngineAsset_DefaultMaterial*>(this);
+        /// Get a handle to the EngineAssetMaterial_DefaultMaterial as an AxrEngineAssetMaterial_DefaultMaterial
+        /// @returns This as an AxrEngineAssetMaterial_DefaultMaterial
+        AxrEngineAssetMaterial_DefaultMaterial* toRaw() {
+            return reinterpret_cast<AxrEngineAssetMaterial_DefaultMaterial*>(this);
         }
     };
 
     static_assert(
-        sizeof(AxrMaterialEngineAsset_DefaultMaterial) == sizeof(axr::MaterialEngineAsset_DefaultMaterial),
+        sizeof(AxrEngineAssetMaterial_DefaultMaterial) == sizeof(axr::EngineAssetMaterial_DefaultMaterial),
         "Original type and wrapper have different size!"
     );
 
@@ -1913,78 +2020,37 @@ namespace axr {
     // Function Definitions
     // ----------------------------------------- //
 
-    // ---- Shaders ----
-
-    /// Check if the given name is reserved as a shader engine asset name
+    /// Check if the given name is reserved for an engine asset
     /// @param name Name to check
-    /// @returns True if the given name is reserved as a shader engine asset name
-    inline bool isShaderNameReserved(const char* name) {
-        return axrIsShaderNameReserved(name);
+    /// @returns True if the given name is reserved for an engine asset
+    inline bool engineAssetIsNameReserved(const char* name) {
+        return axrEngineAssetIsNameReserved(name);
     }
 
-    /// Get the name for the given shader engine asset
+    /// Get the name for the given engine asset
     /// @param engineAssetEnum Engine asset to get the name of
     /// @returns The name of the given engine asset
-    inline const char* getShaderEngineAssetName(axr::ShaderEngineAssetEnum engineAssetEnum) {
-        return axrGetShaderEngineAssetName(static_cast<AxrShaderEngineAssetEnum>(engineAssetEnum));
+    inline const char* engineAssetGetName(axr::EngineAssetEnum engineAssetEnum) {
+        return axrEngineAssetGetName(static_cast<AxrEngineAssetEnum>(engineAssetEnum));
     }
 
     // ---- Buffers ----
 
-    /// Check if the given name is reserved for any engine asset buffer
-    /// @param name Name to check
-    /// @returns True if the given name is reserved for any engine asset buffer
-    inline bool isBufferNameReserved(const char* name) {
-        return axrIsBufferNameReserved(name);
+    /// Get the size for the given uniform buffer engine asset
+    /// @param engineAssetEnum Engine asset to use
+    /// @returns The size for the given uniform buffer engine asset
+    inline uint64_t engineAssetGetUniformBufferSize(axr::EngineAssetEnum engineAssetEnum) {
+        return axrEngineAssetGetUniformBufferSize(static_cast<AxrEngineAssetEnum>(engineAssetEnum));
     }
 
-    /// Check if the given name is reserved for a uniform buffer engine asset
-    /// @param name Name to check
-    /// @returns True if the given name is reserved for a uniform buffer engine asset
-    inline bool isUniformBufferNameReserved(const char* name) {
-        return axrIsUniformBufferNameReserved(name);
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    /// Get the size for the given push constant buffer engine asset
+    /// @param engineAssetEnum Engine asset to use
+    /// @returns The size for the given push constant buffer engine asset
+    inline uint32_t engineAssetGetPushConstantBufferSize(axr::EngineAssetEnum engineAssetEnum) {
+        return axrEngineAssetGetPushConstantBufferSize(static_cast<AxrEngineAssetEnum>(engineAssetEnum));
     }
-
-    /// Get the name for the given uniform buffer engine asset
-    /// @param engineAssetEnum Engine asset to get the name of
-    /// @returns The name of the given engine asset
-    inline const char* getUniformBufferEngineAssetName(axr::UniformBufferEngineAssetEnum engineAssetEnum) {
-        return axrGetUniformBufferEngineAssetName(static_cast<AxrUniformBufferEngineAssetEnum>(engineAssetEnum));
-    }
-
-    /// Get the data size for the given uniform buffer engine asset
-    /// @param engineAssetEnum Engine asset to get the name of
-    /// @returns The data size of the given engine asset
-    inline uint64_t getUniformBufferEngineAssetDataSize(axr::UniformBufferEngineAssetEnum engineAssetEnum) {
-        return axrGetUniformBufferEngineAssetDataSize(static_cast<AxrUniformBufferEngineAssetEnum>(engineAssetEnum));
-    }
-
-    /// Check if the given name is reserved for a push constants buffer engine asset
-    /// @param name Name to check
-    /// @returns True if the given name is reserved for a push constants buffer engine asset
-    inline bool isPushConstantsBufferNameReserved(const char* name) {
-        return axrIsPushConstantsBufferNameReserved(name);
-    }
-
-    /// Get the name for the given push constants buffer engine asset
-    /// @param engineAssetEnum Engine asset to get the name of
-    /// @returns The name of the given engine asset
-    inline const char* getPushConstantsBufferEngineAssetName(axr::PushConstantsBufferEngineAssetEnum engineAssetEnum) {
-        return axrGetPushConstantsBufferEngineAssetName(
-            static_cast<AxrPushConstantsBufferEngineAssetEnum>(engineAssetEnum)
-        );
-    }
-
-    /// Get the data size for the given push constants buffer engine asset
-    /// @param engineAssetEnum Engine asset to get the name of
-    /// @returns The data size of the given engine asset
-    inline uint32_t getPushConstantsBufferEngineAssetDataSize(
-        const axr::PushConstantsBufferEngineAssetEnum engineAssetEnum
-    ) {
-        return axrGetPushConstantsBufferEngineAssetDataSize(
-            static_cast<AxrPushConstantsBufferEngineAssetEnum>(engineAssetEnum)
-        );
-    }
+#endif
 
     // ---------------------------------------------------------------------------------- //
     //                                  Asset Collection                                  //
@@ -2025,10 +2091,10 @@ namespace axr {
         /// Create a new engine asset shader
         /// @param engineAssetEnum Shader engine asset
         /// @returns AXR_SUCCESS if the function succeeded
-        [[nodiscard]] axr::Result createShader(axr::ShaderEngineAssetEnum engineAssetEnum) const {
+        [[nodiscard]] axr::Result createShader(axr::EngineAssetEnum engineAssetEnum) const {
             return static_cast<axr::Result>(axrAssetCollectionCreateEngineAssetShader(
                 m_AssetCollection,
-                static_cast<AxrShaderEngineAssetEnum>(engineAssetEnum)
+                static_cast<AxrEngineAssetEnum>(engineAssetEnum)
             ));
         }
 
@@ -2052,13 +2118,13 @@ namespace axr {
         /// @returns AXR_SUCCESS if the function succeeded
         axr::Result createMaterial(
             const char* materialName,
-            const AxrMaterialEngineAsset_DefaultMaterial materialValues
+            const axr::EngineAssetMaterial_DefaultMaterial materialValues
         ) const {
             return static_cast<axr::Result>(
                 axrAssetCollectionCreateEngineAssetMaterial_DefaultMaterial(
                     m_AssetCollection,
                     materialName,
-                    materialValues
+                    *materialValues.toRaw()
                 )
             );
         }
@@ -2083,12 +2149,12 @@ namespace axr {
         /// @returns AXR_SUCCESS if the function succeeded
         [[nodiscard]] axr::Result createModel(
             const char* modelName,
-            axr::ModelEngineAssetEnum engineAssetEnum
+            axr::EngineAssetEnum engineAssetEnum
         ) const {
             return static_cast<axr::Result>(axrAssetCollectionCreateEngineAssetModel(
                 m_AssetCollection,
                 modelName,
-                static_cast<AxrModelEngineAssetEnum>(engineAssetEnum)
+                static_cast<AxrEngineAssetEnum>(engineAssetEnum)
             ));
         }
 
@@ -2107,17 +2173,17 @@ namespace axr {
         }
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-        // ---- Push Constants Buffer ----
+        // ---- Push Constant Buffer ----
 
-        /// Create a new push constants buffer
-        /// @param pushConstantsBufferConfig Push constants buffer config
+        /// Create a new push constant buffer
+        /// @param pushConstantBufferConfig Push constant buffer config
         /// @returns AXR_SUCCESS if the function succeeded
-        [[nodiscard]] axr::Result createPushConstantsBuffer(
-            const axr::PushConstantsBufferConfig& pushConstantsBufferConfig
+        [[nodiscard]] axr::Result createPushConstantBuffer(
+            const axr::PushConstantBufferConfig& pushConstantBufferConfig
         ) const {
-            return static_cast<axr::Result>(axrAssetCollectionCreatePushConstantsBuffer(
+            return static_cast<axr::Result>(axrAssetCollectionCreatePushConstantBuffer(
                 m_AssetCollection,
-                pushConstantsBufferConfig.toRaw()
+                pushConstantBufferConfig.toRaw()
             ));
         }
 #endif

@@ -6,8 +6,8 @@
 // ----------------------------------------- //
 #include "axr/assets.h"
 
-/// Push constants buffer
-class AxrPushConstantsBuffer {
+/// Push constant buffer
+class AxrPushConstantBuffer {
 public:
     // ----------------------------------------- //
     // Special Functions
@@ -16,37 +16,37 @@ public:
     // ---- Constructors ----
 
     /// Default Constructor
-    AxrPushConstantsBuffer();
+    AxrPushConstantBuffer();
     /// Constructor
-    /// @param config Push constants buffer config
-    AxrPushConstantsBuffer(const AxrPushConstantsBufferConfig& config);
+    /// @param config Push constant buffer config
+    AxrPushConstantBuffer(const AxrPushConstantBufferConfig& config);
     /// Copy Constructor
-    /// @param src Source AxrPushConstantsBuffer to copy from
-    AxrPushConstantsBuffer(const AxrPushConstantsBuffer& src);
+    /// @param src Source AxrPushConstantBuffer to copy from
+    AxrPushConstantBuffer(const AxrPushConstantBuffer& src);
     /// Move Constructor
-    /// @param src Source AxrPushConstantsBuffer to move from
-    AxrPushConstantsBuffer(AxrPushConstantsBuffer&& src) noexcept;
+    /// @param src Source AxrPushConstantBuffer to move from
+    AxrPushConstantBuffer(AxrPushConstantBuffer&& src) noexcept;
 
     // ---- Destructor ----
 
     /// Destructor
-    ~AxrPushConstantsBuffer();
+    ~AxrPushConstantBuffer();
 
     // ---- Operator Overloads ----
 
     /// Copy Assignment Operator
-    /// @param src Source AxrPushConstantsBuffer to copy from
-    AxrPushConstantsBuffer& operator=(const AxrPushConstantsBuffer& src);
+    /// @param src Source AxrPushConstantBuffer to copy from
+    AxrPushConstantBuffer& operator=(const AxrPushConstantBuffer& src);
     /// Move Assignment Operator
-    /// @param src Source AxrPushConstantsBuffer to move from
-    AxrPushConstantsBuffer& operator=(AxrPushConstantsBuffer&& src) noexcept;
+    /// @param src Source AxrPushConstantBuffer to move from
+    AxrPushConstantBuffer& operator=(AxrPushConstantBuffer&& src) noexcept;
 
     // ----------------------------------------- //
     // Public Functions
     // ----------------------------------------- //
 
-    /// Get the push constants buffer's name
-    /// @returns The push constants buffer's name
+    /// Get the push constant buffer's name
+    /// @returns The push constant buffer's name
     [[nodiscard]] const char* getName() const;
 
     /// Clone the given data
@@ -88,7 +88,7 @@ private:
     // Private Functions
     // ----------------------------------------- //
 
-    /// Cleanup the push constants buffer class
+    /// Cleanup the push constant buffer class
     void cleanup();
 };
 
