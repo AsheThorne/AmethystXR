@@ -184,8 +184,6 @@ AxrResult AxrVulkanSceneData::setWindowUniformBufferData(
 AxrResult AxrVulkanSceneData::onSetActiveScene(const AxrVulkanSceneData* activeSceneHandle) {
     AxrResult axrResult = AXR_SUCCESS;
 
-    // TODO: Write all for window only if the window is loaded
-    // TODO: Probably also need to check if they've already been written to. but i don't know. sounds tricky and might not be worth it
     axrResult = writeAllSceneSpecificDescriptorSets(AXR_PLATFORM_TYPE_WINDOW, activeSceneHandle);
     if (AXR_FAILED(axrResult)) {
         return axrResult;
@@ -510,9 +508,6 @@ AxrResult AxrVulkanSceneData::initializeAllWindowUniformBufferData() {
 
     if (!isThisGlobalSceneData()) {
         // ---- Scene Specific Uniform Buffers ----
-
-        // TODO: I feel like we should have a list of all scene specific data, and build them from that.
-        //  That way we can easily check against that same list when we swap the descriptor sets uniform buffers when the active scene changes.
 
         axrResult = initializeUniformBufferData(
             nullptr,
