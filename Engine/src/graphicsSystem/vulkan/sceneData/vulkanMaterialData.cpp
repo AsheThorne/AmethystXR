@@ -394,17 +394,6 @@ AxrResult AxrVulkanMaterialData::createPipeline(
     const vk::RenderPass renderPass,
     vk::Pipeline& pipeline
 ) const {
-    // TODO: When creating a pipeline (For OpenXR or Window)
-    //  Check if any pipeline already exists
-    //  Check if the existing pipeline was created with the same parameters as what is passed in here.
-    //  (Check the render pass. Not the output pipeline).
-    //  If an existing pipeline was already created with the same parameters, then just reuse it. Don't create a new one
-    //  -
-    //  To make this worth it, it needs to be possible for OpenXR and the window to use the same render pass.
-    //  Which will need to be checked similar to this function. By checking the parameters during it's creation.
-    //  -
-    //  Also check if there are other objects that can be reused too.
-
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
