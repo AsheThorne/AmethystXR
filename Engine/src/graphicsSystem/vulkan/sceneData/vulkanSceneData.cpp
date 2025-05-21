@@ -1201,7 +1201,7 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
         }
 
         for (uint32_t frameIndex = 0; frameIndex < m_MaxFramesInFlight; ++frameIndex) {
-            if (descriptorSetItemLocation.BufferLayoutType == AXR_SHADER_BUFFER_LAYOUT_UNIFORM_BUFFER) {
+            if (descriptorSetItemLocation.DescriptorType == vk::DescriptorType::eUniformBuffer) {
                 const AxrVulkanUniformBufferData* foundUniformBufferData = sceneData->findUniformBufferData_shared(
                     bufferName,
                     platformType
@@ -1229,7 +1229,7 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
                     &descriptorBufferInfos.back(),
                     nullptr
                 );
-            } else if (descriptorSetItemLocation.BufferLayoutType == AXR_SHADER_BUFFER_LAYOUT_IMAGE_SAMPLER_BUFFER) {
+            } else if (descriptorSetItemLocation.DescriptorType == vk::DescriptorType::eCombinedImageSampler) {
                 // TODO: Implement the image stuff
             }
         }

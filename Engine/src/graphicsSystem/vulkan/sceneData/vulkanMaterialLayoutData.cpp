@@ -363,8 +363,7 @@ void AxrVulkanMaterialLayoutData::addDescriptorSetLayoutItem(
     bindings.push_back(descriptorSetLayoutBinding);
 
     const DescriptorSetItemLocation descriptorSetItemLocation{
-        // TODO: Don't hard code this. It should actually be dependant on the descriptorType parameter
-        .BufferLayoutType = AXR_SHADER_BUFFER_LAYOUT_UNIFORM_BUFFER,
+        .DescriptorType = descriptorType,
         .ShaderBinding = binding,
         .ItemIndex = static_cast<uint32_t>(bindings.size()) - 1,
     };

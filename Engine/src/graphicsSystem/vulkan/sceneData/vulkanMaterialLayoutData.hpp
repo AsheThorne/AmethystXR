@@ -35,7 +35,7 @@ public:
 
     /// Descriptor set item location details
     struct DescriptorSetItemLocation {
-        AxrShaderBufferLayoutEnum BufferLayoutType;
+        vk::DescriptorType DescriptorType;
         uint32_t ShaderBinding;
         uint32_t ItemIndex;
     };
