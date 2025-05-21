@@ -116,6 +116,7 @@ set(AXR_CPP_FILES
     # ---- Root ----
     ${AXR_SRC_DIR}/setup.cpp
     ${AXR_SRC_DIR}/utils.cpp
+    ${AXR_SRC_DIR}/libraryImplementations.cpp
     # ---- AXR Application ----
     ${AXR_SRC_DIR}/application/application.cpp
     # ---- Window System ----
@@ -194,7 +195,7 @@ target_include_directories(AXR_Engine
     PUBLIC ${AXR_INCLUDE_DIR}
     ${SPDLOG_DIRECTORY}/include
     ${EnTT_DIRECTORY}/single_include
-    # ${STB_DIRECTORY}/include
+    ${STB_DIRECTORY}/include
     # ${TINY_GLTF_DIRECTORY}/include
     # ${JSON_DIRECTORY}/include
 )
