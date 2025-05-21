@@ -138,7 +138,6 @@ private:
     vk::RenderPass m_WindowRenderPass;
 
     AxrVulkanSceneData* m_ActiveScene;
-    // TODO: Check if this needs to be a pointer
     std::vector<AxrVulkanSceneData*> m_LoadedScenes;
 
     // ----------------------------------------- //
