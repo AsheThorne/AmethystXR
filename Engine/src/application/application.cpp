@@ -199,7 +199,7 @@ AxrResult AxrApplication::createScene(const std::string& sceneName) {
     // Process
     // ----------------------------------------- //
 
-    const auto insertResult = m_Scenes.insert(std::pair(sceneName, AxrScene(sceneName)));
+    const auto insertResult = m_Scenes.insert(std::pair(sceneName, AxrScene(sceneName.c_str())));
     if (!insertResult.second) {
         // If the insertion failed
         return AXR_ERROR;

@@ -124,12 +124,74 @@ AxrVulkanSceneData* AxrVulkanLoadedScenesCollection::getGlobalSceneData() const 
     return m_LoadedScenes[0];
 }
 
+AxrResult AxrVulkanLoadedScenesCollection::loadGlobalSceneData(const AxrAssetCollection_T assetCollection) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    AxrVulkanSceneData* globalSceneData = getGlobalSceneData();
+    if (globalSceneData != nullptr) {
+        axrLogErrorLocation("Global scene data already exists.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    AxrVulkanSceneData* sceneData = createSceneData(
+        m_GlobalSceneName,
+        assetCollection,
+        nullptr,
+        globalSceneData
+    );
+    m_LoadedScenes.push_back(sceneData);
+
+    axrResult = sceneData->loadScene();
+    if (AXR_FAILED(axrResult)) {
+        unloadScene(sceneData->getSceneName());
+        return axrResult;
+    }
+
+    if (isWindowReady()) {
+        axrResult = sceneData->loadWindowData(m_WindowRenderPass);
+        if (AXR_FAILED(axrResult)) {
+            unloadScene(sceneData->getSceneName());
+            return axrResult;
+        }
+    }
+
+    return AXR_SUCCESS;
+}
+
 AxrResult AxrVulkanLoadedScenesCollection::loadScene(
     const std::string& sceneName,
     const AxrAssetCollection_T assetCollection,
-    entt::registry* ecsRegistryHandle,
-    AxrVulkanSceneData* globalSceneData
+    entt::registry* ecsRegistryHandle
 ) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    AxrVulkanSceneData* globalSceneData = getGlobalSceneData();
+    if (globalSceneData == nullptr) {
+        axrLogErrorLocation("Global scene data is null. Load global scene data first.");
+        return AXR_ERROR;
+    }
+
+    for (const AxrVulkanSceneData* loadedScene : m_LoadedScenes) {
+        if (loadedScene->getSceneName() == sceneName) {
+            axrLogErrorLocation("Scene named \"{0}\" has already been loaded", sceneName.c_str());
+            return AXR_ERROR;
+        }
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
     AxrResult axrResult = AXR_SUCCESS;
 
     AxrVulkanSceneData* sceneData = createSceneData(

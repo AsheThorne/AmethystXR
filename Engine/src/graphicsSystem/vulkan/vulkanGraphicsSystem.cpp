@@ -171,8 +171,7 @@ AxrResult AxrVulkanGraphicsSystem::loadScene(const AxrScene_T scene) {
     const AxrResult axrResult = m_LoadedScenes.loadScene(
         scene->getName(),
         scene->getAssetCollection(),
-        scene->getEcsRegistry(),
-        m_LoadedScenes.getGlobalSceneData()
+        scene->getEcsRegistry()
     );
     if (AXR_FAILED(axrResult)) {
         resetSetupSceneData();
@@ -1093,14 +1092,8 @@ AxrResult AxrVulkanGraphicsSystem::setupSceneData() {
 
     // ---- Create global scene data ----
 
-    // TODO: Set this scene name somewhere else and forbid an actual scene from being created with the same name
-    //  Maybe we can just have a special function named "LoadGlobalScene" that only takes the asset collection.
-    //  And it fails if a global scene already exists.
-    axrResult = m_LoadedScenes.loadScene(
-        "AXR:SceneGlobal",
-        m_GlobalAssetCollection,
-        nullptr,
-        nullptr
+    axrResult = m_LoadedScenes.loadGlobalSceneData(
+        m_GlobalAssetCollection
     );
     if (AXR_FAILED(axrResult)) {
         resetSetupSceneData();

@@ -75,18 +75,21 @@ public:
     /// @returns The global scene data. Or nullptr if it doesn't exist
     [[nodiscard]] AxrVulkanSceneData* getGlobalSceneData() const; 
 
+    /// Load the global scene
+    /// @param assetCollection Asset collection to use
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult loadGlobalSceneData(
+        AxrAssetCollection_T assetCollection
+    );
     /// Load a new scene
     /// @param sceneName Name of the scene
     /// @param assetCollection Asset collection to use
     /// @param ecsRegistryHandle ECS registry to use
-    /// @param globalSceneData Global scene assets
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult loadScene(
         const std::string& sceneName,
         AxrAssetCollection_T assetCollection,
-        entt::registry* ecsRegistryHandle,
-        // TODO: I think we can remove this param and get the global assets from within this class
-        AxrVulkanSceneData* globalSceneData
+        entt::registry* ecsRegistryHandle
     );
     /// Unload the named scene
     /// @param sceneName Name of the scene 
@@ -129,6 +132,7 @@ private:
     vk::DispatchLoaderDynamic* m_Dispatch;
 
     bool m_IsSetup;
+    std::string m_GlobalSceneName = "AXR:SceneGlobal";
 
     // ---- Setup Window Config ----
     vk::RenderPass m_WindowRenderPass;
