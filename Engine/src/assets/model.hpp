@@ -52,7 +52,7 @@ public:
 
     /// Get the model name
     /// @returns The name of the model
-    const std::string& getName() const;
+    [[nodiscard]] const std::string& getName() const;
 
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
@@ -69,7 +69,7 @@ public:
 
     /// Get the model meshes
     /// @returns The model meshes
-    const std::vector<AxrMeshRAII>& getMeshes() const;
+    [[nodiscard]] const std::vector<AxrMeshRAII>& getMeshes() const;
 
     // ----------------------------------------- //
     // Public Static Functions
@@ -79,7 +79,7 @@ public:
     /// @param meshesCount Number of meshes in the given array
     /// @param meshes Mesh array to clone
     /// @returns A cloned array of the given meshes
-    static AxrMesh* cloneMeshes(uint32_t meshesCount, const AxrMesh* meshes);
+    [[nodiscard]] static AxrMesh* cloneMeshes(uint32_t meshesCount, const AxrMesh* meshes);
     /// Destroy the given meshes
     /// @param meshesCount Number of meshes in the given array
     /// @param meshes Mesh array to destroy
@@ -110,5 +110,5 @@ private:
     /// @param meshesCount Number of meshes in the given array
     /// @param meshes Mesh array to convert
     /// @returns The given meshes converted to a c++ safe vector
-    static std::vector<AxrMeshRAII> toVector(uint32_t meshesCount, const AxrMesh* meshes);
+    [[nodiscard]] static std::vector<AxrMeshRAII> toVector(uint32_t meshesCount, const AxrMesh* meshes);
 };

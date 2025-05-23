@@ -55,6 +55,7 @@ AxrModel::AxrModel():
 AxrModel::AxrModel(const AxrModelConfig& config):
     m_Name(config.Name),
     m_FilePath(config.FilePath) {
+    // TODO: I don't think we want to put mesh data in the config. Maybe just have a function like "setData"
     m_Meshes = toVector(config.MeshesCount, config.Meshes);
 }
 
@@ -117,15 +118,22 @@ bool AxrModel::isLoaded() const {
 }
 
 AxrResult AxrModel::loadFile() const {
-    if (m_FilePath.empty()) {
-        if (m_Meshes.empty()) {
-            axrLogErrorLocation("There is no file path for the model and no meshes were assigned.");
-            return AXR_ERROR;
-        }
-
-        // File path isn't required if mesh data has been provided manually
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+    
+    if (isLoaded()) {
         return AXR_SUCCESS;
     }
+
+    if (m_FilePath.empty()) {
+        axrLogErrorLocation("File path is empty.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
 
     // TODO: implement this
     // return axrLoadModel(m_FilePath, m_Meshes);
@@ -134,9 +142,7 @@ AxrResult AxrModel::loadFile() const {
 
 void AxrModel::unloadFile() const {
     // Don't clear the meshes if there is no original data file to be loaded again
-    if (m_FilePath.empty()) {
-        return;
-    }
+    if (m_FilePath.empty()) return;
 
     m_Meshes.clear();
 }

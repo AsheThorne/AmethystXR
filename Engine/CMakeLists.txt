@@ -103,6 +103,7 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/assets/assetsUtils.hpp
     ${AXR_SRC_DIR}/assets/uniformBuffer.hpp
     ${AXR_SRC_DIR}/assets/pushConstantBuffer.hpp
+    ${AXR_SRC_DIR}/assets/image.hpp
     # ---- Scene ----
     ${AXR_SRC_DIR}/scene/scene.hpp
     ${AXR_SRC_DIR}/scene/sceneUtils.hpp
@@ -152,6 +153,7 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/assets/assetsUtils.cpp
     ${AXR_SRC_DIR}/assets/uniformBuffer.cpp
     ${AXR_SRC_DIR}/assets/pushConstantBuffer.cpp
+    ${AXR_SRC_DIR}/assets/image.cpp
     # ---- Scene ----
     ${AXR_SRC_DIR}/scene/scene.cpp
     ${AXR_SRC_DIR}/scene/sceneUtils.cpp

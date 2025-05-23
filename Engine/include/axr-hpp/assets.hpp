@@ -1825,6 +1825,163 @@ namespace axr {
 #endif
 
     // ---------------------------------------------------------------------------------- //
+    //                                   Image Assets                                     //
+    // ---------------------------------------------------------------------------------- //
+
+    /// Image Config
+    struct ImageConfig {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+
+        const char* Name;
+        const char* FilePath;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        ImageConfig():
+            Name(""),
+            FilePath("") {
+        }
+
+        /// Constructor
+        /// @param name Name of the image
+        /// @param filePath Image file path
+        ImageConfig(const char* name, const char* filePath):
+            Name(name),
+            FilePath(filePath) {
+        }
+
+        /// Copy Constructor
+        /// @param src Source ImageConfig to copy from
+        ImageConfig(const ImageConfig& src) {
+            Name = src.Name;
+            FilePath = src.FilePath;
+        }
+
+        /// Move Constructor
+        /// @param src Source ImageConfig to move from
+        ImageConfig(ImageConfig&& src) noexcept {
+            Name = src.Name;
+            FilePath = src.FilePath;
+
+            src.Name = "";
+            src.FilePath = "";
+        }
+
+        // ---- Destructor ----
+
+        /// Destructor
+        ~ImageConfig() {
+            cleanup();
+        }
+
+        // ---- Operator Overloads ----
+
+        /// Copy Assignment Operator
+        /// @param src Source ImageConfig to copy from
+        ImageConfig& operator=(const ImageConfig& src) {
+            if (this != &src) {
+                cleanup();
+
+                Name = src.Name;
+                FilePath = src.FilePath;
+            }
+
+            return *this;
+        }
+
+        /// Move Assignment Operator
+        /// @param src Source ImageConfig to move from
+        ImageConfig& operator=(ImageConfig&& src) noexcept {
+            if (this != &src) {
+                cleanup();
+
+                Name = src.Name;
+                FilePath = src.FilePath;
+
+                src.Name = "";
+                src.FilePath = "";
+            }
+
+            return *this;
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the ImageConfig as an AxrImageConfig
+        /// @returns This as an AxrImageConfig
+        const AxrImageConfig* toRaw() const {
+            return reinterpret_cast<const AxrImageConfig*>(this);
+        }
+
+        /// Get a handle to the ImageConfig as an AxrImageConfig
+        /// @returns This as an AxrImageConfig
+        AxrImageConfig* toRaw() {
+            return reinterpret_cast<AxrImageConfig*>(this);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Functions
+        // ----------------------------------------- //
+
+        /// Clean up this class
+        void cleanup() {
+            Name = "";
+            FilePath = "";
+        }
+    };
+
+    static_assert(
+        sizeof(AxrImageConfig) == sizeof(axr::ImageConfig),
+        "Original type and wrapper have different size!"
+    );
+
+    // ----------------------------------------- //
+    // Image Definition
+    // ----------------------------------------- //
+
+    /// Image
+    class Image {
+    public:
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Constructor
+        /// @param image Image handle
+        Image(const AxrImage_T image):
+            m_Image(image) {
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get the image's name
+        /// @returns The image's name
+        [[nodiscard]] const char* getName() const {
+            return axrImageGetName(m_Image);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Variables
+        // ----------------------------------------- //
+        AxrImage_T m_Image;
+    };
+
+    // ---------------------------------------------------------------------------------- //
     //                               Engine Defined Assets                                //
     // ---------------------------------------------------------------------------------- //
 
