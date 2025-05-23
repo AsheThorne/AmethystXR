@@ -27,7 +27,7 @@
 /// @param images Images to create image views from
 /// @param format Format to use
 /// @param aspectMask Aspect mask to use
-/// @param mipLevels Mip levels to use
+/// @param mipLevelCount Mip level count to use
 /// @param imageViews Output image views
 /// @param dispatch Dispatch to use
 /// @returns AXR_SUCCESS if the function succeeded
@@ -36,7 +36,7 @@
     const std::vector<vk::Image>& images,
     vk::Format format,
     vk::ImageAspectFlags aspectMask,
-    uint32_t mipLevels,
+    uint32_t mipLevelCount,
     std::vector<vk::ImageView>& imageViews,
     const vk::DispatchLoaderDynamic& dispatch
 );
@@ -54,7 +54,7 @@ void axrDestroyImageViews(
 /// @param image Image to create image view from
 /// @param format Format to use
 /// @param aspectMask Aspect mask to use
-/// @param mipLevels Mip levels to use
+/// @param mipLevelCount Mip level count to use
 /// @param imageView Output image view
 /// @param dispatch Dispatch to use
 /// @returns AXR_SUCCESS if the function succeeded
@@ -63,7 +63,7 @@ void axrDestroyImageViews(
     const vk::Image& image,
     vk::Format format,
     vk::ImageAspectFlags aspectMask,
-    uint32_t mipLevels,
+    uint32_t mipLevelCount,
     vk::ImageView& imageView,
     const vk::DispatchLoaderDynamic& dispatch
 );

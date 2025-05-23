@@ -485,8 +485,7 @@ AxrResult AxrVulkanBuffer::copyBuffer(
         *m_DispatchHandle
     );
     if (AXR_FAILED(axrResult)) {
-        // TOD: Destroy buffer
-        return AXR_ERROR;
+        return axrResult;
     }
 
     const vk::BufferCopy copyRegion(
@@ -504,8 +503,7 @@ AxrResult AxrVulkanBuffer::copyBuffer(
         *m_DispatchHandle
     );
     if (AXR_FAILED(axrResult)) {
-        // TOD: Destroy buffer
-        return AXR_ERROR;
+        return axrResult;
     }
 
     return AXR_SUCCESS;

@@ -84,6 +84,7 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanSurfaceDetails.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanBuffer.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanRenderCommands.hpp
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanImage.hpp
     # ---- Graphics System - Vulkan - Scene Data ----
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanSceneData.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanModelData.hpp
@@ -134,6 +135,7 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanWindowGraphics.cpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanSurfaceDetails.cpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanBuffer.cpp
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanImage.cpp
     # ---- Graphics System - Vulkan - Scene Data ----
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanSceneData.cpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanModelData.cpp

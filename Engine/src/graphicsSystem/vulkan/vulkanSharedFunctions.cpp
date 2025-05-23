@@ -13,7 +13,7 @@ AxrResult axrCreateImageViews(
     const std::vector<vk::Image>& images,
     const vk::Format format,
     const vk::ImageAspectFlags aspectMask,
-    const uint32_t mipLevels,
+    const uint32_t mipLevelCount,
     std::vector<vk::ImageView>& imageViews,
     const vk::DispatchLoaderDynamic& dispatch
 ) {
@@ -49,7 +49,7 @@ AxrResult axrCreateImageViews(
             images[i],
             format,
             aspectMask,
-            mipLevels,
+            mipLevelCount,
             imageViews[i],
             dispatch
         );
@@ -82,7 +82,7 @@ AxrResult axrCreateImageView(
     const vk::Image& image,
     const vk::Format format,
     const vk::ImageAspectFlags aspectMask,
-    const uint32_t mipLevels,
+    const uint32_t mipLevelCount,
     vk::ImageView& imageView,
     const vk::DispatchLoaderDynamic& dispatch
 ) {
@@ -118,7 +118,7 @@ AxrResult axrCreateImageView(
         vk::ImageSubresourceRange{
             aspectMask,
             0,
-            mipLevels,
+            mipLevelCount,
             0,
             1
         }
