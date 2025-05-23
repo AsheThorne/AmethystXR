@@ -143,3 +143,25 @@ AxrResult axrEngineAssetCreateModel(const std::string& modelName, AxrEngineAsset
 /// @param model Output created model
 /// @returns AXR_SUCCESS if the function succeeded
 AxrResult axrEngineAssetCreateModel_Triangle(const std::string& modelName, AxrModel& model);
+
+// ---------------------------------------------------------------------------------- //
+//                                Image Engine Assets                                 //
+// ---------------------------------------------------------------------------------- //
+
+/// Check if the given engine asset is an image
+/// @param engineAssetEnum Engine asset to check
+/// @returns True if the given engine asset is an image
+bool axrEngineAssetIsImage(AxrEngineAssetEnum engineAssetEnum);
+
+/// Create an engine asset image
+/// @param imageName Image name
+/// @param engineAssetEnum Image engine asset
+/// @param image Output created image
+/// @returns AXR_SUCCESS if the function succeeded
+AxrResult axrEngineAssetCreateImage(const std::string& imageName, AxrEngineAssetEnum engineAssetEnum, AxrImage& image);
+
+/// Create the 'UvTester' engine asset image
+/// @param imageName Image name
+/// @param image Output created image
+/// @returns AXR_SUCCESS if the function succeeded
+AxrResult axrEngineAssetCreateImage_UvTester(const std::string& imageName, AxrImage& image);

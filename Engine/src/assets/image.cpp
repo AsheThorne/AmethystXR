@@ -41,7 +41,6 @@ AxrImage::AxrImage(const AxrImage& src) {
 AxrImage::AxrImage(AxrImage&& src) noexcept {
     m_Name = std::move(src.m_Name);
     m_FilePath = std::move(src.m_FilePath);
-    // TODO: Test that this object moves properly
     m_Data = std::move(src.m_Data);
 }
 
@@ -108,7 +107,7 @@ void AxrImage::unloadFile() const {
     // Don't clear the image data if there is no original data file to be loaded again
     if (m_FilePath.empty()) return;
 
-    cleanup(m_Data);
+    m_Data.clear();
 }
 
 const std::vector<stbi_uc>& AxrImage::getPixelData() const {
@@ -132,14 +131,7 @@ uint32_t AxrImage::getColorChannels() const {
 void AxrImage::cleanup() {
     m_Name.clear();
     m_FilePath.clear();
-    cleanup(m_Data);
-}
-
-void AxrImage::cleanup(Data& imageData) const {
-    imageData.Width = 0;
-    imageData.Height = 0;
-    imageData.ColorChannels = 0;
-    imageData.Pixels.clear();
+    m_Data.clear();
 }
 
 AxrResult AxrImage::loadImage(const std::string& path, Data& imageData) {

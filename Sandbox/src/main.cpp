@@ -51,22 +51,24 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
     auto app = axr::Application(appConfig);
 
+    const std::string imageName = "UvTesterImage";
     const std::string materialName = "MyMaterial";
+    const std::string modelName = "Triangle";
 
     axr::AssetCollection globalAssetCollection = app.getGlobalAssetCollection();
+    if (AXR_FAILED(globalAssetCollection.createImage(imageName.c_str(), axr::EngineAssetEnum::ImageUvTester))) return 0;
     if (AXR_FAILED(globalAssetCollection.createShader(axr::EngineAssetEnum::ShaderDefaultFrag))) return 0;
     if (AXR_FAILED(globalAssetCollection.createShader(axr::EngineAssetEnum::ShaderDefaultVert))) return 0;
     if (AXR_FAILED(
         globalAssetCollection.createMaterial(
             materialName.c_str(),
-            // TODO: Use an image when that gets implemented
-            axr::EngineAssetMaterial_DefaultMaterial("")
+            axr::EngineAssetMaterial_DefaultMaterial(imageName.c_str())
         )
     )) {
         return 0;
     }
 
-    if (AXR_FAILED(globalAssetCollection.createModel("Triangle", axr::EngineAssetEnum::ModelTriangle))) return 0;
+    if (AXR_FAILED(globalAssetCollection.createModel(modelName.c_str(), axr::EngineAssetEnum::ModelTriangle))) return 0;
 
     const std::string scene1Name = "Scene1";
     if (AXR_FAILED(app.createScene(scene1Name.c_str()))) return 0;
@@ -85,7 +87,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     };
     triangleEntity.emplace<AxrModelComponent>(
         AxrModelComponent{
-            .ModelName = "Triangle",
+            .ModelName = modelName.c_str(),
             .MeshCount = 1,
             .Meshes = &mesh,
             .PushConstantBufferName = axr::engineAssetGetName(

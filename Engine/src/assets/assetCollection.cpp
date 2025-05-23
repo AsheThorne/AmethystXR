@@ -139,6 +139,36 @@ AxrResult axrAssetCollectionCreatePushConstantBuffer(
 }
 #endif
 
+AxrResult axrAssetCollectionCreateImage(
+    const AxrAssetCollection_T assetCollection,
+    const AxrImageConfig* imageConfig
+) {
+    if (assetCollection == nullptr) {
+        axrLogErrorLocation("`assetCollection` is null.");
+        return AXR_ERROR;
+    }
+
+    if (imageConfig == nullptr) {
+        axrLogErrorLocation("`imageConfig` is null.");
+        return AXR_ERROR;
+    }
+
+    return assetCollection->createImage(*imageConfig);
+}
+
+AxrResult axrAssetCollectionCreateEngineAssetImage(
+    const AxrAssetCollection_T assetCollection,
+    const char* imageName,
+    const AxrEngineAssetEnum engineAssetEnum
+) {
+    if (assetCollection == nullptr) {
+        axrLogErrorLocation("`assetCollection` is null.");
+        return AXR_ERROR;
+    }
+
+    return assetCollection->createImage(imageName, engineAssetEnum);
+}
+
 // ----------------------------------------- //
 // Internal Functions
 // ----------------------------------------- //
@@ -152,10 +182,10 @@ AxrAssetCollection::AxrAssetCollection(AxrAssetCollection&& src) noexcept {
     m_Materials = std::move(src.m_Materials);
     m_Models = std::move(src.m_Models);
     m_UniformBuffers = std::move(src.m_UniformBuffers);
-
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     m_PushConstantBuffers = std::move(src.m_PushConstantBuffers);
 #endif
+    m_Images = std::move(src.m_Images);
 }
 
 AxrAssetCollection::~AxrAssetCollection() {
@@ -170,10 +200,10 @@ AxrAssetCollection& AxrAssetCollection::operator=(AxrAssetCollection&& src) noex
         m_Materials = std::move(src.m_Materials);
         m_Models = std::move(src.m_Models);
         m_UniformBuffers = std::move(src.m_UniformBuffers);
-
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
         m_PushConstantBuffers = std::move(src.m_PushConstantBuffers);
 #endif
+        m_Images = std::move(src.m_Images);
     }
 
     return *this;
@@ -508,6 +538,68 @@ AxrResult AxrAssetCollection::createPushConstantBuffer(const AxrPushConstantBuff
 
     return AXR_SUCCESS;
 }
+
+AxrResult AxrAssetCollection::createImage(const AxrImageConfig& imageConfig) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Images.contains(imageConfig.Name)) {
+        axrLogError("Unable to create image. An image named: {0} already exists.", imageConfig.Name);
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const auto insertResult = m_Images.insert(std::pair(imageConfig.Name, AxrImage(imageConfig)));
+    if (!insertResult.second) {
+        axrLogErrorLocation("Failed to insert image.");
+        return AXR_ERROR;
+    }
+
+    // TODO: Reload vulkan scene assets if they're already loaded.
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrAssetCollection::createImage(const std::string& imageName, AxrEngineAssetEnum engineAssetEnum) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!axrEngineAssetIsImage(engineAssetEnum)) {
+        axrLogError("Unable to create image. Engine asset is not an image.");
+        return AXR_ERROR;
+    }
+
+    if (m_Images.contains(imageName)) {
+        axrLogError("Unable to create image. An image named: {0} already exists.", imageName.c_str());
+        return AXR_ERROR;
+    }
+
+    AxrImage image;
+    const AxrResult axrResult = axrEngineAssetCreateImage(imageName, engineAssetEnum, image);
+    if (AXR_FAILED(axrResult)) {
+        axrLogErrorLocation("Failed to create image engine asset.");
+        return axrResult;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const auto insertResult = m_Images.insert(std::pair(imageName, std::move(image)));
+    if (!insertResult.second) {
+        axrLogErrorLocation("Failed to insert image.");
+        return AXR_ERROR;
+    }
+
+    // TODO: Reload vulkan scene assets if they're already loaded.
+
+    return AXR_SUCCESS;
+}
 #endif
 
 void AxrAssetCollection::cleanup() {
@@ -517,10 +609,10 @@ void AxrAssetCollection::cleanup() {
     m_Materials.clear();
     m_Models.clear();
     m_UniformBuffers.clear();
-
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     m_PushConstantBuffers.clear();
 #endif
+    m_Images.clear();
 }
 
 bool AxrAssetCollection::isLoaded() {
@@ -532,6 +624,12 @@ bool AxrAssetCollection::isLoaded() {
 
     for (auto& [modelName, model] : m_Models) {
         if (!model.isLoaded()) {
+            return false;
+        }
+    }
+
+    for (auto& [imageName, image] : m_Images) {
+        if (!image.isLoaded()) {
             return false;
         }
     }
@@ -556,6 +654,14 @@ AxrResult AxrAssetCollection::loadAssets(const AxrGraphicsApiEnum graphicsApi) {
         }
     }
 
+    for (auto& [imageName, image] : m_Images) {
+        const AxrResult axrResult = image.loadFile();
+        if (AXR_FAILED(axrResult)) {
+            unloadAssets();
+            return axrResult;
+        }
+    }
+
     return AXR_SUCCESS;
 }
 
@@ -566,6 +672,10 @@ void AxrAssetCollection::unloadAssets() {
 
     for (auto& [modelName, model] : m_Models) {
         model.unloadFile();
+    }
+
+    for (auto& [imageName, image] : m_Images) {
+        image.unloadFile();
     }
 }
 
@@ -608,5 +718,9 @@ const std::unordered_map<std::string, AxrUniformBuffer>& AxrAssetCollection::get
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 const std::unordered_map<std::string, AxrPushConstantBuffer>& AxrAssetCollection::getPushConstantBuffers() {
     return m_PushConstantBuffers;
+}
+
+const std::unordered_map<std::string, AxrImage>& AxrAssetCollection::getImages() {
+    return m_Images;
 }
 #endif

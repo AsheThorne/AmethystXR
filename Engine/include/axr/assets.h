@@ -650,6 +650,11 @@ enum AxrEngineAssetEnum {
     AXR_ENGINE_ASSET_MODEL_START = 129,
     AXR_ENGINE_ASSET_MODEL_TRIANGLE = 129,
     AXR_ENGINE_ASSET_MODEL_END = 192,
+
+    // ---- Images ----
+    AXR_ENGINE_ASSET_IMAGE_START = 193,
+    AXR_ENGINE_ASSET_IMAGE_UV_TESTER = 193,
+    AXR_ENGINE_ASSET_IMAGE_END = 256,
 };
 
 // ----------------------------------------- //
@@ -805,4 +810,26 @@ extern "C" {
         const AxrPushConstantBufferConfig* pushConstantBufferConfig
     );
 #endif
+
+    // ---- Image ----
+
+    /// Create a new image
+    /// @param assetCollection Asset collection to use
+    /// @param imageConfig Image config
+    /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrAssetCollectionCreateImage(
+        AxrAssetCollection_T assetCollection,
+        const AxrImageConfig* imageConfig
+    );
+
+    /// Create a new engine asset image
+    /// @param assetCollection Asset collection to use
+    /// @param imageName Image name
+    /// @param engineAssetEnum Image engine asset
+    /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrAssetCollectionCreateEngineAssetImage(
+        AxrAssetCollection_T assetCollection,
+        const char* imageName,
+        AxrEngineAssetEnum engineAssetEnum
+    );
 }

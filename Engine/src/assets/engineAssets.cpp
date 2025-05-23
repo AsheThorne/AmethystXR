@@ -7,6 +7,7 @@
 #include "assetsUtils.hpp"
 #include "shader.hpp"
 #include "material.hpp"
+#include "image.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -415,13 +416,16 @@ AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
 // Model Engine Assets
 // ----------------------------------------- //
 
-
 bool axrEngineAssetIsModel(const AxrEngineAssetEnum engineAssetEnum) {
     return engineAssetEnum >= AXR_ENGINE_ASSET_MODEL_START &&
         engineAssetEnum <= AXR_ENGINE_ASSET_MODEL_END;
 }
 
-AxrResult axrEngineAssetCreateModel(const std::string& modelName, const AxrEngineAssetEnum engineAssetEnum, AxrModel& model) {
+AxrResult axrEngineAssetCreateModel(
+    const std::string& modelName,
+    const AxrEngineAssetEnum engineAssetEnum,
+    AxrModel& model
+) {
     if (!axrEngineAssetIsModel(engineAssetEnum)) {
         axrLogErrorLocation("Engine asset is not a model.");
         return AXR_ERROR;
@@ -477,6 +481,50 @@ AxrResult axrEngineAssetCreateModel_Triangle(const std::string& modelName, AxrMo
     };
 
     model = AxrModel(modelConfig);
+
+    return AXR_SUCCESS;
+}
+
+// ----------------------------------------- //
+// Image Engine Assets
+// ----------------------------------------- //
+
+bool axrEngineAssetIsImage(const AxrEngineAssetEnum engineAssetEnum) {
+    return engineAssetEnum >= AXR_ENGINE_ASSET_IMAGE_START &&
+        engineAssetEnum <= AXR_ENGINE_ASSET_IMAGE_END;
+}
+
+AxrResult axrEngineAssetCreateImage(
+    const std::string& imageName,
+    const AxrEngineAssetEnum engineAssetEnum,
+    AxrImage& image
+) {
+    if (!axrEngineAssetIsImage(engineAssetEnum)) {
+        axrLogErrorLocation("Engine asset is not an image.");
+        return AXR_ERROR;
+    }
+
+    switch (engineAssetEnum) {
+        case AXR_ENGINE_ASSET_IMAGE_UV_TESTER: {
+            return axrEngineAssetCreateImage_UvTester(imageName, image);
+        }
+        case AXR_ENGINE_ASSET_UNDEFINED:
+        default: { // NOLINT(clang-diagnostic-covered-switch-default)
+            axrLogErrorLocation("Unknown image engine asset.");
+            return AXR_ERROR;
+        }
+    }
+}
+
+AxrResult axrEngineAssetCreateImage_UvTester(const std::string& imageName, AxrImage& image) {
+    const auto imagePath = axrGetEngineAssetsDirectoryPath().append("images/uv-tester.png").generic_string();
+
+    const AxrImageConfig imageConfig{
+        .Name = imageName.c_str(),
+        .FilePath = imagePath.c_str()
+    };
+
+    image = AxrImage(imageConfig);
 
     return AXR_SUCCESS;
 }

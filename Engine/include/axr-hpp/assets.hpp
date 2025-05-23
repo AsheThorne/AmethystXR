@@ -2013,6 +2013,11 @@ namespace axr {
         ModelStart = AXR_ENGINE_ASSET_MODEL_START,
         ModelTriangle = AXR_ENGINE_ASSET_MODEL_TRIANGLE,
         ModelEnd = AXR_ENGINE_ASSET_MODEL_END,
+
+        // ---- Images ----
+        ImageStart = AXR_ENGINE_ASSET_IMAGE_START,
+        ImageUvTester = AXR_ENGINE_ASSET_IMAGE_UV_TESTER,
+        ImageEnd = AXR_ENGINE_ASSET_IMAGE_END,
     };
 
     // ----------------------------------------- //
@@ -2344,6 +2349,35 @@ namespace axr {
             ));
         }
 #endif
+
+        // ---- Image ----
+
+        /// Create a new image
+        /// @param imageConfig Image config
+        /// @returns AXR_SUCCESS if the function succeeded
+        [[nodiscard]] axr::Result createImage(
+            const axr::ImageConfig& imageConfig
+        ) const {
+            return static_cast<axr::Result>(axrAssetCollectionCreateImage(
+                m_AssetCollection,
+                imageConfig.toRaw()
+            ));
+        }
+
+        /// Create a new engine asset image
+        /// @param imageName Image name
+        /// @param engineAssetEnum Image engine asset
+        /// @returns AXR_SUCCESS if the function succeeded
+        [[nodiscard]] axr::Result createImage(
+            const char* imageName,
+            axr::EngineAssetEnum engineAssetEnum
+        ) const {
+            return static_cast<axr::Result>(axrAssetCollectionCreateEngineAssetImage(
+                m_AssetCollection,
+                imageName,
+                static_cast<AxrEngineAssetEnum>(engineAssetEnum)
+            ));
+        }
 
     private:
         // ----------------------------------------- //

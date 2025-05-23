@@ -92,10 +92,75 @@ private:
 
     /// Image Data
     struct Data {
+        // ---- Public Variables ----
+
         uint32_t Width;
         uint32_t Height;
         uint32_t ColorChannels;
         std::vector<stbi_uc> Pixels;
+
+        // ---- Constructors ----
+
+        /// Constructor
+        Data() = default;
+        /// Copy Constructor
+        /// @param src Source Data to copy from
+        Data(const Data& src) = default;
+        /// Move Constructor
+        /// @param src Source Data to move from
+        Data(Data&& src) noexcept {
+            Pixels = std::move(src.Pixels);
+
+            Width = src.Width;
+            Height = src.Height;
+            ColorChannels = src.ColorChannels;
+
+            src.Width = 0;
+            src.Height = 0;
+            src.ColorChannels = 0;
+        }
+
+        // ---- Destructor ----
+
+        /// Destructor
+        ~Data() {
+            clear();
+        }
+
+        // ---- Operator Overloads ----
+
+        /// Copy Assignment Operator
+        /// @param src Source Data to copy from
+        Data& operator=(const Data& src) = default;
+        /// Move Assignment Operator
+        /// @param src Source Data to move from
+        Data& operator=(Data&& src) noexcept {
+            if (this != &src) {
+                clear();
+
+                Pixels = std::move(src.Pixels);
+
+                Width = src.Width;
+                Height = src.Height;
+                ColorChannels = src.ColorChannels;
+
+                src.Width = 0;
+                src.Height = 0;
+                src.ColorChannels = 0;
+            }
+
+            return *this;
+        }
+
+        // ---- Public Functions ----
+
+        /// Clear data
+        void clear() {
+            Width = 0;
+            Height = 0;
+            ColorChannels = 0;
+            Pixels.clear();
+        }
     };
 
     // ----------------------------------------- //
@@ -113,9 +178,6 @@ private:
 
     /// Clean up this class
     void cleanup();
-    /// Clean up the given image data
-    /// @param imageData Image data
-    void cleanup(Data& imageData) const;
 
     /// Load the image at the given path
     /// @param path Image path

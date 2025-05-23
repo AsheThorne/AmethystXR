@@ -13,6 +13,7 @@
 #include "shader.hpp"
 #include "material.hpp"
 #include "model.hpp"
+#include "image.hpp"
 #include "uniformBuffer.hpp"
 
 /// Axr Asset Collection
@@ -105,6 +106,19 @@ public:
     [[nodiscard]] AxrResult createPushConstantBuffer(const AxrPushConstantBufferConfig& pushConstantBufferConfig);
 #endif
 
+    // ---- Image ----
+
+    /// Create a new image
+    /// @param imageConfig Image config
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createImage(const AxrImageConfig& imageConfig);
+    /// Create a new engine asset Image
+    /// @param imageName Image name
+    /// @param engineAssetEnum Engine asset enum
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createImage(const std::string& imageName, AxrEngineAssetEnum engineAssetEnum);
+
+
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
     // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
@@ -152,6 +166,9 @@ public:
     /// @returns A map of the push constant buffers
     [[nodiscard]] const std::unordered_map<std::string, AxrPushConstantBuffer>& getPushConstantBuffers();
 #endif
+    /// Get the images
+    /// @returns A map of the images
+    [[nodiscard]] const std::unordered_map<std::string, AxrImage>& getImages();
 
 private:
     // ----------------------------------------- //
@@ -161,8 +178,8 @@ private:
     std::unordered_map<std::string, AxrMaterial> m_Materials;
     std::unordered_map<std::string, AxrModel> m_Models;
     std::unordered_map<std::string, AxrUniformBuffer> m_UniformBuffers;
-
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     std::unordered_map<std::string, AxrPushConstantBuffer> m_PushConstantBuffers;
 #endif
+    std::unordered_map<std::string, AxrImage> m_Images;
 };
