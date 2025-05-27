@@ -719,8 +719,8 @@ const std::unordered_map<std::string, AxrUniformBuffer>& AxrAssetCollection::get
 const std::unordered_map<std::string, AxrPushConstantBuffer>& AxrAssetCollection::getPushConstantBuffers() {
     return m_PushConstantBuffers;
 }
+#endif
 
 const std::unordered_map<std::string, AxrImage>& AxrAssetCollection::getImages() {
     return m_Images;
 }
-#endif
