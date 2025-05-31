@@ -17,8 +17,8 @@ AxrVulkanImage::AxrVulkanImage():
     m_TransferQueue(VK_NULL_HANDLE),
     m_DispatchHandle(VK_NULL_HANDLE),
     m_Image(VK_NULL_HANDLE),
-    m_ImageMemory(VK_NULL_HANDLE) {
     m_ImageView(VK_NULL_HANDLE),
+    m_ImageMemory(VK_NULL_HANDLE) {
 }
 
 AxrVulkanImage::AxrVulkanImage(const Config& config):
@@ -28,8 +28,8 @@ AxrVulkanImage::AxrVulkanImage(const Config& config):
     m_TransferQueue(config.TransferQueue),
     m_DispatchHandle(config.DispatchHandle),
     m_Image(VK_NULL_HANDLE),
-    m_ImageMemory(VK_NULL_HANDLE) {
     m_ImageView(VK_NULL_HANDLE),
+    m_ImageMemory(VK_NULL_HANDLE) {
 }
 
 AxrVulkanImage::AxrVulkanImage(AxrVulkanImage&& src) noexcept {
@@ -86,8 +86,8 @@ AxrVulkanImage& AxrVulkanImage::operator=(AxrVulkanImage&& src) noexcept {
 
 bool AxrVulkanImage::isEmpty() const {
     return m_Image == VK_NULL_HANDLE &&
-        m_ImageMemory == VK_NULL_HANDLE;
         m_ImageView == VK_NULL_HANDLE &&
+        m_ImageMemory == VK_NULL_HANDLE;
 }
 
 vk::Image AxrVulkanImage::getImage() const {
