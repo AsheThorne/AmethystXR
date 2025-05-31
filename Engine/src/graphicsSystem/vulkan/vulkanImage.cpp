@@ -18,6 +18,7 @@ AxrVulkanImage::AxrVulkanImage():
     m_DispatchHandle(VK_NULL_HANDLE),
     m_Image(VK_NULL_HANDLE),
     m_ImageMemory(VK_NULL_HANDLE) {
+    m_ImageView(VK_NULL_HANDLE),
 }
 
 AxrVulkanImage::AxrVulkanImage(const Config& config):
@@ -28,6 +29,7 @@ AxrVulkanImage::AxrVulkanImage(const Config& config):
     m_DispatchHandle(config.DispatchHandle),
     m_Image(VK_NULL_HANDLE),
     m_ImageMemory(VK_NULL_HANDLE) {
+    m_ImageView(VK_NULL_HANDLE),
 }
 
 AxrVulkanImage::AxrVulkanImage(AxrVulkanImage&& src) noexcept {
@@ -37,6 +39,7 @@ AxrVulkanImage::AxrVulkanImage(AxrVulkanImage&& src) noexcept {
     m_TransferQueue = src.m_TransferQueue;
     m_DispatchHandle = src.m_DispatchHandle;
     m_Image = src.m_Image;
+    m_ImageView = src.m_ImageView;
     m_ImageMemory = src.m_ImageMemory;
 
     m_PhysicalDevice = VK_NULL_HANDLE;
@@ -45,6 +48,7 @@ AxrVulkanImage::AxrVulkanImage(AxrVulkanImage&& src) noexcept {
     m_TransferQueue = VK_NULL_HANDLE;
     m_DispatchHandle = VK_NULL_HANDLE;
     m_Image = VK_NULL_HANDLE;
+    m_ImageView = VK_NULL_HANDLE;
     m_ImageMemory = VK_NULL_HANDLE;
 }
 
@@ -62,6 +66,7 @@ AxrVulkanImage& AxrVulkanImage::operator=(AxrVulkanImage&& src) noexcept {
         m_TransferQueue = src.m_TransferQueue;
         m_DispatchHandle = src.m_DispatchHandle;
         m_Image = src.m_Image;
+        m_ImageView = src.m_ImageView;
         m_ImageMemory = src.m_ImageMemory;
 
         m_PhysicalDevice = VK_NULL_HANDLE;
@@ -70,6 +75,7 @@ AxrVulkanImage& AxrVulkanImage::operator=(AxrVulkanImage&& src) noexcept {
         m_TransferQueue = VK_NULL_HANDLE;
         m_DispatchHandle = VK_NULL_HANDLE;
         m_Image = VK_NULL_HANDLE;
+        m_ImageView = VK_NULL_HANDLE;
         m_ImageMemory = VK_NULL_HANDLE;
     }
 
@@ -81,6 +87,7 @@ AxrVulkanImage& AxrVulkanImage::operator=(AxrVulkanImage&& src) noexcept {
 bool AxrVulkanImage::isEmpty() const {
     return m_Image == VK_NULL_HANDLE &&
         m_ImageMemory == VK_NULL_HANDLE;
+        m_ImageView == VK_NULL_HANDLE &&
 }
 
 vk::Image AxrVulkanImage::getImage() const {
@@ -170,8 +177,24 @@ AxrResult AxrVulkanImage::createImage(const AxrImage_T image) {
         image->getHeight(),
         mipLevelCount
     );
+    // We're done with the buffer now
+    buffer.destroyBuffer();
+
     if (AXR_FAILED(axrResult)) {
-        buffer.destroyBuffer();
+        destroyImage();
+        return axrResult;
+    }
+
+    axrResult = createImageView(
+        m_Device,
+        m_Image,
+        getImageFormat(image->getColorChannels()),
+        vk::ImageAspectFlagBits::eColor,
+        mipLevelCount,
+        m_ImageView,
+        *m_DispatchHandle
+    );
+    if (AXR_FAILED(axrResult)) {
         destroyImage();
         return axrResult;
     }
@@ -183,13 +206,14 @@ AxrResult AxrVulkanImage::createImage(const AxrImage_T image) {
 }
 
 void AxrVulkanImage::destroyImage() {
-    if (m_Image && m_ImageMemory == VK_NULL_HANDLE) return;
+    if (m_Image == VK_NULL_HANDLE && m_ImageMemory == VK_NULL_HANDLE && m_ImageView == VK_NULL_HANDLE) return;
 
     if (m_DispatchHandle == nullptr) {
         axrLogErrorLocation("Failed to destroy image. Dispatch is null.");
         return;
     }
 
+    destroyImageView(m_Device, m_ImageView, *m_DispatchHandle);
     destroyImage(m_Device, m_Image, m_ImageMemory, *m_DispatchHandle);
 }
 
@@ -312,6 +336,75 @@ void AxrVulkanImage::destroyImage(
         device.freeMemory(imageMemory, nullptr, dispatch);
         imageMemory = VK_NULL_HANDLE;
     }
+}
+
+AxrResult AxrVulkanImage::createImageView(
+    const vk::Device device,
+    const vk::Image& image,
+    const vk::Format format,
+    const vk::ImageAspectFlags aspectMask,
+    const uint32_t mipLevelCount,
+    vk::ImageView& imageView,
+    const vk::DispatchLoaderDynamic& dispatch
+) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (imageView != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Image view already exists.");
+        return AXR_ERROR;
+    }
+
+    if (device == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Device is null.");
+        return AXR_ERROR;
+    }
+
+    if (image == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Image is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const vk::ImageViewCreateInfo imageViewCreateInfo(
+        {},
+        image,
+        vk::ImageViewType::e2D,
+        format,
+        vk::ComponentMapping(),
+        vk::ImageSubresourceRange{
+            aspectMask,
+            0,
+            mipLevelCount,
+            0,
+            1
+        }
+    );
+
+    const auto imageViewResult = device.createImageView(imageViewCreateInfo, nullptr, dispatch);
+    axrLogVkResult(imageViewResult.result, "device.createImageView");
+    if (VK_FAILED(imageViewResult.result)) {
+        return AXR_ERROR;
+    }
+
+    imageView = imageViewResult.value;
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanImage::destroyImageView(
+    const vk::Device device,
+    vk::ImageView& imageView,
+    const vk::DispatchLoaderDynamic& dispatch
+) {
+    if (imageView == VK_NULL_HANDLE) return;
+
+    device.destroyImageView(imageView, nullptr, dispatch);
+    imageView = VK_NULL_HANDLE;
 }
 
 // ---- Private Functions ----

@@ -122,6 +122,34 @@ public:
         const vk::DispatchLoaderDynamic& dispatch
     );
 
+    /// Create an image view for the given image
+    /// @param device Device to use
+    /// @param image Image to create image view from
+    /// @param format Format to use
+    /// @param aspectMask Aspect mask to use
+    /// @param mipLevelCount Mip level count to use
+    /// @param imageView Output image view
+    /// @param dispatch Dispatch to use
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult createImageView(
+        vk::Device device,
+        const vk::Image& image,
+        vk::Format format,
+        vk::ImageAspectFlags aspectMask,
+        uint32_t mipLevelCount,
+        vk::ImageView& imageView,
+        const vk::DispatchLoaderDynamic& dispatch
+    );
+    /// Destroy the given image view
+    /// @param device Device to use
+    /// @param imageView Image view to destroy
+    /// @param dispatch Dispatch to use
+    static void destroyImageView(
+        vk::Device device,
+        vk::ImageView& imageView,
+        const vk::DispatchLoaderDynamic& dispatch
+    );
+
 private:
     // ----------------------------------------- //
     // Private Variables
@@ -135,6 +163,7 @@ private:
     vk::DispatchLoaderDynamic* m_DispatchHandle;
 
     vk::Image m_Image;
+    vk::ImageView m_ImageView;
     vk::DeviceMemory m_ImageMemory;
 
     // ----------------------------------------- //

@@ -8,6 +8,7 @@
 #include "vulkanUtils.hpp"
 #include "../../windowSystem/windowSystem.hpp"
 #include "vulkanSharedFunctions.hpp"
+#include "vulkanImage.hpp"
 
 // ---- Special Functions ----
 
@@ -902,21 +903,31 @@ AxrResult AxrVulkanWindowGraphics::getSwapchainImages() {
     const auto swapchainImagesResult = m_Device.getSwapchainImagesKHR(m_Swapchain, m_Dispatch);
     axrLogVkResult(swapchainImagesResult.result, "m_Device.getSwapchainImagesKHR");
     if (VK_FAILED(swapchainImagesResult.result)) {
+        resetSwapchainImages();
         return AXR_ERROR;
     }
 
     m_SwapchainColorImages = swapchainImagesResult.value;
+    m_SwapchainColorImageViews.resize(m_SwapchainColorImages.size());
+    AxrResult axrResult = AXR_SUCCESS;
 
-    const AxrResult axrResult = axrCreateImageViews(
-        m_Device,
-        m_SwapchainColorImages,
-        m_SwapchainColorFormat.format,
-        vk::ImageAspectFlagBits::eColor,
-        1,
-        m_SwapchainColorImageViews,
-        m_Dispatch
-    );
+    for (size_t i = 0; i < m_SwapchainColorImageViews.size(); ++i) {
+        axrResult = AxrVulkanImage::createImageView(
+            m_Device,
+            m_SwapchainColorImages[i],
+            m_SwapchainColorFormat.format,
+            vk::ImageAspectFlagBits::eColor,
+            1,
+            m_SwapchainColorImageViews[i],
+            m_Dispatch
+        );
+        if (AXR_FAILED(axrResult)) {
+            break;
+        }
+    }
+
     if (AXR_FAILED(axrResult)) {
+        resetSwapchainImages();
         return axrResult;
     }
 
@@ -924,8 +935,10 @@ AxrResult AxrVulkanWindowGraphics::getSwapchainImages() {
 }
 
 void AxrVulkanWindowGraphics::resetSwapchainImages() {
-    axrDestroyImageViews(m_Device, m_SwapchainColorImageViews, m_Dispatch);
-    m_SwapchainColorImages.clear();
+    for (vk::ImageView& imageView : m_SwapchainColorImageViews) {
+        AxrVulkanImage::destroyImageView(m_Device, imageView, m_Dispatch);
+    }
+    m_SwapchainColorImageViews.clear();
 }
 
 AxrResult AxrVulkanWindowGraphics::createRenderPass() {

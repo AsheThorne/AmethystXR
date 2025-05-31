@@ -20,63 +20,6 @@
 // ----------------------------------------- //
 #include "axr/common/enums.h"
 
-// ---- Image ----
-
-/// Create image views for the given images
-/// @param device Device to use
-/// @param images Images to create image views from
-/// @param format Format to use
-/// @param aspectMask Aspect mask to use
-/// @param mipLevelCount Mip level count to use
-/// @param imageViews Output image views
-/// @param dispatch Dispatch to use
-/// @returns AXR_SUCCESS if the function succeeded
-[[nodiscard]] AxrResult axrCreateImageViews(
-    const vk::Device& device,
-    const std::vector<vk::Image>& images,
-    vk::Format format,
-    vk::ImageAspectFlags aspectMask,
-    uint32_t mipLevelCount,
-    std::vector<vk::ImageView>& imageViews,
-    const vk::DispatchLoaderDynamic& dispatch
-);
-/// Destroy the given image views
-/// @param device Device to use
-/// @param imageViews Image views to destroy
-/// @param dispatch Dispatch to use
-void axrDestroyImageViews(
-    const vk::Device& device,
-    std::vector<vk::ImageView>& imageViews,
-    const vk::DispatchLoaderDynamic& dispatch
-);
-/// Create an image view for the given image
-/// @param device Device to use
-/// @param image Image to create image view from
-/// @param format Format to use
-/// @param aspectMask Aspect mask to use
-/// @param mipLevelCount Mip level count to use
-/// @param imageView Output image view
-/// @param dispatch Dispatch to use
-/// @returns AXR_SUCCESS if the function succeeded
-[[nodiscard]] AxrResult axrCreateImageView(
-    const vk::Device& device,
-    const vk::Image& image,
-    vk::Format format,
-    vk::ImageAspectFlags aspectMask,
-    uint32_t mipLevelCount,
-    vk::ImageView& imageView,
-    const vk::DispatchLoaderDynamic& dispatch
-);
-/// Destroy the given image view
-/// @param device Device to use
-/// @param imageView Image view to destroy
-/// @param dispatch Dispatch to use
-void axrDestroyImageView(
-    const vk::Device& device,
-    vk::ImageView& imageView,
-    const vk::DispatchLoaderDynamic& dispatch
-);
-
 // ---- Render Pass ----
 
 /// Create a render pass
