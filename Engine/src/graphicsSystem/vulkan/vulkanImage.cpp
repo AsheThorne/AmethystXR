@@ -18,7 +18,8 @@ AxrVulkanImage::AxrVulkanImage():
     m_DispatchHandle(VK_NULL_HANDLE),
     m_Image(VK_NULL_HANDLE),
     m_ImageView(VK_NULL_HANDLE),
-    m_ImageMemory(VK_NULL_HANDLE) {
+    m_ImageMemory(VK_NULL_HANDLE),
+    m_Sampler(VK_NULL_HANDLE) {
 }
 
 AxrVulkanImage::AxrVulkanImage(const Config& config):
@@ -29,7 +30,8 @@ AxrVulkanImage::AxrVulkanImage(const Config& config):
     m_DispatchHandle(config.DispatchHandle),
     m_Image(VK_NULL_HANDLE),
     m_ImageView(VK_NULL_HANDLE),
-    m_ImageMemory(VK_NULL_HANDLE) {
+    m_ImageMemory(VK_NULL_HANDLE),
+    m_Sampler(VK_NULL_HANDLE) {
 }
 
 AxrVulkanImage::AxrVulkanImage(AxrVulkanImage&& src) noexcept {
@@ -41,6 +43,7 @@ AxrVulkanImage::AxrVulkanImage(AxrVulkanImage&& src) noexcept {
     m_Image = src.m_Image;
     m_ImageView = src.m_ImageView;
     m_ImageMemory = src.m_ImageMemory;
+    m_Sampler = src.m_Sampler;
 
     m_PhysicalDevice = VK_NULL_HANDLE;
     m_Device = VK_NULL_HANDLE;
@@ -50,6 +53,7 @@ AxrVulkanImage::AxrVulkanImage(AxrVulkanImage&& src) noexcept {
     m_Image = VK_NULL_HANDLE;
     m_ImageView = VK_NULL_HANDLE;
     m_ImageMemory = VK_NULL_HANDLE;
+    m_Sampler = VK_NULL_HANDLE;
 }
 
 AxrVulkanImage::~AxrVulkanImage() {
@@ -68,6 +72,7 @@ AxrVulkanImage& AxrVulkanImage::operator=(AxrVulkanImage&& src) noexcept {
         m_Image = src.m_Image;
         m_ImageView = src.m_ImageView;
         m_ImageMemory = src.m_ImageMemory;
+        m_Sampler = src.m_Sampler;
 
         m_PhysicalDevice = VK_NULL_HANDLE;
         m_Device = VK_NULL_HANDLE;
@@ -77,6 +82,7 @@ AxrVulkanImage& AxrVulkanImage::operator=(AxrVulkanImage&& src) noexcept {
         m_Image = VK_NULL_HANDLE;
         m_ImageView = VK_NULL_HANDLE;
         m_ImageMemory = VK_NULL_HANDLE;
+        m_Sampler = VK_NULL_HANDLE;
     }
 
     return *this;
@@ -87,7 +93,8 @@ AxrVulkanImage& AxrVulkanImage::operator=(AxrVulkanImage&& src) noexcept {
 bool AxrVulkanImage::isEmpty() const {
     return m_Image == VK_NULL_HANDLE &&
         m_ImageView == VK_NULL_HANDLE &&
-        m_ImageMemory == VK_NULL_HANDLE;
+        m_ImageMemory == VK_NULL_HANDLE &&
+        m_Sampler == VK_NULL_HANDLE;
 }
 
 vk::Image AxrVulkanImage::getImage() const {
@@ -199,20 +206,28 @@ AxrResult AxrVulkanImage::createImage(const AxrImage_T image) {
         return axrResult;
     }
 
-    // We're done with the buffer now
-    buffer.destroyBuffer();
+    axrResult = createSampler(m_Sampler);
+    if (AXR_FAILED(axrResult)) {
+        destroyImage();
+        return axrResult;
+    }
 
     return AXR_SUCCESS;
 }
 
 void AxrVulkanImage::destroyImage() {
-    if (m_Image == VK_NULL_HANDLE && m_ImageMemory == VK_NULL_HANDLE && m_ImageView == VK_NULL_HANDLE) return;
+    if (m_Image == VK_NULL_HANDLE &&
+        m_ImageMemory == VK_NULL_HANDLE &&
+        m_ImageView == VK_NULL_HANDLE &&
+        m_Sampler == VK_NULL_HANDLE)
+        return;
 
     if (m_DispatchHandle == nullptr) {
         axrLogErrorLocation("Failed to destroy image. Dispatch is null.");
         return;
     }
 
+    destroySampler(m_Sampler);
     destroyImageView(m_Device, m_ImageView, *m_DispatchHandle);
     destroyImage(m_Device, m_Image, m_ImageMemory, *m_DispatchHandle);
 }
@@ -597,6 +612,82 @@ AxrResult AxrVulkanImage::copyBufferToImage(
     }
 
     return AXR_SUCCESS;
+}
+
+AxrResult AxrVulkanImage::createSampler(vk::Sampler& sampler) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (sampler != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Sampler already exists.");
+        return AXR_ERROR;
+    }
+
+    if (m_Device == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Device is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_DispatchHandle == nullptr) {
+        axrLogErrorLocation("Dispatch handle is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const vk::SamplerCreateInfo samplerCreateInfo(
+        {},
+        // TODO: Make these an image config option
+        vk::Filter::eNearest,
+        vk::Filter::eNearest,
+        // TODO: Revisit when doing mipmaps
+        vk::SamplerMipmapMode::eNearest,
+        // TODO: Make these an image config option
+        vk::SamplerAddressMode::eRepeat,
+        vk::SamplerAddressMode::eRepeat,
+        vk::SamplerAddressMode::eRepeat,
+        // TODO: Revisit when doing mipmaps
+        0.0f,
+        // TODO: Make these an image config option
+        //  Also check with the physical device that we don't go over the max supported anisotropy
+        vk::False,
+        0.0f,
+        vk::False,
+        vk::CompareOp::eAlways,
+        0.0f,
+        // TODO: Revisit when doing mipmaps
+        0.0f,
+        vk::BorderColor::eIntOpaqueBlack,
+        vk::False
+    );
+
+    const vk::Result vkResult = m_Device.createSampler(
+        &samplerCreateInfo,
+        nullptr,
+        &sampler,
+        *m_DispatchHandle
+    );
+    axrLogVkResult(vkResult, "m_Device.createSampler");
+    if (VK_FAILED(vkResult)) {
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanImage::destroySampler(vk::Sampler& sampler) const {
+    if (sampler == VK_NULL_HANDLE) return;
+
+    if (m_DispatchHandle == nullptr) {
+        axrLogErrorLocation("Dispatch handle is null.");
+        return;
+    }
+
+    m_Device.destroySampler(sampler, nullptr, *m_DispatchHandle);
+    sampler = VK_NULL_HANDLE;
 }
 
 #endif

@@ -165,6 +165,7 @@ private:
     vk::Image m_Image;
     vk::ImageView m_ImageView;
     vk::DeviceMemory m_ImageMemory;
+    vk::Sampler m_Sampler;
 
     // ----------------------------------------- //
     // Private Functions
@@ -189,6 +190,7 @@ private:
     /// @param imageWidth Image width
     /// @param imageHeight Image height
     /// @param mipLevelCount Mip level count
+    /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult copyBufferToImage(
         vk::Buffer buffer,
         vk::Image image,
@@ -196,6 +198,14 @@ private:
         uint32_t imageHeight,
         uint32_t mipLevelCount
     ) const;
+
+    /// Create image sampler
+    /// @param sampler Output image sampler
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createSampler(vk::Sampler& sampler) const;
+    /// Destroy the given image sampler
+    /// @param sampler Sampler to destroy
+    void destroySampler(vk::Sampler& sampler) const;
 };
 
 #endif
