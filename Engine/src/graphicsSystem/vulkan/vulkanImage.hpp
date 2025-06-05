@@ -200,9 +200,17 @@ private:
     ) const;
 
     /// Create image sampler
+    /// @param mipLevelCount Mip level count
+    /// @param imageSamplerFilter Image sampler filter 
+    /// @param imageSamplerWrapping Image sampler wrapping enum
     /// @param sampler Output image sampler
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createSampler(vk::Sampler& sampler) const;
+    [[nodiscard]] AxrResult createSampler(
+        uint32_t mipLevelCount,
+        AxrImageSamplerFilterEnum imageSamplerFilter,
+        AxrImageSamplerWrappingEnum imageSamplerWrapping,
+        vk::Sampler& sampler
+    ) const;
     /// Destroy the given image sampler
     /// @param sampler Sampler to destroy
     void destroySampler(vk::Sampler& sampler) const;

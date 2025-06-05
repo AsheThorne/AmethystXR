@@ -98,6 +98,8 @@ namespace axr {
     // Enums
     // ----------------------------------------- //
 
+    // TODO: This probably doesn't need to be vulkan specific. We can probably change this to a generic PresentationModeEnum
+
     /// Vulkan Presentation Mode Enum
     enum class VulkanPresentationModeEnum {
         Undefined = AXR_VULKAN_PRESENTATION_MODE_UNDEFINED,

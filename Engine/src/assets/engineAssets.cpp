@@ -494,37 +494,21 @@ bool axrEngineAssetIsImage(const AxrEngineAssetEnum engineAssetEnum) {
         engineAssetEnum <= AXR_ENGINE_ASSET_IMAGE_END;
 }
 
-AxrResult axrEngineAssetCreateImage(
-    const std::string& imageName,
-    const AxrEngineAssetEnum engineAssetEnum,
-    AxrImage& image
-) {
+AxrResult axrEngineAssetGetImagePath(const AxrEngineAssetEnum engineAssetEnum, std::string& imageFilePath) {
     if (!axrEngineAssetIsImage(engineAssetEnum)) {
-        axrLogErrorLocation("Engine asset is not an image.");
+        axrLogErrorLocation("Engine asset isn't an image.");
         return AXR_ERROR;
     }
 
     switch (engineAssetEnum) {
         case AXR_ENGINE_ASSET_IMAGE_UV_TESTER: {
-            return axrEngineAssetCreateImage_UvTester(imageName, image);
+            imageFilePath = axrGetEngineAssetsDirectoryPath().append("images/uv-tester.png").generic_string();
+            return AXR_SUCCESS;
         }
         case AXR_ENGINE_ASSET_UNDEFINED:
-        default: { // NOLINT(clang-diagnostic-covered-switch-default)
+        default: {
             axrLogErrorLocation("Unknown image engine asset.");
             return AXR_ERROR;
         }
     }
-}
-
-AxrResult axrEngineAssetCreateImage_UvTester(const std::string& imageName, AxrImage& image) {
-    const auto imagePath = axrGetEngineAssetsDirectoryPath().append("images/uv-tester.png").generic_string();
-
-    const AxrImageConfig imageConfig{
-        .Name = imageName.c_str(),
-        .FilePath = imagePath.c_str()
-    };
-
-    image = AxrImage(imageConfig);
-
-    return AXR_SUCCESS;
 }

@@ -112,12 +112,6 @@ public:
     /// @param imageConfig Image config
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult createImage(const AxrImageConfig& imageConfig);
-    /// Create a new engine asset Image
-    /// @param imageName Image name
-    /// @param engineAssetEnum Engine asset enum
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createImage(const std::string& imageName, AxrEngineAssetEnum engineAssetEnum);
-
 
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.

@@ -225,7 +225,7 @@ AxrResult axrEndSingleTimeCommand(
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //
-    
+
     vk::Result vkResult = commandBuffer.end(dispatch);
     axrLogVkResult(vkResult, "commandBuffer.end");
     if (VK_FAILED(vkResult)) {
@@ -258,6 +258,44 @@ AxrResult axrEndSingleTimeCommand(
     commandBuffer = VK_NULL_HANDLE;
 
     return AXR_SUCCESS;
+}
+
+vk::Filter axrToVkFilter(const AxrImageSamplerFilterEnum samplerFilter) {
+    switch (samplerFilter) {
+        case AXR_IMAGE_SAMPLER_FILTER_NEAREST: {
+            return vk::Filter::eNearest;
+        }
+        case AXR_IMAGE_SAMPLER_FILTER_LINEAR: {
+            return vk::Filter::eLinear;
+        }
+        case AXR_IMAGE_SAMPLER_FILTER_UNDEFINED:
+        default: {
+            axrLogErrorLocation("Unknown vk::Filter type.");
+            return static_cast<vk::Filter>(VK_FILTER_MAX_ENUM);
+        }
+    }
+}
+
+vk::SamplerAddressMode axrToVkSamplerAddressMode(const AxrImageSamplerWrappingEnum samplerWrapping) {
+    switch (samplerWrapping) {
+        case AXR_IMAGE_SAMPLER_WRAPPING_REPEAT: {
+            return vk::SamplerAddressMode::eRepeat;
+        }
+        case AXR_IMAGE_SAMPLER_WRAPPING_MIRRORED_REPEAT: {
+            return vk::SamplerAddressMode::eMirroredRepeat;
+        }
+        case AXR_IMAGE_SAMPLER_WRAPPING_CLAMP_TO_EDGE: {
+            return vk::SamplerAddressMode::eClampToEdge;
+        }
+        case AXR_IMAGE_SAMPLER_WRAPPING_CLAMP_TO_BORDER: {
+            return vk::SamplerAddressMode::eClampToBorder;
+        }
+        case AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED:
+        default: {
+            axrLogErrorLocation("Unknown vk::SamplerAddressMode type.");
+            return static_cast<vk::SamplerAddressMode>(VK_SAMPLER_ADDRESS_MODE_MAX_ENUM);
+        }
+    }
 }
 
 #endif

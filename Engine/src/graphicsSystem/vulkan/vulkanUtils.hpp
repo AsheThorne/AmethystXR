@@ -9,6 +9,7 @@
 // ----------------------------------------- //
 #include "axr/vulkanApi.h"
 #include "axr/common/enums.h"
+#include "axr/assets.h"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -124,5 +125,17 @@ const char* axrGetExtensionName(AxrVulkanExtensionTypeEnum extensionType);
     vk::CommandBuffer& commandBuffer,
     const vk::DispatchLoaderDynamic& dispatch
 );
+
+// ---- Image ----
+
+/// Convert an AxrImageSamplerFilterEnum to a vk::Filter
+/// @param samplerFilter Image sampler filter to convert
+/// @returns The converted image sampler filter
+[[nodiscard]] vk::Filter axrToVkFilter(AxrImageSamplerFilterEnum samplerFilter);
+
+/// Convert an AxrImageSamplerWrappingEnum to a vk::SamplerAddressMode
+/// @param samplerWrapping Image sampler wrapper to convert
+/// @returns The converted image sampler wrapper
+[[nodiscard]] vk::SamplerAddressMode axrToVkSamplerAddressMode(AxrImageSamplerWrappingEnum samplerWrapping);
 
 #endif

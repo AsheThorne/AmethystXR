@@ -206,7 +206,12 @@ AxrResult AxrVulkanImage::createImage(const AxrImage_T image) {
         return axrResult;
     }
 
-    axrResult = createSampler(m_Sampler);
+    axrResult = createSampler(
+        mipLevelCount,
+        image->getSamplerFilter(),
+        image->getSamplerWrapping(),
+        m_Sampler
+    );
     if (AXR_FAILED(axrResult)) {
         destroyImage();
         return axrResult;
@@ -614,7 +619,12 @@ AxrResult AxrVulkanImage::copyBufferToImage(
     return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanImage::createSampler(vk::Sampler& sampler) const {
+AxrResult AxrVulkanImage::createSampler(
+    const uint32_t mipLevelCount,
+    const AxrImageSamplerFilterEnum imageSamplerFilter,
+    const AxrImageSamplerWrappingEnum imageSamplerWrapping,
+    vk::Sampler& sampler
+) const {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -638,28 +648,26 @@ AxrResult AxrVulkanImage::createSampler(vk::Sampler& sampler) const {
     // Process
     // ----------------------------------------- //
 
+    const vk::Filter filter = axrToVkFilter(imageSamplerFilter);
+    const vk::SamplerAddressMode addressMode = axrToVkSamplerAddressMode(imageSamplerWrapping);
+
     const vk::SamplerCreateInfo samplerCreateInfo(
         {},
-        // TODO: Make these an image config option
-        vk::Filter::eNearest,
-        vk::Filter::eNearest,
-        // TODO: Revisit when doing mipmaps
-        vk::SamplerMipmapMode::eNearest,
-        // TODO: Make these an image config option
-        vk::SamplerAddressMode::eRepeat,
-        vk::SamplerAddressMode::eRepeat,
-        vk::SamplerAddressMode::eRepeat,
-        // TODO: Revisit when doing mipmaps
+        filter,
+        filter,
+        vk::SamplerMipmapMode::eLinear,
+        addressMode,
+        addressMode,
+        addressMode,
         0.0f,
-        // TODO: Make these an image config option
+        // TODO: Make these a global config option
         //  Also check with the physical device that we don't go over the max supported anisotropy
         vk::False,
         0.0f,
         vk::False,
         vk::CompareOp::eAlways,
         0.0f,
-        // TODO: Revisit when doing mipmaps
-        0.0f,
+        static_cast<float>(mipLevelCount),
         vk::BorderColor::eIntOpaqueBlack,
         vk::False
     );

@@ -156,19 +156,6 @@ AxrResult axrAssetCollectionCreateImage(
     return assetCollection->createImage(*imageConfig);
 }
 
-AxrResult axrAssetCollectionCreateEngineAssetImage(
-    const AxrAssetCollection_T assetCollection,
-    const char* imageName,
-    const AxrEngineAssetEnum engineAssetEnum
-) {
-    if (assetCollection == nullptr) {
-        axrLogErrorLocation("`assetCollection` is null.");
-        return AXR_ERROR;
-    }
-
-    return assetCollection->createImage(imageName, engineAssetEnum);
-}
-
 // ----------------------------------------- //
 // Internal Functions
 // ----------------------------------------- //
@@ -538,6 +525,7 @@ AxrResult AxrAssetCollection::createPushConstantBuffer(const AxrPushConstantBuff
 
     return AXR_SUCCESS;
 }
+#endif
 
 AxrResult AxrAssetCollection::createImage(const AxrImageConfig& imageConfig) {
     // ----------------------------------------- //
@@ -563,44 +551,6 @@ AxrResult AxrAssetCollection::createImage(const AxrImageConfig& imageConfig) {
 
     return AXR_SUCCESS;
 }
-
-AxrResult AxrAssetCollection::createImage(const std::string& imageName, AxrEngineAssetEnum engineAssetEnum) {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
-
-    if (!axrEngineAssetIsImage(engineAssetEnum)) {
-        axrLogError("Unable to create image. Engine asset is not an image.");
-        return AXR_ERROR;
-    }
-
-    if (m_Images.contains(imageName)) {
-        axrLogError("Unable to create image. An image named: {0} already exists.", imageName.c_str());
-        return AXR_ERROR;
-    }
-
-    AxrImage image;
-    const AxrResult axrResult = axrEngineAssetCreateImage(imageName, engineAssetEnum, image);
-    if (AXR_FAILED(axrResult)) {
-        axrLogErrorLocation("Failed to create image engine asset.");
-        return axrResult;
-    }
-
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
-
-    const auto insertResult = m_Images.insert(std::pair(imageName, std::move(image)));
-    if (!insertResult.second) {
-        axrLogErrorLocation("Failed to insert image.");
-        return AXR_ERROR;
-    }
-
-    // TODO: Reload vulkan scene assets if they're already loaded.
-
-    return AXR_SUCCESS;
-}
-#endif
 
 void AxrAssetCollection::cleanup() {
     unloadAssets();
