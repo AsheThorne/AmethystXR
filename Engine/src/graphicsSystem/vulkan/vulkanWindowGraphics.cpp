@@ -886,6 +886,11 @@ AxrResult AxrVulkanWindowGraphics::getSwapchainImages() {
         return AXR_ERROR;
     }
 
+    if (!m_SwapchainColorImageViews.empty()) {
+        axrLogErrorLocation("Swapchain color image views already exist.");
+        return AXR_ERROR;
+    }
+
     if (m_Device == VK_NULL_HANDLE) {
         axrLogErrorLocation("Logical device is null.");
         return AXR_ERROR;
@@ -939,6 +944,7 @@ void AxrVulkanWindowGraphics::resetSwapchainImages() {
         AxrVulkanImage::destroyImageView(m_Device, imageView, m_Dispatch);
     }
     m_SwapchainColorImageViews.clear();
+    m_SwapchainColorImages.clear();
 }
 
 AxrResult AxrVulkanWindowGraphics::createRenderPass() {
