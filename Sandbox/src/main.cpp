@@ -15,11 +15,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     axr::setup(engineSetupConfig);
     axr::loggerSetup(applicationName);
 
-    const axr::WindowSystemConfig windowSystemConfig(
-        800,
-        600
-    );
-
     axr::VulkanWindowConfig vulkanWindowConfig(axr::VulkanPresentationModeEnum::Mailbox);
 
     axr::VulkanApiConfig vulkanApiConfig(&vulkanWindowConfig);
@@ -39,7 +34,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 #endif
 
     const axr::GraphicsSystemConfig graphicsSystemConfig(
-        &vulkanApiConfig
+        &vulkanApiConfig,
+        axr::SamplerAnisotropyQualityEnum::High
+    );
+
+    const axr::WindowSystemConfig windowSystemConfig(
+        800,
+        600
     );
 
     const auto appConfig = axr::ApplicationConfig(
@@ -51,29 +52,41 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
     auto app = axr::Application(appConfig);
 
+    const std::string imageName = "UvTesterImage";
     const std::string materialName = "MyMaterial";
+    const std::string modelName = "Square";
+
+    const axr::ImageConfig imageConfig(
+        imageName.c_str(),
+        axr::EngineAssetEnum::ImageUvTester,
+        axr::ImageSamplerFilterEnum::Linear,
+        axr::ImageSamplerWrappingEnum::Repeat
+    );
 
     axr::AssetCollection globalAssetCollection = app.getGlobalAssetCollection();
-    if (AXR_FAILED(globalAssetCollection.createShader(axr::EngineAssetEnum::ShaderDefaultFrag))) return 0;
-    if (AXR_FAILED(globalAssetCollection.createShader(axr::EngineAssetEnum::ShaderDefaultVert))) return 0;
+    if (AXR_FAILED(globalAssetCollection.createImage(imageConfig))) return -1;
+    if (AXR_FAILED(globalAssetCollection.createShader(axr::EngineAssetEnum::ShaderDefaultFrag))) return -1;
+    if (AXR_FAILED(globalAssetCollection.createShader(axr::EngineAssetEnum::ShaderDefaultVert))) return -1;
     if (AXR_FAILED(
         globalAssetCollection.createMaterial(
             materialName.c_str(),
-            // TODO: Use an image when that gets implemented
-            axr::EngineAssetMaterial_DefaultMaterial("")
+            axr::EngineAssetMaterial_DefaultMaterial(imageName.c_str())
         )
     )) {
-        return 0;
+        return -1;
     }
 
-    if (AXR_FAILED(globalAssetCollection.createModel("Triangle", axr::EngineAssetEnum::ModelTriangle))) return 0;
+    if (AXR_FAILED(
+        globalAssetCollection.createModel(modelName.c_str(), axr::EngineAssetEnum::ModelSquare)
+    ))
+        return -1;
 
     const std::string scene1Name = "Scene1";
-    if (AXR_FAILED(app.createScene(scene1Name.c_str()))) return 0;
+    if (AXR_FAILED(app.createScene(scene1Name.c_str()))) return -1;
     const axr::Scene scene1 = app.findScene(scene1Name.c_str());
-    const axr::Entity_T triangleEntity = scene1.createEntity();
+    const axr::Entity_T squareEntity = scene1.createEntity();
 
-    triangleEntity.emplace<AxrTransformComponent>(
+    squareEntity.emplace<AxrTransformComponent>(
         AxrTransformComponent{
             .Position = glm::vec3(0.0f, 0.0f, 0.0f),
             .Scale = glm::vec3(1.0f, 1.0f, 1.0f),
@@ -83,9 +96,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     AxrModelComponent::Mesh mesh{
         .MaterialName = materialName.c_str(),
     };
-    triangleEntity.emplace<AxrModelComponent>(
+    squareEntity.emplace<AxrModelComponent>(
         AxrModelComponent{
-            .ModelName = "Triangle",
+            .ModelName = modelName.c_str(),
             .MeshCount = 1,
             .Meshes = &mesh,
             .PushConstantBufferName = axr::engineAssetGetName(
@@ -94,13 +107,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         }
     );
 
-    if (AXR_FAILED(app.setup())) return 0;
+    if (AXR_FAILED(app.setup())) return -1;
 
-    if (AXR_FAILED(app.loadScene(scene1Name.c_str()))) return 0;
-    if (AXR_FAILED(app.setActiveScene(scene1Name.c_str()))) return 0;
+    if (AXR_FAILED(app.loadScene(scene1Name.c_str()))) return -1;
+    if (AXR_FAILED(app.setActiveScene(scene1Name.c_str()))) return -1;
 
     axr::WindowSystem windowSystem = app.getWindowSystem();
-    if (AXR_FAILED(windowSystem.openWindow())) return 0;
+    if (AXR_FAILED(windowSystem.openWindow())) return -1;
 
     const axr::GraphicsSystem graphicsSystem = app.getGraphicsSystem();
 

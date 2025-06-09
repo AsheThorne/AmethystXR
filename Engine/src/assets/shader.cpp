@@ -147,6 +147,7 @@ AxrResult AxrShader::loadFile(const AxrGraphicsApiEnum graphicsApi) const {
         path.replace_extension(extension + ".spv");
     }
 
+    //  TODO: Should we move this just to this class? I think so.
     return axrReadFileBytes(path, m_FileData);
 }
 

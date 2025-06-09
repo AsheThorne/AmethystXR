@@ -26,7 +26,7 @@ find_program(GLSLC glslc)
 # ---------------------------------------------
 
 # Generate vulkan shaders
-function (generate_vulkan_shaders shaders_directory target)
+function(generate_vulkan_shaders shaders_directory target)
     if (Vulkan_FOUND)
         file(GLOB SHADERS
             "${shaders_directory}/*.vert"
@@ -42,13 +42,13 @@ function (generate_vulkan_shaders shaders_directory target)
             "${shaders_directory}/*.rmiss"
         )
 
-        foreach(shader ${SHADERS})
+        foreach (shader ${SHADERS})
             get_filename_component(SHADER_NAME ${shader} NAME)
-            add_custom_command(TARGET ${target} POST_BUILD COMMAND 
+            add_custom_command(TARGET ${target} POST_BUILD COMMAND
                 ${GLSLC} ${shader} -o ${shaders_directory}/${SHADER_NAME}.spv
             )
-        endforeach()
-    endif()
+        endforeach ()
+    endif ()
 endfunction()
 
 # ---------------------------------------------
@@ -59,13 +59,13 @@ set(OUTPUT_DIRECTORY $<CONFIG>-$<PLATFORM_ID>)
 
 set(SPDLOG_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/spdlog)
 set(EnTT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/entt)
-# set(STB_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/stb)
+set(STB_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/stb)
 # set(TINY_GLTF_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/tiny-gltf)
 # set(JSON_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/json)
 
-if(Vulkan_FOUND)
+if (Vulkan_FOUND)
     set(VULKAN_HPP_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/Vulkan-HPP)
-endif()
+endif ()
 
 # ---- Add Predefined Cmake Projects To It's Own Folder ----
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)

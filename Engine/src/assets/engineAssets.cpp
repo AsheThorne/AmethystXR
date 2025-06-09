@@ -7,6 +7,7 @@
 #include "assetsUtils.hpp"
 #include "shader.hpp"
 #include "material.hpp"
+#include "image.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -191,6 +192,11 @@ AxrResult axrEngineAssetCreateShader_DefaultVert(AxrShader& shader) {
             .Type = AXR_SHADER_VERTEX_ATTRIBUTE_COLOR,
             .Binding = 0,
             .Location = 1,
+        },
+        AxrShaderVertexAttribute{
+            .Type = AXR_SHADER_VERTEX_ATTRIBUTE_TEX_COORDS,
+            .Binding = 0,
+            .Location = 2,
         }
     };
 
@@ -237,9 +243,17 @@ AxrResult axrEngineAssetCreateShader_DefaultVert(AxrShader& shader) {
 }
 
 AxrResult axrEngineAssetCreateShader_DefaultFrag(AxrShader& shader) {
+    AxrShaderImageSamplerBufferLayout imageSamplerBufferLayout{
+        .Binding = 1,
+    };
+
+    std::array bufferLayouts{
+        reinterpret_cast<AxrShaderBufferLayout_T>(&imageSamplerBufferLayout),
+    };
+
     AxrFragmentShaderProperties shaderProperties{
-        .BufferLayoutsCount = 0,
-        .BufferLayouts = nullptr,
+        .BufferLayoutsCount = static_cast<uint32_t>(bufferLayouts.size()),
+        .BufferLayouts = bufferLayouts.data(),
     };
 
     const auto shaderPath = axrGetEngineAssetsDirectoryPath().append("shaders/shader.frag").generic_string();
@@ -388,9 +402,18 @@ AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
         .BufferLinks = vertexBufferLinks.data(),
     };
 
+    AxrShaderImageSamplerBufferLink imageSamplerBufferLink{
+        .Binding = 1,
+        .ImageName = materialValues.ImageName
+    };
+
+    std::array fragmentBufferLinks{
+        reinterpret_cast<AxrShaderBufferLink_T>(&imageSamplerBufferLink),
+    };
+
     AxrShaderValues fragmentShaderValues{
-        .BufferLinksCount = 0,
-        .BufferLinks = nullptr
+        .BufferLinksCount = static_cast<uint32_t>(fragmentBufferLinks.size()),
+        .BufferLinks = fragmentBufferLinks.data()
     };
 
     const AxrMaterialConfig materialConfig{
@@ -415,13 +438,16 @@ AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
 // Model Engine Assets
 // ----------------------------------------- //
 
-
 bool axrEngineAssetIsModel(const AxrEngineAssetEnum engineAssetEnum) {
     return engineAssetEnum >= AXR_ENGINE_ASSET_MODEL_START &&
         engineAssetEnum <= AXR_ENGINE_ASSET_MODEL_END;
 }
 
-AxrResult axrEngineAssetCreateModel(const std::string& modelName, const AxrEngineAssetEnum engineAssetEnum, AxrModel& model) {
+AxrResult axrEngineAssetCreateModel(
+    const std::string& modelName,
+    const AxrEngineAssetEnum engineAssetEnum,
+    AxrModel& model
+) {
     if (!axrEngineAssetIsModel(engineAssetEnum)) {
         axrLogErrorLocation("Engine asset is not a model.");
         return AXR_ERROR;
@@ -430,6 +456,9 @@ AxrResult axrEngineAssetCreateModel(const std::string& modelName, const AxrEngin
     switch (engineAssetEnum) {
         case AXR_ENGINE_ASSET_MODEL_TRIANGLE: {
             return axrEngineAssetCreateModel_Triangle(modelName, model);
+        }
+        case AXR_ENGINE_ASSET_MODEL_SQUARE: {
+            return axrEngineAssetCreateModel_Square(modelName, model);
         }
         case AXR_ENGINE_ASSET_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
@@ -479,4 +508,80 @@ AxrResult axrEngineAssetCreateModel_Triangle(const std::string& modelName, AxrMo
     model = AxrModel(modelConfig);
 
     return AXR_SUCCESS;
+}
+
+AxrResult axrEngineAssetCreateModel_Square(const std::string& modelName, AxrModel& model) {
+    std::vector<AxrVertex> vertices{
+        AxrVertex{
+            .Position = {-0.5f, 1.0f, 0.0f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {0.0f, 0.0f},
+        },
+        AxrVertex{
+            .Position = {0.5f, 1.0f, 0.0f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {1.0f, 0.0f},
+        },
+        AxrVertex{
+            .Position = {0.5f, 0.0f, 0.0f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {1.0f, 1.0f},
+        },
+        AxrVertex{
+            .Position = {-0.5f, 0.0f, 0.0f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {0.0f, 1.0f},
+        },
+    };
+
+    std::vector<uint32_t> indices{
+        0, 1, 2,
+        2, 3, 0,
+    };
+
+    AxrMesh mesh{
+        .VerticesCount = static_cast<uint32_t>(vertices.size()),
+        .Vertices = vertices.data(),
+        .IndicesCount = static_cast<uint32_t>(indices.size()),
+        .Indices = indices.data(),
+    };
+
+    const AxrModelConfig modelConfig{
+        .Name = modelName.c_str(),
+        .FilePath = "",
+        .MeshesCount = 1,
+        .Meshes = &mesh
+    };
+
+    model = AxrModel(modelConfig);
+
+    return AXR_SUCCESS;
+}
+
+// ----------------------------------------- //
+// Image Engine Assets
+// ----------------------------------------- //
+
+bool axrEngineAssetIsImage(const AxrEngineAssetEnum engineAssetEnum) {
+    return engineAssetEnum >= AXR_ENGINE_ASSET_IMAGE_START &&
+        engineAssetEnum <= AXR_ENGINE_ASSET_IMAGE_END;
+}
+
+AxrResult axrEngineAssetGetImagePath(const AxrEngineAssetEnum engineAssetEnum, std::string& imageFilePath) {
+    if (!axrEngineAssetIsImage(engineAssetEnum)) {
+        axrLogErrorLocation("Engine asset isn't an image.");
+        return AXR_ERROR;
+    }
+
+    switch (engineAssetEnum) {
+        case AXR_ENGINE_ASSET_IMAGE_UV_TESTER: {
+            imageFilePath = axrGetEngineAssetsDirectoryPath().append("images/uv-tester.png").generic_string();
+            return AXR_SUCCESS;
+        }
+        case AXR_ENGINE_ASSET_UNDEFINED:
+        default: {
+            axrLogErrorLocation("Unknown image engine asset.");
+            return AXR_ERROR;
+        }
+    }
 }

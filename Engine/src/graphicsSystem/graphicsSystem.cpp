@@ -33,7 +33,8 @@ AxrGraphicsSystem::AxrGraphicsSystem(const Config& config):
                 .ApplicationVersion = config.ApplicationVersion,
                 .WindowSystem = config.WindowSystem,
                 .GlobalAssetCollection = config.GlobalAssetCollection,
-                .VulkanConfig = config.GraphicsConfig.VulkanConfig
+                .VulkanConfig = config.GraphicsConfig.VulkanConfig,
+                .SamplerAnisotropyQuality = config.GraphicsConfig.SamplerAnisotropyQuality
             }
         );
     }

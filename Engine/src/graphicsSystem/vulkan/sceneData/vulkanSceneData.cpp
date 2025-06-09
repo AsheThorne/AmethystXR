@@ -19,9 +19,12 @@ AxrVulkanSceneData::AxrVulkanSceneData(const Config& config):
     m_GlobalSceneData(config.GlobalSceneData),
     m_PhysicalDevice(config.PhysicalDevice),
     m_Device(config.Device),
+    m_GraphicsCommandPool(config.GraphicsCommandPool),
+    m_GraphicsQueue(config.GraphicsQueue),
     m_TransferCommandPool(config.TransferCommandPool),
     m_TransferQueue(config.TransferQueue),
     m_MaxFramesInFlight(config.MaxFramesInFlight),
+    m_MaxSamplerAnisotropy(config.MaxSamplerAnisotropy),
     m_DispatchHandle(config.DispatchHandle),
     m_IsWindowDataLoaded(false) {
 }
@@ -66,6 +69,12 @@ AxrResult AxrVulkanSceneData::loadScene() {
     }
 
     axrResult = createAllModelData();
+    if (AXR_FAILED(axrResult)) {
+        unloadScene();
+        return axrResult;
+    }
+
+    axrResult = createAllImageData();
     if (AXR_FAILED(axrResult)) {
         unloadScene();
         return axrResult;
@@ -681,6 +690,144 @@ const AxrVulkanModelData* AxrVulkanSceneData::findModelData_shared(const std::st
     return nullptr;
 }
 
+AxrResult AxrVulkanSceneData::createAllImageData() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!m_ImageData.empty()) {
+        axrLogErrorLocation("Image data already exists.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = initializeAllImageData();
+    if (AXR_FAILED(axrResult)) {
+        destroyAllImageData();
+        return axrResult;
+    }
+
+    for (auto& [name, data] : m_ImageData) {
+        axrResult = createImageData(data);
+        if (AXR_FAILED(axrResult)) {
+            break;
+        }
+    }
+
+    if (AXR_FAILED(axrResult)) {
+        destroyAllImageData();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanSceneData::destroyAllImageData() {
+    for (auto& [name, data] : m_ImageData) {
+        destroyImageData(data);
+    }
+    m_ImageData.clear();
+}
+
+AxrResult AxrVulkanSceneData::initializeAllImageData() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!m_ImageData.empty()) {
+        axrLogErrorLocation("Image data already exists.");
+        return AXR_ERROR;
+    }
+
+    if (m_AssetCollection == nullptr) {
+        axrLogErrorLocation("Asset collection is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    for (const auto& [imageName, image] : m_AssetCollection->getImages()) {
+        axrResult = initializeImageData(image);
+        if (AXR_FAILED(axrResult)) {
+            break;
+        }
+    }
+
+    if (AXR_FAILED(axrResult)) {
+        axrLogErrorLocation("Failed to initialize image data.");
+        destroyAllImageData();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrVulkanSceneData::initializeImageData(const AxrImage& image) {
+    const std::string imageName = image.getName();
+    if (m_ImageData.contains(imageName)) return AXR_SUCCESS;
+
+    const AxrVulkanImageData::Config imageDataConfig{
+        .Name = imageName,
+        .ImageHandle = &image,
+        .PhysicalDevice = m_PhysicalDevice,
+        .Device = m_Device,
+        .GraphicsCommandPool = m_GraphicsCommandPool,
+        .GraphicsQueue = m_GraphicsQueue,
+        .MaxSamplerAnisotropy = m_MaxSamplerAnisotropy,
+        .DispatchHandle = m_DispatchHandle,
+    };
+
+    m_ImageData.insert(
+        std::pair(
+            imageName,
+            AxrVulkanImageData(imageDataConfig)
+        )
+    );
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrVulkanSceneData::createImageData(AxrVulkanImageData& imageData) {
+    const AxrResult axrResult = imageData.createData();
+
+    if (AXR_FAILED(axrResult)) {
+        destroyImageData(imageData);
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanSceneData::destroyImageData(AxrVulkanImageData& imageData) {
+    imageData.destroyData();
+}
+
+const AxrVulkanImageData* AxrVulkanSceneData::findImageData_shared(const std::string& name) const {
+    const auto foundImageDataIt = m_ImageData.find(name);
+    if (foundImageDataIt != m_ImageData.end()) {
+        return &foundImageDataIt->second;
+    }
+
+    if (m_GlobalSceneData != nullptr) {
+        const auto foundImageData = m_GlobalSceneData->findImageData_shared(name);
+
+        if (foundImageData != nullptr) {
+            return foundImageData;
+        }
+    }
+
+    return nullptr;
+}
+
 const AxrShader* AxrVulkanSceneData::findShader_shared(const std::string& name) const {
     if (m_AssetCollection == nullptr) {
         axrLogErrorLocation("Asset collection is null.");
@@ -1219,13 +1366,36 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
                     descriptorSetItemLocation.ItemIndex,
                     0,
                     1,
-                    vk::DescriptorType::eUniformBuffer,
+                    descriptorSetItemLocation.DescriptorType,
                     nullptr,
                     &descriptorBufferInfos.back(),
                     nullptr
                 );
             } else if (descriptorSetItemLocation.DescriptorType == vk::DescriptorType::eCombinedImageSampler) {
-                // TODO: Implement the image stuff
+                const AxrVulkanImageData* foundImageData = sceneData->findImageData_shared(bufferName);
+
+                if (foundImageData == nullptr) {
+                    axrLogErrorLocation("Failed to find image named: {0}.", bufferName);
+                    axrResult = AXR_ERROR;
+                    break;
+                }
+
+                descriptorImageInfos.emplace_back(
+                    foundImageData->getSampler(),
+                    foundImageData->getImageView(),
+                    vk::ImageLayout::eShaderReadOnlyOptimal
+                );
+
+                descriptorWrites.emplace_back(
+                    descriptorSets[frameIndex],
+                    descriptorSetItemLocation.ItemIndex,
+                    0,
+                    1,
+                    descriptorSetItemLocation.DescriptorType,
+                    &descriptorImageInfos.back(),
+                    nullptr,
+                    nullptr
+                );
             }
         }
 

@@ -156,7 +156,7 @@ std::string AxrMaterial::findShaderBufferName(const uint32_t binding) const {
     }
 
     bufferName = m_FragmentShaderValues.findShaderBufferName(binding);
-    if (!bufferName.c_str()) {
+    if (!bufferName.empty()) {
         return bufferName;
     }
 

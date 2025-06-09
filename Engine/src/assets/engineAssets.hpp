@@ -143,3 +143,24 @@ AxrResult axrEngineAssetCreateModel(const std::string& modelName, AxrEngineAsset
 /// @param model Output created model
 /// @returns AXR_SUCCESS if the function succeeded
 AxrResult axrEngineAssetCreateModel_Triangle(const std::string& modelName, AxrModel& model);
+
+/// Create the 'Square' engine asset model
+/// @param modelName Model name
+/// @param model Output created model
+/// @returns AXR_SUCCESS if the function succeeded
+AxrResult axrEngineAssetCreateModel_Square(const std::string& modelName, AxrModel& model);
+
+// ---------------------------------------------------------------------------------- //
+//                                Image Engine Assets                                 //
+// ---------------------------------------------------------------------------------- //
+
+/// Check if the given engine asset is an image
+/// @param engineAssetEnum Engine asset to check
+/// @returns True if the given engine asset is an image
+bool axrEngineAssetIsImage(AxrEngineAssetEnum engineAssetEnum);
+
+/// Get the file path to the given image engine asset
+/// @param engineAssetEnum Engine asset enum
+/// @param imageFilePath Output image file path
+/// @returns AXR_SUCCESS if the function succeeded
+AxrResult axrEngineAssetGetImagePath(AxrEngineAssetEnum engineAssetEnum, std::string& imageFilePath);

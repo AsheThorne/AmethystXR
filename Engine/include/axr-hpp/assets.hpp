@@ -3,10 +3,246 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
+#include <utility>
+
 #include "common/enums.hpp"
 #include "axr/assets.h"
 
 namespace axr {
+    // ---------------------------------------------------------------------------------- //
+    //                               Engine Defined Assets                                //
+    // ---------------------------------------------------------------------------------- //
+
+    // ----------------------------------------- //
+    // Enums
+    // ----------------------------------------- //
+
+    /// Axr engine defined assets enum
+    enum class EngineAssetEnum {
+        Undefined = AXR_ENGINE_ASSET_UNDEFINED,
+
+        // ---- Shaders ----
+        ShaderStart = AXR_ENGINE_ASSET_SHADER_START,
+        ShaderDefaultVert = AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT,
+        ShaderDefaultFrag = AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG,
+        ShaderEnd = AXR_ENGINE_ASSET_SHADER_END,
+
+        // ---- Uniform Buffers ----
+        UniformBufferStart = AXR_ENGINE_ASSET_UNIFORM_BUFFER_START,
+        UniformBufferSceneData = AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA,
+        UniformBufferEnd = AXR_ENGINE_ASSET_UNIFORM_BUFFER_END,
+
+        // ---- Push Constant Buffers ----
+        PushConstantBufferStart = AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_START,
+        PushConstantBufferModelMatrix = AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX,
+        PushConstantBufferEnd = AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_END,
+
+        // ---- Models ----
+        ModelStart = AXR_ENGINE_ASSET_MODEL_START,
+        ModelTriangle = AXR_ENGINE_ASSET_MODEL_TRIANGLE,
+        ModelSquare = AXR_ENGINE_ASSET_MODEL_SQUARE,
+        ModelEnd = AXR_ENGINE_ASSET_MODEL_END,
+
+        // ---- Images ----
+        ImageStart = AXR_ENGINE_ASSET_IMAGE_START,
+        ImageUvTester = AXR_ENGINE_ASSET_IMAGE_UV_TESTER,
+        ImageEnd = AXR_ENGINE_ASSET_IMAGE_END,
+    };
+
+    // ----------------------------------------- //
+    // Structs
+    // ----------------------------------------- //
+
+    // ---- Uniform Buffers ----
+
+    /// Engine asset uniform buffer named 'Scene Data' structure
+    struct EngineAssetUniformBuffer_SceneData {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        alignas(16) glm::mat4 ViewMatrix;
+        alignas(16) glm::mat4 ProjectionMatrix;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        EngineAssetUniformBuffer_SceneData() :
+            ViewMatrix{},
+            ProjectionMatrix{} {
+        }
+
+        /// Constructor
+        /// @param viewMatrix The view matrix
+        /// @param projectionMatrix The projection matrix
+        EngineAssetUniformBuffer_SceneData(
+            const glm::mat4& viewMatrix,
+            const glm::mat4& projectionMatrix
+        ) : ViewMatrix(viewMatrix),
+            ProjectionMatrix(projectionMatrix) {
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the EngineAssetUniformBuffer_SceneData as an AxrEngineAssetUniformBuffer_SceneData
+        /// @returns This as an AxrEngineAssetUniformBuffer_SceneData
+        const AxrEngineAssetUniformBuffer_SceneData* toRaw() const {
+            return reinterpret_cast<const AxrEngineAssetUniformBuffer_SceneData*>(this);
+        }
+
+        /// Get a handle to the EngineAssetUniformBuffer_SceneData as an AxrEngineAssetUniformBuffer_SceneData
+        /// @returns This as an AxrEngineAssetUniformBuffer_SceneData
+        AxrEngineAssetUniformBuffer_SceneData* toRaw() {
+            return reinterpret_cast<AxrEngineAssetUniformBuffer_SceneData*>(this);
+        }
+    };
+
+    static_assert(
+        sizeof(AxrEngineAssetUniformBuffer_SceneData) == sizeof(axr::EngineAssetUniformBuffer_SceneData),
+        "Original type and wrapper have different size!"
+    );
+
+    // ---- Push Constant Buffers ----
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    /// Engine asset push constant buffer named 'Model Matrix' structure
+    struct EngineAssetPushConstantBuffer_ModelMatrix {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        glm::mat4 ModelMatrix;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        EngineAssetPushConstantBuffer_ModelMatrix() :
+            ModelMatrix{} {
+        }
+
+        /// Constructor
+        /// @param modelMatrix The model matrix
+        EngineAssetPushConstantBuffer_ModelMatrix(
+            const glm::mat4& modelMatrix
+        ) : ModelMatrix(modelMatrix) {
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the EngineAssetPushConstantBuffer_ModelMatrix as an AxrEngineAssetPushConstantBuffer_ModelMatrix
+        /// @returns This as an AxrEngineAssetPushConstantBuffer_ModelMatrix
+        const AxrEngineAssetPushConstantBuffer_ModelMatrix* toRaw() const {
+            return reinterpret_cast<const AxrEngineAssetPushConstantBuffer_ModelMatrix*>(this);
+        }
+
+        /// Get a handle to the EngineAssetPushConstantBuffer_ModelMatrix as an AxrEngineAssetPushConstantBuffer_ModelMatrix
+        /// @returns This as an AxrEngineAssetPushConstantBuffer_ModelMatrix
+        AxrEngineAssetPushConstantBuffer_ModelMatrix* toRaw() {
+            return reinterpret_cast<AxrEngineAssetPushConstantBuffer_ModelMatrix*>(this);
+        }
+    };
+
+    static_assert(
+        sizeof(AxrEngineAssetPushConstantBuffer_ModelMatrix) == sizeof(axr::EngineAssetPushConstantBuffer_ModelMatrix),
+        "Original type and wrapper have different size!"
+    );
+#endif
+
+    // ---- Materials ----
+
+    /// Engine asset material named 'Default Material' values
+    struct EngineAssetMaterial_DefaultMaterial {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        const char* ImageName;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        EngineAssetMaterial_DefaultMaterial() :
+            ImageName{} {
+        }
+
+        /// Constructor
+        /// @param imageName The image name
+        EngineAssetMaterial_DefaultMaterial(
+            const char* imageName
+        ) : ImageName(imageName) {
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the EngineAssetMaterial_DefaultMaterial as an AxrEngineAssetMaterial_DefaultMaterial
+        /// @returns This as an AxrEngineAssetMaterial_DefaultMaterial
+        const AxrEngineAssetMaterial_DefaultMaterial* toRaw() const {
+            return reinterpret_cast<const AxrEngineAssetMaterial_DefaultMaterial*>(this);
+        }
+
+        /// Get a handle to the EngineAssetMaterial_DefaultMaterial as an AxrEngineAssetMaterial_DefaultMaterial
+        /// @returns This as an AxrEngineAssetMaterial_DefaultMaterial
+        AxrEngineAssetMaterial_DefaultMaterial* toRaw() {
+            return reinterpret_cast<AxrEngineAssetMaterial_DefaultMaterial*>(this);
+        }
+    };
+
+    static_assert(
+        sizeof(AxrEngineAssetMaterial_DefaultMaterial) == sizeof(axr::EngineAssetMaterial_DefaultMaterial),
+        "Original type and wrapper have different size!"
+    );
+
+    // ----------------------------------------- //
+    // Function Definitions
+    // ----------------------------------------- //
+
+    /// Check if the given name is reserved for an engine asset
+    /// @param name Name to check
+    /// @returns True if the given name is reserved for an engine asset
+    inline bool engineAssetIsNameReserved(const char* name) {
+        return axrEngineAssetIsNameReserved(name);
+    }
+
+    /// Get the name for the given engine asset
+    /// @param engineAssetEnum Engine asset to get the name of
+    /// @returns The name of the given engine asset
+    inline const char* engineAssetGetName(axr::EngineAssetEnum engineAssetEnum) {
+        return axrEngineAssetGetName(static_cast<AxrEngineAssetEnum>(engineAssetEnum));
+    }
+
+    // ---- Buffers ----
+
+    /// Get the size for the given uniform buffer engine asset
+    /// @param engineAssetEnum Engine asset to use
+    /// @returns The size for the given uniform buffer engine asset
+    inline uint64_t engineAssetGetUniformBufferSize(axr::EngineAssetEnum engineAssetEnum) {
+        return axrEngineAssetGetUniformBufferSize(static_cast<AxrEngineAssetEnum>(engineAssetEnum));
+    }
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    /// Get the size for the given push constant buffer engine asset
+    /// @param engineAssetEnum Engine asset to use
+    /// @returns The size for the given push constant buffer engine asset
+    inline uint32_t engineAssetGetPushConstantBufferSize(axr::EngineAssetEnum engineAssetEnum) {
+        return axrEngineAssetGetPushConstantBufferSize(static_cast<AxrEngineAssetEnum>(engineAssetEnum));
+    }
+#endif
+
     // ---------------------------------------------------------------------------------- //
     //                                  Shader Properties                                 //
     // ---------------------------------------------------------------------------------- //
@@ -1825,52 +2061,47 @@ namespace axr {
 #endif
 
     // ---------------------------------------------------------------------------------- //
-    //                               Engine Defined Assets                                //
+    //                                   Image Assets                                     //
     // ---------------------------------------------------------------------------------- //
 
     // ----------------------------------------- //
     // Enums
     // ----------------------------------------- //
 
-    /// Axr engine defined assets enum
-    enum class EngineAssetEnum {
-        Undefined = AXR_ENGINE_ASSET_UNDEFINED,
+    /// Image sampler filter enum
+    enum class ImageSamplerFilterEnum {
+        Undefined = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED,
+        Nearest = AXR_IMAGE_SAMPLER_FILTER_NEAREST,
+        Linear = AXR_IMAGE_SAMPLER_FILTER_LINEAR,
+    };
 
-        // ---- Shaders ----
-        ShaderStart = AXR_ENGINE_ASSET_SHADER_START,
-        ShaderDefaultVert = AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT,
-        ShaderDefaultFrag = AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG,
-        ShaderEnd = AXR_ENGINE_ASSET_SHADER_END,
-
-        // ---- Uniform Buffers ----
-        UniformBufferStart = AXR_ENGINE_ASSET_UNIFORM_BUFFER_START,
-        UniformBufferSceneData = AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA,
-        UniformBufferEnd = AXR_ENGINE_ASSET_UNIFORM_BUFFER_END,
-
-        // ---- Push Constant Buffers ----
-        PushConstantBufferStart = AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_START,
-        PushConstantBufferModelMatrix = AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX,
-        PushConstantBufferEnd = AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_END,
-
-        // ---- Models ----
-        ModelStart = AXR_ENGINE_ASSET_MODEL_START,
-        ModelTriangle = AXR_ENGINE_ASSET_MODEL_TRIANGLE,
-        ModelEnd = AXR_ENGINE_ASSET_MODEL_END,
+    /// Image sampler wrapping enum
+    enum class ImageSamplerWrappingEnum {
+        Undefined = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED,
+        Repeat = AXR_IMAGE_SAMPLER_WRAPPING_REPEAT,
+        MirroredRepeat = AXR_IMAGE_SAMPLER_WRAPPING_MIRRORED_REPEAT,
+        ClampToEdge = AXR_IMAGE_SAMPLER_WRAPPING_CLAMP_TO_EDGE,
+        ClampToBorder = AXR_IMAGE_SAMPLER_WRAPPING_CLAMP_TO_BORDER,
     };
 
     // ----------------------------------------- //
     // Structs
     // ----------------------------------------- //
 
-    // ---- Uniform Buffers ----
-
-    /// Engine asset uniform buffer named 'Scene Data' structure
-    struct EngineAssetUniformBuffer_SceneData {
+    /// Image Config
+    struct ImageConfig {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-        alignas(16) glm::mat4 ViewMatrix;
-        alignas(16) glm::mat4 ProjectionMatrix;
+
+        const char* Name;
+        /// If file path is defined, EngineAsset must be undefined
+        const char* FilePath;
+        /// If engine asset is defined, FilePath must be undefined
+        /// Engine asset must also be an image engine asset
+        axr::EngineAssetEnum EngineAsset;
+        axr::ImageSamplerFilterEnum Filter;
+        axr::ImageSamplerWrappingEnum Wrapping;
 
         // ----------------------------------------- //
         // Special Functions
@@ -1879,178 +2110,194 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        EngineAssetUniformBuffer_SceneData() :
-            ViewMatrix{},
-            ProjectionMatrix{} {
+        ImageConfig():
+            Name(""),
+            FilePath(""),
+            EngineAsset(axr::EngineAssetEnum::Undefined),
+            Filter(axr::ImageSamplerFilterEnum::Undefined),
+            Wrapping(axr::ImageSamplerWrappingEnum::Undefined) {
         }
 
         /// Constructor
-        /// @param viewMatrix The view matrix
-        /// @param projectionMatrix The projection matrix
-        EngineAssetUniformBuffer_SceneData(
-            const glm::mat4& viewMatrix,
-            const glm::mat4& projectionMatrix
-        ) : ViewMatrix(viewMatrix),
-            ProjectionMatrix(projectionMatrix) {
+        /// @param name Name of the image
+        /// @param filePath Image file path
+        /// @param filter Image sampler filter enum
+        /// @param wrapping Image sampler wrapping enum
+        ImageConfig(
+            const char* name,
+            const char* filePath,
+            const axr::ImageSamplerFilterEnum filter,
+            const axr::ImageSamplerWrappingEnum wrapping
+        ):
+            Name(name),
+            FilePath(filePath),
+            EngineAsset(axr::EngineAssetEnum::Undefined),
+            Filter(filter),
+            Wrapping(wrapping) {
+        }
+
+        /// Constructor
+        /// @param name Name of the image
+        /// @param engineAsset Image engine asset
+        /// @param filter Image sampler filter enum
+        /// @param wrapping Image sampler wrapping enum
+        ImageConfig(
+            const char* name,
+            const axr::EngineAssetEnum engineAsset,
+            const axr::ImageSamplerFilterEnum filter,
+            const axr::ImageSamplerWrappingEnum wrapping
+        ):
+            Name(name),
+            FilePath(""),
+            EngineAsset(engineAsset),
+            Filter(filter),
+            Wrapping(wrapping) {
+        }
+
+        /// Copy Constructor
+        /// @param src Source ImageConfig to copy from
+        ImageConfig(const ImageConfig& src) {
+            Name = src.Name;
+            FilePath = src.FilePath;
+            EngineAsset = src.EngineAsset;
+            Filter = src.Filter;
+            Wrapping = src.Wrapping;
+        }
+
+        /// Move Constructor
+        /// @param src Source ImageConfig to move from
+        ImageConfig(ImageConfig&& src) noexcept {
+            Name = src.Name;
+            FilePath = src.FilePath;
+            EngineAsset = src.EngineAsset;
+            Filter = src.Filter;
+            Wrapping = src.Wrapping;
+
+            src.Name = "";
+            src.FilePath = "";
+            src.EngineAsset = axr::EngineAssetEnum::Undefined;
+            Filter = axr::ImageSamplerFilterEnum::Undefined;
+            Wrapping = axr::ImageSamplerWrappingEnum::Undefined;
+        }
+
+        // ---- Destructor ----
+
+        /// Destructor
+        ~ImageConfig() {
+            cleanup();
+        }
+
+        // ---- Operator Overloads ----
+
+        /// Copy Assignment Operator
+        /// @param src Source ImageConfig to copy from
+        ImageConfig& operator=(const ImageConfig& src) {
+            if (this != &src) {
+                cleanup();
+
+                Name = src.Name;
+                FilePath = src.FilePath;
+                EngineAsset = src.EngineAsset;
+                Filter = src.Filter;
+                Wrapping = src.Wrapping;
+            }
+
+            return *this;
+        }
+
+        /// Move Assignment Operator
+        /// @param src Source ImageConfig to move from
+        ImageConfig& operator=(ImageConfig&& src) noexcept {
+            if (this != &src) {
+                cleanup();
+
+                Name = src.Name;
+                FilePath = src.FilePath;
+                EngineAsset = src.EngineAsset;
+                Filter = src.Filter;
+                Wrapping = src.Wrapping;
+
+                src.Name = "";
+                src.FilePath = "";
+                src.EngineAsset = axr::EngineAssetEnum::Undefined;
+                Filter = axr::ImageSamplerFilterEnum::Undefined;
+                Wrapping = axr::ImageSamplerWrappingEnum::Undefined;
+            }
+
+            return *this;
         }
 
         // ----------------------------------------- //
         // Public Functions
         // ----------------------------------------- //
 
-        /// Get a handle to the EngineAssetUniformBuffer_SceneData as an AxrEngineAssetUniformBuffer_SceneData
-        /// @returns This as an AxrEngineAssetUniformBuffer_SceneData
-        const AxrEngineAssetUniformBuffer_SceneData* toRaw() const {
-            return reinterpret_cast<const AxrEngineAssetUniformBuffer_SceneData*>(this);
+        /// Get a handle to the ImageConfig as an AxrImageConfig
+        /// @returns This as an AxrImageConfig
+        const AxrImageConfig* toRaw() const {
+            return reinterpret_cast<const AxrImageConfig*>(this);
         }
 
-        /// Get a handle to the EngineAssetUniformBuffer_SceneData as an AxrEngineAssetUniformBuffer_SceneData
-        /// @returns This as an AxrEngineAssetUniformBuffer_SceneData
-        AxrEngineAssetUniformBuffer_SceneData* toRaw() {
-            return reinterpret_cast<AxrEngineAssetUniformBuffer_SceneData*>(this);
-        }
-    };
-
-    static_assert(
-        sizeof(AxrEngineAssetUniformBuffer_SceneData) == sizeof(axr::EngineAssetUniformBuffer_SceneData),
-        "Original type and wrapper have different size!"
-    );
-
-    // ---- Push Constant Buffers ----
-
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    /// Engine asset push constant buffer named 'Model Matrix' structure
-    struct EngineAssetPushConstantBuffer_ModelMatrix {
-        // ----------------------------------------- //
-        // Public Variables
-        // ----------------------------------------- //
-        glm::mat4 ModelMatrix;
-
-        // ----------------------------------------- //
-        // Special Functions
-        // ----------------------------------------- //
-
-        // ---- Constructors ----
-
-        /// Default Constructor
-        EngineAssetPushConstantBuffer_ModelMatrix() :
-            ModelMatrix{} {
+        /// Get a handle to the ImageConfig as an AxrImageConfig
+        /// @returns This as an AxrImageConfig
+        AxrImageConfig* toRaw() {
+            return reinterpret_cast<AxrImageConfig*>(this);
         }
 
-        /// Constructor
-        /// @param modelMatrix The model matrix
-        EngineAssetPushConstantBuffer_ModelMatrix(
-            const glm::mat4& modelMatrix
-        ) : ModelMatrix(modelMatrix) {
-        }
-
+    private:
         // ----------------------------------------- //
-        // Public Functions
+        // Private Functions
         // ----------------------------------------- //
 
-        /// Get a handle to the EngineAssetPushConstantBuffer_ModelMatrix as an AxrEngineAssetPushConstantBuffer_ModelMatrix
-        /// @returns This as an AxrEngineAssetPushConstantBuffer_ModelMatrix
-        const AxrEngineAssetPushConstantBuffer_ModelMatrix* toRaw() const {
-            return reinterpret_cast<const AxrEngineAssetPushConstantBuffer_ModelMatrix*>(this);
-        }
-
-        /// Get a handle to the EngineAssetPushConstantBuffer_ModelMatrix as an AxrEngineAssetPushConstantBuffer_ModelMatrix
-        /// @returns This as an AxrEngineAssetPushConstantBuffer_ModelMatrix
-        AxrEngineAssetPushConstantBuffer_ModelMatrix* toRaw() {
-            return reinterpret_cast<AxrEngineAssetPushConstantBuffer_ModelMatrix*>(this);
+        /// Clean up this class
+        void cleanup() {
+            Name = "";
+            FilePath = "";
+            EngineAsset = axr::EngineAssetEnum::Undefined;
+            Filter = axr::ImageSamplerFilterEnum::Undefined;
+            Wrapping = axr::ImageSamplerWrappingEnum::Undefined;
         }
     };
 
     static_assert(
-        sizeof(AxrEngineAssetPushConstantBuffer_ModelMatrix) == sizeof(axr::EngineAssetPushConstantBuffer_ModelMatrix),
-        "Original type and wrapper have different size!"
-    );
-#endif
-
-    // ---- Materials ----
-
-    /// Engine asset material named 'Default Material' values
-    struct EngineAssetMaterial_DefaultMaterial {
-        // ----------------------------------------- //
-        // Public Variables
-        // ----------------------------------------- //
-        const char* ImageName;
-
-        // ----------------------------------------- //
-        // Special Functions
-        // ----------------------------------------- //
-
-        // ---- Constructors ----
-
-        /// Default Constructor
-        EngineAssetMaterial_DefaultMaterial() :
-            ImageName{} {
-        }
-
-        /// Constructor
-        /// @param imageName The image name
-        EngineAssetMaterial_DefaultMaterial(
-            const char* imageName
-        ) : ImageName(imageName) {
-        }
-
-        // ----------------------------------------- //
-        // Public Functions
-        // ----------------------------------------- //
-
-        /// Get a handle to the EngineAssetMaterial_DefaultMaterial as an AxrEngineAssetMaterial_DefaultMaterial
-        /// @returns This as an AxrEngineAssetMaterial_DefaultMaterial
-        const AxrEngineAssetMaterial_DefaultMaterial* toRaw() const {
-            return reinterpret_cast<const AxrEngineAssetMaterial_DefaultMaterial*>(this);
-        }
-
-        /// Get a handle to the EngineAssetMaterial_DefaultMaterial as an AxrEngineAssetMaterial_DefaultMaterial
-        /// @returns This as an AxrEngineAssetMaterial_DefaultMaterial
-        AxrEngineAssetMaterial_DefaultMaterial* toRaw() {
-            return reinterpret_cast<AxrEngineAssetMaterial_DefaultMaterial*>(this);
-        }
-    };
-
-    static_assert(
-        sizeof(AxrEngineAssetMaterial_DefaultMaterial) == sizeof(axr::EngineAssetMaterial_DefaultMaterial),
+        sizeof(AxrImageConfig) == sizeof(axr::ImageConfig),
         "Original type and wrapper have different size!"
     );
 
     // ----------------------------------------- //
-    // Function Definitions
+    // Image Definition
     // ----------------------------------------- //
 
-    /// Check if the given name is reserved for an engine asset
-    /// @param name Name to check
-    /// @returns True if the given name is reserved for an engine asset
-    inline bool engineAssetIsNameReserved(const char* name) {
-        return axrEngineAssetIsNameReserved(name);
-    }
+    /// Image
+    class Image {
+    public:
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
 
-    /// Get the name for the given engine asset
-    /// @param engineAssetEnum Engine asset to get the name of
-    /// @returns The name of the given engine asset
-    inline const char* engineAssetGetName(axr::EngineAssetEnum engineAssetEnum) {
-        return axrEngineAssetGetName(static_cast<AxrEngineAssetEnum>(engineAssetEnum));
-    }
+        // ---- Constructors ----
 
-    // ---- Buffers ----
+        /// Constructor
+        /// @param image Image handle
+        Image(const AxrImage_T image):
+            m_Image(image) {
+        }
 
-    /// Get the size for the given uniform buffer engine asset
-    /// @param engineAssetEnum Engine asset to use
-    /// @returns The size for the given uniform buffer engine asset
-    inline uint64_t engineAssetGetUniformBufferSize(axr::EngineAssetEnum engineAssetEnum) {
-        return axrEngineAssetGetUniformBufferSize(static_cast<AxrEngineAssetEnum>(engineAssetEnum));
-    }
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
 
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    /// Get the size for the given push constant buffer engine asset
-    /// @param engineAssetEnum Engine asset to use
-    /// @returns The size for the given push constant buffer engine asset
-    inline uint32_t engineAssetGetPushConstantBufferSize(axr::EngineAssetEnum engineAssetEnum) {
-        return axrEngineAssetGetPushConstantBufferSize(static_cast<AxrEngineAssetEnum>(engineAssetEnum));
-    }
-#endif
+        /// Get the image's name
+        /// @returns The image's name
+        [[nodiscard]] const char* getName() const {
+            return axrImageGetName(m_Image);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Variables
+        // ----------------------------------------- //
+        AxrImage_T m_Image;
+    };
 
     // ---------------------------------------------------------------------------------- //
     //                                  Asset Collection                                  //
@@ -2187,6 +2434,20 @@ namespace axr {
             ));
         }
 #endif
+
+        // ---- Image ----
+
+        /// Create a new image
+        /// @param imageConfig Image config
+        /// @returns AXR_SUCCESS if the function succeeded
+        [[nodiscard]] axr::Result createImage(
+            const axr::ImageConfig& imageConfig
+        ) const {
+            return static_cast<axr::Result>(axrAssetCollectionCreateImage(
+                m_AssetCollection,
+                imageConfig.toRaw()
+            ));
+        }
 
     private:
         // ----------------------------------------- //

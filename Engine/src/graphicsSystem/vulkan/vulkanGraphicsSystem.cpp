@@ -21,6 +21,7 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     m_ApplicationName(config.ApplicationName),
     m_ApplicationVersion(config.ApplicationVersion),
     m_GlobalAssetCollection(config.GlobalAssetCollection),
+    m_SamplerAnisotropyQuality(config.SamplerAnisotropyQuality),
     m_SwapchainColorFormatOptions(
         {
             vk::SurfaceFormatKHR(vk::Format::eR8G8B8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear),
@@ -849,6 +850,42 @@ bool AxrVulkanGraphicsSystem::areApiLayersSupportedForPhysicalDevice(const vk::P
     return true;
 }
 
+float AxrVulkanGraphicsSystem::getMaxSamplerAnisotropyValue(const AxrSamplerAnisotropyQualityEnum anisotropyQuality) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_PhysicalDevice == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Physical device is null.");
+        return 1.0f;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const vk::PhysicalDeviceProperties physicalDeviceProperties = m_PhysicalDevice.getProperties(m_Dispatch);
+
+    switch (anisotropyQuality) {
+        case AXR_SAMPLER_ANISOTROPY_QUALITY_LOW: {
+            return physicalDeviceProperties.limits.maxSamplerAnisotropy / 4.0f;
+        }
+        case AXR_SAMPLER_ANISOTROPY_QUALITY_MEDIUM: {
+            return physicalDeviceProperties.limits.maxSamplerAnisotropy / 2.0f;
+        }
+        case AXR_SAMPLER_ANISOTROPY_QUALITY_HIGH: {
+            return physicalDeviceProperties.limits.maxSamplerAnisotropy;
+        }
+        default: {
+            axrLogErrorLocation("Unknown Anisotropy Quality.");
+            // Don't return or break here. Just fall through to the AXR_ANISOTROPY_QUALITY_NONE value
+        }
+        case AXR_SAMPLER_ANISOTROPY_QUALITY_NONE: {
+            return 1.0f;
+        }
+    }
+}
+
 AxrResult AxrVulkanGraphicsSystem::createLogicalDevice() {
     // ----------------------------------------- //
     // Validation
@@ -1075,13 +1112,18 @@ void AxrVulkanGraphicsSystem::destroyCommandPool(vk::CommandPool& commandPool) c
 AxrResult AxrVulkanGraphicsSystem::setupSceneData() {
     AxrResult axrResult = AXR_SUCCESS;
 
+    const float maxAnisotropy = getMaxSamplerAnisotropyValue(m_SamplerAnisotropyQuality);
+
     axrResult = m_LoadedScenes.setup(
         {
             .PhysicalDevice = m_PhysicalDevice,
             .Device = m_Device,
+            .GraphicsCommandPool = m_GraphicsCommandPool,
+            .GraphicsQueue = m_QueueFamilies.GraphicsQueue,
             .TransferCommandPool = m_TransferCommandPool,
             .TransferQueue = m_QueueFamilies.TransferQueue,
             .MaxFramesInFlight = m_MaxFramesInFlight,
+            .MaxSamplerAnisotropy = maxAnisotropy,
             .Dispatch = &m_Dispatch,
         }
     );
