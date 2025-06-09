@@ -811,6 +811,23 @@ void AxrVulkanSceneData::destroyImageData(AxrVulkanImageData& imageData) {
     imageData.destroyData();
 }
 
+const AxrVulkanImageData* AxrVulkanSceneData::findImageData_shared(const std::string& name) const {
+    const auto foundImageDataIt = m_ImageData.find(name);
+    if (foundImageDataIt != m_ImageData.end()) {
+        return &foundImageDataIt->second;
+    }
+
+    if (m_GlobalSceneData != nullptr) {
+        const auto foundImageData = m_GlobalSceneData->findImageData_shared(name);
+
+        if (foundImageData != nullptr) {
+            return foundImageData;
+        }
+    }
+
+    return nullptr;
+}
+
 const AxrShader* AxrVulkanSceneData::findShader_shared(const std::string& name) const {
     if (m_AssetCollection == nullptr) {
         axrLogErrorLocation("Asset collection is null.");
@@ -1349,13 +1366,36 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
                     descriptorSetItemLocation.ItemIndex,
                     0,
                     1,
-                    vk::DescriptorType::eUniformBuffer,
+                    descriptorSetItemLocation.DescriptorType,
                     nullptr,
                     &descriptorBufferInfos.back(),
                     nullptr
                 );
             } else if (descriptorSetItemLocation.DescriptorType == vk::DescriptorType::eCombinedImageSampler) {
-                // TODO: Implement the image stuff
+                const AxrVulkanImageData* foundImageData = sceneData->findImageData_shared(bufferName);
+
+                if (foundImageData == nullptr) {
+                    axrLogErrorLocation("Failed to find image named: {0}.", bufferName);
+                    axrResult = AXR_ERROR;
+                    break;
+                }
+
+                descriptorImageInfos.emplace_back(
+                    foundImageData->getSampler(),
+                    foundImageData->getImageView(),
+                    vk::ImageLayout::eShaderReadOnlyOptimal
+                );
+
+                descriptorWrites.emplace_back(
+                    descriptorSets[frameIndex],
+                    descriptorSetItemLocation.ItemIndex,
+                    0,
+                    1,
+                    descriptorSetItemLocation.DescriptorType,
+                    &descriptorImageInfos.back(),
+                    nullptr,
+                    nullptr
+                );
             }
         }
 

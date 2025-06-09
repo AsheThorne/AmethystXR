@@ -74,6 +74,12 @@ public:
     /// Get the image name
     /// @returns The image name
     [[nodiscard]] const std::string& getName() const;
+    /// Get the image view
+    /// @returns The image view
+    [[nodiscard]] const vk::ImageView& getImageView() const;
+    /// Get the image sampler
+    /// @return The image sampler
+    [[nodiscard]] const vk::Sampler& getSampler() const;
 
     /// Check if the data exists
     /// @returns True if the data exists

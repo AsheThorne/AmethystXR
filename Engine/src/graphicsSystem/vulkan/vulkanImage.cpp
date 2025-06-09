@@ -96,8 +96,12 @@ bool AxrVulkanImage::isEmpty() const {
         m_ImageMemory == VK_NULL_HANDLE;
 }
 
-vk::Image AxrVulkanImage::getImage() const {
+const vk::Image& AxrVulkanImage::getImage() const {
     return m_Image;
+}
+
+const vk::ImageView& AxrVulkanImage::getImageView() const {
+    return m_ImageView;
 }
 
 uint32_t AxrVulkanImage::getMipLevelCount() const {

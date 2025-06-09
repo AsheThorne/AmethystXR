@@ -69,7 +69,10 @@ public:
     [[nodiscard]] bool isEmpty() const;
     /// Get the vulkan image
     /// @returns The vulkan image
-    [[nodiscard]] vk::Image getImage() const;
+    [[nodiscard]] const vk::Image& getImage() const;
+    /// Get the vulkan image view
+    /// @returns The vulkan image view
+    [[nodiscard]] const vk::ImageView& getImageView() const;
     /// Get the image mip level count
     /// @returns The image mip level count
     [[nodiscard]] uint32_t getMipLevelCount() const;

@@ -200,7 +200,7 @@ AxrResult AxrImage::loadImage(const std::string& path, Data& imageData) {
         static_cast<uint64_t>(imageData.Height) *
         imageData.ColorChannels;
 
-    imageData.Pixels.assign(pixelsSize, *pixelData);
+    imageData.Pixels.assign(pixelData, pixelData + pixelsSize);
 
     stbi_image_free(pixelData);
     return AXR_SUCCESS;

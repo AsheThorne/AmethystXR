@@ -306,6 +306,11 @@ private:
     /// @param imageData Image data to destroy
     void destroyImageData(AxrVulkanImageData& imageData);
 
+    /// Find the named image data, including the global data in the search
+    /// @param name The name of the image
+    /// @returns A handle to the found image. Or nullptr if it wasn't found
+    [[nodiscard]] const AxrVulkanImageData* findImageData_shared(const std::string& name) const;
+
     // ---- Shader ----
 
     /// Find the named shader, including the global data in the search

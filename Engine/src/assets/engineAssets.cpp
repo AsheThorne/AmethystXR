@@ -192,6 +192,11 @@ AxrResult axrEngineAssetCreateShader_DefaultVert(AxrShader& shader) {
             .Type = AXR_SHADER_VERTEX_ATTRIBUTE_COLOR,
             .Binding = 0,
             .Location = 1,
+        },
+        AxrShaderVertexAttribute{
+            .Type = AXR_SHADER_VERTEX_ATTRIBUTE_TEX_COORDS,
+            .Binding = 0,
+            .Location = 2,
         }
     };
 
@@ -238,9 +243,17 @@ AxrResult axrEngineAssetCreateShader_DefaultVert(AxrShader& shader) {
 }
 
 AxrResult axrEngineAssetCreateShader_DefaultFrag(AxrShader& shader) {
+    AxrShaderImageSamplerBufferLayout imageSamplerBufferLayout{
+        .Binding = 1,
+    };
+
+    std::array bufferLayouts{
+        reinterpret_cast<AxrShaderBufferLayout_T>(&imageSamplerBufferLayout),
+    };
+
     AxrFragmentShaderProperties shaderProperties{
-        .BufferLayoutsCount = 0,
-        .BufferLayouts = nullptr,
+        .BufferLayoutsCount = static_cast<uint32_t>(bufferLayouts.size()),
+        .BufferLayouts = bufferLayouts.data(),
     };
 
     const auto shaderPath = axrGetEngineAssetsDirectoryPath().append("shaders/shader.frag").generic_string();
@@ -389,9 +402,18 @@ AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
         .BufferLinks = vertexBufferLinks.data(),
     };
 
+    AxrShaderImageSamplerBufferLink imageSamplerBufferLink{
+        .Binding = 1,
+        .ImageName = materialValues.ImageName
+    };
+
+    std::array fragmentBufferLinks{
+        reinterpret_cast<AxrShaderBufferLink_T>(&imageSamplerBufferLink),
+    };
+
     AxrShaderValues fragmentShaderValues{
-        .BufferLinksCount = 0,
-        .BufferLinks = nullptr
+        .BufferLinksCount = static_cast<uint32_t>(fragmentBufferLinks.size()),
+        .BufferLinks = fragmentBufferLinks.data()
     };
 
     const AxrMaterialConfig materialConfig{

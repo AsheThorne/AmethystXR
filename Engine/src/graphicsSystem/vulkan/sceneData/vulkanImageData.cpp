@@ -83,6 +83,14 @@ const std::string& AxrVulkanImageData::getName() const {
     return m_Name;
 }
 
+const vk::ImageView& AxrVulkanImageData::getImageView() const {
+    return m_Image.getImageView();
+}
+
+const vk::Sampler& AxrVulkanImageData::getSampler() const {
+    return m_Sampler;
+}
+
 bool AxrVulkanImageData::doesDataExist() const {
     return !m_Image.isEmpty() && m_Sampler != VK_NULL_HANDLE;
 }

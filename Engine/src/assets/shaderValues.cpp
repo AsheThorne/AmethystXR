@@ -227,7 +227,6 @@ std::string AxrShaderValuesRAII::findShaderBufferName(const uint32_t binding) co
         }
     }
 
-    axrLogErrorLocation("Failed to bind buffer at binding: {0}", binding);
     return "";
 }
 
