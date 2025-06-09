@@ -11,8 +11,16 @@
 
 namespace axr {
     // ----------------------------------------- //
-    // Graphics Api Enum Definition
+    // Enums
     // ----------------------------------------- //
+
+    /// Sampler anisotropy quality enum
+    enum class SamplerAnisotropyQualityEnum {
+        None = AXR_SAMPLER_ANISOTROPY_QUALITY_NONE,
+        Low = AXR_SAMPLER_ANISOTROPY_QUALITY_LOW,
+        Medium = AXR_SAMPLER_ANISOTROPY_QUALITY_MEDIUM,
+        High = AXR_SAMPLER_ANISOTROPY_QUALITY_HIGH,
+    };
 
     /// Graphics api enum
     enum class GraphicsApiEnum {
@@ -21,7 +29,7 @@ namespace axr {
     };
 
     // ----------------------------------------- //
-    // Graphics Config Definition
+    // Structs
     // ----------------------------------------- //
 
     /// Config for the graphics system
@@ -33,6 +41,7 @@ namespace axr {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
         axr::VulkanApiConfig* VulkanApiConfig = nullptr;
 #endif
+        axr::SamplerAnisotropyQualityEnum SamplerAnisotropyQuality;
 
         // ----------------------------------------- //
         // Special Functions
@@ -42,16 +51,20 @@ namespace axr {
 
         /// Default Constructor
         GraphicsSystemConfig() :
-            GraphicsApi{} {
+            GraphicsApi(axr::GraphicsApiEnum::Undefined),
+            SamplerAnisotropyQuality(axr::SamplerAnisotropyQualityEnum::None) {
         }
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
         /// Vulkan Graphics Constructor
         /// @param vulkanApiConfig The vulkan api config
+        /// @param samplerAnisotropyQuality The sampler anisotropy quality
         GraphicsSystemConfig(
-            axr::VulkanApiConfig* vulkanApiConfig
+            axr::VulkanApiConfig* vulkanApiConfig,
+            const axr::SamplerAnisotropyQualityEnum samplerAnisotropyQuality
         ) : GraphicsApi(axr::GraphicsApiEnum::Vulkan),
-            VulkanApiConfig(vulkanApiConfig) {
+            VulkanApiConfig(vulkanApiConfig),
+            SamplerAnisotropyQuality(samplerAnisotropyQuality) {
         }
 #endif
 

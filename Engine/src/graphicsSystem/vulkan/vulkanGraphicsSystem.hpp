@@ -46,6 +46,7 @@ public:
         AxrWindowSystem_T WindowSystem;
         AxrAssetCollection_T GlobalAssetCollection;
         AxrVulkanApiConfig_T VulkanConfig;
+        AxrSamplerAnisotropyQualityEnum SamplerAnisotropyQuality;
     };
 
     // ----------------------------------------- //
@@ -110,6 +111,7 @@ private:
     AxrAssetCollection_T m_GlobalAssetCollection;
     AxrVulkanExtensionCollection<AxrVulkanApiLayer_T, AxrVulkanApiLayerTypeEnum> m_ApiLayers;
     AxrVulkanExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum> m_Extensions;
+    AxrSamplerAnisotropyQualityEnum m_SamplerAnisotropyQuality;
 
     /// Ordered from most desired to the least desired
     std::vector<vk::SurfaceFormatKHR> m_SwapchainColorFormatOptions;
@@ -258,6 +260,11 @@ private:
     /// @param physicalDevice Physical device to check
     /// @returns True if all the api layers are supported for the given physical device
     bool areApiLayersSupportedForPhysicalDevice(const vk::PhysicalDevice& physicalDevice) const;
+
+    /// Get the max sampler anisotropy value from the given sampler anisotropy quality enum
+    /// @param anisotropyQuality Sampler anisotropy quality
+    /// @returns The max sampler anisotropy value
+    float getMaxSamplerAnisotropyValue(AxrSamplerAnisotropyQualityEnum anisotropyQuality) const;
 
     // ---- Logical Device ----
 

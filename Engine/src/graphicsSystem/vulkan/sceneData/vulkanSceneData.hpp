@@ -9,6 +9,7 @@
 #include "vulkanModelData.hpp"
 #include "vulkanMaterialLayoutData.hpp"
 #include "vulkanMaterialData.hpp"
+#include "vulkanImageData.hpp"
 #include "axr/scene.h"
 #include "../../../assets/engineAssets.hpp"
 
@@ -33,9 +34,12 @@ public:
         AxrVulkanSceneData* GlobalSceneData;
         vk::PhysicalDevice PhysicalDevice;
         vk::Device Device;
+        vk::CommandPool GraphicsCommandPool;
+        vk::Queue GraphicsQueue;
         vk::CommandPool TransferCommandPool;
         vk::Queue TransferQueue;
         uint32_t MaxFramesInFlight;
+        float MaxSamplerAnisotropy;
         vk::DispatchLoaderDynamic* DispatchHandle;
     };
 
@@ -159,9 +163,12 @@ private:
     AxrVulkanSceneData* m_GlobalSceneData;
     vk::PhysicalDevice m_PhysicalDevice;
     vk::Device m_Device;
+    vk::CommandPool m_GraphicsCommandPool;
+    vk::Queue m_GraphicsQueue;
     vk::CommandPool m_TransferCommandPool;
     vk::Queue m_TransferQueue;
     uint32_t m_MaxFramesInFlight;
+    float m_MaxSamplerAnisotropy;
     vk::DispatchLoaderDynamic* m_DispatchHandle;
     bool m_IsWindowDataLoaded;
 
@@ -170,6 +177,7 @@ private:
 
     std::unordered_map<std::string, AxrVulkanUniformBufferData> m_UniformBufferData;
     std::unordered_map<std::string, AxrVulkanModelData> m_ModelData;
+    std::unordered_map<std::string, AxrVulkanImageData> m_ImageData;
     std::unordered_map<std::string, AxrVulkanMaterialLayoutData> m_MaterialLayoutData;
     std::unordered_map<std::string, AxrVulkanMaterialData> m_MaterialData;
     std::unordered_map<std::string, MaterialForRendering> m_MaterialsForRendering;
@@ -273,6 +281,30 @@ private:
     /// @param name The name of the model
     /// @returns A handle to the found model. Or nullptr if it wasn't found
     [[nodiscard]] const AxrVulkanModelData* findModelData_shared(const std::string& name) const;
+
+    // ---- Image ----
+
+    /// Create all image data
+    /// @results AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createAllImageData();
+    /// Destroy all image data
+    void destroyAllImageData();
+
+    /// Initialize all the image data
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult initializeAllImageData();
+    /// Initialize a single image's data for the given image
+    /// @param image Image to use
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult initializeImageData(const AxrImage& image);
+
+    /// Create the given image data
+    /// @param imageData Image data to create
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createImageData(AxrVulkanImageData& imageData);
+    /// Destroy the given image data
+    /// @param imageData Image data to destroy
+    void destroyImageData(AxrVulkanImageData& imageData);
 
     // ---- Shader ----
 

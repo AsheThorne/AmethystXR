@@ -11,9 +11,12 @@
 AxrVulkanLoadedScenesCollection::AxrVulkanLoadedScenesCollection():
     m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
+    m_GraphicsCommandPool(VK_NULL_HANDLE),
+    m_GraphicsQueue(VK_NULL_HANDLE),
     m_TransferCommandPool(VK_NULL_HANDLE),
     m_TransferQueue(VK_NULL_HANDLE),
     m_MaxFramesInFlight(0),
+    m_MaxSamplerAnisotropy(0.0f),
     m_Dispatch(nullptr),
     m_IsSetup(false),
     m_WindowRenderPass(VK_NULL_HANDLE),
@@ -55,6 +58,26 @@ AxrResult AxrVulkanLoadedScenesCollection::setup(const SetupConfig& config) {
         return AXR_ERROR;
     }
 
+    if (m_GraphicsCommandPool != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Graphics command pool isn't null.");
+        return AXR_ERROR;
+    }
+
+    if (config.GraphicsCommandPool == VK_NULL_HANDLE) {
+        axrLogErrorLocation("config.GraphicsCommandPool is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_GraphicsQueue != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Graphics queue isn't null.");
+        return AXR_ERROR;
+    }
+
+    if (config.GraphicsQueue == VK_NULL_HANDLE) {
+        axrLogErrorLocation("config.GraphicsQueue is null.");
+        return AXR_ERROR;
+    }
+
     if (m_TransferCommandPool != VK_NULL_HANDLE) {
         axrLogErrorLocation("Transfer command pool isn't null.");
         return AXR_ERROR;
@@ -91,9 +114,12 @@ AxrResult AxrVulkanLoadedScenesCollection::setup(const SetupConfig& config) {
 
     m_PhysicalDevice = config.PhysicalDevice;
     m_Device = config.Device;
+    m_GraphicsCommandPool = config.GraphicsCommandPool;
+    m_GraphicsQueue = config.GraphicsQueue;
     m_TransferCommandPool = config.TransferCommandPool;
     m_TransferQueue = config.TransferQueue;
     m_MaxFramesInFlight = config.MaxFramesInFlight;
+    m_MaxSamplerAnisotropy = config.MaxSamplerAnisotropy;
     m_Dispatch = config.Dispatch;
 
     m_IsSetup = true;
@@ -109,9 +135,12 @@ void AxrVulkanLoadedScenesCollection::resetSetup() {
 
     m_PhysicalDevice = VK_NULL_HANDLE;
     m_Device = VK_NULL_HANDLE;
+    m_GraphicsCommandPool = VK_NULL_HANDLE;
+    m_GraphicsQueue = VK_NULL_HANDLE;
     m_TransferCommandPool = VK_NULL_HANDLE;
     m_TransferQueue = VK_NULL_HANDLE;
     m_MaxFramesInFlight = 0;
+    m_MaxSamplerAnisotropy = 0.0f;
     m_Dispatch = nullptr;
 }
 
@@ -348,9 +377,12 @@ AxrVulkanSceneData* AxrVulkanLoadedScenesCollection::createSceneData(
             .GlobalSceneData = globalSceneData,
             .PhysicalDevice = m_PhysicalDevice,
             .Device = m_Device,
+            .GraphicsCommandPool = m_GraphicsCommandPool,
+            .GraphicsQueue = m_GraphicsQueue,
             .TransferCommandPool = m_TransferCommandPool,
             .TransferQueue = m_TransferQueue,
             .MaxFramesInFlight = m_MaxFramesInFlight,
+            .MaxSamplerAnisotropy = m_MaxSamplerAnisotropy,
             .DispatchHandle = m_Dispatch
         }
     );

@@ -22,9 +22,12 @@ public:
     struct SetupConfig {
         vk::PhysicalDevice PhysicalDevice;
         vk::Device Device;
+        vk::CommandPool GraphicsCommandPool;
+        vk::Queue GraphicsQueue;
         vk::CommandPool TransferCommandPool;
         vk::Queue TransferQueue;
         uint32_t MaxFramesInFlight;
+        float MaxSamplerAnisotropy;
         vk::DispatchLoaderDynamic* Dispatch;
     };
 
@@ -126,9 +129,12 @@ private:
     // ---- Setup Config ----
     vk::PhysicalDevice m_PhysicalDevice;
     vk::Device m_Device;
+    vk::CommandPool m_GraphicsCommandPool;
+    vk::Queue m_GraphicsQueue;
     vk::CommandPool m_TransferCommandPool;
     vk::Queue m_TransferQueue;
     uint32_t m_MaxFramesInFlight;
+    float m_MaxSamplerAnisotropy;
     vk::DispatchLoaderDynamic* m_Dispatch;
 
     bool m_IsSetup;

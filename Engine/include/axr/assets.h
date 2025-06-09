@@ -725,6 +725,8 @@ struct AxrImageConfig {
 
 /// AxrImage Handle
 typedef class AxrImage* AxrImage_T;
+// TODO: Add a const version for most if not all similar things
+typedef const AxrImage* AxrImageConst_T;
 
 // ----------------------------------------- //
 // External Function Definitions

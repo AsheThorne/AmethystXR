@@ -23,8 +23,8 @@ public:
     struct Config {
         vk::PhysicalDevice PhysicalDevice;
         vk::Device Device;
-        vk::CommandPool TransferCommandPool;
-        vk::Queue TransferQueue;
+        vk::CommandPool GraphicsCommandPool;
+        vk::Queue GraphicsQueue;
         vk::DispatchLoaderDynamic* DispatchHandle;
     };
 
@@ -70,11 +70,14 @@ public:
     /// Get the vulkan image
     /// @returns The vulkan image
     [[nodiscard]] vk::Image getImage() const;
+    /// Get the image mip level count
+    /// @returns The image mip level count
+    [[nodiscard]] uint32_t getMipLevelCount() const;
 
     /// Create the image
     /// @param image Source image
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createImage(AxrImage_T image);
+    [[nodiscard]] AxrResult createImage(AxrImageConst_T image);
     /// Destroy the image
     void destroyImage();
 
@@ -158,14 +161,14 @@ private:
     // ---- Config Variables ----
     vk::PhysicalDevice m_PhysicalDevice;
     vk::Device m_Device;
-    vk::CommandPool m_TransferCommandPool;
-    vk::Queue m_TransferQueue;
+    vk::CommandPool m_GraphicsCommandPool;
+    vk::Queue m_GraphicsQueue;
     vk::DispatchLoaderDynamic* m_DispatchHandle;
 
     vk::Image m_Image;
     vk::ImageView m_ImageView;
     vk::DeviceMemory m_ImageMemory;
-    vk::Sampler m_Sampler;
+    uint32_t m_MipLevelCount;
 
     // ----------------------------------------- //
     // Private Functions
@@ -198,22 +201,6 @@ private:
         uint32_t imageHeight,
         uint32_t mipLevelCount
     ) const;
-
-    /// Create image sampler
-    /// @param mipLevelCount Mip level count
-    /// @param imageSamplerFilter Image sampler filter 
-    /// @param imageSamplerWrapping Image sampler wrapping enum
-    /// @param sampler Output image sampler
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createSampler(
-        uint32_t mipLevelCount,
-        AxrImageSamplerFilterEnum imageSamplerFilter,
-        AxrImageSamplerWrappingEnum imageSamplerWrapping,
-        vk::Sampler& sampler
-    ) const;
-    /// Destroy the given image sampler
-    /// @param sampler Sampler to destroy
-    void destroySampler(vk::Sampler& sampler) const;
 };
 
 #endif

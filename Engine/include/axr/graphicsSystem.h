@@ -13,6 +13,14 @@
 // Enums
 // ----------------------------------------- //
 
+/// Sampler anisotropy quality enum
+enum AxrSamplerAnisotropyQualityEnum {
+    AXR_SAMPLER_ANISOTROPY_QUALITY_NONE = 0,
+    AXR_SAMPLER_ANISOTROPY_QUALITY_LOW,
+    AXR_SAMPLER_ANISOTROPY_QUALITY_MEDIUM,
+    AXR_SAMPLER_ANISOTROPY_QUALITY_HIGH,
+};
+
 /// Graphics api enum
 enum AxrGraphicsApiEnum {
     AXR_GRAPHICS_API_UNDEFINED = 0,
@@ -29,6 +37,7 @@ struct AxrGraphicsSystemConfig {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     AxrVulkanApiConfig_T VulkanConfig;
 #endif
+    AxrSamplerAnisotropyQualityEnum SamplerAnisotropyQuality;
 };
 
 // ----------------------------------------- //

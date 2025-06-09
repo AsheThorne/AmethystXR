@@ -34,7 +34,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 #endif
 
     const axr::GraphicsSystemConfig graphicsSystemConfig(
-        &vulkanApiConfig
+        &vulkanApiConfig,
+        axr::SamplerAnisotropyQualityEnum::High
     );
 
     const axr::WindowSystemConfig windowSystemConfig(

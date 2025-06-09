@@ -13,47 +13,47 @@
 AxrVulkanImage::AxrVulkanImage():
     m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
-    m_TransferCommandPool(VK_NULL_HANDLE),
-    m_TransferQueue(VK_NULL_HANDLE),
+    m_GraphicsCommandPool(VK_NULL_HANDLE),
+    m_GraphicsQueue(VK_NULL_HANDLE),
     m_DispatchHandle(VK_NULL_HANDLE),
     m_Image(VK_NULL_HANDLE),
     m_ImageView(VK_NULL_HANDLE),
     m_ImageMemory(VK_NULL_HANDLE),
-    m_Sampler(VK_NULL_HANDLE) {
+    m_MipLevelCount(0) {
 }
 
 AxrVulkanImage::AxrVulkanImage(const Config& config):
     m_PhysicalDevice(config.PhysicalDevice),
     m_Device(config.Device),
-    m_TransferCommandPool(config.TransferCommandPool),
-    m_TransferQueue(config.TransferQueue),
+    m_GraphicsCommandPool(config.GraphicsCommandPool),
+    m_GraphicsQueue(config.GraphicsQueue),
     m_DispatchHandle(config.DispatchHandle),
     m_Image(VK_NULL_HANDLE),
     m_ImageView(VK_NULL_HANDLE),
     m_ImageMemory(VK_NULL_HANDLE),
-    m_Sampler(VK_NULL_HANDLE) {
+    m_MipLevelCount(0) {
 }
 
 AxrVulkanImage::AxrVulkanImage(AxrVulkanImage&& src) noexcept {
     m_PhysicalDevice = src.m_PhysicalDevice;
     m_Device = src.m_Device;
-    m_TransferCommandPool = src.m_TransferCommandPool;
-    m_TransferQueue = src.m_TransferQueue;
+    m_GraphicsCommandPool = src.m_GraphicsCommandPool;
+    m_GraphicsQueue = src.m_GraphicsQueue;
     m_DispatchHandle = src.m_DispatchHandle;
     m_Image = src.m_Image;
     m_ImageView = src.m_ImageView;
     m_ImageMemory = src.m_ImageMemory;
-    m_Sampler = src.m_Sampler;
+    m_MipLevelCount = src.m_MipLevelCount;
 
-    m_PhysicalDevice = VK_NULL_HANDLE;
-    m_Device = VK_NULL_HANDLE;
-    m_TransferCommandPool = VK_NULL_HANDLE;
-    m_TransferQueue = VK_NULL_HANDLE;
-    m_DispatchHandle = VK_NULL_HANDLE;
-    m_Image = VK_NULL_HANDLE;
-    m_ImageView = VK_NULL_HANDLE;
-    m_ImageMemory = VK_NULL_HANDLE;
-    m_Sampler = VK_NULL_HANDLE;
+    src.m_PhysicalDevice = VK_NULL_HANDLE;
+    src.m_Device = VK_NULL_HANDLE;
+    src.m_GraphicsCommandPool = VK_NULL_HANDLE;
+    src.m_GraphicsQueue = VK_NULL_HANDLE;
+    src.m_DispatchHandle = VK_NULL_HANDLE;
+    src.m_Image = VK_NULL_HANDLE;
+    src.m_ImageView = VK_NULL_HANDLE;
+    src.m_ImageMemory = VK_NULL_HANDLE;
+    src.m_MipLevelCount = 0;
 }
 
 AxrVulkanImage::~AxrVulkanImage() {
@@ -66,23 +66,23 @@ AxrVulkanImage& AxrVulkanImage::operator=(AxrVulkanImage&& src) noexcept {
 
         m_PhysicalDevice = src.m_PhysicalDevice;
         m_Device = src.m_Device;
-        m_TransferCommandPool = src.m_TransferCommandPool;
-        m_TransferQueue = src.m_TransferQueue;
+        m_GraphicsCommandPool = src.m_GraphicsCommandPool;
+        m_GraphicsQueue = src.m_GraphicsQueue;
         m_DispatchHandle = src.m_DispatchHandle;
         m_Image = src.m_Image;
         m_ImageView = src.m_ImageView;
         m_ImageMemory = src.m_ImageMemory;
-        m_Sampler = src.m_Sampler;
+        m_MipLevelCount = src.m_MipLevelCount;
 
-        m_PhysicalDevice = VK_NULL_HANDLE;
-        m_Device = VK_NULL_HANDLE;
-        m_TransferCommandPool = VK_NULL_HANDLE;
-        m_TransferQueue = VK_NULL_HANDLE;
-        m_DispatchHandle = VK_NULL_HANDLE;
-        m_Image = VK_NULL_HANDLE;
-        m_ImageView = VK_NULL_HANDLE;
-        m_ImageMemory = VK_NULL_HANDLE;
-        m_Sampler = VK_NULL_HANDLE;
+        src.m_PhysicalDevice = VK_NULL_HANDLE;
+        src.m_Device = VK_NULL_HANDLE;
+        src.m_GraphicsCommandPool = VK_NULL_HANDLE;
+        src.m_GraphicsQueue = VK_NULL_HANDLE;
+        src.m_DispatchHandle = VK_NULL_HANDLE;
+        src.m_Image = VK_NULL_HANDLE;
+        src.m_ImageView = VK_NULL_HANDLE;
+        src.m_ImageMemory = VK_NULL_HANDLE;
+        src.m_MipLevelCount = 0;
     }
 
     return *this;
@@ -93,15 +93,18 @@ AxrVulkanImage& AxrVulkanImage::operator=(AxrVulkanImage&& src) noexcept {
 bool AxrVulkanImage::isEmpty() const {
     return m_Image == VK_NULL_HANDLE &&
         m_ImageView == VK_NULL_HANDLE &&
-        m_ImageMemory == VK_NULL_HANDLE &&
-        m_Sampler == VK_NULL_HANDLE;
+        m_ImageMemory == VK_NULL_HANDLE;
 }
 
 vk::Image AxrVulkanImage::getImage() const {
     return m_Image;
 }
 
-AxrResult AxrVulkanImage::createImage(const AxrImage_T image) {
+uint32_t AxrVulkanImage::getMipLevelCount() const {
+    return m_MipLevelCount;
+}
+
+AxrResult AxrVulkanImage::createImage(const AxrImageConst_T image) {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -136,8 +139,8 @@ AxrResult AxrVulkanImage::createImage(const AxrImage_T image) {
     const AxrVulkanBuffer::Config bufferConfig{
         .PhysicalDevice = m_PhysicalDevice,
         .Device = m_Device,
-        .TransferCommandPool = m_TransferCommandPool,
-        .TransferQueue = m_TransferQueue,
+        .TransferCommandPool = m_GraphicsCommandPool,
+        .TransferQueue = m_GraphicsQueue,
         .DispatchHandle = m_DispatchHandle,
     };
     AxrVulkanBuffer buffer(bufferConfig);
@@ -155,13 +158,13 @@ AxrResult AxrVulkanImage::createImage(const AxrImage_T image) {
         return axrResult;
     }
 
-    const uint32_t mipLevelCount = countImageMipLevels(image->getWidth(), image->getHeight());
+    m_MipLevelCount = countImageMipLevels(image->getWidth(), image->getHeight());
 
     axrResult = createImage(
         m_Device,
         m_PhysicalDevice,
         vk::Extent2D(image->getWidth(), image->getHeight()),
-        mipLevelCount,
+        m_MipLevelCount,
         vk::SampleCountFlagBits::e1,
         getImageFormat(image->getColorChannels()),
         vk::ImageTiling::eOptimal,
@@ -182,7 +185,7 @@ AxrResult AxrVulkanImage::createImage(const AxrImage_T image) {
         m_Image,
         image->getWidth(),
         image->getHeight(),
-        mipLevelCount
+        m_MipLevelCount
     );
     // We're done with the buffer now
     buffer.destroyBuffer();
@@ -197,20 +200,9 @@ AxrResult AxrVulkanImage::createImage(const AxrImage_T image) {
         m_Image,
         getImageFormat(image->getColorChannels()),
         vk::ImageAspectFlagBits::eColor,
-        mipLevelCount,
+        m_MipLevelCount,
         m_ImageView,
         *m_DispatchHandle
-    );
-    if (AXR_FAILED(axrResult)) {
-        destroyImage();
-        return axrResult;
-    }
-
-    axrResult = createSampler(
-        mipLevelCount,
-        image->getSamplerFilter(),
-        image->getSamplerWrapping(),
-        m_Sampler
     );
     if (AXR_FAILED(axrResult)) {
         destroyImage();
@@ -223,8 +215,7 @@ AxrResult AxrVulkanImage::createImage(const AxrImage_T image) {
 void AxrVulkanImage::destroyImage() {
     if (m_Image == VK_NULL_HANDLE &&
         m_ImageMemory == VK_NULL_HANDLE &&
-        m_ImageView == VK_NULL_HANDLE &&
-        m_Sampler == VK_NULL_HANDLE)
+        m_ImageView == VK_NULL_HANDLE)
         return;
 
     if (m_DispatchHandle == nullptr) {
@@ -232,7 +223,7 @@ void AxrVulkanImage::destroyImage() {
         return;
     }
 
-    destroySampler(m_Sampler);
+    m_MipLevelCount = 0;
     destroyImageView(m_Device, m_ImageView, *m_DispatchHandle);
     destroyImage(m_Device, m_Image, m_ImageMemory, *m_DispatchHandle);
 }
@@ -278,7 +269,7 @@ AxrResult AxrVulkanImage::createImage(
         {},
         vk::ImageType::e2D,
         format,
-        vk::Extent3D(extent, 0),
+        vk::Extent3D(extent, 1),
         mipLevelCount,
         1,
         sampleCount,
@@ -434,8 +425,8 @@ void AxrVulkanImage::cleanup() {
 
     m_PhysicalDevice = VK_NULL_HANDLE;
     m_Device = VK_NULL_HANDLE;
-    m_TransferCommandPool = VK_NULL_HANDLE;
-    m_TransferQueue = VK_NULL_HANDLE;
+    m_GraphicsCommandPool = VK_NULL_HANDLE;
+    m_GraphicsQueue = VK_NULL_HANDLE;
     m_DispatchHandle = VK_NULL_HANDLE;
 }
 
@@ -484,13 +475,13 @@ AxrResult AxrVulkanImage::copyBufferToImage(
         return AXR_ERROR;
     }
 
-    if (m_TransferCommandPool == VK_NULL_HANDLE) {
-        axrLogError("Transfer command pool is null.");
+    if (m_GraphicsCommandPool == VK_NULL_HANDLE) {
+        axrLogError("Graphics command pool is null.");
         return AXR_ERROR;
     }
 
-    if (m_TransferQueue == VK_NULL_HANDLE) {
-        axrLogError("Transfer queue is null.");
+    if (m_GraphicsQueue == VK_NULL_HANDLE) {
+        axrLogError("Graphics queue is null.");
         return AXR_ERROR;
     }
 
@@ -507,8 +498,7 @@ AxrResult AxrVulkanImage::copyBufferToImage(
     vk::CommandBuffer commandBuffer;
     axrResult = axrBeginSingleTimeCommand(
         m_Device,
-        // TODO: Might need the graphics queue...
-        m_TransferCommandPool,
+        m_GraphicsCommandPool,
         commandBuffer,
         *m_DispatchHandle
     );
@@ -532,9 +522,6 @@ AxrResult AxrVulkanImage::copyBufferToImage(
             1
         )
     );
-
-    // TODO: Make sure this equals 0
-    auto test = vk::DependencyFlags();
 
     commandBuffer.pipelineBarrier(
         vk::PipelineStageFlagBits::eTopOfPipe,
@@ -560,7 +547,7 @@ AxrResult AxrVulkanImage::copyBufferToImage(
             1
         ),
         vk::Offset3D(0, 0, 0),
-        vk::Extent3D(imageWidth, imageHeight, 0)
+        vk::Extent3D(imageWidth, imageHeight, 1)
     );
 
     commandBuffer.copyBufferToImage(
@@ -606,9 +593,8 @@ AxrResult AxrVulkanImage::copyBufferToImage(
 
     axrResult = axrEndSingleTimeCommand(
         m_Device,
-        // TODO: Might need the graphics queue. if it works like this, leave it
-        m_TransferCommandPool,
-        m_TransferQueue,
+        m_GraphicsCommandPool,
+        m_GraphicsQueue,
         commandBuffer,
         *m_DispatchHandle
     );
@@ -617,85 +603,6 @@ AxrResult AxrVulkanImage::copyBufferToImage(
     }
 
     return AXR_SUCCESS;
-}
-
-AxrResult AxrVulkanImage::createSampler(
-    const uint32_t mipLevelCount,
-    const AxrImageSamplerFilterEnum imageSamplerFilter,
-    const AxrImageSamplerWrappingEnum imageSamplerWrapping,
-    vk::Sampler& sampler
-) const {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
-
-    if (sampler != VK_NULL_HANDLE) {
-        axrLogErrorLocation("Sampler already exists.");
-        return AXR_ERROR;
-    }
-
-    if (m_Device == VK_NULL_HANDLE) {
-        axrLogErrorLocation("Device is null.");
-        return AXR_ERROR;
-    }
-
-    if (m_DispatchHandle == nullptr) {
-        axrLogErrorLocation("Dispatch handle is null.");
-        return AXR_ERROR;
-    }
-
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
-
-    const vk::Filter filter = axrToVkFilter(imageSamplerFilter);
-    const vk::SamplerAddressMode addressMode = axrToVkSamplerAddressMode(imageSamplerWrapping);
-
-    const vk::SamplerCreateInfo samplerCreateInfo(
-        {},
-        filter,
-        filter,
-        vk::SamplerMipmapMode::eLinear,
-        addressMode,
-        addressMode,
-        addressMode,
-        0.0f,
-        // TODO: Make these a global config option
-        //  Also check with the physical device that we don't go over the max supported anisotropy
-        vk::False,
-        0.0f,
-        vk::False,
-        vk::CompareOp::eAlways,
-        0.0f,
-        static_cast<float>(mipLevelCount),
-        vk::BorderColor::eIntOpaqueBlack,
-        vk::False
-    );
-
-    const vk::Result vkResult = m_Device.createSampler(
-        &samplerCreateInfo,
-        nullptr,
-        &sampler,
-        *m_DispatchHandle
-    );
-    axrLogVkResult(vkResult, "m_Device.createSampler");
-    if (VK_FAILED(vkResult)) {
-        return AXR_ERROR;
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanImage::destroySampler(vk::Sampler& sampler) const {
-    if (sampler == VK_NULL_HANDLE) return;
-
-    if (m_DispatchHandle == nullptr) {
-        axrLogErrorLocation("Dispatch handle is null.");
-        return;
-    }
-
-    m_Device.destroySampler(sampler, nullptr, *m_DispatchHandle);
-    sampler = VK_NULL_HANDLE;
 }
 
 #endif
