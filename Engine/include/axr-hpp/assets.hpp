@@ -40,6 +40,7 @@ namespace axr {
         // ---- Models ----
         ModelStart = AXR_ENGINE_ASSET_MODEL_START,
         ModelTriangle = AXR_ENGINE_ASSET_MODEL_TRIANGLE,
+        ModelSquare = AXR_ENGINE_ASSET_MODEL_SQUARE,
         ModelEnd = AXR_ENGINE_ASSET_MODEL_END,
 
         // ---- Images ----

@@ -144,6 +144,12 @@ AxrResult axrEngineAssetCreateModel(const std::string& modelName, AxrEngineAsset
 /// @returns AXR_SUCCESS if the function succeeded
 AxrResult axrEngineAssetCreateModel_Triangle(const std::string& modelName, AxrModel& model);
 
+/// Create the 'Square' engine asset model
+/// @param modelName Model name
+/// @param model Output created model
+/// @returns AXR_SUCCESS if the function succeeded
+AxrResult axrEngineAssetCreateModel_Square(const std::string& modelName, AxrModel& model);
+
 // ---------------------------------------------------------------------------------- //
 //                                Image Engine Assets                                 //
 // ---------------------------------------------------------------------------------- //

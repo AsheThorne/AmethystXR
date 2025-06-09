@@ -42,6 +42,7 @@ enum AxrEngineAssetEnum {
     // ---- Models ----
     AXR_ENGINE_ASSET_MODEL_START = 129,
     AXR_ENGINE_ASSET_MODEL_TRIANGLE = 129,
+    AXR_ENGINE_ASSET_MODEL_SQUARE = 130,
     AXR_ENGINE_ASSET_MODEL_END = 192,
 
     // ---- Images ----
