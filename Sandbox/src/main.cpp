@@ -54,12 +54,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
     const std::string imageName = "UvTesterImage";
     const std::string materialName = "MyMaterial";
-    const std::string modelName = "Square";
+    const std::string modelName = "Cube";
 
     const axr::ImageConfig imageConfig(
         imageName.c_str(),
         axr::EngineAssetEnum::ImageUvTester,
-        axr::ImageSamplerFilterEnum::Linear,
+        axr::ImageSamplerFilterEnum::Nearest,
         axr::ImageSamplerWrappingEnum::Repeat
     );
 
@@ -77,16 +77,16 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     }
 
     if (AXR_FAILED(
-        globalAssetCollection.createModel(modelName.c_str(), axr::EngineAssetEnum::ModelSquare)
+        globalAssetCollection.createModel(modelName.c_str(), axr::EngineAssetEnum::ModelCube)
     ))
         return -1;
 
     const std::string scene1Name = "Scene1";
     if (AXR_FAILED(app.createScene(scene1Name.c_str()))) return -1;
     const axr::Scene scene1 = app.findScene(scene1Name.c_str());
-    const axr::Entity_T squareEntity = scene1.createEntity();
+    const axr::Entity_T entity = scene1.createEntity();
 
-    squareEntity.emplace<AxrTransformComponent>(
+    entity.emplace<AxrTransformComponent>(
         AxrTransformComponent{
             .Position = glm::vec3(0.0f, 0.0f, 0.0f),
             .Scale = glm::vec3(1.0f, 1.0f, 1.0f),
@@ -96,7 +96,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     AxrModelComponent::Mesh mesh{
         .MaterialName = materialName.c_str(),
     };
-    squareEntity.emplace<AxrModelComponent>(
+    entity.emplace<AxrModelComponent>(
         AxrModelComponent{
             .ModelName = modelName.c_str(),
             .MeshCount = 1,

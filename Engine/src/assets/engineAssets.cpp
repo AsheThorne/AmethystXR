@@ -460,6 +460,9 @@ AxrResult axrEngineAssetCreateModel(
         case AXR_ENGINE_ASSET_MODEL_SQUARE: {
             return axrEngineAssetCreateModel_Square(modelName, model);
         }
+        case AXR_ENGINE_ASSET_MODEL_CUBE: {
+            return axrEngineAssetCreateModel_Cube(modelName, model);
+        }
         case AXR_ENGINE_ASSET_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
             axrLogErrorLocation("Unknown model engine asset.");
@@ -472,18 +475,18 @@ AxrResult axrEngineAssetCreateModel_Triangle(const std::string& modelName, AxrMo
     std::vector<AxrVertex> vertices{
         AxrVertex{
             .Position = {0.0f, 0.866f, 0.0f},
-            .Color = {1.0f, 0.0f, 0.0f},
-            .TexCoords = {0.0f, 0.0f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {0.5f, 0.0f},
         },
         AxrVertex{
             .Position = {0.5f, 0.0f, 0.0f},
-            .Color = {0.0f, 1.0f, 0.0f},
-            .TexCoords = {0.0f, 0.0f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {1.0f, 1.0f},
         },
         AxrVertex{
             .Position = {-0.5f, 0.0f, 0.0f},
-            .Color = {0.0f, 0.0f, 1.0f},
-            .TexCoords = {0.0f, 0.0f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {0.0f, 1.0f},
         },
     };
 
@@ -537,6 +540,186 @@ AxrResult axrEngineAssetCreateModel_Square(const std::string& modelName, AxrMode
     std::vector<uint32_t> indices{
         0, 1, 2,
         2, 3, 0,
+    };
+
+    AxrMesh mesh{
+        .VerticesCount = static_cast<uint32_t>(vertices.size()),
+        .Vertices = vertices.data(),
+        .IndicesCount = static_cast<uint32_t>(indices.size()),
+        .Indices = indices.data(),
+    };
+
+    const AxrModelConfig modelConfig{
+        .Name = modelName.c_str(),
+        .FilePath = "",
+        .MeshesCount = 1,
+        .Meshes = &mesh
+    };
+
+    model = AxrModel(modelConfig);
+
+    return AXR_SUCCESS;
+}
+
+AxrResult axrEngineAssetCreateModel_Cube(const std::string& modelName, AxrModel& model) {
+    std::vector<AxrVertex> vertices{
+        /// Front face
+        AxrVertex{
+            .Position = {-0.5f, 0.5f, 0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {0.0f, 0.0f},
+        },
+        AxrVertex{
+            .Position = {0.5f, 0.5f, 0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {1.0f, 0.0f},
+        },
+        AxrVertex{
+            .Position = {0.5f, -0.5f, 0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {1.0f, 1.0f},
+        },
+        AxrVertex{
+            .Position = {-0.5f, -0.5f, 0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {0.0f, 1.0f},
+        },
+
+        // Back face
+        AxrVertex{
+            .Position = {0.5f, 0.5f, -0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {0.0f, 0.0f},
+        },
+        AxrVertex{
+            .Position = {-0.5f, 0.5f, -0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {1.0f, 0.0f},
+        },
+        AxrVertex{
+            .Position = {-0.5f, -0.5f, -0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {1.0f, 1.0f},
+        },
+        AxrVertex{
+            .Position = {0.5f, -0.5f, -0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {0.0f, 1.0f},
+        },
+
+        // Top face
+        AxrVertex{
+            .Position = {-0.5f, 0.5f, -0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {0.0f, 0.0f},
+        },
+        AxrVertex{
+            .Position = {0.5f, 0.5f, -0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {1.0f, 0.0f},
+        },
+        AxrVertex{
+            .Position = {0.5f, 0.5f, 0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {1.0f, 1.0f},
+        },
+        AxrVertex{
+            .Position = {-0.5f, 0.5f, 0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {0.0f, 1.0f},
+        },
+
+        // Bottom face
+        AxrVertex{
+            .Position = {0.5f, -0.5f, -0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {0.0f, 0.0f},
+        },
+        AxrVertex{
+            .Position = {-0.5f, -0.5f, -0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {1.0f, 0.0f},
+        },
+        AxrVertex{
+            .Position = {-0.5f, -0.5f, 0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {1.0f, 1.0f},
+        },
+        AxrVertex{
+            .Position = {0.5f, -0.5f, 0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {0.0f, 1.0f},
+        },
+
+        // Left face
+        AxrVertex{
+            .Position = {-0.5f, 0.5f, -0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {0.0f, 0.0f},
+        },
+        AxrVertex{
+            .Position = {-0.5f, 0.5f, 0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {1.0f, 0.0f},
+        },
+        AxrVertex{
+            .Position = {-0.5f, -0.5f, 0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {1.0f, 1.0f},
+        },
+        AxrVertex{
+            .Position = {-0.5f, -0.5f, -0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {0.0f, 1.0f},
+        },
+
+        // Right face
+        AxrVertex{
+            .Position = {0.5f, 0.5f, 0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {0.0f, 0.0f},
+        },
+        AxrVertex{
+            .Position = {0.5f, 0.5f, -0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {1.0f, 0.0f},
+        },
+        AxrVertex{
+            .Position = {0.5f, -0.5f, -0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {1.0f, 1.0f},
+        },
+        AxrVertex{
+            .Position = {0.5f, -0.5f, 0.5f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoords = {0.0f, 1.0f},
+        },
+    };
+
+    std::vector<uint32_t> indices{
+        // Front face
+        0, 1, 2,
+        2, 3, 0,
+        
+        // Back face
+        4, 5, 6,
+        6, 7, 4,
+
+        // Top face
+        8, 9, 10,
+        10, 11, 8,
+
+        // Bottom face
+        12, 13, 14,
+        14, 15, 12,
+
+        // Left face
+        16, 17, 18,
+        18, 19, 16,
+
+        // Right face
+        20, 21, 22,
+        22, 23, 20,
     };
 
     AxrMesh mesh{
