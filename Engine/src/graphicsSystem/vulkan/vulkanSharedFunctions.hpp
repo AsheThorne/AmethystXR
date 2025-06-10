@@ -55,6 +55,7 @@ void axrDestroyRenderPass(
 /// @param renderPass Render pass to use
 /// @param swapchainExtent Swapchain extent
 /// @param swapchainColorImageViews Swapchain color image views
+/// @param swapchainDepthImageViews Swapchain depth image views
 /// @param framebuffers Output created framebuffers
 /// @param dispatch Dispatch to use
 /// @returns AXR_SUCCESS if the function succeeded
@@ -63,6 +64,7 @@ void axrDestroyRenderPass(
     const vk::RenderPass& renderPass,
     const vk::Extent2D& swapchainExtent,
     const std::vector<vk::ImageView>& swapchainColorImageViews,
+    const std::vector<vk::ImageView>& swapchainDepthImageViews,
     std::vector<vk::Framebuffer>& framebuffers,
     const vk::DispatchLoaderDynamic& dispatch
 );
@@ -81,6 +83,7 @@ void axrDestroyFramebuffers(
 /// @param renderPass Render pass to use
 /// @param swapchainExtent Swapchain extent
 /// @param swapchainColorImageView Swapchain color image view
+/// @param swapchainDepthImageView Swapchain depth image view
 /// @param framebuffer Output created framebuffer
 /// @param dispatch Dispatch to use
 /// @returns AXR_SUCCESS if the function succeeded
@@ -89,6 +92,7 @@ void axrDestroyFramebuffers(
     const vk::RenderPass& renderPass,
     const vk::Extent2D& swapchainExtent,
     const vk::ImageView& swapchainColorImageView,
+    const vk::ImageView& swapchainDepthImageView,
     vk::Framebuffer& framebuffer,
     const vk::DispatchLoaderDynamic& dispatch
 );

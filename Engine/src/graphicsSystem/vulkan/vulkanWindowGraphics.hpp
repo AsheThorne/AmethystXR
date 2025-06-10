@@ -175,6 +175,7 @@ private:
     vk::SwapchainKHR m_Swapchain;
     std::vector<vk::Image> m_SwapchainColorImages;
     std::vector<vk::ImageView> m_SwapchainColorImageViews;
+    std::vector<AxrVulkanImage> m_SwapchainDepthImages;
     std::vector<vk::Framebuffer> m_SwapchainFramebuffers;
     /// One command buffer per frame in flight
     std::vector<vk::CommandBuffer> m_RenderingCommandBuffers;
@@ -307,6 +308,14 @@ private:
     [[nodiscard]] AxrResult createFramebuffers();
     /// Destroy the swapchain framebuffers
     void destroyFramebuffers();
+
+    // ---- Depth Buffer ----
+
+    /// Create the depth buffer resources
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createDepthBuffer();
+    /// Destroy the depth buffer resources
+    void destroyDepthBuffer();
 
     // ----------------------------------------- //
     // Private Static Functions

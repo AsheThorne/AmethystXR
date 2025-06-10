@@ -77,12 +77,47 @@ public:
     /// @returns The image mip level count
     [[nodiscard]] uint32_t getMipLevelCount() const;
 
-    /// Create the image
+    /// Create vulkan image resources for the given AxrImage
     /// @param image Source image
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult createImage(AxrImageConst_T image);
+    /// Create vulkan image resources
+    /// @param extent Image extent
+    /// @param sampleCount Image sample count
+    /// @param format Image format
+    /// @param imageTiling Image tiling option
+    /// @param imageUsage Image usage flags
+    /// @param memoryProperties Image memory property flags
+    /// @param imageAspect Image aspect flags
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createImage(
+        vk::Extent2D extent,
+        vk::SampleCountFlagBits sampleCount,
+        vk::Format format,
+        vk::ImageTiling imageTiling,
+        vk::ImageUsageFlags imageUsage,
+        vk::MemoryPropertyFlags memoryProperties,
+        vk::ImageAspectFlags imageAspect
+    );
     /// Destroy the image
     void destroyImage();
+
+    /// Transition the images layout
+    /// @param srcAccessMask Image memory barrier src access mask
+    /// @param dstAccessMask Image memory barrier dst access mask
+    /// @param oldLayout Old image layout
+    /// @param newLayout New image layout
+    /// @param srcStageMask Pipeline barrier src stage mask
+    /// @param dstStageMask Pipeline barrier dst stage mask
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult transitionImageLayout(
+        vk::AccessFlags srcAccessMask,
+        vk::AccessFlags dstAccessMask,
+        vk::ImageLayout oldLayout,
+        vk::ImageLayout newLayout,
+        vk::PipelineStageFlagBits srcStageMask,
+        vk::PipelineStageFlagBits dstStageMask
+    ) const;
 
     // ----------------------------------------- //
     // Public Static Functions
@@ -171,6 +206,7 @@ private:
     vk::Image m_Image;
     vk::ImageView m_ImageView;
     vk::DeviceMemory m_ImageMemory;
+    vk::ImageAspectFlags m_ImageAspectFlags;
     uint32_t m_MipLevelCount;
 
     // ----------------------------------------- //

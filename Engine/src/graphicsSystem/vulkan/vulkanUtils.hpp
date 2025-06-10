@@ -80,6 +80,11 @@ const char* axrGetExtensionName(AxrVulkanExtensionTypeEnum extensionType);
     const vk::DispatchLoaderDynamic& dispatch
 );
 
+/// Check if the given format includes a stencil component
+/// @param format Format to check
+/// @returns True if the format includes a stencil component
+[[nodiscard]] bool axrFormatHasStencilComponent(vk::Format format);
+
 // ---- Memory ----
 
 /// Find a suitable memory type index from the given type filter and properties

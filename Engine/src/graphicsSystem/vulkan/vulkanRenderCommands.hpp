@@ -174,7 +174,8 @@ public:
         );
 
         const std::array clearValues{
-            vk::ClearValue(clearColorValue)
+            vk::ClearValue(clearColorValue),
+            vk::ClearValue(vk::ClearDepthStencilValue(1.0f, 0)),
         };
 
         const vk::RenderPassBeginInfo renderPassBeginInfo(

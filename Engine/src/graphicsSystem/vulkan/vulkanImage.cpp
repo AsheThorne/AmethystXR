@@ -19,6 +19,7 @@ AxrVulkanImage::AxrVulkanImage():
     m_Image(VK_NULL_HANDLE),
     m_ImageView(VK_NULL_HANDLE),
     m_ImageMemory(VK_NULL_HANDLE),
+    m_ImageAspectFlags(vk::ImageAspectFlags()),
     m_MipLevelCount(0) {
 }
 
@@ -31,6 +32,7 @@ AxrVulkanImage::AxrVulkanImage(const Config& config):
     m_Image(VK_NULL_HANDLE),
     m_ImageView(VK_NULL_HANDLE),
     m_ImageMemory(VK_NULL_HANDLE),
+    m_ImageAspectFlags(vk::ImageAspectFlags()),
     m_MipLevelCount(0) {
 }
 
@@ -43,6 +45,7 @@ AxrVulkanImage::AxrVulkanImage(AxrVulkanImage&& src) noexcept {
     m_Image = src.m_Image;
     m_ImageView = src.m_ImageView;
     m_ImageMemory = src.m_ImageMemory;
+    m_ImageAspectFlags = src.m_ImageAspectFlags;
     m_MipLevelCount = src.m_MipLevelCount;
 
     src.m_PhysicalDevice = VK_NULL_HANDLE;
@@ -53,6 +56,7 @@ AxrVulkanImage::AxrVulkanImage(AxrVulkanImage&& src) noexcept {
     src.m_Image = VK_NULL_HANDLE;
     src.m_ImageView = VK_NULL_HANDLE;
     src.m_ImageMemory = VK_NULL_HANDLE;
+    src.m_ImageAspectFlags = vk::ImageAspectFlags();
     src.m_MipLevelCount = 0;
 }
 
@@ -72,6 +76,7 @@ AxrVulkanImage& AxrVulkanImage::operator=(AxrVulkanImage&& src) noexcept {
         m_Image = src.m_Image;
         m_ImageView = src.m_ImageView;
         m_ImageMemory = src.m_ImageMemory;
+        m_ImageAspectFlags = src.m_ImageAspectFlags;
         m_MipLevelCount = src.m_MipLevelCount;
 
         src.m_PhysicalDevice = VK_NULL_HANDLE;
@@ -82,6 +87,7 @@ AxrVulkanImage& AxrVulkanImage::operator=(AxrVulkanImage&& src) noexcept {
         src.m_Image = VK_NULL_HANDLE;
         src.m_ImageView = VK_NULL_HANDLE;
         src.m_ImageMemory = VK_NULL_HANDLE;
+        src.m_ImageAspectFlags = vk::ImageAspectFlags();
         src.m_MipLevelCount = 0;
     }
 
@@ -199,11 +205,76 @@ AxrResult AxrVulkanImage::createImage(const AxrImageConst_T image) {
         return axrResult;
     }
 
+    m_ImageAspectFlags = vk::ImageAspectFlagBits::eColor;
+
     axrResult = createImageView(
         m_Device,
         m_Image,
         getImageFormat(image->getColorChannels()),
-        vk::ImageAspectFlagBits::eColor,
+        m_ImageAspectFlags,
+        m_MipLevelCount,
+        m_ImageView,
+        *m_DispatchHandle
+    );
+    if (AXR_FAILED(axrResult)) {
+        destroyImage();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrVulkanImage::createImage(
+    const vk::Extent2D extent,
+    const vk::SampleCountFlagBits sampleCount,
+    const vk::Format format,
+    const vk::ImageTiling imageTiling,
+    const vk::ImageUsageFlags imageUsage,
+    const vk::MemoryPropertyFlags memoryProperties,
+    const vk::ImageAspectFlags imageAspect
+) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_DispatchHandle == nullptr) {
+        axrLogErrorLocation("DispatchHandle is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    AxrResult axrResult = AXR_SUCCESS;
+    m_MipLevelCount = 1;
+
+    axrResult = createImage(
+        m_Device,
+        m_PhysicalDevice,
+        extent,
+        m_MipLevelCount,
+        sampleCount,
+        format,
+        imageTiling,
+        imageUsage,
+        memoryProperties,
+        m_Image,
+        m_ImageMemory,
+        *m_DispatchHandle
+    );
+    if (AXR_FAILED(axrResult)) {
+        destroyImage();
+        return axrResult;
+    }
+
+    m_ImageAspectFlags = imageAspect;
+
+    axrResult = createImageView(
+        m_Device,
+        m_Image,
+        format,
+        m_ImageAspectFlags,
         m_MipLevelCount,
         m_ImageView,
         *m_DispatchHandle
@@ -228,8 +299,83 @@ void AxrVulkanImage::destroyImage() {
     }
 
     m_MipLevelCount = 0;
+    m_ImageAspectFlags = vk::ImageAspectFlags();
     destroyImageView(m_Device, m_ImageView, *m_DispatchHandle);
     destroyImage(m_Device, m_Image, m_ImageMemory, *m_DispatchHandle);
+}
+
+AxrResult AxrVulkanImage::transitionImageLayout(
+    const vk::AccessFlags srcAccessMask,
+    const vk::AccessFlags dstAccessMask,
+    const vk::ImageLayout oldLayout,
+    const vk::ImageLayout newLayout,
+    const vk::PipelineStageFlagBits srcStageMask,
+    const vk::PipelineStageFlagBits dstStageMask
+) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    vk::CommandBuffer commandBuffer;
+    axrResult = axrBeginSingleTimeCommand(
+        m_Device,
+        m_GraphicsCommandPool,
+        commandBuffer,
+        *m_DispatchHandle
+    );
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
+
+    // TODO: I think we need to transition each mip level too
+    const vk::ImageMemoryBarrier imageMemoryBarrier(
+        srcAccessMask,
+        dstAccessMask,
+        oldLayout,
+        newLayout,
+        vk::QueueFamilyIgnored,
+        vk::QueueFamilyIgnored,
+        m_Image,
+        vk::ImageSubresourceRange(
+            m_ImageAspectFlags,
+            0,
+            m_MipLevelCount,
+            0,
+            1
+        )
+    );
+
+    commandBuffer.pipelineBarrier(
+        srcStageMask,
+        dstStageMask,
+        vk::DependencyFlags(),
+        0,
+        nullptr,
+        0,
+        nullptr,
+        1,
+        &imageMemoryBarrier,
+        *m_DispatchHandle
+    );
+
+    axrResult = axrEndSingleTimeCommand(
+        m_Device,
+        m_GraphicsCommandPool,
+        m_GraphicsQueue,
+        commandBuffer,
+        *m_DispatchHandle
+    );
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
 }
 
 AxrResult AxrVulkanImage::createImage(

@@ -208,7 +208,7 @@ AxrResult AxrVulkanWindowGraphics::updateSceneDataUniformBuffer(const AxrVulkanS
     // TODO: Use the active camera's properties
     AxrEngineAssetUniformBuffer_SceneData sceneDataEngineAsset{
         .ViewMatrix = glm::lookAt(
-            glm::vec3(2.0f, 0.5f, 2.0f),
+            glm::vec3(1.0f, 0.8f, 2.8f),
             glm::vec3(0.0f, 0.5f, 0.0f),
             glm::vec3(0.0f, 1.0f, 0.0f)
         ),
@@ -559,6 +559,12 @@ AxrResult AxrVulkanWindowGraphics::setupSwapchain(const AxrVulkanSurfaceDetails&
         return axrResult;
     }
 
+    axrResult = createDepthBuffer();
+    if (AXR_FAILED(axrResult)) {
+        resetWindowConfiguration();
+        return axrResult;
+    }
+
     axrResult = createFramebuffers();
     if (AXR_FAILED(axrResult)) {
         resetWindowConfiguration();
@@ -570,6 +576,7 @@ AxrResult AxrVulkanWindowGraphics::setupSwapchain(const AxrVulkanSurfaceDetails&
 
 void AxrVulkanWindowGraphics::resetSetupSwapchain() {
     destroyFramebuffers();
+    destroyDepthBuffer();
     resetSwapchainImages();
     destroySwapchain();
     resetSwapchainExtent();
@@ -1068,11 +1075,17 @@ AxrResult AxrVulkanWindowGraphics::createFramebuffers() {
     // Process
     // ----------------------------------------- //
 
+    std::vector<vk::ImageView> depthBufferImageViews(m_SwapchainDepthImages.size());
+    for (int i = 0; i < depthBufferImageViews.size(); ++i) {
+        depthBufferImageViews[i] = m_SwapchainDepthImages[i].getImageView();
+    }
+
     const AxrResult axrResult = axrCreateFramebuffers(
         m_Device,
         m_RenderPass,
         m_SwapchainExtent,
         m_SwapchainColorImageViews,
+        depthBufferImageViews,
         m_SwapchainFramebuffers,
         m_Dispatch
     );
@@ -1088,6 +1101,91 @@ AxrResult AxrVulkanWindowGraphics::createFramebuffers() {
 
 void AxrVulkanWindowGraphics::destroyFramebuffers() {
     axrDestroyFramebuffers(m_Device, m_SwapchainFramebuffers, m_Dispatch);
+}
+
+AxrResult AxrVulkanWindowGraphics::createDepthBuffer() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!m_SwapchainDepthImages.empty()) {
+        axrLogErrorLocation("Depth buffer images already exist.");
+        return AXR_ERROR;
+    }
+
+    if (m_SwapchainColorImages.empty()) {
+        axrLogErrorLocation("Swapchain color image images don't exist.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+    m_SwapchainDepthImages.resize(m_SwapchainColorImages.size());
+
+    for (AxrVulkanImage& depthBufferImage : m_SwapchainDepthImages) {
+        depthBufferImage = AxrVulkanImage(
+            {
+                .PhysicalDevice = m_PhysicalDevice,
+                .Device = m_Device,
+                .GraphicsCommandPool = m_GraphicsCommandPool,
+                .GraphicsQueue = m_QueueFamilies.GraphicsQueue,
+                .DispatchHandle = &m_Dispatch
+            }
+        );
+    }
+
+    AxrResult axrResult = AXR_SUCCESS;
+    vk::ImageAspectFlags imageAspectFlags = vk::ImageAspectFlagBits::eDepth;
+
+    if (axrFormatHasStencilComponent(m_SwapchainDepthFormat)) {
+        imageAspectFlags |= vk::ImageAspectFlagBits::eStencil;
+    }
+
+    for (AxrVulkanImage& depthBufferImage : m_SwapchainDepthImages) {
+        axrResult = depthBufferImage.createImage(
+            m_SwapchainExtent,
+            false,
+            // TODO: Use the correct sample count if it's been enabled
+            vk::SampleCountFlagBits::e1,
+            m_SwapchainDepthFormat,
+            vk::ImageTiling::eOptimal,
+            vk::ImageUsageFlagBits::eDepthStencilAttachment,
+            vk::MemoryPropertyFlagBits::eDeviceLocal,
+            imageAspectFlags
+        );
+
+        if (AXR_FAILED(axrResult)) {
+            break;
+        }
+
+        axrResult = depthBufferImage.transitionImageLayout(
+            vk::AccessFlagBits::eNone,
+            vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite,
+            vk::ImageLayout::eUndefined,
+            vk::ImageLayout::eDepthStencilAttachmentOptimal,
+            vk::PipelineStageFlagBits::eTopOfPipe,
+            vk::PipelineStageFlagBits::eEarlyFragmentTests
+        );
+
+        if (AXR_FAILED(axrResult)) {
+            break;
+        }
+    }
+
+    if (AXR_FAILED(axrResult)) {
+        destroyDepthBuffer();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanWindowGraphics::destroyDepthBuffer() {
+    for (AxrVulkanImage& depthBufferImage : m_SwapchainDepthImages) {
+        depthBufferImage.destroyImage();
+    }
+    m_SwapchainDepthImages.clear();
 }
 
 // ---- Private Static Functions ----

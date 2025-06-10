@@ -46,23 +46,21 @@ AxrResult axrCreateRenderPass(
         finalImageLayout
     );
 
-    // TODO: Implement depth buffer
-    // const vk::AttachmentDescription depthStencilAttachment(
-    //     {},
-    //     depthStencilFormat,
-    //     vk::SampleCountFlagBits::e1,
-    //     vk::AttachmentLoadOp::eClear,
-    //     vk::AttachmentStoreOp::eDontCare,
-    //     vk::AttachmentLoadOp::eDontCare,
-    //     vk::AttachmentStoreOp::eDontCare,
-    //     vk::ImageLayout::eUndefined,
-    //     vk::ImageLayout::eDepthStencilAttachmentOptimal
-    // );
+    const vk::AttachmentDescription depthStencilAttachment(
+        {},
+        depthStencilFormat,
+        vk::SampleCountFlagBits::e1,
+        vk::AttachmentLoadOp::eClear,
+        vk::AttachmentStoreOp::eDontCare,
+        vk::AttachmentLoadOp::eDontCare,
+        vk::AttachmentStoreOp::eDontCare,
+        vk::ImageLayout::eUndefined,
+        vk::ImageLayout::eDepthStencilAttachmentOptimal
+    );
 
     const std::array attachments{
         colorAttachment,
-        // TODO: Implement depth buffer
-        // depthStencilAttachment,
+        depthStencilAttachment,
     };
 
     constexpr vk::AttachmentReference colorAttachmentRef(
@@ -70,11 +68,10 @@ AxrResult axrCreateRenderPass(
         vk::ImageLayout::eColorAttachmentOptimal
     );
 
-    // TODO: Implement depth buffer
-    // constexpr vk::AttachmentReference depthStencilAttachmentRef(
-    //     1,
-    //     vk::ImageLayout::eDepthStencilAttachmentOptimal
-    // );
+    constexpr vk::AttachmentReference depthStencilAttachmentRef(
+        1,
+        vk::ImageLayout::eDepthStencilAttachmentOptimal
+    );
 
     const vk::SubpassDescription subpass(
         {},
@@ -83,9 +80,10 @@ AxrResult axrCreateRenderPass(
         nullptr,
         1,
         &colorAttachmentRef,
+        nullptr,
+        &depthStencilAttachmentRef,
+        0,
         nullptr
-        // TODO: Implement depth buffer
-        // &depthStencilAttachmentRef
     );
 
     constexpr vk::SubpassDependency dependency(
@@ -140,6 +138,7 @@ void axrDestroyRenderPass(
     const vk::RenderPass& renderPass,
     const vk::Extent2D& swapchainExtent,
     const std::vector<vk::ImageView>& swapchainColorImageViews,
+    const std::vector<vk::ImageView>& swapchainDepthImageViews,
     std::vector<vk::Framebuffer>& framebuffers,
     const vk::DispatchLoaderDynamic& dispatch
 ) {
@@ -157,6 +156,11 @@ void axrDestroyRenderPass(
         return AXR_ERROR;
     }
 
+    if (swapchainDepthImageViews.empty()) {
+        axrLogErrorLocation("Swapchain depth image views don't exist.");
+        return AXR_ERROR;
+    }
+
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //
@@ -170,6 +174,7 @@ void axrDestroyRenderPass(
             renderPass,
             swapchainExtent,
             swapchainColorImageViews[i],
+            swapchainDepthImageViews[i],
             framebuffers[i],
             dispatch
         );
@@ -203,6 +208,7 @@ AxrResult axrCreateFramebuffer(
     const vk::RenderPass& renderPass,
     const vk::Extent2D& swapchainExtent,
     const vk::ImageView& swapchainColorImageView,
+    const vk::ImageView& swapchainDepthImageView,
     vk::Framebuffer& framebuffer,
     const vk::DispatchLoaderDynamic& dispatch
 ) {
@@ -229,8 +235,9 @@ AxrResult axrCreateFramebuffer(
     // Process
     // ----------------------------------------- //
 
-    std::array attachments{
+    const std::array attachments{
         swapchainColorImageView,
+        swapchainDepthImageView
     };
 
     const vk::FramebufferCreateInfo framebufferCreateInfo(

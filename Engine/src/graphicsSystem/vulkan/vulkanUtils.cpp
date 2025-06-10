@@ -119,6 +119,13 @@ bool axrAreFormatFeaturesSupported(
     return false;
 }
 
+bool axrFormatHasStencilComponent(const vk::Format format) {
+    return format == vk::Format::eS8Uint ||
+        format == vk::Format::eD16UnormS8Uint ||
+        format == vk::Format::eD24UnormS8Uint ||
+        format == vk::Format::eD32SfloatS8Uint;
+}
+
 AxrResult axrFindMemoryTypeIndex(
     const vk::PhysicalDevice& physicalDevice,
     const uint32_t typeFilter,

@@ -120,6 +120,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     while (app.isRunning()) {
         app.processEvents();
 
+        entity.patch<AxrTransformComponent>(
+            [](AxrTransformComponent& transform) {
+                //TODO: Get and use delta time
+                transform.Orientation = glm::rotate(transform.Orientation, 0.0001f, glm::vec3(0.0f, 1.0f, 0.0f));
+            }
+        );
+
         graphicsSystem.drawFrame();
     }
 
