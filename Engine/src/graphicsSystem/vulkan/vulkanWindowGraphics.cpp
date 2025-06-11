@@ -1145,7 +1145,6 @@ AxrResult AxrVulkanWindowGraphics::createDepthBuffer() {
     for (AxrVulkanImage& depthBufferImage : m_SwapchainDepthImages) {
         axrResult = depthBufferImage.createImage(
             m_SwapchainExtent,
-            false,
             // TODO: Use the correct sample count if it's been enabled
             vk::SampleCountFlagBits::e1,
             m_SwapchainDepthFormat,
