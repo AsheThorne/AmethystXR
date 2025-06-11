@@ -557,8 +557,6 @@ struct AxrMesh {
 struct AxrModelConfig {
     const char* Name;
     const char* FilePath;
-    uint32_t MeshesCount;
-    AxrMesh* Meshes;
 };
 
 // ----------------------------------------- //
@@ -606,6 +604,12 @@ extern "C" {
     /// @param model Model to use
     /// @returns The model's name
     AXR_API const char* axrModelGetName(AxrModel_T model);
+    /// Set the mesh data for the model
+    /// @param model Model to use
+    /// @param meshesCount Number of meshes in the array
+    /// @param meshes Meshes array
+    /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrModelSetData(AxrModel_T model, uint32_t meshesCount, const AxrMesh* meshes);
 }
 
 // ---------------------------------------------------------------------------------- //

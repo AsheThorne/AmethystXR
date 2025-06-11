@@ -1611,8 +1611,6 @@ namespace axr {
 
         const char* Name;
         const char* FilePath;
-        uint32_t MeshesCount;
-        axr::Mesh* Meshes;
 
         // ----------------------------------------- //
         // Special Functions
@@ -1623,9 +1621,7 @@ namespace axr {
         /// Default Constructor
         ModelConfig():
             Name(""),
-            FilePath(nullptr),
-            MeshesCount(0),
-            Meshes(nullptr) {
+            FilePath(nullptr) {
         }
 
         /// Constructor
@@ -1634,8 +1630,6 @@ namespace axr {
         ModelConfig(const char* name, const std::vector<axr::Mesh>& meshes):
             Name(name),
             FilePath(nullptr) {
-            MeshesCount = static_cast<uint32_t>(meshes.size());
-            Meshes = cloneMeshes(MeshesCount, meshes.data());
         }
 
         /// Constructor
@@ -1643,9 +1637,7 @@ namespace axr {
         /// @param filePath Filepath of the model
         ModelConfig(const char* name, const char* filePath):
             Name(name),
-            FilePath(filePath),
-            MeshesCount(0),
-            Meshes(nullptr) {
+            FilePath(filePath) {
         }
 
         /// Copy Constructor
@@ -1653,8 +1645,6 @@ namespace axr {
         ModelConfig(const ModelConfig& src) {
             Name = src.Name;
             FilePath = src.FilePath;
-            MeshesCount = src.MeshesCount;
-            Meshes = cloneMeshes(src.MeshesCount, src.Meshes);
         }
 
         /// Move Constructor
@@ -1662,13 +1652,9 @@ namespace axr {
         ModelConfig(ModelConfig&& src) noexcept {
             Name = src.Name;
             FilePath = src.FilePath;
-            MeshesCount = src.MeshesCount;
-            Meshes = src.Meshes;
 
             src.Name = "";
             src.FilePath = nullptr;
-            src.MeshesCount = 0;
-            src.Meshes = nullptr;
         }
 
         // ---- Destructor ----
@@ -1688,8 +1674,6 @@ namespace axr {
 
                 Name = src.Name;
                 FilePath = src.FilePath;
-                MeshesCount = src.MeshesCount;
-                Meshes = cloneMeshes(src.MeshesCount, src.Meshes);
             }
 
             return *this;
@@ -1703,13 +1687,9 @@ namespace axr {
 
                 Name = src.Name;
                 FilePath = src.FilePath;
-                MeshesCount = src.MeshesCount;
-                Meshes = src.Meshes;
 
                 src.Name = "";
                 src.FilePath = nullptr;
-                src.MeshesCount = 0;
-                src.Meshes = nullptr;
             }
 
             return *this;
@@ -1740,18 +1720,6 @@ namespace axr {
         void cleanup() {
             Name = "";
             FilePath = nullptr;
-            axrModelDestroyMeshes(&MeshesCount, reinterpret_cast<AxrMesh**>(&Meshes));
-        }
-
-        /// Clone the given meshes
-        /// @param meshesCount Number of meshes in the given array
-        /// @param meshes Mesh array to clone
-        /// @returns A cloned array of the given meshes
-        axr::Mesh* cloneMeshes(const uint32_t meshesCount, const axr::Mesh* meshes) const {
-            return reinterpret_cast<axr::Mesh*>(axrModelCloneMeshes(
-                meshesCount,
-                reinterpret_cast<const AxrMesh*>(meshes)
-            ));
         }
     };
 
@@ -1787,6 +1755,14 @@ namespace axr {
         /// @returns The model's name
         [[nodiscard]] const char* getName() const {
             return axrModelGetName(m_Model);
+        }
+
+        /// Set the mesh data for the model
+        /// @param meshesCount Number of meshes in the array
+        /// @param meshes Meshes array
+        /// @returns AXR_SUCCESS if the function succeeded
+        [[nodiscard]] AxrResult setData(const uint32_t meshesCount, const AxrMesh* meshes) {
+            return axrModelSetData(m_Model, meshesCount, meshes);
         }
 
     private:

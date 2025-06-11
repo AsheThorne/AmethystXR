@@ -41,22 +41,27 @@ const char* axrModelGetName(const AxrModel_T model) {
     return model->getName().c_str();
 }
 
+AxrResult axrModelSetData(const AxrModel_T model, const uint32_t meshesCount, const AxrMesh* meshes) {
+    if (model == nullptr) {
+        axrLogErrorLocation("`model` is null.");
+        return AXR_ERROR;
+    }
+
+    return model->setData(meshesCount, meshes);
+}
+
+
 // ----------------------------------------- //
 // Internal Functions
 // ----------------------------------------- //
 
 // ---- Special Functions ----
 
-AxrModel::AxrModel():
-    m_Name(""),
-    m_FilePath("") {
-}
+AxrModel::AxrModel() = default;
 
 AxrModel::AxrModel(const AxrModelConfig& config):
     m_Name(config.Name),
     m_FilePath(config.FilePath) {
-    // TODO: I don't think we want to put mesh data in the config. Maybe just have a function like "setData"
-    m_Meshes = toVector(config.MeshesCount, config.Meshes);
 }
 
 AxrModel::AxrModel(const AxrModel& src) {
@@ -113,6 +118,21 @@ const std::string& AxrModel::getName() const {
     return m_Name;
 }
 
+AxrResult AxrModel::setData(const uint32_t meshesCount, const AxrMesh* meshes) {
+    if (meshes == nullptr) {
+        axrLogErrorLocation("Meshes are null.");
+        return AXR_ERROR;
+    }
+
+    std::vector<AxrMeshRAII> meshVector = std::vector<AxrMeshRAII>(meshesCount);
+    for (uint32_t i = 0; i < meshesCount; ++i) {
+        meshVector[i] = AxrMeshRAII(meshes[i]);
+    }
+
+    m_Meshes = meshVector;
+    return AXR_SUCCESS;
+}
+
 bool AxrModel::isLoaded() const {
     return !m_Meshes.empty();
 }
@@ -121,7 +141,7 @@ AxrResult AxrModel::loadFile() const {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
-    
+
     if (isLoaded()) {
         return AXR_SUCCESS;
     }
@@ -183,17 +203,4 @@ void AxrModel::cleanup() {
     m_Name = "";
     m_FilePath = "";
     m_Meshes.clear();
-}
-
-// ---- Private Static Functions ----
-
-std::vector<AxrMeshRAII> AxrModel::toVector(const uint32_t meshesCount, const AxrMesh* meshes) {
-    if (meshes == nullptr) return {};
-
-    std::vector<AxrMeshRAII> meshVector = std::vector<AxrMeshRAII>(meshesCount);
-    for (uint32_t i = 0; i < meshesCount; ++i) {
-        meshVector[i] = AxrMeshRAII(meshes[i]);
-    }
-
-    return meshVector;
 }

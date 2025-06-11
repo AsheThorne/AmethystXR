@@ -472,6 +472,12 @@ AxrResult axrEngineAssetCreateModel(
 }
 
 AxrResult axrEngineAssetCreateModel_Triangle(const std::string& modelName, AxrModel& model) {
+    const AxrModelConfig modelConfig{
+        .Name = modelName.c_str(),
+        .FilePath = ""
+    };
+    model = AxrModel(modelConfig);
+
     std::vector<AxrVertex> vertices{
         AxrVertex{
             .Position = {0.0f, 0.866f, 0.0f},
@@ -494,26 +500,29 @@ AxrResult axrEngineAssetCreateModel_Triangle(const std::string& modelName, AxrMo
         0, 1, 2,
     };
 
-    AxrMesh mesh{
+    const AxrMesh mesh{
         .VerticesCount = static_cast<uint32_t>(vertices.size()),
         .Vertices = vertices.data(),
         .IndicesCount = static_cast<uint32_t>(indices.size()),
         .Indices = indices.data(),
     };
 
-    const AxrModelConfig modelConfig{
-        .Name = modelName.c_str(),
-        .FilePath = "",
-        .MeshesCount = 1,
-        .Meshes = &mesh
-    };
-
-    model = AxrModel(modelConfig);
+    const AxrResult axrResult = model.setData(1, &mesh);
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
 
     return AXR_SUCCESS;
 }
 
 AxrResult axrEngineAssetCreateModel_Square(const std::string& modelName, AxrModel& model) {
+    const AxrModelConfig modelConfig{
+        .Name = modelName.c_str(),
+        .FilePath = ""
+    };
+
+    model = AxrModel(modelConfig);
+
     std::vector<AxrVertex> vertices{
         AxrVertex{
             .Position = {-0.5f, 1.0f, 0.0f},
@@ -542,26 +551,29 @@ AxrResult axrEngineAssetCreateModel_Square(const std::string& modelName, AxrMode
         2, 3, 0,
     };
 
-    AxrMesh mesh{
+    const AxrMesh mesh{
         .VerticesCount = static_cast<uint32_t>(vertices.size()),
         .Vertices = vertices.data(),
         .IndicesCount = static_cast<uint32_t>(indices.size()),
         .Indices = indices.data(),
     };
 
-    const AxrModelConfig modelConfig{
-        .Name = modelName.c_str(),
-        .FilePath = "",
-        .MeshesCount = 1,
-        .Meshes = &mesh
-    };
-
-    model = AxrModel(modelConfig);
+    const AxrResult axrResult = model.setData(1, &mesh);
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
 
     return AXR_SUCCESS;
 }
 
 AxrResult axrEngineAssetCreateModel_Cube(const std::string& modelName, AxrModel& model) {
+    const AxrModelConfig modelConfig{
+        .Name = modelName.c_str(),
+        .FilePath = ""
+    };
+
+    model = AxrModel(modelConfig);
+
     std::vector<AxrVertex> vertices{
         /// Front face
         AxrVertex{
@@ -700,7 +712,7 @@ AxrResult axrEngineAssetCreateModel_Cube(const std::string& modelName, AxrModel&
         // Front face
         0, 1, 2,
         2, 3, 0,
-        
+
         // Back face
         4, 5, 6,
         6, 7, 4,
@@ -722,21 +734,17 @@ AxrResult axrEngineAssetCreateModel_Cube(const std::string& modelName, AxrModel&
         22, 23, 20,
     };
 
-    AxrMesh mesh{
+    const AxrMesh mesh{
         .VerticesCount = static_cast<uint32_t>(vertices.size()),
         .Vertices = vertices.data(),
         .IndicesCount = static_cast<uint32_t>(indices.size()),
         .Indices = indices.data(),
     };
 
-    const AxrModelConfig modelConfig{
-        .Name = modelName.c_str(),
-        .FilePath = "",
-        .MeshesCount = 1,
-        .Meshes = &mesh
-    };
-
-    model = AxrModel(modelConfig);
+    const AxrResult axrResult = model.setData(1, &mesh);
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
 
     return AXR_SUCCESS;
 }

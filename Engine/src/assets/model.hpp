@@ -54,6 +54,12 @@ public:
     /// @returns The name of the model
     [[nodiscard]] const std::string& getName() const;
 
+    /// Set the mesh data for the model
+    /// @param meshesCount Number of meshes in the array
+    /// @param meshes Meshes array
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setData(uint32_t meshesCount, const AxrMesh* meshes);
+
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
     // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
@@ -101,14 +107,4 @@ private:
 
     /// Clean up this class
     void cleanup();
-
-    // ----------------------------------------- //
-    // Private Static Functions
-    // ----------------------------------------- //
-    
-    /// Convert the given meshes to a c++ safe vector
-    /// @param meshesCount Number of meshes in the given array
-    /// @param meshes Mesh array to convert
-    /// @returns The given meshes converted to a c++ safe vector
-    [[nodiscard]] static std::vector<AxrMeshRAII> toVector(uint32_t meshesCount, const AxrMesh* meshes);
 };
