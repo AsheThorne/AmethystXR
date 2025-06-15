@@ -37,13 +37,6 @@ AxrImage::AxrImage(const AxrImageConfig& config):
     m_Filter(config.Filter),
     m_Wrapping(config.Wrapping),
     m_Data() {
-    if (config.EngineAsset != AXR_ENGINE_ASSET_UNDEFINED) {
-        if (AXR_FAILED(axrEngineAssetGetImagePath(config.EngineAsset, m_FilePath))) {
-            axrLogErrorLocation("Failed to get image path.");
-        }
-    } else {
-        m_FilePath = config.FilePath;
-    }
 }
 
 AxrImage::AxrImage(const AxrImage& src) {

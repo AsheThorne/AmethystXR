@@ -56,15 +56,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     const std::string materialName = "MyMaterial";
     const std::string modelName = "Cube";
 
-    const axr::ImageConfig imageConfig(
-        imageName.c_str(),
-        axr::EngineAssetEnum::ImageUvTester,
-        axr::ImageSamplerFilterEnum::Nearest,
-        axr::ImageSamplerWrappingEnum::Repeat
-    );
-
     axr::AssetCollection globalAssetCollection = app.getGlobalAssetCollection();
-    if (AXR_FAILED(globalAssetCollection.createImage(imageConfig))) return -1;
+    if (AXR_FAILED(globalAssetCollection.createImage(imageName.c_str(), axr::EngineAssetEnum::ImageUvTester))) return -1;
     if (AXR_FAILED(globalAssetCollection.createShader(axr::EngineAssetEnum::ShaderDefaultFrag))) return -1;
     if (AXR_FAILED(globalAssetCollection.createShader(axr::EngineAssetEnum::ShaderDefaultVert))) return -1;
     if (AXR_FAILED(

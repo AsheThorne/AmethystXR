@@ -716,11 +716,8 @@ enum AxrImageSamplerWrappingEnum {
 /// Image Config
 struct AxrImageConfig {
     const char* Name;
-    /// If file path is defined, EngineAsset must be undefined
     const char* FilePath;
-    /// If engine asset is defined, FilePath must be undefined
-    /// Engine asset must also be an image engine asset
-    AxrEngineAssetEnum EngineAsset;
+    // TODO: Move these out of the image config and create a sampler object for them instead
     AxrImageSamplerFilterEnum Filter;
     AxrImageSamplerWrappingEnum Wrapping;
 };
@@ -854,5 +851,16 @@ extern "C" {
     AXR_API AxrResult axrAssetCollectionCreateImage(
         AxrAssetCollection_T assetCollection,
         const AxrImageConfig* imageConfig
+    );
+
+    /// Create a new engine asset image
+    /// @param assetCollection Asset collection to use
+    /// @param imageName Image name
+    /// @param engineAssetEnum Image engine asset
+    /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrAssetCollectionCreateEngineAssetImage(
+        AxrAssetCollection_T assetCollection,
+        const char* imageName,
+        AxrEngineAssetEnum engineAssetEnum
     );
 }

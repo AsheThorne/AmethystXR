@@ -165,8 +165,15 @@ AxrResult axrEngineAssetCreateModel_Cube(const std::string& modelName, AxrModel&
 /// @returns True if the given engine asset is an image
 bool axrEngineAssetIsImage(AxrEngineAssetEnum engineAssetEnum);
 
-/// Get the file path to the given image engine asset
-/// @param engineAssetEnum Engine asset enum
-/// @param imageFilePath Output image file path
+/// Create an engine asset image
+/// @param imageName Image name
+/// @param engineAssetEnum Image engine asset
+/// @param image Output created image
 /// @returns AXR_SUCCESS if the function succeeded
-AxrResult axrEngineAssetGetImagePath(AxrEngineAssetEnum engineAssetEnum, std::string& imageFilePath);
+AxrResult axrEngineAssetCreateImage(const std::string& imageName, AxrEngineAssetEnum engineAssetEnum, AxrImage& image);
+
+/// Create the 'UvTester' engine asset image
+/// @param imageName Image name
+/// @param image Output created image
+/// @returns AXR_SUCCESS if the function succeeded
+AxrResult axrEngineAssetCreateImage_UvTester(const std::string& imageName, AxrImage& image);

@@ -2072,11 +2072,7 @@ namespace axr {
         // ----------------------------------------- //
 
         const char* Name;
-        /// If file path is defined, EngineAsset must be undefined
         const char* FilePath;
-        /// If engine asset is defined, FilePath must be undefined
-        /// Engine asset must also be an image engine asset
-        axr::EngineAssetEnum EngineAsset;
         axr::ImageSamplerFilterEnum Filter;
         axr::ImageSamplerWrappingEnum Wrapping;
 
@@ -2090,7 +2086,6 @@ namespace axr {
         ImageConfig():
             Name(""),
             FilePath(""),
-            EngineAsset(axr::EngineAssetEnum::Undefined),
             Filter(axr::ImageSamplerFilterEnum::Undefined),
             Wrapping(axr::ImageSamplerWrappingEnum::Undefined) {
         }
@@ -2108,25 +2103,6 @@ namespace axr {
         ):
             Name(name),
             FilePath(filePath),
-            EngineAsset(axr::EngineAssetEnum::Undefined),
-            Filter(filter),
-            Wrapping(wrapping) {
-        }
-
-        /// Constructor
-        /// @param name Name of the image
-        /// @param engineAsset Image engine asset
-        /// @param filter Image sampler filter enum
-        /// @param wrapping Image sampler wrapping enum
-        ImageConfig(
-            const char* name,
-            const axr::EngineAssetEnum engineAsset,
-            const axr::ImageSamplerFilterEnum filter,
-            const axr::ImageSamplerWrappingEnum wrapping
-        ):
-            Name(name),
-            FilePath(""),
-            EngineAsset(engineAsset),
             Filter(filter),
             Wrapping(wrapping) {
         }
@@ -2136,7 +2112,6 @@ namespace axr {
         ImageConfig(const ImageConfig& src) {
             Name = src.Name;
             FilePath = src.FilePath;
-            EngineAsset = src.EngineAsset;
             Filter = src.Filter;
             Wrapping = src.Wrapping;
         }
@@ -2146,13 +2121,11 @@ namespace axr {
         ImageConfig(ImageConfig&& src) noexcept {
             Name = src.Name;
             FilePath = src.FilePath;
-            EngineAsset = src.EngineAsset;
             Filter = src.Filter;
             Wrapping = src.Wrapping;
 
             src.Name = "";
             src.FilePath = "";
-            src.EngineAsset = axr::EngineAssetEnum::Undefined;
             Filter = axr::ImageSamplerFilterEnum::Undefined;
             Wrapping = axr::ImageSamplerWrappingEnum::Undefined;
         }
@@ -2174,7 +2147,6 @@ namespace axr {
 
                 Name = src.Name;
                 FilePath = src.FilePath;
-                EngineAsset = src.EngineAsset;
                 Filter = src.Filter;
                 Wrapping = src.Wrapping;
             }
@@ -2190,13 +2162,11 @@ namespace axr {
 
                 Name = src.Name;
                 FilePath = src.FilePath;
-                EngineAsset = src.EngineAsset;
                 Filter = src.Filter;
                 Wrapping = src.Wrapping;
 
                 src.Name = "";
                 src.FilePath = "";
-                src.EngineAsset = axr::EngineAssetEnum::Undefined;
                 Filter = axr::ImageSamplerFilterEnum::Undefined;
                 Wrapping = axr::ImageSamplerWrappingEnum::Undefined;
             }
@@ -2229,7 +2199,6 @@ namespace axr {
         void cleanup() {
             Name = "";
             FilePath = "";
-            EngineAsset = axr::EngineAssetEnum::Undefined;
             Filter = axr::ImageSamplerFilterEnum::Undefined;
             Wrapping = axr::ImageSamplerWrappingEnum::Undefined;
         }
@@ -2423,6 +2392,21 @@ namespace axr {
             return static_cast<axr::Result>(axrAssetCollectionCreateImage(
                 m_AssetCollection,
                 imageConfig.toRaw()
+            ));
+        }
+
+        /// Create a new engine asset image
+        /// @param imageName Image name
+        /// @param engineAssetEnum Image engine asset
+        /// @returns AXR_SUCCESS if the function succeeded
+        [[nodiscard]] axr::Result createImage(
+            const char* imageName,
+            axr::EngineAssetEnum engineAssetEnum
+        ) const {
+            return static_cast<axr::Result>(axrAssetCollectionCreateEngineAssetImage(
+                m_AssetCollection,
+                imageName,
+                static_cast<AxrEngineAssetEnum>(engineAssetEnum)
             ));
         }
 
