@@ -216,10 +216,6 @@ private:
     /// Clean up this class
     void cleanup();
 
-    /// Get the image format for the given color channels
-    /// @param colorChannels Color channels
-    /// @returns The image format
-    [[nodiscard]] vk::Format getImageFormat(uint32_t colorChannels) const;
     /// Count the number of mip levels for the given dimensions
     /// @param width Image width
     /// @param height Image height

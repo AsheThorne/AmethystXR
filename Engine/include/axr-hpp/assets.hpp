@@ -2062,6 +2062,15 @@ namespace axr {
         ClampToBorder = AXR_IMAGE_SAMPLER_WRAPPING_CLAMP_TO_BORDER,
     };
 
+    /// Image color channels enum
+    enum class ImageColorChannelsEnum {
+        Undefined = AXR_IMAGE_COLOR_CHANNELS_UNDEFINED,
+        Gray = AXR_IMAGE_COLOR_CHANNELS_GRAY,
+        GrayAlpha = AXR_IMAGE_COLOR_CHANNELS_GRAY_ALPHA,
+        RGB = AXR_IMAGE_COLOR_CHANNELS_RGB,
+        RGBAlpha = AXR_IMAGE_COLOR_CHANNELS_RGB_ALPHA,
+    };
+
     // ----------------------------------------- //
     // Structs
     // ----------------------------------------- //
@@ -2237,6 +2246,28 @@ namespace axr {
         /// @returns The image's name
         [[nodiscard]] const char* getName() const {
             return axrImageGetName(m_Image);
+        }
+
+        /// Set the image data
+        /// @param width Image width
+        /// @param height Image height
+        /// @param colorChannels Image number of color channels
+        /// @param data Image data. Stored from left-to-right, top-to-bottom. Each pixel contains a value for each 'colorChannel', stored with 8-bits
+        /// per channel, in the following order: 1=Y, 2=YA, 3=RGB, 4=RGBA. (Y is monochrome color.)
+        /// @returns AXR_SUCCESS if the function succeeded
+        [[nodiscard]] axr::Result setData(
+            const uint32_t width,
+            const uint32_t height,
+            const axr::ImageColorChannelsEnum colorChannels,
+            const stbi_uc* data
+        ) const {
+            return static_cast<axr::Result>(axrImageSetData(
+                m_Image,
+                width,
+                height,
+                static_cast<AxrImageColorChannelsEnum>(colorChannels),
+                data
+            ));
         }
 
     private:

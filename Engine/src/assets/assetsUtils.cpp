@@ -16,6 +16,32 @@
 #include <windows.h>
 #endif
 
+// ----------------------------------------- //
+// STB Headers
+// ----------------------------------------- //
+#include <stb_image.h>
+
+AxrImageColorChannelsEnum axrToImageColorChannels(const int colorChannels) {
+    switch (colorChannels) {
+        case STBI_grey: {
+            return AXR_IMAGE_COLOR_CHANNELS_GRAY;
+        }
+        case STBI_grey_alpha: {
+            return AXR_IMAGE_COLOR_CHANNELS_GRAY_ALPHA;
+        }
+        case STBI_rgb: {
+            return AXR_IMAGE_COLOR_CHANNELS_RGB;
+        }
+        case STBI_rgb_alpha: {
+            return AXR_IMAGE_COLOR_CHANNELS_RGB_ALPHA;
+        }
+        default: {
+            axrLogErrorLocation("Unknown color channel: {0}", colorChannels);
+            return AXR_IMAGE_COLOR_CHANNELS_UNDEFINED;
+        }
+    }
+}
+
 AxrResult axrReadFileBytes(const std::filesystem::path& path, std::vector<char>& data) {
     const std::filesystem::path fullPath = axrGetAbsolutePathToAsset(path);
 

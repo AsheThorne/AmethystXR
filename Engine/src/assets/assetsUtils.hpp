@@ -9,7 +9,13 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
+#include "axr/assets.h"
 #include "axr/common/enums.h"
+
+/// Convert an STB image color channel to an AxrImageColorChannelsEnum
+/// @param colorChannels STB image color channels
+/// @returns The converted color channels
+AxrImageColorChannelsEnum axrToImageColorChannels(int colorChannels);
 
 /// Read file bytes on disk
 /// @param path Path to the file

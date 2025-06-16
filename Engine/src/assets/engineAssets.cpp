@@ -834,12 +834,12 @@ AxrResult axrEngineAssetCreateImage_MissingTexture(const std::string& imageName,
     image = AxrImage(imageConfig);
 
     const std::vector<stbi_uc> imageData{
-        255, 0, 255, 255,
-        0, 0, 0, 255,
-        0, 0, 0, 255,
-        255, 0, 255, 255,
+        255, 0, 255,
+        0, 0, 0,
+        0, 0, 0,
+        255, 0, 255,
     };
-    const AxrResult axrResult = image.setData(2, 2, 4, imageData.data());
+    const AxrResult axrResult = image.setData(2, 2, AXR_IMAGE_COLOR_CHANNELS_RGB, imageData.data());
     if (AXR_FAILED(axrResult)) {
         return axrResult;
     }

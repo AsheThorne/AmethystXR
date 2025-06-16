@@ -169,6 +169,7 @@ AxrResult AxrVulkanImage::createImage(const AxrImageConst_T image) {
     }
 
     m_MipLevelCount = countImageMipLevels(image->getWidth(), image->getHeight());
+    constexpr vk::Format imageFormat = vk::Format::eR8G8B8A8Srgb;
 
     axrResult = createImage(
         m_Device,
@@ -176,7 +177,7 @@ AxrResult AxrVulkanImage::createImage(const AxrImageConst_T image) {
         vk::Extent2D(image->getWidth(), image->getHeight()),
         m_MipLevelCount,
         vk::SampleCountFlagBits::e1,
-        getImageFormat(image->getColorChannels()),
+        imageFormat,
         vk::ImageTiling::eOptimal,
         vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
         vk::MemoryPropertyFlagBits::eDeviceLocal,
@@ -210,7 +211,7 @@ AxrResult AxrVulkanImage::createImage(const AxrImageConst_T image) {
     axrResult = createImageView(
         m_Device,
         m_Image,
-        getImageFormat(image->getColorChannels()),
+        imageFormat,
         m_ImageAspectFlags,
         m_MipLevelCount,
         m_ImageView,
@@ -430,7 +431,6 @@ AxrResult AxrVulkanImage::createImage(
         {},
         vk::ImageLayout::eUndefined
     );
-    // TODO: format VK_FORMAT_R8G8B8_SRGB is not supported. we can not use it
     vk::Result vkResult = device.createImage(&imageCreateInfo, nullptr, &image, dispatch);
     axrLogVkResult(vkResult, "device.createImage");
     if (VK_FAILED(vkResult)) {
@@ -579,27 +579,6 @@ void AxrVulkanImage::cleanup() {
     m_GraphicsCommandPool = VK_NULL_HANDLE;
     m_GraphicsQueue = VK_NULL_HANDLE;
     m_DispatchHandle = VK_NULL_HANDLE;
-}
-
-vk::Format AxrVulkanImage::getImageFormat(const uint32_t colorChannels) const {
-    switch (colorChannels) {
-        case 1: {
-            return vk::Format::eR8Srgb;
-        }
-        case 2: {
-            return vk::Format::eR8G8Srgb;
-        }
-        case 3: {
-            return vk::Format::eR8G8B8Srgb;
-        }
-        case 4: {
-            return vk::Format::eR8G8B8A8Srgb;
-        }
-        default: {
-            axrLogErrorLocation("Unknown number of color channels.");
-            return vk::Format::eUndefined;
-        }
-    }
 }
 
 uint32_t AxrVulkanImage::countImageMipLevels(const uint32_t width, const uint32_t height) const {

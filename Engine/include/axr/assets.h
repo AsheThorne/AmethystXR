@@ -11,6 +11,11 @@
 // ----------------------------------------- //
 #include <glm/glm.hpp>
 
+// ----------------------------------------- //
+// STB Headers
+// ----------------------------------------- //
+#include <stb_image.h>
+
 // ---------------------------------------------------------------------------------- //
 //                               Engine Defined Assets                                //
 // ---------------------------------------------------------------------------------- //
@@ -710,6 +715,15 @@ enum AxrImageSamplerWrappingEnum {
     AXR_IMAGE_SAMPLER_WRAPPING_CLAMP_TO_BORDER,
 };
 
+/// Image color channels enum
+enum AxrImageColorChannelsEnum {
+    AXR_IMAGE_COLOR_CHANNELS_UNDEFINED = 0,
+    AXR_IMAGE_COLOR_CHANNELS_GRAY = 1,
+    AXR_IMAGE_COLOR_CHANNELS_GRAY_ALPHA = 2,
+    AXR_IMAGE_COLOR_CHANNELS_RGB = 3,
+    AXR_IMAGE_COLOR_CHANNELS_RGB_ALPHA = 4,
+};
+
 // ----------------------------------------- //
 // Structs
 // ----------------------------------------- //
@@ -740,6 +754,22 @@ extern "C" {
     /// @param image Image to use
     /// @returns The image's name
     AXR_API const char* axrImageGetName(AxrImage_T image);
+
+    /// Set the image data
+    /// @param image Image to use
+    /// @param width Image width
+    /// @param height Image height
+    /// @param colorChannels Image number of color channels
+    /// @param data Image data. Stored from left-to-right, top-to-bottom. Each pixel contains a value for each 'colorChannel', stored with 8-bits
+    /// per channel, in the following order: 1=Y, 2=YA, 3=RGB, 4=RGBA. (Y is monochrome color.)
+    /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrImageSetData(
+        AxrImage_T image,
+        uint32_t width,
+        uint32_t height,
+        AxrImageColorChannelsEnum colorChannels,
+        const stbi_uc* data
+    );
 }
 
 // ---------------------------------------------------------------------------------- //

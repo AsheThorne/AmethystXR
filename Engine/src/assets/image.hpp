@@ -66,7 +66,7 @@ public:
     /// @param data Image data. Stored from left-to-right, top-to-bottom. Each pixel contains a value for each 'colorChannel', stored with 8-bits
     /// per channel, in the following order: 1=Y, 2=YA, 3=RGB, 4=RGBA. (Y is monochrome color.)
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setData(uint32_t width, uint32_t height, uint32_t colorChannels, const void* data);
+    [[nodiscard]] AxrResult setData(uint32_t width, uint32_t height, AxrImageColorChannelsEnum colorChannels, const stbi_uc* data);
 
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
@@ -92,7 +92,7 @@ public:
     [[nodiscard]] uint32_t getHeight() const;
     /// Get the image color channels
     /// @returns the image color channels
-    [[nodiscard]] uint32_t getColorChannels() const;
+    [[nodiscard]] AxrImageColorChannelsEnum getColorChannels() const;
     /// Get the image sampler filter enum
     /// @returns The image sampler filter enum
     [[nodiscard]] AxrImageSamplerFilterEnum getSamplerFilter() const;
@@ -111,7 +111,7 @@ private:
 
         uint32_t Width;
         uint32_t Height;
-        uint32_t ColorChannels;
+        AxrImageColorChannelsEnum ColorChannels;
         std::vector<stbi_uc> Pixels;
 
         // ---- Constructors ----
@@ -132,7 +132,7 @@ private:
 
             src.Width = 0;
             src.Height = 0;
-            src.ColorChannels = 0;
+            src.ColorChannels = AXR_IMAGE_COLOR_CHANNELS_UNDEFINED;
         }
 
         // ---- Destructor ----
@@ -161,7 +161,7 @@ private:
 
                 src.Width = 0;
                 src.Height = 0;
-                src.ColorChannels = 0;
+                src.ColorChannels = AXR_IMAGE_COLOR_CHANNELS_UNDEFINED;
             }
 
             return *this;
@@ -173,7 +173,7 @@ private:
         void clear() {
             Width = 0;
             Height = 0;
-            ColorChannels = 0;
+            ColorChannels = AXR_IMAGE_COLOR_CHANNELS_UNDEFINED;
             Pixels.clear();
         }
     };
@@ -196,6 +196,27 @@ private:
 
     /// Clean up this class
     void cleanup();
+
+    /// Convert a given image from srcColorChannels to dstColorChannels.
+    /// @param width Image width
+    /// @param height Image height
+    /// @param srcColorChannels Source color channels
+    /// @param dstColorChannels Color channels to convert to
+    /// @param data Source image data
+    /// @returns The converted image data
+    std::vector<stbi_uc> convertColorChannels(
+        uint32_t width,
+        uint32_t height,
+        AxrImageColorChannelsEnum srcColorChannels,
+        AxrImageColorChannelsEnum dstColorChannels,
+        const stbi_uc* data
+    ) const;
+
+    /// Convert the given RGB values to a single gray scale value
+    /// @param red Red
+    /// @param green Green
+    /// @param blue Blue
+    stbi_uc toGrayScale(int32_t red, int32_t green, int32_t blue) const;
 
     /// Load the image at the given path
     /// @param path Image path
