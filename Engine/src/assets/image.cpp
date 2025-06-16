@@ -101,6 +101,29 @@ const std::string& AxrImage::getName() const {
     return m_Name;
 }
 
+AxrResult AxrImage::setData(
+    const uint32_t width,
+    const uint32_t height,
+    const uint32_t colorChannels,
+    const void* data
+) {
+    if (data == nullptr) {
+        axrLogErrorLocation("data is null.");
+        return AXR_ERROR;
+    }
+
+    m_Data.Width = width;
+    m_Data.Height = height;
+    m_Data.ColorChannels = colorChannels;
+    const uint32_t dataSize = width * height * colorChannels;
+    m_Data.Pixels = std::vector(
+        static_cast<const stbi_uc*>(data),
+        static_cast<const stbi_uc*>(data) + dataSize
+    );
+
+    return AXR_SUCCESS;
+}
+
 bool AxrImage::isLoaded() const {
     return !m_Data.Pixels.empty();
 }
@@ -162,6 +185,8 @@ AxrImageSamplerWrappingEnum AxrImage::getSamplerWrapping() const {
 void AxrImage::cleanup() {
     m_Name.clear();
     m_FilePath.clear();
+    m_Filter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
+    m_Wrapping = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
     m_Data.clear();
 }
 
@@ -176,6 +201,7 @@ AxrResult AxrImage::loadImage(const std::string& path, Data& imageData) {
         &width,
         &height,
         &colorChannels,
+        // TODO: I think we need to change this. just RGB isn't supported. we need RGBA
         0
     );
 

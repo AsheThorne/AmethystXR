@@ -59,6 +59,15 @@ public:
     /// @returns The name of the image
     [[nodiscard]] const std::string& getName() const;
 
+    /// Set the image data
+    /// @param width Image width
+    /// @param height Image height
+    /// @param colorChannels Image number of color channels
+    /// @param data Image data. Stored from left-to-right, top-to-bottom. Each pixel contains a value for each 'colorChannel', stored with 8-bits
+    /// per channel, in the following order: 1=Y, 2=YA, 3=RGB, 4=RGBA. (Y is monochrome color.)
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setData(uint32_t width, uint32_t height, uint32_t colorChannels, const void* data);
+
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
     // They have not been given a publicly accessible function in the 'include headers' to be used by an application.

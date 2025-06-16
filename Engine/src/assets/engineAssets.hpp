@@ -164,6 +164,14 @@ AxrResult axrEngineAssetCreateModel_Cube(const std::string& modelName, AxrModel&
 /// @param engineAssetEnum Engine asset to check
 /// @returns True if the given engine asset is an image
 bool axrEngineAssetIsImage(AxrEngineAssetEnum engineAssetEnum);
+/// Get the name for the given image engine asset
+/// @param engineAssetEnum Engine asset to get the name of
+/// @returns The name of the given image engine asset
+const char* axrEngineAssetGetImageName(AxrEngineAssetEnum engineAssetEnum);
+/// Check if the given name is reserved for an image engine asset
+/// @param name Name to check
+/// @returns True if the given name is reserved for an image engine asset
+bool axrEngineAssetIsImageNameReserved(const char* name);
 
 /// Create an engine asset image
 /// @param imageName Image name
@@ -171,6 +179,12 @@ bool axrEngineAssetIsImage(AxrEngineAssetEnum engineAssetEnum);
 /// @param image Output created image
 /// @returns AXR_SUCCESS if the function succeeded
 AxrResult axrEngineAssetCreateImage(const std::string& imageName, AxrEngineAssetEnum engineAssetEnum, AxrImage& image);
+
+/// Create the 'MissingTexture' engine asset image
+/// @param imageName Image name
+/// @param image Output created image
+/// @returns AXR_SUCCESS if the function succeeded
+AxrResult axrEngineAssetCreateImage_MissingTexture(const std::string& imageName, AxrImage& image);
 
 /// Create the 'UvTester' engine asset image
 /// @param imageName Image name

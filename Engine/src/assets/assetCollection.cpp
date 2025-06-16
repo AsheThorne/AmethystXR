@@ -546,6 +546,11 @@ AxrResult AxrAssetCollection::createImage(const AxrImageConfig& imageConfig) {
     // Validation
     // ----------------------------------------- //
 
+    if (axrEngineAssetIsImageNameReserved(imageConfig.Name)) {
+        axrLogError("Unable to create image. The image name: {0} is reserved by the engine.", imageConfig.Name);
+        return AXR_ERROR;
+    }
+    
     if (m_Images.contains(imageConfig.Name)) {
         axrLogError("Unable to create image. An image named: {0} already exists.", imageConfig.Name);
         return AXR_ERROR;
@@ -573,6 +578,11 @@ AxrResult AxrAssetCollection::createImage(const std::string& imageName, const Ax
 
     if (!axrEngineAssetIsImage(engineAssetEnum)) {
         axrLogError("Unable to create image. Engine asset is not an image.");
+        return AXR_ERROR;
+    }
+
+    if (axrEngineAssetIsImageNameReserved(imageName.c_str())) {
+        axrLogError("Unable to create image. The image name: {0} is reserved by the engine.", imageName.c_str());
         return AXR_ERROR;
     }
 

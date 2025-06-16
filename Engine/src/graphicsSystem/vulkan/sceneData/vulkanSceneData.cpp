@@ -755,6 +755,12 @@ AxrResult AxrVulkanSceneData::initializeAllImageData() {
 
     AxrResult axrResult = AXR_SUCCESS;
 
+    axrResult = initializeMissingTextureImageData();
+    if (AXR_FAILED(axrResult)) {
+        destroyAllImageData();
+        return axrResult;
+    }
+
     for (const auto& [imageName, image] : m_AssetCollection->getImages()) {
         axrResult = initializeImageData(image);
         if (AXR_FAILED(axrResult)) {
@@ -792,6 +798,36 @@ AxrResult AxrVulkanSceneData::initializeImageData(const AxrImage& image) {
             AxrVulkanImageData(imageDataConfig)
         )
     );
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrVulkanSceneData::initializeMissingTextureImageData() {
+    if (!isThisGlobalSceneData()) return AXR_SUCCESS;
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    if (!m_MissingTextureImage.isLoaded()) {
+        axrResult = axrEngineAssetCreateImage(
+            axrEngineAssetGetImageName(AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE),
+            AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE,
+            m_MissingTextureImage
+        );
+
+        if (AXR_FAILED(axrResult)) {
+            axrLogErrorLocation("Failed to create missing texture image.");
+            destroyAllImageData();
+            return axrResult;
+        }
+    }
+
+    axrResult = initializeImageData(m_MissingTextureImage);
+
+    if (AXR_FAILED(axrResult)) {
+        axrLogErrorLocation("Failed to initialize missing texture image data.");
+        destroyAllImageData();
+        return axrResult;
+    }
 
     return AXR_SUCCESS;
 }
@@ -1375,9 +1411,16 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
                 const AxrVulkanImageData* foundImageData = sceneData->findImageData_shared(bufferName);
 
                 if (foundImageData == nullptr) {
-                    axrLogErrorLocation("Failed to find image named: {0}.", bufferName);
-                    axrResult = AXR_ERROR;
-                    break;
+                    // If image data wasn't found, use the "Missing Texture" image
+                    foundImageData = sceneData->findImageData_shared(
+                        axrEngineAssetGetImageName(AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE)
+                    );
+
+                    if (foundImageData == nullptr) {
+                        axrLogErrorLocation("Failed to find image named: {0}.", bufferName);
+                        axrResult = AXR_ERROR;
+                        break;
+                    }
                 }
 
                 descriptorImageInfos.emplace_back(

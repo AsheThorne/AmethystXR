@@ -172,6 +172,9 @@ private:
     vk::DispatchLoaderDynamic* m_DispatchHandle;
     bool m_IsWindowDataLoaded;
 
+    /// Missing texture image asset
+    AxrImage m_MissingTextureImage;
+
     /// Window specific engine defined uniform buffers
     std::unordered_map<std::string, AxrVulkanUniformBufferData> m_WindowUniformBufferData;
 
@@ -297,6 +300,10 @@ private:
     /// @param image Image to use
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult initializeImageData(const AxrImage& image);
+
+    /// Initialize the 'Missing Texture' image data
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult initializeMissingTextureImageData();
 
     /// Create the given image data
     /// @param imageData Image data to create

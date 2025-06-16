@@ -58,12 +58,27 @@ const std::unordered_map EngineAssetBufferProperties{
     ),
 };
 
+// ----------------------------------------- //
+// Image Engine Assets
+// ----------------------------------------- //
+
+/// Engine asset image names
+const std::unordered_map EngineAssetImageNames{
+    // Only the missing texture has a name.
+    // It's the only image that must be available for any scene.
+    std::pair(
+        AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE,
+        "AXR:ImageMissingTexture"
+    ),
+};
 // ---------------------------------------------------------------------------------- //
 //                                External Functions                                  //
 // ---------------------------------------------------------------------------------- //
 
 bool axrEngineAssetIsNameReserved(const char* name) {
-    return axrEngineAssetIsShaderNameReserved(name) || axrEngineAssetIsBufferNameReserved(name);
+    return axrEngineAssetIsShaderNameReserved(name) ||
+        axrEngineAssetIsBufferNameReserved(name) ||
+        axrEngineAssetIsImageNameReserved(name);
 }
 
 const char* axrEngineAssetGetName(const AxrEngineAssetEnum engineAssetEnum) {
@@ -758,6 +773,31 @@ bool axrEngineAssetIsImage(const AxrEngineAssetEnum engineAssetEnum) {
         engineAssetEnum <= AXR_ENGINE_ASSET_IMAGE_END;
 }
 
+const char* axrEngineAssetGetImageName(const AxrEngineAssetEnum engineAssetEnum) {
+    if (!axrEngineAssetIsImage(engineAssetEnum)) {
+        axrLogErrorLocation("Engine asset is not an image.");
+        return "";
+    }
+
+    const auto foundEngineAssetIt = EngineAssetImageNames.find(engineAssetEnum);
+    if (foundEngineAssetIt == EngineAssetImageNames.end()) {
+        axrLogError("Failed to find name for engine asset: {0}.", static_cast<int>(engineAssetEnum));
+        return "";
+    }
+
+    return foundEngineAssetIt->second;
+}
+
+bool axrEngineAssetIsImageNameReserved(const char* name) {
+    for (const auto& engineAssetName : EngineAssetImageNames | std::views::values) {
+        if (std::strcmp(engineAssetName, name) == 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 AxrResult axrEngineAssetCreateImage(
     const std::string& imageName,
     const AxrEngineAssetEnum engineAssetEnum,
@@ -769,6 +809,9 @@ AxrResult axrEngineAssetCreateImage(
     }
 
     switch (engineAssetEnum) {
+        case AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE: {
+            return axrEngineAssetCreateImage_MissingTexture(imageName, image);
+        }
         case AXR_ENGINE_ASSET_IMAGE_UV_TESTER: {
             return axrEngineAssetCreateImage_UvTester(imageName, image);
         }
@@ -778,6 +821,30 @@ AxrResult axrEngineAssetCreateImage(
             return AXR_ERROR;
         }
     }
+}
+
+AxrResult axrEngineAssetCreateImage_MissingTexture(const std::string& imageName, AxrImage& image) {
+    const AxrImageConfig imageConfig{
+        .Name = imageName.c_str(),
+        .FilePath = "",
+        // TODO: When we use this texture as a missing texture, make sure we use these same sampler options. otherwise it looks weird
+        .Filter = AXR_IMAGE_SAMPLER_FILTER_NEAREST,
+        .Wrapping = AXR_IMAGE_SAMPLER_WRAPPING_REPEAT,
+    };
+    image = AxrImage(imageConfig);
+
+    const std::vector<stbi_uc> imageData{
+        255, 0, 255, 255,
+        0, 0, 0, 255,
+        0, 0, 0, 255,
+        255, 0, 255, 255,
+    };
+    const AxrResult axrResult = image.setData(2, 2, 4, imageData.data());
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
+    return AXR_SUCCESS;
+}
 
 AxrResult axrEngineAssetCreateImage_UvTester(const std::string& imageName, AxrImage& image) {
     const std::string& filePath = axrGetEngineAssetsDirectoryPath().append("images/uv-tester.png").generic_string();

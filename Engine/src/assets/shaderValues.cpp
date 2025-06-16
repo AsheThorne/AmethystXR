@@ -206,7 +206,7 @@ std::string AxrShaderValuesRAII::findShaderBufferName(const uint32_t binding) co
                     m_RawShaderValues->BufferLinks[i]
                 );
                 if (uniformBufferLink->Binding == binding) {
-                    return uniformBufferLink->BufferName;
+                    return uniformBufferLink->BufferName != nullptr ? uniformBufferLink->BufferName : "";
                 }
                 break;
             }
@@ -215,7 +215,7 @@ std::string AxrShaderValuesRAII::findShaderBufferName(const uint32_t binding) co
                     m_RawShaderValues->BufferLinks[i]
                 );
                 if (imageSamplerBufferLink->Binding == binding) {
-                    return imageSamplerBufferLink->ImageName;
+                    return imageSamplerBufferLink->ImageName != nullptr ? imageSamplerBufferLink->ImageName : "";
                 }
                 break;
             }

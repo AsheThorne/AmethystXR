@@ -46,6 +46,7 @@ namespace axr {
 
         // ---- Images ----
         ImageStart = AXR_ENGINE_ASSET_IMAGE_START,
+        ImageMissingTexture = AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE,
         ImageUvTester = AXR_ENGINE_ASSET_IMAGE_UV_TESTER,
         ImageEnd = AXR_ENGINE_ASSET_IMAGE_END,
     };

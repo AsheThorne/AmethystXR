@@ -430,6 +430,7 @@ AxrResult AxrVulkanImage::createImage(
         {},
         vk::ImageLayout::eUndefined
     );
+    // TODO: format VK_FORMAT_R8G8B8_SRGB is not supported. we can not use it
     vk::Result vkResult = device.createImage(&imageCreateInfo, nullptr, &image, dispatch);
     axrLogVkResult(vkResult, "device.createImage");
     if (VK_FAILED(vkResult)) {
