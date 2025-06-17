@@ -60,6 +60,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     const axr::ImageSamplerConfig imageSamplerConfig(
         imageSamplerName.c_str(),
         axr::ImageSamplerFilterEnum::Nearest,
+        axr::ImageSamplerFilterEnum::Nearest,
+        axr::ImageSamplerFilterEnum::Nearest,
+        axr::ImageSamplerWrappingEnum::Repeat,
         axr::ImageSamplerWrappingEnum::Repeat
     );
 

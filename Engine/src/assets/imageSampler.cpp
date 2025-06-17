@@ -24,30 +24,45 @@ const char* axrImageSamplerGetName(const AxrImageSampler_T imageSampler) {
 // ---- Special Functions ----
 
 AxrImageSampler::AxrImageSampler():
-    m_Filter(AXR_IMAGE_SAMPLER_FILTER_UNDEFINED),
-    m_Wrapping(AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED) {
+    m_MinFilter(AXR_IMAGE_SAMPLER_FILTER_UNDEFINED),
+    m_MagFilter(AXR_IMAGE_SAMPLER_FILTER_UNDEFINED),
+    m_MipmapFilter(AXR_IMAGE_SAMPLER_FILTER_UNDEFINED),
+    m_WrappingU(AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED),
+    m_WrappingV(AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED) {
 }
 
 AxrImageSampler::AxrImageSampler(const AxrImageSamplerConfig& config):
     m_Name(config.Name),
-    m_Filter(config.Filter),
-    m_Wrapping(config.Wrapping) {
+    m_MinFilter(config.MinFilter),
+    m_MagFilter(config.MagFilter),
+    m_MipmapFilter(config.MipmapFilter),
+    m_WrappingU(config.WrappingU),
+    m_WrappingV(config.WrappingV) {
 }
 
 AxrImageSampler::AxrImageSampler(const AxrImageSampler& src) {
     m_Name = src.m_Name;
-    m_Filter = src.m_Filter;
-    m_Wrapping = src.m_Wrapping;
+    m_MinFilter = src.m_MinFilter;
+    m_MagFilter = src.m_MagFilter;
+    m_MipmapFilter = src.m_MipmapFilter;
+    m_WrappingU = src.m_WrappingU;
+    m_WrappingV = src.m_WrappingV;
 }
 
 AxrImageSampler::AxrImageSampler(AxrImageSampler&& src) noexcept {
     m_Name = std::move(src.m_Name);
 
-    m_Filter = src.m_Filter;
-    m_Wrapping = src.m_Wrapping;
+    m_MinFilter = src.m_MinFilter;
+    m_MagFilter = src.m_MagFilter;
+    m_MipmapFilter = src.m_MipmapFilter;
+    m_WrappingU = src.m_WrappingU;
+    m_WrappingV = src.m_WrappingV;
 
-    src.m_Filter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
-    src.m_Wrapping = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
+    src.m_MinFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
+    src.m_MagFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
+    src.m_MipmapFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
+    src.m_WrappingU = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
+    src.m_WrappingV = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
 }
 
 AxrImageSampler::~AxrImageSampler() {
@@ -59,8 +74,11 @@ AxrImageSampler& AxrImageSampler::operator=(const AxrImageSampler& src) {
         cleanup();
 
         m_Name = src.m_Name;
-        m_Filter = src.m_Filter;
-        m_Wrapping = src.m_Wrapping;
+        m_MinFilter = src.m_MinFilter;
+        m_MagFilter = src.m_MagFilter;
+        m_MipmapFilter = src.m_MipmapFilter;
+        m_WrappingU = src.m_WrappingU;
+        m_WrappingV = src.m_WrappingV;
     }
 
     return *this;
@@ -72,11 +90,17 @@ AxrImageSampler& AxrImageSampler::operator=(AxrImageSampler&& src) noexcept {
 
         m_Name = std::move(src.m_Name);
 
-        m_Filter = src.m_Filter;
-        m_Wrapping = src.m_Wrapping;
+        m_MinFilter = src.m_MinFilter;
+        m_MagFilter = src.m_MagFilter;
+        m_MipmapFilter = src.m_MipmapFilter;
+        m_WrappingU = src.m_WrappingU;
+        m_WrappingV = src.m_WrappingV;
 
-        src.m_Filter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
-        src.m_Wrapping = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
+        src.m_MinFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
+        src.m_MagFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
+        src.m_MipmapFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
+        src.m_WrappingU = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
+        src.m_WrappingV = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
     }
 
     return *this;
@@ -88,18 +112,34 @@ const std::string& AxrImageSampler::getName() const {
     return m_Name;
 }
 
-AxrImageSamplerFilterEnum AxrImageSampler::getFilter() const {
-    return m_Filter;
+AxrImageSamplerFilterEnum AxrImageSampler::getMinFilter() const {
+    return m_MinFilter;
 }
 
-AxrImageSamplerWrappingEnum AxrImageSampler::getWrapping() const {
-    return m_Wrapping;
+AxrImageSamplerFilterEnum AxrImageSampler::getMagFilter() const {
+    return m_MagFilter;
+}
+
+AxrImageSamplerFilterEnum AxrImageSampler::getMipmapFilter() const {
+    return m_MipmapFilter;
+}
+
+AxrImageSamplerWrappingEnum AxrImageSampler::getWrappingU() const {
+    return m_WrappingU;
+}
+
+AxrImageSamplerWrappingEnum AxrImageSampler::getWrappingV() const {
+    return m_WrappingV;
 }
 
 // ---- Private Functions ----
 
 void AxrImageSampler::cleanup() {
     m_Name.clear();
-    m_Filter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
-    m_Wrapping = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
+
+    m_MinFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
+    m_MagFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
+    m_MipmapFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
+    m_WrappingU = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
+    m_WrappingV = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
 }

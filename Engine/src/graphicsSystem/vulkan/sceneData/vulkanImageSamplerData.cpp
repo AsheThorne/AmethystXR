@@ -154,17 +154,14 @@ AxrResult AxrVulkanImageSamplerData::createSampler(vk::Sampler& sampler) const {
     // Process
     // ----------------------------------------- //
 
-    const vk::Filter filter = axrToVkFilter(m_ImageSamplerHandle->getFilter());
-    const vk::SamplerAddressMode addressMode = axrToVkSamplerAddressMode(m_ImageSamplerHandle->getWrapping());
-
     const vk::SamplerCreateInfo samplerCreateInfo(
         {},
-        filter,
-        filter,
-        vk::SamplerMipmapMode::eLinear,
-        addressMode,
-        addressMode,
-        addressMode,
+        axrToVkFilter(m_ImageSamplerHandle->getMagFilter()),
+        axrToVkFilter(m_ImageSamplerHandle->getMinFilter()),
+        axrToVkSamplerMipmapMode(m_ImageSamplerHandle->getMipmapFilter()),
+        axrToVkSamplerAddressMode(m_ImageSamplerHandle->getWrappingU()),
+        axrToVkSamplerAddressMode(m_ImageSamplerHandle->getWrappingV()),
+        vk::SamplerAddressMode::eRepeat,
         0.0f,
         m_MaxSamplerAnisotropy > 1.0f ? vk::True : vk::False,
         m_MaxSamplerAnisotropy,

@@ -723,8 +723,11 @@ enum AxrImageSamplerWrappingEnum {
 
 struct AxrImageSamplerConfig {
     const char* Name;
-    AxrImageSamplerFilterEnum Filter;
-    AxrImageSamplerWrappingEnum Wrapping;
+    AxrImageSamplerFilterEnum MinFilter;
+    AxrImageSamplerFilterEnum MagFilter;
+    AxrImageSamplerFilterEnum MipmapFilter;
+    AxrImageSamplerWrappingEnum WrappingU;
+    AxrImageSamplerWrappingEnum WrappingV;
 };
 
 // ----------------------------------------- //

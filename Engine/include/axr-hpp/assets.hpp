@@ -2080,8 +2080,11 @@ namespace axr {
         // ----------------------------------------- //
 
         const char* Name;
-        axr::ImageSamplerFilterEnum Filter;
-        axr::ImageSamplerWrappingEnum Wrapping;
+        axr::ImageSamplerFilterEnum MinFilter;
+        axr::ImageSamplerFilterEnum MagFilter;
+        axr::ImageSamplerFilterEnum MipmapFilter;
+        axr::ImageSamplerWrappingEnum WrappingU;
+        axr::ImageSamplerWrappingEnum WrappingV;
 
         // ----------------------------------------- //
         // Special Functions
@@ -2092,42 +2095,63 @@ namespace axr {
         /// Default Constructor
         ImageSamplerConfig():
             Name(""),
-            Filter(axr::ImageSamplerFilterEnum::Undefined),
-            Wrapping(axr::ImageSamplerWrappingEnum::Undefined) {
+            MinFilter(axr::ImageSamplerFilterEnum::Undefined),
+            MagFilter(axr::ImageSamplerFilterEnum::Undefined),
+            MipmapFilter(axr::ImageSamplerFilterEnum::Undefined),
+            WrappingU(axr::ImageSamplerWrappingEnum::Undefined),
+            WrappingV(axr::ImageSamplerWrappingEnum::Undefined) {
         }
 
         /// Constructor
         /// @param name Name of the image sampler
-        /// @param filter Image sampler filter enum
-        /// @param wrapping Image sampler wrapping enum
+        /// @param minFilter Image sampler min filter enum
+        /// @param magFilter Image sampler mag filter enum
+        /// @param mipmapFilter Image sampler mipmap filter enum
+        /// @param wrappingU Image sampler U axis wrapping enum
+        /// @param wrappingV Image sampler V axis wrapping enum
         ImageSamplerConfig(
             const char* name,
-            const axr::ImageSamplerFilterEnum filter,
-            const axr::ImageSamplerWrappingEnum wrapping
+            const axr::ImageSamplerFilterEnum minFilter,
+            const axr::ImageSamplerFilterEnum magFilter,
+            const axr::ImageSamplerFilterEnum mipmapFilter,
+            const axr::ImageSamplerWrappingEnum wrappingU,
+            const axr::ImageSamplerWrappingEnum wrappingV
         ):
             Name(name),
-            Filter(filter),
-            Wrapping(wrapping) {
+            MinFilter(minFilter),
+            MagFilter(magFilter),
+            MipmapFilter(mipmapFilter),
+            WrappingU(wrappingU),
+            WrappingV(wrappingV) {
         }
 
         /// Copy Constructor
         /// @param src Source ImageSamplerConfig to copy from
         ImageSamplerConfig(const ImageSamplerConfig& src) {
             Name = src.Name;
-            Filter = src.Filter;
-            Wrapping = src.Wrapping;
+            MinFilter = src.MinFilter;
+            MagFilter = src.MagFilter;
+            MipmapFilter = src.MipmapFilter;
+            WrappingU = src.WrappingU;
+            WrappingV = src.WrappingV;
         }
 
         /// Move Constructor
         /// @param src Source ImageSamplerConfig to move from
         ImageSamplerConfig(ImageSamplerConfig&& src) noexcept {
             Name = src.Name;
-            Filter = src.Filter;
-            Wrapping = src.Wrapping;
+            MinFilter = src.MinFilter;
+            MagFilter = src.MagFilter;
+            MipmapFilter = src.MipmapFilter;
+            WrappingU = src.WrappingU;
+            WrappingV = src.WrappingV;
 
             src.Name = "";
-            Filter = axr::ImageSamplerFilterEnum::Undefined;
-            Wrapping = axr::ImageSamplerWrappingEnum::Undefined;
+            MinFilter = axr::ImageSamplerFilterEnum::Undefined;
+            MagFilter = axr::ImageSamplerFilterEnum::Undefined;
+            MipmapFilter = axr::ImageSamplerFilterEnum::Undefined;
+            WrappingU = axr::ImageSamplerWrappingEnum::Undefined;
+            WrappingV = axr::ImageSamplerWrappingEnum::Undefined;
         }
 
         // ---- Destructor ----
@@ -2146,8 +2170,11 @@ namespace axr {
                 cleanup();
 
                 Name = src.Name;
-                Filter = src.Filter;
-                Wrapping = src.Wrapping;
+                MinFilter = src.MinFilter;
+                MagFilter = src.MagFilter;
+                MipmapFilter = src.MipmapFilter;
+                WrappingU = src.WrappingU;
+                WrappingV = src.WrappingV;
             }
 
             return *this;
@@ -2160,12 +2187,18 @@ namespace axr {
                 cleanup();
 
                 Name = src.Name;
-                Filter = src.Filter;
-                Wrapping = src.Wrapping;
+                MinFilter = src.MinFilter;
+                MagFilter = src.MagFilter;
+                MipmapFilter = src.MipmapFilter;
+                WrappingU = src.WrappingU;
+                WrappingV = src.WrappingV;
 
                 src.Name = "";
-                Filter = axr::ImageSamplerFilterEnum::Undefined;
-                Wrapping = axr::ImageSamplerWrappingEnum::Undefined;
+                MinFilter = axr::ImageSamplerFilterEnum::Undefined;
+                MagFilter = axr::ImageSamplerFilterEnum::Undefined;
+                MipmapFilter = axr::ImageSamplerFilterEnum::Undefined;
+                WrappingU = axr::ImageSamplerWrappingEnum::Undefined;
+                WrappingV = axr::ImageSamplerWrappingEnum::Undefined;
             }
 
             return *this;
@@ -2195,8 +2228,11 @@ namespace axr {
         /// Clean up this class
         void cleanup() {
             Name = "";
-            Filter = axr::ImageSamplerFilterEnum::Undefined;
-            Wrapping = axr::ImageSamplerWrappingEnum::Undefined;
+            MinFilter = axr::ImageSamplerFilterEnum::Undefined;
+            MagFilter = axr::ImageSamplerFilterEnum::Undefined;
+            MipmapFilter = axr::ImageSamplerFilterEnum::Undefined;
+            WrappingU = axr::ImageSamplerWrappingEnum::Undefined;
+            WrappingV = axr::ImageSamplerWrappingEnum::Undefined;
         }
     };
 

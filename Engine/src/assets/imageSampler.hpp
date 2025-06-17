@@ -57,12 +57,21 @@ public:
     // These functions are only to be used internally in the AmethystXr engine.
     // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
 
-    /// Get the image sampler filter enum
+    /// Get the image sampler min filter enum
     /// @returns The image sampler filter enum
-    [[nodiscard]] AxrImageSamplerFilterEnum getFilter() const;
-    /// Get the image sampler wrapping enum
+    [[nodiscard]] AxrImageSamplerFilterEnum getMinFilter() const;
+    /// Get the image sampler mag filter enum
+    /// @returns The image sampler filter enum
+    [[nodiscard]] AxrImageSamplerFilterEnum getMagFilter() const;
+    /// Get the image sampler mipmap filter enum
+    /// @returns The image sampler filter enum
+    [[nodiscard]] AxrImageSamplerFilterEnum getMipmapFilter() const;
+    /// Get the image sampler u axis wrapping enum
     /// @returns The image sampler wrapping enum
-    [[nodiscard]] AxrImageSamplerWrappingEnum getWrapping() const;
+    [[nodiscard]] AxrImageSamplerWrappingEnum getWrappingU() const;
+    /// Get the image sampler v axis wrapping enum
+    /// @returns The image sampler wrapping enum
+    [[nodiscard]] AxrImageSamplerWrappingEnum getWrappingV() const;
 
 private:
     // ----------------------------------------- //
@@ -71,8 +80,11 @@ private:
 
     // ---- Config Variables ----
     std::string m_Name;
-    AxrImageSamplerFilterEnum m_Filter;
-    AxrImageSamplerWrappingEnum m_Wrapping;
+    AxrImageSamplerFilterEnum m_MinFilter;
+    AxrImageSamplerFilterEnum m_MagFilter;
+    AxrImageSamplerFilterEnum m_MipmapFilter;
+    AxrImageSamplerWrappingEnum m_WrappingU;
+    AxrImageSamplerWrappingEnum m_WrappingV;
 
     // ----------------------------------------- //
     // Private Functions
