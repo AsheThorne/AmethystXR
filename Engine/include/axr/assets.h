@@ -82,6 +82,7 @@ struct AxrEngineAssetPushConstantBuffer_ModelMatrix {
 /// Engine asset material named 'Default Material' values
 struct AxrEngineAssetMaterial_DefaultMaterial {
     const char* ImageName;
+    const char* SamplerName;
 };
 
 // ----------------------------------------- //
@@ -428,6 +429,7 @@ struct AxrShaderImageSamplerBufferLink {
     const AxrShaderBufferLinkEnum Type = AXR_SHADER_BUFFER_LINK_IMAGE_SAMPLER_BUFFER;
     uint32_t Binding;
     const char* ImageName;
+    const char* SamplerName;
 };
 
 /// AxrShaderImageSamplerBufferLink Handle Type
@@ -692,7 +694,7 @@ extern "C" {
 }
 
 // ---------------------------------------------------------------------------------- //
-//                                   Image Assets                                     //
+//                               Image Sampler Assets                                 //
 // ---------------------------------------------------------------------------------- //
 
 // ----------------------------------------- //
@@ -715,6 +717,42 @@ enum AxrImageSamplerWrappingEnum {
     AXR_IMAGE_SAMPLER_WRAPPING_CLAMP_TO_BORDER,
 };
 
+// ----------------------------------------- //
+// Structs
+// ----------------------------------------- //
+
+struct AxrImageSamplerConfig {
+    const char* Name;
+    AxrImageSamplerFilterEnum Filter;
+    AxrImageSamplerWrappingEnum Wrapping;
+};
+
+// ----------------------------------------- //
+// Forward Declared Handles
+// ----------------------------------------- //
+
+/// AxrImageSampler Handle
+typedef class AxrImageSampler* AxrImageSampler_T;
+typedef const AxrImageSampler* AxrImageSamplerConst_T;
+
+// ----------------------------------------- //
+// External Function Definitions
+// ----------------------------------------- //
+extern "C" {
+    /// Get the image sampler's name
+    /// @param imageSampler ImageSampler to use
+    /// @returns The imageSampler's name
+    AXR_API const char* axrImageSamplerGetName(AxrImageSampler_T imageSampler);
+}
+
+// ---------------------------------------------------------------------------------- //
+//                                   Image Assets                                     //
+// ---------------------------------------------------------------------------------- //
+
+// ----------------------------------------- //
+// Enums
+// ----------------------------------------- //
+
 /// Image color channels enum
 enum AxrImageColorChannelsEnum {
     AXR_IMAGE_COLOR_CHANNELS_UNDEFINED = 0,
@@ -732,9 +770,6 @@ enum AxrImageColorChannelsEnum {
 struct AxrImageConfig {
     const char* Name;
     const char* FilePath;
-    // TODO: Move these out of the image config and create a sampler object for them instead
-    AxrImageSamplerFilterEnum Filter;
-    AxrImageSamplerWrappingEnum Wrapping;
 };
 
 // ----------------------------------------- //
@@ -893,5 +928,16 @@ extern "C" {
         AxrAssetCollection_T assetCollection,
         const char* imageName,
         AxrEngineAssetEnum engineAssetEnum
+    );
+
+    // ---- Image Sampler ----
+
+    /// Create a new image sampler
+    /// @param assetCollection Asset collection to use
+    /// @param imageSamplerConfig Image sampler config
+    /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrAssetCollectionCreateImageSampler(
+        AxrAssetCollection_T assetCollection,
+        const AxrImageSamplerConfig* imageSamplerConfig
     );
 }

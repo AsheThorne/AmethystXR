@@ -168,6 +168,7 @@ namespace axr {
         // Public Variables
         // ----------------------------------------- //
         const char* ImageName;
+        const char* SamplerName;
 
         // ----------------------------------------- //
         // Special Functions
@@ -177,14 +178,18 @@ namespace axr {
 
         /// Default Constructor
         EngineAssetMaterial_DefaultMaterial() :
-            ImageName{} {
+            ImageName{},
+            SamplerName{} {
         }
 
         /// Constructor
         /// @param imageName The image name
+        /// @param samplerName The image sampler name
         EngineAssetMaterial_DefaultMaterial(
-            const char* imageName
-        ) : ImageName(imageName) {
+            const char* imageName,
+            const char* samplerName
+        ) : ImageName(imageName),
+            SamplerName(samplerName) {
         }
 
         // ----------------------------------------- //
@@ -977,13 +982,15 @@ namespace axr {
 
         /// Add an image sampler buffer link
         /// @param binding Image sampler buffer binding
-        /// @param imageName Image sampler name
-        void addImageSamplerBufferLink(const uint32_t binding, const char* imageName) {
+        /// @param imageName Image name
+        /// @param samplerName Image sampler name
+        void addImageSamplerBufferLink(const uint32_t binding, const char* imageName, const char* samplerName) {
             resizeBufferLinks(BufferLinksCount + 1);
 
             const AxrShaderImageSamplerBufferLink bufferLink{
                 .Binding = binding,
-                .ImageName = imageName
+                .ImageName = imageName,
+                .SamplerName = samplerName
             };
             BufferLinks[BufferLinksCount - 1] = reinterpret_cast<AxrShaderBufferLink_T>(
                 axrShaderImageSamplerBufferLinkClone(&bufferLink)
@@ -2039,7 +2046,7 @@ namespace axr {
 #endif
 
     // ---------------------------------------------------------------------------------- //
-    //                                   Image Assets                                     //
+    //                               Image Sampler Assets                                 //
     // ---------------------------------------------------------------------------------- //
 
     // ----------------------------------------- //
@@ -2062,6 +2069,186 @@ namespace axr {
         ClampToBorder = AXR_IMAGE_SAMPLER_WRAPPING_CLAMP_TO_BORDER,
     };
 
+    // ----------------------------------------- //
+    // Structs
+    // ----------------------------------------- //
+
+    /// Image Sampler Config
+    struct ImageSamplerConfig {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+
+        const char* Name;
+        axr::ImageSamplerFilterEnum Filter;
+        axr::ImageSamplerWrappingEnum Wrapping;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        ImageSamplerConfig():
+            Name(""),
+            Filter(axr::ImageSamplerFilterEnum::Undefined),
+            Wrapping(axr::ImageSamplerWrappingEnum::Undefined) {
+        }
+
+        /// Constructor
+        /// @param name Name of the image sampler
+        /// @param filter Image sampler filter enum
+        /// @param wrapping Image sampler wrapping enum
+        ImageSamplerConfig(
+            const char* name,
+            const axr::ImageSamplerFilterEnum filter,
+            const axr::ImageSamplerWrappingEnum wrapping
+        ):
+            Name(name),
+            Filter(filter),
+            Wrapping(wrapping) {
+        }
+
+        /// Copy Constructor
+        /// @param src Source ImageSamplerConfig to copy from
+        ImageSamplerConfig(const ImageSamplerConfig& src) {
+            Name = src.Name;
+            Filter = src.Filter;
+            Wrapping = src.Wrapping;
+        }
+
+        /// Move Constructor
+        /// @param src Source ImageSamplerConfig to move from
+        ImageSamplerConfig(ImageSamplerConfig&& src) noexcept {
+            Name = src.Name;
+            Filter = src.Filter;
+            Wrapping = src.Wrapping;
+
+            src.Name = "";
+            Filter = axr::ImageSamplerFilterEnum::Undefined;
+            Wrapping = axr::ImageSamplerWrappingEnum::Undefined;
+        }
+
+        // ---- Destructor ----
+
+        /// Destructor
+        ~ImageSamplerConfig() {
+            cleanup();
+        }
+
+        // ---- Operator Overloads ----
+
+        /// Copy Assignment Operator
+        /// @param src Source ImageSamplerConfig to copy from
+        ImageSamplerConfig& operator=(const ImageSamplerConfig& src) {
+            if (this != &src) {
+                cleanup();
+
+                Name = src.Name;
+                Filter = src.Filter;
+                Wrapping = src.Wrapping;
+            }
+
+            return *this;
+        }
+
+        /// Move Assignment Operator
+        /// @param src Source ImageSamplerConfig to move from
+        ImageSamplerConfig& operator=(ImageSamplerConfig&& src) noexcept {
+            if (this != &src) {
+                cleanup();
+
+                Name = src.Name;
+                Filter = src.Filter;
+                Wrapping = src.Wrapping;
+
+                src.Name = "";
+                Filter = axr::ImageSamplerFilterEnum::Undefined;
+                Wrapping = axr::ImageSamplerWrappingEnum::Undefined;
+            }
+
+            return *this;
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the ImageSamplerConfig as an AxrImageSamplerConfig
+        /// @returns This as an AxrImageSamplerConfig
+        const AxrImageSamplerConfig* toRaw() const {
+            return reinterpret_cast<const AxrImageSamplerConfig*>(this);
+        }
+
+        /// Get a handle to the ImageSamplerConfig as an AxrImageSamplerConfig
+        /// @returns This as an AxrImageSamplerConfig
+        AxrImageSamplerConfig* toRaw() {
+            return reinterpret_cast<AxrImageSamplerConfig*>(this);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Functions
+        // ----------------------------------------- //
+
+        /// Clean up this class
+        void cleanup() {
+            Name = "";
+            Filter = axr::ImageSamplerFilterEnum::Undefined;
+            Wrapping = axr::ImageSamplerWrappingEnum::Undefined;
+        }
+    };
+
+    static_assert(
+        sizeof(AxrImageSamplerConfig) == sizeof(axr::ImageSamplerConfig),
+        "Original type and wrapper have different size!"
+    );
+
+    // ----------------------------------------- //
+    // Image Sampler Definition
+    // ----------------------------------------- //
+
+    /// Image Sampler
+    class ImageSampler {
+    public:
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Constructor
+        /// @param imageSampler Image sampler handle
+        ImageSampler(const AxrImageSampler_T imageSampler):
+            m_ImageSampler(imageSampler) {
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get the image sampler's name
+        /// @returns The image sampler's name
+        [[nodiscard]] const char* getName() const {
+            return axrImageSamplerGetName(m_ImageSampler);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Variables
+        // ----------------------------------------- //
+        AxrImageSampler_T m_ImageSampler;
+    };
+
+    // ---------------------------------------------------------------------------------- //
+    //                                   Image Assets                                     //
+    // ---------------------------------------------------------------------------------- //
+
+    // ----------------------------------------- //
+    // Enums
+    // ----------------------------------------- //
+
     /// Image color channels enum
     enum class ImageColorChannelsEnum {
         Undefined = AXR_IMAGE_COLOR_CHANNELS_UNDEFINED,
@@ -2083,8 +2270,6 @@ namespace axr {
 
         const char* Name;
         const char* FilePath;
-        axr::ImageSamplerFilterEnum Filter;
-        axr::ImageSamplerWrappingEnum Wrapping;
 
         // ----------------------------------------- //
         // Special Functions
@@ -2095,26 +2280,18 @@ namespace axr {
         /// Default Constructor
         ImageConfig():
             Name(""),
-            FilePath(""),
-            Filter(axr::ImageSamplerFilterEnum::Undefined),
-            Wrapping(axr::ImageSamplerWrappingEnum::Undefined) {
+            FilePath("") {
         }
 
         /// Constructor
         /// @param name Name of the image
         /// @param filePath Image file path
-        /// @param filter Image sampler filter enum
-        /// @param wrapping Image sampler wrapping enum
         ImageConfig(
             const char* name,
-            const char* filePath,
-            const axr::ImageSamplerFilterEnum filter,
-            const axr::ImageSamplerWrappingEnum wrapping
+            const char* filePath
         ):
             Name(name),
-            FilePath(filePath),
-            Filter(filter),
-            Wrapping(wrapping) {
+            FilePath(filePath) {
         }
 
         /// Copy Constructor
@@ -2122,8 +2299,6 @@ namespace axr {
         ImageConfig(const ImageConfig& src) {
             Name = src.Name;
             FilePath = src.FilePath;
-            Filter = src.Filter;
-            Wrapping = src.Wrapping;
         }
 
         /// Move Constructor
@@ -2131,13 +2306,9 @@ namespace axr {
         ImageConfig(ImageConfig&& src) noexcept {
             Name = src.Name;
             FilePath = src.FilePath;
-            Filter = src.Filter;
-            Wrapping = src.Wrapping;
 
             src.Name = "";
             src.FilePath = "";
-            Filter = axr::ImageSamplerFilterEnum::Undefined;
-            Wrapping = axr::ImageSamplerWrappingEnum::Undefined;
         }
 
         // ---- Destructor ----
@@ -2157,8 +2328,6 @@ namespace axr {
 
                 Name = src.Name;
                 FilePath = src.FilePath;
-                Filter = src.Filter;
-                Wrapping = src.Wrapping;
             }
 
             return *this;
@@ -2172,13 +2341,9 @@ namespace axr {
 
                 Name = src.Name;
                 FilePath = src.FilePath;
-                Filter = src.Filter;
-                Wrapping = src.Wrapping;
 
                 src.Name = "";
                 src.FilePath = "";
-                Filter = axr::ImageSamplerFilterEnum::Undefined;
-                Wrapping = axr::ImageSamplerWrappingEnum::Undefined;
             }
 
             return *this;
@@ -2209,8 +2374,6 @@ namespace axr {
         void cleanup() {
             Name = "";
             FilePath = "";
-            Filter = axr::ImageSamplerFilterEnum::Undefined;
-            Wrapping = axr::ImageSamplerWrappingEnum::Undefined;
         }
     };
 
@@ -2439,6 +2602,20 @@ namespace axr {
                 m_AssetCollection,
                 imageName,
                 static_cast<AxrEngineAssetEnum>(engineAssetEnum)
+            ));
+        }
+
+        // ---- Image Sampler ----
+
+        /// Create a new image sampler
+        /// @param imageSamplerConfig Image sampler config
+        /// @returns AXR_SUCCESS if the function succeeded
+        [[nodiscard]] axr::Result createImageSampler(
+            const axr::ImageSamplerConfig& imageSamplerConfig
+        ) const {
+            return static_cast<axr::Result>(axrAssetCollectionCreateImageSampler(
+                m_AssetCollection,
+                imageSamplerConfig.toRaw()
             ));
         }
 

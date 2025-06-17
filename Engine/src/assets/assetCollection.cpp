@@ -4,7 +4,6 @@
 #include "assetCollection.hpp"
 #include "axr/logger.h"
 #include "engineAssets.hpp"
-#include "../utils.hpp"
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 #include "pushConstantBuffer.hpp"
@@ -168,6 +167,23 @@ AxrResult axrAssetCollectionCreateEngineAssetImage(
 
     return assetCollection->createImage(imageName, engineAssetEnum);
 
+}
+
+AxrResult axrAssetCollectionCreateImageSampler(
+    const AxrAssetCollection_T assetCollection,
+    const AxrImageSamplerConfig* imageSamplerConfig
+) {
+    if (assetCollection == nullptr) {
+        axrLogErrorLocation("`assetCollection` is null.");
+        return AXR_ERROR;
+    }
+
+    if (imageSamplerConfig == nullptr) {
+        axrLogErrorLocation("`imageConfig` is null.");
+        return AXR_ERROR;
+    }
+
+    return assetCollection->createImageSampler(*imageSamplerConfig);
 }
 
 // ----------------------------------------- //
@@ -613,6 +629,31 @@ AxrResult AxrAssetCollection::createImage(const std::string& imageName, const Ax
     return AXR_SUCCESS;
 }
 
+AxrResult AxrAssetCollection::createImageSampler(const AxrImageSamplerConfig& imageSamplerConfig) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+    
+    if (m_ImageSamplers.contains(imageSamplerConfig.Name)) {
+        axrLogError("Unable to create image sampler. An image sampler named: {0} already exists.", imageSamplerConfig.Name);
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const auto insertResult = m_ImageSamplers.insert(std::pair(imageSamplerConfig.Name, AxrImageSampler(imageSamplerConfig)));
+    if (!insertResult.second) {
+        axrLogErrorLocation("Failed to insert image sampler.");
+        return AXR_ERROR;
+    }
+
+    // TODO: Reload vulkan scene assets if they're already loaded.
+
+    return AXR_SUCCESS;
+}
+
 void AxrAssetCollection::cleanup() {
     unloadAssets();
 
@@ -734,4 +775,8 @@ const std::unordered_map<std::string, AxrPushConstantBuffer>& AxrAssetCollection
 
 const std::unordered_map<std::string, AxrImage>& AxrAssetCollection::getImages() {
     return m_Images;
+}
+
+const std::unordered_map<std::string, AxrImageSampler>& AxrAssetCollection::getImageSamplers() {
+    return m_ImageSamplers;
 }

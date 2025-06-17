@@ -400,7 +400,7 @@ bool axrEngineAssetIsPushConstantBufferNameReserved(const char* name) {
 
 AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
     const std::string& materialName,
-    AxrEngineAssetMaterial_DefaultMaterial materialValues,
+    const AxrEngineAssetMaterial_DefaultMaterial materialValues,
     AxrMaterial& material
 ) {
     AxrShaderUniformBufferLink sceneDataBufferLink{
@@ -419,7 +419,8 @@ AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
 
     AxrShaderImageSamplerBufferLink imageSamplerBufferLink{
         .Binding = 1,
-        .ImageName = materialValues.ImageName
+        .ImageName = materialValues.ImageName,
+        .SamplerName = materialValues.SamplerName,
     };
 
     std::array fragmentBufferLinks{
@@ -827,9 +828,6 @@ AxrResult axrEngineAssetCreateImage_MissingTexture(const std::string& imageName,
     const AxrImageConfig imageConfig{
         .Name = imageName.c_str(),
         .FilePath = "",
-        // TODO: When we use this texture as a missing texture, make sure we use these same sampler options. otherwise it looks weird
-        .Filter = AXR_IMAGE_SAMPLER_FILTER_NEAREST,
-        .Wrapping = AXR_IMAGE_SAMPLER_WRAPPING_REPEAT,
     };
     image = AxrImage(imageConfig);
 
@@ -852,8 +850,6 @@ AxrResult axrEngineAssetCreateImage_UvTester(const std::string& imageName, AxrIm
     const AxrImageConfig imageConfig{
         .Name = imageName.c_str(),
         .FilePath = filePath.c_str(),
-        .Filter = AXR_IMAGE_SAMPLER_FILTER_NEAREST,
-        .Wrapping = AXR_IMAGE_SAMPLER_WRAPPING_REPEAT,
     };
     image = AxrImage(imageConfig);
 

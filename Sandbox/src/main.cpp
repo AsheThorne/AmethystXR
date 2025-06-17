@@ -53,17 +53,28 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     auto app = axr::Application(appConfig);
 
     const std::string imageName = "UvTesterImage";
+    const std::string imageSamplerName = "ImageSampler";
     const std::string materialName = "MyMaterial";
     const std::string modelName = "Cube";
 
+    const axr::ImageSamplerConfig imageSamplerConfig(
+        imageSamplerName.c_str(),
+        axr::ImageSamplerFilterEnum::Nearest,
+        axr::ImageSamplerWrappingEnum::Repeat
+    );
+
     axr::AssetCollection globalAssetCollection = app.getGlobalAssetCollection();
-    if (AXR_FAILED(globalAssetCollection.createImage(imageName.c_str(), axr::EngineAssetEnum::ImageUvTester))) return -1;
+    if (AXR_FAILED(
+        globalAssetCollection.createImage(imageName.c_str(), axr::EngineAssetEnum::ImageUvTester)
+    ))
+        return -1;
+    if (AXR_FAILED(globalAssetCollection.createImageSampler(imageSamplerConfig))) return -1;
     if (AXR_FAILED(globalAssetCollection.createShader(axr::EngineAssetEnum::ShaderDefaultFrag))) return -1;
     if (AXR_FAILED(globalAssetCollection.createShader(axr::EngineAssetEnum::ShaderDefaultVert))) return -1;
     if (AXR_FAILED(
         globalAssetCollection.createMaterial(
             materialName.c_str(),
-            axr::EngineAssetMaterial_DefaultMaterial(imageName.c_str())
+            axr::EngineAssetMaterial_DefaultMaterial(imageName.c_str(), imageSamplerName.c_str())
         )
     )) {
         return -1;

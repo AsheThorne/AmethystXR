@@ -183,14 +183,14 @@ std::vector<AxrShaderImageSamplerBufferLinkConst_T> AxrShaderValuesRAII::getImag
     return imageSamplerBufferLinks;
 }
 
-std::string AxrShaderValuesRAII::findShaderBufferName(const uint32_t binding) const {
+AxrShaderUniformBufferLinkConst_T AxrShaderValuesRAII::findShaderUniformBuffer(const uint32_t binding) const {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
-    
+
     if (m_RawShaderValues == nullptr) {
         axrLogErrorLocation("Raw shader values are null.");
-        return "";
+        return nullptr;
     }
 
     // ----------------------------------------- //
@@ -199,35 +199,48 @@ std::string AxrShaderValuesRAII::findShaderBufferName(const uint32_t binding) co
 
     for (uint32_t i = 0; i < m_RawShaderValues->BufferLinksCount; ++i) {
         if (m_RawShaderValues->BufferLinks[i] == nullptr) continue;
-        
-        switch (m_RawShaderValues->BufferLinks[i]->Type) {
-            case AXR_SHADER_BUFFER_LINK_UNIFORM_BUFFER: {
-                const auto uniformBufferLink = reinterpret_cast<AxrShaderUniformBufferLinkConst_T>(
-                    m_RawShaderValues->BufferLinks[i]
-                );
-                if (uniformBufferLink->Binding == binding) {
-                    return uniformBufferLink->BufferName != nullptr ? uniformBufferLink->BufferName : "";
-                }
-                break;
-            }
-            case AXR_SHADER_BUFFER_LINK_IMAGE_SAMPLER_BUFFER: {
-                const auto imageSamplerBufferLink = reinterpret_cast<AxrShaderImageSamplerBufferLinkConst_T>(
-                    m_RawShaderValues->BufferLinks[i]
-                );
-                if (imageSamplerBufferLink->Binding == binding) {
-                    return imageSamplerBufferLink->ImageName != nullptr ? imageSamplerBufferLink->ImageName : "";
-                }
-                break;
-            }
-            case AXR_SHADER_BUFFER_LINK_UNDEFINED:
-            default: { // NOLINT(clang-diagnostic-covered-switch-default)
-                axrLogErrorLocation("Unknown shader buffer link type.");
-                return "";
-            }
+        if (m_RawShaderValues->BufferLinks[i]->Type != AXR_SHADER_BUFFER_LINK_UNIFORM_BUFFER) continue;
+
+        const auto uniformBufferLink = reinterpret_cast<AxrShaderUniformBufferLinkConst_T>(
+            m_RawShaderValues->BufferLinks[i]
+        );
+        if (uniformBufferLink->Binding == binding) {
+            return uniformBufferLink;
         }
+        break;
     }
 
-    return "";
+    return nullptr;
+}
+
+AxrShaderImageSamplerBufferLinkConst_T AxrShaderValuesRAII::findShaderImageSamplerBuffer(const uint32_t binding) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_RawShaderValues == nullptr) {
+        axrLogErrorLocation("Raw shader values are null.");
+        return nullptr;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    for (uint32_t i = 0; i < m_RawShaderValues->BufferLinksCount; ++i) {
+        if (m_RawShaderValues->BufferLinks[i] == nullptr) continue;
+        if (m_RawShaderValues->BufferLinks[i]->Type != AXR_SHADER_BUFFER_LINK_IMAGE_SAMPLER_BUFFER) continue;
+
+        const auto imageSamplerBufferLink = reinterpret_cast<AxrShaderImageSamplerBufferLinkConst_T>(
+            m_RawShaderValues->BufferLinks[i]
+        );
+        if (imageSamplerBufferLink->Binding == binding) {
+            return imageSamplerBufferLink;
+        }
+        break;
+    }
+
+    return nullptr;
 }
 
 void AxrShaderValuesRAII::cleanup() {
@@ -354,6 +367,7 @@ AxrShaderImageSamplerBufferLink_T AxrShaderValuesRAII::clone(
     return new AxrShaderImageSamplerBufferLink{
         .Binding = shaderBufferLink->Binding,
         .ImageName = shaderBufferLink->ImageName,
+        .SamplerName = shaderBufferLink->SamplerName,
     };
 }
 

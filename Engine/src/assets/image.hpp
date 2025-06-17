@@ -93,12 +93,6 @@ public:
     /// Get the image color channels
     /// @returns the image color channels
     [[nodiscard]] AxrImageColorChannelsEnum getColorChannels() const;
-    /// Get the image sampler filter enum
-    /// @returns The image sampler filter enum
-    [[nodiscard]] AxrImageSamplerFilterEnum getSamplerFilter() const;
-    /// Get the image sampler wrapping enum
-    /// @returns The image sampler wrapping enum
-    [[nodiscard]] AxrImageSamplerWrappingEnum getSamplerWrapping() const;
 
 private:
     // ----------------------------------------- //
@@ -185,8 +179,6 @@ private:
     // ---- Config Variables ----
     std::string m_Name;
     std::string m_FilePath;
-    AxrImageSamplerFilterEnum m_Filter;
-    AxrImageSamplerWrappingEnum m_Wrapping;
 
     mutable Data m_Data;
 

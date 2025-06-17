@@ -10,6 +10,7 @@
 #include "vulkanMaterialLayoutData.hpp"
 #include "vulkanMaterialData.hpp"
 #include "vulkanImageData.hpp"
+#include "vulkanImageSamplerData.hpp"
 #include "axr/scene.h"
 #include "../../../assets/engineAssets.hpp"
 
@@ -181,6 +182,7 @@ private:
     std::unordered_map<std::string, AxrVulkanUniformBufferData> m_UniformBufferData;
     std::unordered_map<std::string, AxrVulkanModelData> m_ModelData;
     std::unordered_map<std::string, AxrVulkanImageData> m_ImageData;
+    std::unordered_map<std::string, AxrVulkanImageSamplerData> m_ImageSamplerData;
     std::unordered_map<std::string, AxrVulkanMaterialLayoutData> m_MaterialLayoutData;
     std::unordered_map<std::string, AxrVulkanMaterialData> m_MaterialData;
     std::unordered_map<std::string, MaterialForRendering> m_MaterialsForRendering;
@@ -317,6 +319,35 @@ private:
     /// @param name The name of the image
     /// @returns A handle to the found image. Or nullptr if it wasn't found
     [[nodiscard]] const AxrVulkanImageData* findImageData_shared(const std::string& name) const;
+
+    // ---- Image Sampler ----
+
+    /// Create all image sampler data
+    /// @results AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createAllImageSamplerData();
+    /// Destroy all image sampler data
+    void destroyAllImageSamplerData();
+
+    /// Initialize all the image sampler data
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult initializeAllImageSamplerData();
+    /// Initialize a single image sampler's data for the given image sampler
+    /// @param imageSampler Image sampler to use
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult initializeImageSamplerData(const AxrImageSampler& imageSampler);
+
+    /// Create the given image sampler data
+    /// @param imageSamplerData Image sampler data to create
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createImageSamplerData(AxrVulkanImageSamplerData& imageSamplerData);
+    /// Destroy the given image sampler data
+    /// @param imageSamplerData Image sampler data to destroy
+    void destroyImageSamplerData(AxrVulkanImageSamplerData& imageSamplerData);
+
+    /// Find the named image sampler data, including the global data in the search
+    /// @param name The name of the image sampler
+    /// @returns A handle to the found image sampler. Or nullptr if it wasn't found
+    [[nodiscard]] const AxrVulkanImageSamplerData* findImageSamplerData_shared(const std::string& name) const;
 
     // ---- Shader ----
 

@@ -4,7 +4,7 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "../vulkanImage.hpp"
+#include "../../../assets/imageSampler.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -16,8 +16,8 @@
 // ----------------------------------------- //
 #include <vulkan/vulkan.hpp>
 
-/// Vulkan image data
-class AxrVulkanImageData {
+/// Vulkan image sampler data
+class AxrVulkanImageSamplerData {
 public:
     // ----------------------------------------- //
     // Structs
@@ -26,11 +26,9 @@ public:
     /// Image data config
     struct Config {
         std::string Name;
-        const AxrImage* ImageHandle;
-        vk::PhysicalDevice PhysicalDevice;
+        const AxrImageSampler* ImageSamplerHandle;
         vk::Device Device;
-        vk::CommandPool GraphicsCommandPool;
-        vk::Queue GraphicsQueue;
+        float MaxSamplerAnisotropy;
         vk::DispatchLoaderDynamic* DispatchHandle;
     };
 
@@ -41,50 +39,50 @@ public:
     // ---- Constructors ----
 
     /// Default Constructor
-    AxrVulkanImageData();
+    AxrVulkanImageSamplerData();
     /// Constructor
-    /// @param config Image data config
-    AxrVulkanImageData(const Config& config);
+    /// @param config Image sampler data config
+    AxrVulkanImageSamplerData(const Config& config);
     /// Copy Constructor
-    /// @param src Source AxrVulkanImageData to copy from
-    AxrVulkanImageData(const AxrVulkanImageData& src) = delete;
+    /// @param src Source AxrVulkanImageSamplerData to copy from
+    AxrVulkanImageSamplerData(const AxrVulkanImageSamplerData& src) = delete;
     /// Move Constructor
-    /// @param src Source AxrVulkanImageData to move from
-    AxrVulkanImageData(AxrVulkanImageData&& src) noexcept;
+    /// @param src Source AxrVulkanImageSamplerData to move from
+    AxrVulkanImageSamplerData(AxrVulkanImageSamplerData&& src) noexcept;
 
     // ---- Destructor ----
 
     /// Destructor
-    ~AxrVulkanImageData();
+    ~AxrVulkanImageSamplerData();
 
     // ---- Operator Overloads ----
 
     /// Copy Assignment Operator
-    /// @param src Source AxrVulkanImageData to copy from
-    AxrVulkanImageData& operator=(const AxrVulkanImageData& src) = delete;
+    /// @param src Source AxrVulkanImageSamplerData to copy from
+    AxrVulkanImageSamplerData& operator=(const AxrVulkanImageSamplerData& src) = delete;
     /// Move Assignment Operator
-    /// @param src Source AxrVulkanImageData to move from
-    AxrVulkanImageData& operator=(AxrVulkanImageData&& src) noexcept;
+    /// @param src Source AxrVulkanImageSamplerData to move from
+    AxrVulkanImageSamplerData& operator=(AxrVulkanImageSamplerData&& src) noexcept;
 
     // ----------------------------------------- //
     // Public Functions
     // ----------------------------------------- //
 
-    /// Get the image name
-    /// @returns The image name
+    /// Get the image sampler name
+    /// @returns The image sampler name
     [[nodiscard]] const std::string& getName() const;
-    /// Get the image view
-    /// @returns The image view
-    [[nodiscard]] const vk::ImageView& getImageView() const;
+    /// Get the image sampler
+    /// @return The image sampler
+    [[nodiscard]] const vk::Sampler& getSampler() const;
 
     /// Check if the data exists
     /// @returns True if the data exists
     [[nodiscard]] bool doesDataExist() const;
 
-    /// Create the image data
+    /// Create the image sampler data
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult createData();
-    /// Destroy the image data
+    /// Destroy the image sampler data
     void destroyData();
 
 private:
@@ -94,10 +92,13 @@ private:
 
     // ---- Config Variables ----
     std::string m_Name;
-    const AxrImage* m_ImageHandle;
+    const AxrImageSampler* m_ImageSamplerHandle;
+    vk::Device m_Device;
+    float m_MaxSamplerAnisotropy;
+    vk::DispatchLoaderDynamic* m_DispatchHandle;
 
     // ---- Data ----
-    AxrVulkanImage m_Image;
+    vk::Sampler m_Sampler;
 
     // ----------------------------------------- //
     // Private Functions
@@ -105,6 +106,16 @@ private:
 
     /// Clean up this class
     void cleanup();
+
+    // ---- Data ----
+
+    /// Create image sampler
+    /// @param sampler Output image sampler
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createSampler(vk::Sampler& sampler) const;
+    /// Destroy the given image sampler
+    /// @param sampler Sampler to destroy
+    void destroySampler(vk::Sampler& sampler) const;
 };
 
 #endif

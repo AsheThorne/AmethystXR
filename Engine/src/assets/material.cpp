@@ -149,18 +149,34 @@ const AxrShaderValuesRAII& AxrMaterial::getFragmentShaderValues() const {
     return m_FragmentShaderValues;
 }
 
-std::string AxrMaterial::findShaderBufferName(const uint32_t binding) const {
-    std::string bufferName = m_VertexShaderValues.findShaderBufferName(binding);
-    if (!bufferName.empty()) {
-        return bufferName;
+AxrShaderUniformBufferLinkConst_T AxrMaterial::findShaderUniformBuffer(const uint32_t binding) const {
+    AxrShaderUniformBufferLinkConst_T uniformBuffer = m_VertexShaderValues.findShaderUniformBuffer(binding);
+    if (uniformBuffer != nullptr) {
+        return uniformBuffer;
     }
 
-    bufferName = m_FragmentShaderValues.findShaderBufferName(binding);
-    if (!bufferName.empty()) {
-        return bufferName;
+    uniformBuffer = m_FragmentShaderValues.findShaderUniformBuffer(binding);
+    if (uniformBuffer != nullptr) {
+        return uniformBuffer;
     }
 
-    return "";
+    return nullptr;
+}
+
+AxrShaderImageSamplerBufferLinkConst_T AxrMaterial::findShaderImageSamplerBuffer(const uint32_t binding) const {
+    AxrShaderImageSamplerBufferLinkConst_T imageSamplerBuffer = m_VertexShaderValues.findShaderImageSamplerBuffer(
+        binding
+    );
+    if (imageSamplerBuffer != nullptr) {
+        return imageSamplerBuffer;
+    }
+
+    imageSamplerBuffer = m_FragmentShaderValues.findShaderImageSamplerBuffer(binding);
+    if (imageSamplerBuffer != nullptr) {
+        return imageSamplerBuffer;
+    }
+
+    return nullptr;
 }
 
 std::string AxrMaterial::getMaterialLayoutName() const {

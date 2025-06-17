@@ -93,6 +93,7 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanUniformBufferData.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanLoadedScenesCollection.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanImageData.hpp
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanImageSamplerData.hpp
     # ---- Assets ----
     ${AXR_SRC_DIR}/assets/assetCollection.hpp
     ${AXR_SRC_DIR}/assets/shader.hpp
@@ -106,6 +107,7 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/assets/uniformBuffer.hpp
     ${AXR_SRC_DIR}/assets/pushConstantBuffer.hpp
     ${AXR_SRC_DIR}/assets/image.hpp
+    ${AXR_SRC_DIR}/assets/imageSampler.hpp
     # ---- Scene ----
     ${AXR_SRC_DIR}/scene/scene.hpp
     ${AXR_SRC_DIR}/scene/sceneUtils.hpp
@@ -145,6 +147,7 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanUniformBufferData.cpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanLoadedScenesCollection.cpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanImageData.cpp
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanImageSamplerData.cpp
     # ---- Assets ----
     ${AXR_SRC_DIR}/assets/assetCollection.cpp
     ${AXR_SRC_DIR}/assets/shader.cpp
@@ -158,6 +161,7 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/assets/uniformBuffer.cpp
     ${AXR_SRC_DIR}/assets/pushConstantBuffer.cpp
     ${AXR_SRC_DIR}/assets/image.cpp
+    ${AXR_SRC_DIR}/assets/imageSampler.cpp
     # ---- Scene ----
     ${AXR_SRC_DIR}/scene/scene.cpp
     ${AXR_SRC_DIR}/scene/sceneUtils.cpp

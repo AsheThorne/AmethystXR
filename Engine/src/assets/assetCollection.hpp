@@ -15,6 +15,7 @@
 #include "model.hpp"
 #include "image.hpp"
 #include "uniformBuffer.hpp"
+#include "imageSampler.hpp"
 
 /// Axr Asset Collection
 class AxrAssetCollection {
@@ -118,6 +119,13 @@ public:
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult createImage(const std::string& imageName, AxrEngineAssetEnum engineAssetEnum);
 
+    // ---- Image Sampler ----
+
+    /// Create a new image sampler
+    /// @param imageSamplerConfig Image sampler config
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createImageSampler(const AxrImageSamplerConfig& imageSamplerConfig);
+
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
     // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
@@ -168,6 +176,9 @@ public:
     /// Get the images
     /// @returns A map of the images
     [[nodiscard]] const std::unordered_map<std::string, AxrImage>& getImages();
+    /// Get the image samplers
+    /// @returns A map of the image samplers
+    [[nodiscard]] const std::unordered_map<std::string, AxrImageSampler>& getImageSamplers();
 
 private:
     // ----------------------------------------- //
@@ -181,4 +192,5 @@ private:
     std::unordered_map<std::string, AxrPushConstantBuffer> m_PushConstantBuffers;
 #endif
     std::unordered_map<std::string, AxrImage> m_Images;
+    std::unordered_map<std::string, AxrImageSampler> m_ImageSamplers;
 };
