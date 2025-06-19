@@ -1458,8 +1458,8 @@ namespace axr {
         "Original type and wrapper have different size!"
     );
 
-    /// Mesh
-    struct Mesh {
+    /// Submesh
+    struct Submesh {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
@@ -1476,7 +1476,7 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        Mesh(): VerticesCount(0),
+        Submesh(): VerticesCount(0),
             Vertices(nullptr),
             IndicesCount(0),
             Indices(nullptr) {
@@ -1485,7 +1485,7 @@ namespace axr {
         /// Constructor
         /// @param vertices Vertices to copy
         /// @param indices Indices to copy
-        Mesh(const std::vector<axr::Vertex>& vertices, const std::vector<uint32_t>& indices) {
+        Submesh(const std::vector<axr::Vertex>& vertices, const std::vector<uint32_t>& indices) {
             VerticesCount = static_cast<uint32_t>(vertices.size());
             Vertices = cloneVertices(VerticesCount, vertices.data());
             IndicesCount = static_cast<uint32_t>(indices.size());
@@ -1493,8 +1493,8 @@ namespace axr {
         }
 
         /// Copy Constructor
-        /// @param src Source Mesh to copy from
-        Mesh(const Mesh& src) {
+        /// @param src Source Submesh to copy from
+        Submesh(const Submesh& src) {
             VerticesCount = src.VerticesCount;
             Vertices = cloneVertices(src.VerticesCount, src.Vertices);
             IndicesCount = src.IndicesCount;
@@ -1502,8 +1502,8 @@ namespace axr {
         }
 
         /// Move Constructor
-        /// @param src Source Mesh to move from
-        Mesh(Mesh&& src) noexcept {
+        /// @param src Source Submesh to move from
+        Submesh(Submesh&& src) noexcept {
             VerticesCount = src.VerticesCount;
             Vertices = src.Vertices;
             IndicesCount = src.IndicesCount;
@@ -1513,6 +1513,146 @@ namespace axr {
             src.Vertices = nullptr;
             src.IndicesCount = 0;
             src.Indices = nullptr;
+        }
+
+        // ---- Destructor ----
+
+        /// Destructor
+        ~Submesh() {
+            cleanup();
+        }
+
+        // ---- Operator Overloads ----
+
+        /// Copy Assignment Operator
+        /// @param src Source Submesh to copy from
+        Submesh& operator=(const Submesh& src) {
+            if (this != &src) {
+                cleanup();
+
+                VerticesCount = src.VerticesCount;
+                Vertices = cloneVertices(src.VerticesCount, src.Vertices);
+                IndicesCount = src.IndicesCount;
+                Indices = cloneIndices(src.IndicesCount, src.Indices);
+            }
+
+            return *this;
+        }
+
+        /// Move Assignment Operator
+        /// @param src Source Submesh to move from
+        Submesh& operator=(Submesh&& src) noexcept {
+            if (this != &src) {
+                cleanup();
+
+                VerticesCount = src.VerticesCount;
+                Vertices = src.Vertices;
+                IndicesCount = src.IndicesCount;
+                Indices = src.Indices;
+
+                src.VerticesCount = 0;
+                src.Vertices = nullptr;
+                src.IndicesCount = 0;
+                src.Indices = nullptr;
+            }
+
+            return *this;
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the Submesh as an AxrSubmesh
+        /// @returns This as an AxrSubmesh
+        const AxrSubmesh* toRaw() const {
+            return reinterpret_cast<const AxrSubmesh*>(this);
+        }
+
+        /// Get a handle to the Submesh as an AxrSubmesh
+        /// @returns This as an AxrSubmesh
+        AxrSubmesh* toRaw() {
+            return reinterpret_cast<AxrSubmesh*>(this);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Functions
+        // ----------------------------------------- //
+
+        /// Clean up this class
+        void cleanup() {
+            axrSubmeshDestroyVertices(&VerticesCount, reinterpret_cast<AxrVertex**>(&Vertices));
+            axrSubmeshDestroyIndices(&IndicesCount, &Indices);
+        }
+
+        /// Clone the given vertices
+        /// @param verticesCount Number of vertices in the given array
+        /// @param vertices Vertex array to clone
+        /// @returns A cloned array of the given vertices
+        axr::Vertex* cloneVertices(const uint32_t verticesCount, const axr::Vertex* vertices) {
+            return reinterpret_cast<axr::Vertex*>(axrSubmeshCloneVertices(
+                verticesCount,
+                reinterpret_cast<const AxrVertex*>(vertices)
+            ));
+        }
+
+        /// Clone the given indices
+        /// @param indicesCount Number of indices in the given array
+        /// @param indices Index array to clone
+        /// @returns A cloned array of the given indices
+        uint32_t* cloneIndices(const uint32_t indicesCount, const uint32_t* indices) {
+            return axrSubmeshCloneIndices(indicesCount, indices);
+        }
+    };
+
+    static_assert(
+        sizeof(AxrSubmesh) == sizeof(axr::Submesh),
+        "Original type and wrapper have different size!"
+    );
+
+    /// Mesh
+    struct Mesh {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+
+        uint32_t SubmeshCount;
+        axr::Submesh* Submeshes;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        Mesh(): SubmeshCount(0),
+            Submeshes(nullptr) {
+        }
+
+        /// Constructor
+        /// @param submeshes Submeshes to copy
+        Mesh(const std::vector<axr::Submesh>& submeshes) {
+            SubmeshCount = static_cast<uint32_t>(submeshes.size());
+            Submeshes = cloneSubmeshes(SubmeshCount, submeshes.data());
+        }
+
+        /// Copy Constructor
+        /// @param src Source Mesh to copy from
+        Mesh(const Mesh& src) {
+            SubmeshCount = src.SubmeshCount;
+            Submeshes = cloneSubmeshes(src.SubmeshCount, src.Submeshes);
+        }
+
+        /// Move Constructor
+        /// @param src Source Mesh to move from
+        Mesh(Mesh&& src) noexcept {
+            SubmeshCount = src.SubmeshCount;
+            Submeshes = src.Submeshes;
+
+            src.SubmeshCount = 0;
+            src.Submeshes = nullptr;
         }
 
         // ---- Destructor ----
@@ -1530,10 +1670,8 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                VerticesCount = src.VerticesCount;
-                Vertices = cloneVertices(src.VerticesCount, src.Vertices);
-                IndicesCount = src.IndicesCount;
-                Indices = cloneIndices(src.IndicesCount, src.Indices);
+                SubmeshCount = src.SubmeshCount;
+                Submeshes = cloneSubmeshes(src.SubmeshCount, src.Submeshes);
             }
 
             return *this;
@@ -1545,15 +1683,11 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                VerticesCount = src.VerticesCount;
-                Vertices = src.Vertices;
-                IndicesCount = src.IndicesCount;
-                Indices = src.Indices;
+                SubmeshCount = src.SubmeshCount;
+                Submeshes = src.Submeshes;
 
-                src.VerticesCount = 0;
-                src.Vertices = nullptr;
-                src.IndicesCount = 0;
-                src.Indices = nullptr;
+                src.SubmeshCount = 0;
+                src.Submeshes = nullptr;
             }
 
             return *this;
@@ -1582,27 +1716,18 @@ namespace axr {
 
         /// Clean up this class
         void cleanup() {
-            axrMeshDestroyVertices(&VerticesCount, reinterpret_cast<AxrVertex**>(&Vertices));
-            axrMeshDestroyIndices(&IndicesCount, &Indices);
+            axrMeshDestroySubmeshes(&SubmeshCount, reinterpret_cast<AxrSubmesh**>(&Submeshes));
         }
 
-        /// Clone the given vertices
-        /// @param verticesCount Number of vertices in the given array
-        /// @param vertices Vertex array to clone
-        /// @returns A cloned array of the given vertices
-        axr::Vertex* cloneVertices(const uint32_t verticesCount, const axr::Vertex* vertices) {
-            return reinterpret_cast<axr::Vertex*>(axrMeshCloneVertices(
-                verticesCount,
-                reinterpret_cast<const AxrVertex*>(vertices)
+        /// Clone the given submeshes
+        /// @param submeshesCount Number of submeshes in the given array
+        /// @param submeshes Submesh array to clone
+        /// @returns A cloned array of the given submeshes
+        axr::Submesh* cloneSubmeshes(const uint32_t submeshesCount, const axr::Submesh* submeshes) {
+            return reinterpret_cast<axr::Submesh*>(axrMeshCloneSubmeshes(
+                submeshesCount,
+                reinterpret_cast<const AxrSubmesh*>(submeshes)
             ));
-        }
-
-        /// Clone the given indices
-        /// @param indicesCount Number of indices in the given array
-        /// @param indices Index array to clone
-        /// @returns A cloned array of the given indices
-        uint32_t* cloneIndices(const uint32_t indicesCount, const uint32_t* indices) {
-            return axrMeshCloneIndices(indicesCount, indices);
         }
     };
 

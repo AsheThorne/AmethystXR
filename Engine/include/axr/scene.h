@@ -37,9 +37,14 @@ struct AxrModelComponent {
     const char* ModelName;
 
     uint32_t MeshCount;
+
     struct Mesh {
-        const char* MaterialName;
-    }* Meshes;
+        uint32_t SubmeshCount;
+
+        struct Submesh {
+            const char* MaterialName;
+        } * Submeshes;
+    } * Meshes;
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     const char* PushConstantBufferName;

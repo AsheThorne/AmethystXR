@@ -100,8 +100,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
             .Orientation = glm::quat(1.f, 0.f, 0.f, 0.f),
         }
     );
-    AxrModelComponent::Mesh mesh{
+    AxrModelComponent::Mesh::Submesh submesh{
         .MaterialName = materialName.c_str(),
+    };
+    AxrModelComponent::Mesh mesh{
+        .SubmeshCount = 1,
+        .Submeshes = &submesh,
     };
     entity.emplace<AxrModelComponent>(
         AxrModelComponent{

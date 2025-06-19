@@ -34,7 +34,8 @@ AxrVulkanModelData::AxrVulkanModelData(const Config& config):
 
 AxrVulkanModelData::AxrVulkanModelData(AxrVulkanModelData&& src) noexcept {
     m_Name = std::move(src.m_Name);
-    m_MeshBuffers = std::move(src.m_MeshBuffers);
+    m_ModelBuffer = std::move(src.m_ModelBuffer);
+    m_MeshBufferLocations = std::move(src.m_MeshBufferLocations);
 
     m_ModelHandle = src.m_ModelHandle;
     m_PhysicalDevice = src.m_PhysicalDevice;
@@ -60,7 +61,8 @@ AxrVulkanModelData& AxrVulkanModelData::operator=(AxrVulkanModelData&& src) noex
         cleanup();
 
         m_Name = std::move(src.m_Name);
-        m_MeshBuffers = std::move(src.m_MeshBuffers);
+        m_ModelBuffer = std::move(src.m_ModelBuffer);
+        m_MeshBufferLocations = std::move(src.m_MeshBufferLocations);
 
         m_ModelHandle = src.m_ModelHandle;
         m_PhysicalDevice = src.m_PhysicalDevice;
@@ -86,24 +88,24 @@ const std::string& AxrVulkanModelData::getName() const {
     return m_Name;
 }
 
-const vk::Buffer& AxrVulkanModelData::getMeshBuffer(const uint32_t meshIndex) const {
-    return m_MeshBuffers[meshIndex].Buffer.getBuffer();
+const vk::Buffer& AxrVulkanModelData::getModelBuffer() const {
+    return m_ModelBuffer.getBuffer();
 }
 
-const vk::DeviceSize& AxrVulkanModelData::getMeshBufferIndicesOffset(const uint32_t meshIndex) const {
-    return m_MeshBuffers[meshIndex].IndicesOffset;
+const vk::DeviceSize& AxrVulkanModelData::getSubmeshBufferIndicesOffset(const uint32_t meshIndex, const uint32_t submeshIndex) const {
+    return m_MeshBufferLocations[meshIndex].SubmeshLocations[submeshIndex].IndicesOffset;
 }
 
-const vk::DeviceSize& AxrVulkanModelData::getMeshBufferVerticesOffset(const uint32_t meshIndex) const {
-    return m_MeshBuffers[meshIndex].VerticesOffset;
+const vk::DeviceSize& AxrVulkanModelData::getSubmeshBufferVerticesOffset(const uint32_t meshIndex, const uint32_t submeshIndex) const {
+    return m_MeshBufferLocations[meshIndex].SubmeshLocations[submeshIndex].VerticesOffset;
 }
 
-const uint32_t& AxrVulkanModelData::getMeshIndexCount(const uint32_t meshIndex) const {
-    return m_MeshBuffers[meshIndex].IndexCount;
+const uint32_t& AxrVulkanModelData::getSubmeshIndexCount(const uint32_t meshIndex, const uint32_t submeshIndex) const {
+    return m_MeshBufferLocations[meshIndex].SubmeshLocations[submeshIndex].IndexCount;
 }
 
 bool AxrVulkanModelData::doesDataExist() const {
-    return !m_MeshBuffers.empty();
+    return !m_ModelBuffer.isEmpty();
 }
 
 AxrResult AxrVulkanModelData::createData() {
@@ -122,7 +124,7 @@ AxrResult AxrVulkanModelData::createData() {
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    axrResult = createMeshBuffers();
+    axrResult = createModelBuffer();
     if (AXR_FAILED(axrResult)) {
         axrLogErrorLocation("Failed to create mesh buffers.");
         destroyData();
@@ -133,7 +135,7 @@ AxrResult AxrVulkanModelData::createData() {
 }
 
 void AxrVulkanModelData::destroyData() {
-    destroyMeshBuffers();
+    destroyModelBuffer();
 }
 
 // ---- Private Functions ----
@@ -150,13 +152,13 @@ void AxrVulkanModelData::cleanup() {
     m_DispatchHandle = nullptr;
 }
 
-AxrResult AxrVulkanModelData::createMeshBuffers() {
+AxrResult AxrVulkanModelData::createModelBuffer() {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
 
-    if (!m_MeshBuffers.empty()) {
-        axrLogErrorLocation("Mesh buffers already exist.");
+    if (!m_ModelBuffer.isEmpty()) {
+        axrLogErrorLocation("Model buffer already exists.");
         return AXR_ERROR;
     }
 
@@ -174,87 +176,33 @@ AxrResult AxrVulkanModelData::createMeshBuffers() {
         axrResult = m_ModelHandle->loadFile();
         if (AXR_FAILED(axrResult)) {
             axrLogErrorLocation("Failed to load model named: {0}.", m_ModelHandle->getName());
-            destroyMeshBuffers();
+            destroyModelBuffer();
             return axrResult;
         }
     }
 
     const std::vector<AxrMeshRAII>& meshes = m_ModelHandle->getMeshes();
-    m_MeshBuffers.resize(meshes.size());
+    m_ModelBuffer = AxrVulkanBuffer(
+        {
+            .PhysicalDevice = m_PhysicalDevice,
+            .Device = m_Device,
+            .TransferCommandPool = m_TransferCommandPool,
+            .TransferQueue = m_TransferQueue,
+            .DispatchHandle = m_DispatchHandle
+        }
+    );
 
-    for (size_t i = 0; i < m_MeshBuffers.size(); ++i) {
-        MeshBuffer meshBuffer{
-            .Buffer = AxrVulkanBuffer(
-                AxrVulkanBuffer::Config{
-                    .PhysicalDevice = m_PhysicalDevice,
-                    .Device = m_Device,
-                    .TransferCommandPool = m_TransferCommandPool,
-                    .TransferQueue = m_TransferQueue,
-                    .DispatchHandle = m_DispatchHandle
-                }
-            ),
-            .IndicesOffset = 0,
-            .VerticesOffset = 0,
-            .IndexCount = 0
-        };
-        m_MeshBuffers[i] = std::move(meshBuffer);
+    vk::DeviceSize indexBufferSize = 0;
+    vk::DeviceSize vertexBufferSize = 0;
 
-        axrResult = createMeshBuffer(meshes[i], m_MeshBuffers[i]);
-        if (AXR_FAILED(axrResult)) {
-            break;
+    for (const AxrMeshRAII& mesh : meshes) {
+        for (const AxrSubmeshRAII& submesh : mesh.Submeshes) {
+            indexBufferSize += sizeof(uint32_t) * submesh.Indices.size();
+            vertexBufferSize += sizeof(AxrVertex) * submesh.Vertices.size();
         }
     }
 
-    if (AXR_FAILED(axrResult)) {
-        axrLogErrorLocation("Failed to create mesh buffers.");
-        destroyMeshBuffers();
-        return axrResult;
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanModelData::destroyMeshBuffers() {
-    for (MeshBuffer& meshBuffer : m_MeshBuffers) {
-        destroyMeshBuffer(meshBuffer);
-    }
-    m_MeshBuffers.clear();
-}
-
-AxrResult AxrVulkanModelData::createMeshBuffer(const AxrMeshRAII& mesh, MeshBuffer& meshBuffer) const {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
-
-    if (!meshBuffer.Buffer.isEmpty()) {
-        axrLogErrorLocation("Mesh buffer already exist.");
-        return AXR_ERROR;
-    }
-
-    if (m_Device == VK_NULL_HANDLE) {
-        axrLogErrorLocation("Device is null.");
-        return AXR_ERROR;
-    }
-
-    if (m_DispatchHandle == nullptr) {
-        axrLogErrorLocation("Dispatch handle is null.");
-        return AXR_ERROR;
-    }
-
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
-
-    AxrResult axrResult = AXR_SUCCESS;
-
-    const vk::DeviceSize indexBufferSize = sizeof(uint32_t) * mesh.Indices.size();
-    const vk::DeviceSize vertexBufferSize = sizeof(AxrVertex) * mesh.Vertices.size();
-
-    meshBuffer.IndicesOffset = 0;
-    meshBuffer.VerticesOffset = indexBufferSize;
-    meshBuffer.IndexCount = static_cast<uint32_t>(mesh.Indices.size());
-
-    axrResult = meshBuffer.Buffer.createBuffer(
+    axrResult = m_ModelBuffer.createBuffer(
         // NOTE: We only have static meshes right now. In the future, we will have dynamic ones though
         //  But if we have dynamic ones, does that mean we need a new buffer for each frame in flight!?!?! I hope not.
         //  But if we don't, then why do we for uniform buffers?
@@ -264,46 +212,66 @@ AxrResult AxrVulkanModelData::createMeshBuffer(const AxrMeshRAII& mesh, MeshBuff
     );
     if (AXR_FAILED(axrResult)) {
         axrLogErrorLocation("Failed to create mesh buffer.");
-        meshBuffer.Buffer.destroyBuffer();
+        destroyModelBuffer();
         return axrResult;
     }
 
-    axrResult = meshBuffer.Buffer.setBufferData(
-        meshBuffer.IndicesOffset,
-        indexBufferSize,
-        mesh.Indices.data()
-    );
-    if (AXR_FAILED(axrResult)) {
-        axrLogErrorLocation("Failed to set mesh indices.");
-        meshBuffer.Buffer.destroyBuffer();
-        return axrResult;
+    vk::DeviceSize indicesOffset = 0;
+    vk::DeviceSize verticesOffset = indexBufferSize;
+
+    m_MeshBufferLocations.resize(meshes.size());
+    for (size_t i = 0; i < meshes.size(); ++i) {
+        m_MeshBufferLocations[i].SubmeshLocations.resize(meshes[i].Submeshes.size());
+
+        for (size_t j = 0; j < meshes[i].Submeshes.size(); ++j) {
+            SubmeshBufferLocation& submeshBufferLocation = m_MeshBufferLocations[i].SubmeshLocations[j];
+            submeshBufferLocation.IndicesOffset = indicesOffset;
+            submeshBufferLocation.VerticesOffset = verticesOffset;
+            submeshBufferLocation.IndexCount = static_cast<uint32_t>(meshes[i].Submeshes[j].Indices.size());
+
+            const vk::DeviceSize submeshIndicesSize = sizeof(uint32_t) * meshes[i].Submeshes[j].Indices.size();
+            const vk::DeviceSize submeshVerticesSize = sizeof(AxrVertex) * meshes[i].Submeshes[j].Vertices.size();
+
+            axrResult = m_ModelBuffer.setBufferData(
+                submeshBufferLocation.IndicesOffset,
+                submeshIndicesSize,
+                meshes[i].Submeshes[j].Indices.data()
+            );
+            if (AXR_FAILED(axrResult)) {
+                axrLogErrorLocation("Failed to set submesh indices.");
+                destroyModelBuffer();
+                return axrResult;
+            }
+
+            axrResult = m_ModelBuffer.setBufferData(
+                submeshBufferLocation.VerticesOffset,
+                submeshVerticesSize,
+                meshes[i].Submeshes[j].Vertices.data()
+            );
+            if (AXR_FAILED(axrResult)) {
+                axrLogErrorLocation("Failed to set submesh indices.");
+                destroyModelBuffer();
+                return axrResult;
+            }
+
+            indicesOffset += submeshIndicesSize;
+            verticesOffset += submeshVerticesSize;
+        }
     }
 
-    axrResult = meshBuffer.Buffer.setBufferData(
-        meshBuffer.VerticesOffset,
-        vertexBufferSize,
-        mesh.Vertices.data()
-    );
-    if (AXR_FAILED(axrResult)) {
-        axrLogErrorLocation("Failed to set mesh indices.");
-        meshBuffer.Buffer.destroyBuffer();
-        return axrResult;
-    }
-
-    axrResult = meshBuffer.Buffer.convertToStaticBuffer();
+    axrResult = m_ModelBuffer.convertToStaticBuffer();
     if (AXR_FAILED(axrResult)) {
         axrLogErrorLocation("Failed to convert to static buffer.");
-        meshBuffer.Buffer.destroyBuffer();
+        destroyModelBuffer();
         return axrResult;
     }
 
     return AXR_SUCCESS;
 }
 
-void AxrVulkanModelData::destroyMeshBuffer(MeshBuffer& meshBuffer) const {
-    meshBuffer.Buffer.destroyBuffer();
-    meshBuffer.IndicesOffset = 0;
-    meshBuffer.VerticesOffset = 0;
+void AxrVulkanModelData::destroyModelBuffer() {
+    m_ModelBuffer.destroyBuffer();
+    m_MeshBufferLocations.clear();
 }
 
 #endif

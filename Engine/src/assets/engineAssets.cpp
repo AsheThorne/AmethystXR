@@ -516,11 +516,16 @@ AxrResult axrEngineAssetCreateModel_Triangle(const std::string& modelName, AxrMo
         0, 1, 2,
     };
 
-    const AxrMesh mesh{
+    AxrSubmesh submesh{
         .VerticesCount = static_cast<uint32_t>(vertices.size()),
         .Vertices = vertices.data(),
         .IndicesCount = static_cast<uint32_t>(indices.size()),
         .Indices = indices.data(),
+    };
+
+    const AxrMesh mesh{
+        .SubmeshCount = 1,
+        .Submeshes = &submesh,
     };
 
     const AxrResult axrResult = model.setData(1, &mesh);
@@ -567,11 +572,16 @@ AxrResult axrEngineAssetCreateModel_Square(const std::string& modelName, AxrMode
         2, 3, 0,
     };
 
-    const AxrMesh mesh{
+    AxrSubmesh submesh{
         .VerticesCount = static_cast<uint32_t>(vertices.size()),
         .Vertices = vertices.data(),
         .IndicesCount = static_cast<uint32_t>(indices.size()),
         .Indices = indices.data(),
+    };
+
+    const AxrMesh mesh{
+        .SubmeshCount = 1,
+        .Submeshes = &submesh,
     };
 
     const AxrResult axrResult = model.setData(1, &mesh);
@@ -750,11 +760,16 @@ AxrResult axrEngineAssetCreateModel_Cube(const std::string& modelName, AxrModel&
         22, 23, 20,
     };
 
-    const AxrMesh mesh{
+    AxrSubmesh submesh{
         .VerticesCount = static_cast<uint32_t>(vertices.size()),
         .Vertices = vertices.data(),
         .IndicesCount = static_cast<uint32_t>(indices.size()),
         .Indices = indices.data(),
+    };
+
+    const AxrMesh mesh{
+        .SubmeshCount = 1,
+        .Submeshes = &submesh,
     };
 
     const AxrResult axrResult = model.setData(1, &mesh);

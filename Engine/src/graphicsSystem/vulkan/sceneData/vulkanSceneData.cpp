@@ -1703,58 +1703,60 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
         axrLogErrorLocation("Failed to find model data for model: {0}.", modelComponent.ModelName);
     }
 
-    for (uint32_t i = 0; i < modelComponent.MeshCount; ++i) {
-        AxrModelComponent::Mesh& currentMesh = modelComponent.Meshes[i];
+    for (uint32_t meshIndex = 0; meshIndex < modelComponent.MeshCount; ++meshIndex) {
+        for (int submeshIndex = 0; submeshIndex < modelComponent.Meshes[meshIndex].SubmeshCount; ++submeshIndex) {
+            const AxrModelComponent::Mesh::Submesh& currentSubmesh = modelComponent.Meshes[meshIndex].Submeshes[submeshIndex];
 
-        const AxrVulkanMaterialData* foundMaterialData = findMaterialData_shared(currentMesh.MaterialName);
-        if (foundMaterialData == nullptr) {
-            axrLogErrorLocation("Failed to find material data for material: {0}.", currentMesh.MaterialName);
-            continue;
-        }
+            const AxrVulkanMaterialData* foundMaterialData = findMaterialData_shared(currentSubmesh.MaterialName);
+            if (foundMaterialData == nullptr) {
+                axrLogErrorLocation("Failed to find material data for material: {0}.", currentSubmesh.MaterialName);
+                continue;
+            }
 
-        auto foundMaterialForRendering = materialsForRendering.find(currentMesh.MaterialName);
-        const vk::ShaderStageFlags& pushConstantStageFlags = foundMaterialData->getMaterialLayoutData()
-                                                                              ->getPushConstantShaderStages();
+            auto foundMaterialForRendering = materialsForRendering.find(currentSubmesh.MaterialName);
+            const vk::ShaderStageFlags& pushConstantStageFlags = foundMaterialData->getMaterialLayoutData()
+                ->getPushConstantShaderStages();
 
-        auto meshForRendering = MeshForRendering{
-            .Buffer = foundModelData->getMeshBuffer(i),
-            .BufferIndicesOffset = foundModelData->getMeshBufferIndicesOffset(i),
-            .BufferVerticesOffset = foundModelData->getMeshBufferVerticesOffset(i),
-            .IndexCount = foundModelData->getMeshIndexCount(i),
-            .PushConstant = axrStringIsEmpty(modelComponent.PushConstantBufferName) ||
-                            pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
-                                ? PushConstantForRendering{}
-                                : PushConstantForRendering{
-                                    .ShaderStages = &pushConstantStageFlags,
-                                    .BufferName = modelComponent.PushConstantBufferName,
-                                    .TransformComponent = &transformComponent,
-                                },
-        };
+            auto meshForRendering = MeshForRendering{
+                .Buffer = foundModelData->getModelBuffer(),
+                .BufferIndicesOffset = foundModelData->getSubmeshBufferIndicesOffset(meshIndex, submeshIndex),
+                .BufferVerticesOffset = foundModelData->getSubmeshBufferVerticesOffset(meshIndex, submeshIndex),
+                .IndexCount = foundModelData->getSubmeshIndexCount(meshIndex, submeshIndex),
+                .PushConstant = axrStringIsEmpty(modelComponent.PushConstantBufferName) ||
+                                pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
+                                    ? PushConstantForRendering{}
+                                    : PushConstantForRendering{
+                                        .ShaderStages = &pushConstantStageFlags,
+                                        .BufferName = modelComponent.PushConstantBufferName,
+                                        .TransformComponent = &transformComponent,
+                                    },
+            };
 
-        if (foundMaterialForRendering == materialsForRendering.end()) {
-            const std::string& materialPushConstantBufferName = foundMaterialData->getPushConstantBufferName();
+            if (foundMaterialForRendering == materialsForRendering.end()) {
+                const std::string& materialPushConstantBufferName = foundMaterialData->getPushConstantBufferName();
 
-            materialsForRendering.insert(
-                std::pair(
-                    currentMesh.MaterialName,
-                    MaterialForRendering{
-                        .PipelineLayout = foundMaterialData->getMaterialLayoutData()->getPipelineLayout(),
-                        .WindowPipeline = foundMaterialData->getWindowPipeline(),
-                        .WindowDescriptorSets = foundMaterialData->getWindowDescriptorSets(),
-                        .PushConstant = materialPushConstantBufferName.empty() ||
-                                        pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
-                                            ? PushConstantForRendering{}
-                                            : PushConstantForRendering{
-                                                .ShaderStages = &pushConstantStageFlags,
-                                                .BufferName = materialPushConstantBufferName.c_str(),
-                                                .TransformComponent = &transformComponent,
-                                            },
-                        .Meshes = {meshForRendering}
-                    }
-                )
-            );
-        } else {
-            foundMaterialForRendering->second.Meshes.push_back(meshForRendering);
+                materialsForRendering.insert(
+                    std::pair(
+                        currentSubmesh.MaterialName,
+                        MaterialForRendering{
+                            .PipelineLayout = foundMaterialData->getMaterialLayoutData()->getPipelineLayout(),
+                            .WindowPipeline = foundMaterialData->getWindowPipeline(),
+                            .WindowDescriptorSets = foundMaterialData->getWindowDescriptorSets(),
+                            .PushConstant = materialPushConstantBufferName.empty() ||
+                                            pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
+                                                ? PushConstantForRendering{}
+                                                : PushConstantForRendering{
+                                                    .ShaderStages = &pushConstantStageFlags,
+                                                    .BufferName = materialPushConstantBufferName.c_str(),
+                                                    .TransformComponent = &transformComponent,
+                                                },
+                            .Meshes = {meshForRendering}
+                        }
+                    )
+                );
+            } else {
+                foundMaterialForRendering->second.Meshes.push_back(meshForRendering);
+            }
         }
     }
 

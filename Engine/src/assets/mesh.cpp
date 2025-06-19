@@ -8,50 +8,27 @@
 // External Functions
 // ----------------------------------------- //
 
-AxrVertex* axrMeshCloneVertices(const uint32_t verticesCount, const AxrVertex* vertices) {
-    if (vertices == nullptr) {
-        axrLogErrorLocation("`vertices` is null.");
+AxrSubmesh* axrMeshCloneSubmeshes(const uint32_t submeshesCount, const AxrSubmesh* submeshes) {
+    if (submeshes == nullptr) {
+        axrLogErrorLocation("`submeshes` is null.");
         return {};
     }
 
-    return AxrMeshRAII::cloneVertices(verticesCount, vertices);
+    return AxrMeshRAII::cloneSubmeshes(submeshesCount, submeshes);
 }
 
-void axrMeshDestroyVertices(uint32_t* verticesCount, AxrVertex** vertices) {
-    if (verticesCount == nullptr) {
-        axrLogErrorLocation("`indicesCount` is null.");
-        return;
-    }
-    
-    if (vertices == nullptr) {
-        axrLogErrorLocation("`vertices` is null.");
+void axrMeshDestroySubmeshes(uint32_t* submeshesCount, AxrSubmesh** submeshes) {
+    if (submeshesCount == nullptr) {
+        axrLogErrorLocation("`submeshesCount` is null.");
         return;
     }
 
-    return AxrMeshRAII::destroyVertices(*verticesCount, *vertices);
-}
-
-uint32_t* axrMeshCloneIndices(const uint32_t indicesCount, const uint32_t* indices) {
-    if (indices == nullptr) {
-        axrLogErrorLocation("`indices` is null.");
-        return {};
-    }
-
-    return AxrMeshRAII::cloneIndices(indicesCount, indices);
-}
-
-void axrMeshDestroyIndices(uint32_t* indicesCount, uint32_t** indices) {
-    if (indicesCount == nullptr) {
-        axrLogErrorLocation("`indicesCount` is null.");
-        return;
-    }
-    
-    if (indices == nullptr) {
-        axrLogErrorLocation("`indices` is null.");
+    if (submeshes == nullptr) {
+        axrLogErrorLocation("`submeshes` is null.");
         return;
     }
 
-    return AxrMeshRAII::destroyIndices(*indicesCount, *indices);
+    return AxrMeshRAII::destroySubmeshes(*submeshesCount, *submeshes);
 }
 
 // ----------------------------------------- //
@@ -63,18 +40,15 @@ void axrMeshDestroyIndices(uint32_t* indicesCount, uint32_t** indices) {
 AxrMeshRAII::AxrMeshRAII() = default;
 
 AxrMeshRAII::AxrMeshRAII(const AxrMesh& mesh) {
-    Vertices = toVector(mesh.VerticesCount, mesh.Vertices);
-    Indices = toVector(mesh.IndicesCount, mesh.Indices);
+    Submeshes = toVector(mesh.SubmeshCount, mesh.Submeshes);
 }
 
 AxrMeshRAII::AxrMeshRAII(const AxrMeshRAII& src) {
-    Vertices = src.Vertices;
-    Indices = src.Indices;
+    Submeshes = src.Submeshes;
 }
 
 AxrMeshRAII::AxrMeshRAII(AxrMeshRAII&& src) noexcept {
-    Vertices = std::move(src.Vertices);
-    Indices = std::move(src.Indices);
+    Submeshes = std::move(src.Submeshes);
 }
 
 AxrMeshRAII::~AxrMeshRAII() {
@@ -85,8 +59,7 @@ AxrMeshRAII& AxrMeshRAII::operator=(const AxrMeshRAII& src) {
     if (this != &src) {
         cleanup();
 
-        Vertices = src.Vertices;
-        Indices = src.Indices;
+        Submeshes = src.Submeshes;
     }
 
     return *this;
@@ -96,8 +69,7 @@ AxrMeshRAII& AxrMeshRAII::operator=(AxrMeshRAII&& src) noexcept {
     if (this != &src) {
         cleanup();
 
-        Vertices = std::move(src.Vertices);
-        Indices = std::move(src.Indices);
+        Submeshes = std::move(src.Submeshes);
     }
 
     return *this;
@@ -107,83 +79,52 @@ AxrMeshRAII& AxrMeshRAII::operator=(AxrMeshRAII&& src) noexcept {
 
 AxrMesh AxrMeshRAII::cloneMesh(const AxrMesh& mesh) {
     return AxrMesh{
-        .VerticesCount = mesh.VerticesCount,
-        .Vertices = cloneVertices(mesh.VerticesCount, mesh.Vertices),
-        .IndicesCount = mesh.IndicesCount,
-        .Indices = cloneIndices(mesh.IndicesCount, mesh.Indices),
+        .SubmeshCount = mesh.SubmeshCount,
+        .Submeshes = cloneSubmeshes(mesh.SubmeshCount, mesh.Submeshes),
     };
 }
 
 void AxrMeshRAII::destroyMesh(AxrMesh& mesh) {
-    destroyVertices(mesh.VerticesCount, mesh.Vertices);
-    destroyIndices(mesh.IndicesCount, mesh.Indices);
+    destroySubmeshes(mesh.SubmeshCount, mesh.Submeshes);
 }
 
-AxrVertex* AxrMeshRAII::cloneVertices(const uint32_t verticesCount, const AxrVertex* vertices) {
-    if (vertices == nullptr) return nullptr;
+AxrSubmesh* AxrMeshRAII::cloneSubmeshes(const uint32_t submeshesCount, const AxrSubmesh* submeshes) {
+    if (submeshes == nullptr) return nullptr;
 
-    AxrVertex* newVertices = new AxrVertex[verticesCount];
-    for (uint32_t i = 0; i < verticesCount; ++i) {
-        newVertices[i] = vertices[i];
+    AxrSubmesh* newSubmeshes = new AxrSubmesh[submeshesCount];
+    for (uint32_t i = 0; i < submeshesCount; ++i) {
+        newSubmeshes[i] = AxrSubmeshRAII::cloneSubmesh(submeshes[i]);
     }
 
-    return newVertices;
+    return newSubmeshes;
 }
 
-void AxrMeshRAII::destroyVertices(uint32_t& verticesCount, AxrVertex*& vertices) {
-    verticesCount = 0;
-    if (vertices == nullptr) return;
+void AxrMeshRAII::destroySubmeshes(uint32_t& submeshesCount, AxrSubmesh*& submeshes) {
+    if (submeshes == nullptr) return;
 
-    delete[] vertices;
-    vertices = nullptr;
-}
-
-uint32_t* AxrMeshRAII::cloneIndices(const uint32_t indicesCount, const uint32_t* indices) {
-    if (indices == nullptr) return nullptr;
-
-    uint32_t* newIndices = new uint32_t[indicesCount];
-    for (uint32_t i = 0; i < indicesCount; ++i) {
-        newIndices[i] = indices[i];
+    for (uint32_t i = 0; i < submeshesCount; ++i) {
+        AxrSubmeshRAII::destroySubmesh(submeshes[i]);
     }
-
-    return newIndices;
-}
-
-void AxrMeshRAII::destroyIndices(uint32_t& indicesCount, uint32_t*& indices) {
-    indicesCount = 0;
-    if (indices == nullptr) return;
-
-    delete[] indices;
-    indices = nullptr;
+    delete[] submeshes;
+    submeshes = nullptr;
+    submeshesCount = 0;
 }
 
 // ---- Private Functions ----
 
 void AxrMeshRAII::cleanup() {
-    Vertices.clear();
-    Indices.clear();
+    Submeshes.clear();
 }
 
 // ---- Private Static Functions ----
 
-std::vector<AxrVertex> AxrMeshRAII::toVector(const uint32_t verticesCount, const AxrVertex* vertices) {
-    if (vertices == nullptr) return {};
+std::vector<AxrSubmeshRAII> AxrMeshRAII::toVector(const uint32_t submeshesCount, const AxrSubmesh* submeshes) {
+    if (submeshes == nullptr) return {};
 
-    std::vector<AxrVertex> vertexVector = std::vector<AxrVertex>(verticesCount);
-    for (uint32_t i = 0; i < verticesCount; ++i) {
-        vertexVector[i] = vertices[i];
+    std::vector<AxrSubmeshRAII> submeshVector = std::vector<AxrSubmeshRAII>(submeshesCount);
+    for (uint32_t i = 0; i < submeshesCount; ++i) {
+        submeshVector[i] = AxrSubmeshRAII(submeshes[i]);
     }
 
-    return vertexVector;
-}
-
-std::vector<uint32_t> AxrMeshRAII::toVector(const uint32_t indicesCount, const uint32_t* indices) {
-    if (indices == nullptr) return {};
-
-    std::vector<uint32_t> indexVector = std::vector<uint32_t>(indicesCount);
-    for (uint32_t i = 0; i < indicesCount; ++i) {
-        indexVector[i] = indices[i];
-    }
-
-    return indexVector;
+    return submeshVector;
 }

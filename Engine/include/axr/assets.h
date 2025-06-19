@@ -553,12 +553,19 @@ struct AxrVertex {
     glm::vec2 TexCoords;
 };
 
-/// Mesh
-struct AxrMesh {
+/// Submesh
+struct AxrSubmesh {
+    // TODO: Anything with 'Count' in it shouldn't be plural. For example, this should be VertexCount
     uint32_t VerticesCount;
     AxrVertex* Vertices;
     uint32_t IndicesCount;
     uint32_t* Indices;
+};
+
+/// Mesh
+struct AxrMesh {
+    uint32_t SubmeshCount;
+    AxrSubmesh* Submeshes;
 };
 
 /// Model Config
@@ -582,21 +589,31 @@ extern "C" {
     /// @param verticesCount Number of vertices in the given array
     /// @param vertices Vertex array to clone
     /// @returns A cloned array of the given vertices
-    AXR_API AxrVertex* axrMeshCloneVertices(uint32_t verticesCount, const AxrVertex* vertices);
+    AXR_API AxrVertex* axrSubmeshCloneVertices(uint32_t verticesCount, const AxrVertex* vertices);
     /// Destroy the given vertices
     /// @param verticesCount Number of vertices in the given array
     /// @param vertices Vertex array to destroy
-    AXR_API void axrMeshDestroyVertices(uint32_t* verticesCount, AxrVertex** vertices);
+    AXR_API void axrSubmeshDestroyVertices(uint32_t* verticesCount, AxrVertex** vertices);
 
     /// Clone the given indices
     /// @param indicesCount Number of indices in the given array
     /// @param indices Index array to clone
     /// @returns A cloned array of the given indices
-    AXR_API uint32_t* axrMeshCloneIndices(uint32_t indicesCount, const uint32_t* indices);
+    AXR_API uint32_t* axrSubmeshCloneIndices(uint32_t indicesCount, const uint32_t* indices);
     /// Destroy the given indices
     /// @param indicesCount Number of indices in the given array
     /// @param indices Index array to destroy
-    AXR_API void axrMeshDestroyIndices(uint32_t* indicesCount, uint32_t** indices);
+    AXR_API void axrSubmeshDestroyIndices(uint32_t* indicesCount, uint32_t** indices);
+    
+    /// Clone the given submeshes
+    /// @param submeshesCount Number of submeshes in the given array
+    /// @param submeshes Submesh array to clone
+    /// @returns A cloned array of the given submeshes
+    AXR_API AxrSubmesh* axrMeshCloneSubmeshes(uint32_t submeshesCount, const AxrSubmesh* submeshes);
+    /// Destroy the given submeshes
+    /// @param submeshesCount Number of submeshes in the given array
+    /// @param submeshes Submesh array to destroy
+    AXR_API void axrMeshDestroySubmeshes(uint32_t* submeshesCount, AxrSubmesh** submeshes);
 
     /// Clone the given meshes
     /// @param meshesCount Number of meshes in the given array

@@ -35,12 +35,16 @@ public:
         vk::DispatchLoaderDynamic* DispatchHandle;
     };
 
-    /// Model mesh buffer
-    struct MeshBuffer {
-        AxrVulkanBuffer Buffer;
+    /// Submesh buffer location
+    struct SubmeshBufferLocation {
         vk::DeviceSize IndicesOffset;
         vk::DeviceSize VerticesOffset;
         uint32_t IndexCount;
+    };
+
+    /// Mesh buffer location
+    struct MeshBufferLocation {
+        std::vector<SubmeshBufferLocation> SubmeshLocations;
     };
 
     // ----------------------------------------- //
@@ -82,22 +86,24 @@ public:
     /// Get the model name
     /// @returns The model name
     [[nodiscard]] const std::string& getName() const;
-    /// Get the mesh buffer for the given mesh index
+    /// Get the model buffer
+    /// @returns The model buffer
+    [[nodiscard]] const vk::Buffer& getModelBuffer() const;
+    /// Get the submesh buffer indices offset for the given mesh and submesh index
     /// @param meshIndex Mesh index
-    /// @returns The mesh buffer
-    [[nodiscard]] const vk::Buffer& getMeshBuffer(uint32_t meshIndex) const;
-    /// Get the mesh buffer indices offset for the given mesh index
+    /// @param submeshIndex Submesh index
+    /// @returns The submesh buffer indices offset
+    [[nodiscard]] const vk::DeviceSize& getSubmeshBufferIndicesOffset(uint32_t meshIndex, uint32_t submeshIndex) const;
+    /// Get the submesh buffer vertices offset for the given mesh and submesh index
     /// @param meshIndex Mesh index
-    /// @returns The mesh buffer indices offset
-    [[nodiscard]] const vk::DeviceSize& getMeshBufferIndicesOffset(uint32_t meshIndex) const;
-    /// Get the mesh buffer vertices offset for the given mesh index
+    /// @param submeshIndex Submesh index
+    /// @returns The submesh buffer vertices offset
+    [[nodiscard]] const vk::DeviceSize& getSubmeshBufferVerticesOffset(uint32_t meshIndex, uint32_t submeshIndex) const;
+    /// Get the submesh index count for the given mesh and submesh index
     /// @param meshIndex Mesh index
-    /// @returns The mesh buffer vertices offset
-    [[nodiscard]] const vk::DeviceSize& getMeshBufferVerticesOffset(uint32_t meshIndex) const;
-    /// Get the mesh index count for the given mesh index
-    /// @param meshIndex Mesh index
-    /// @returns The mesh index count
-    [[nodiscard]] const uint32_t& getMeshIndexCount(uint32_t meshIndex) const;
+    /// @param submeshIndex Submesh index
+    /// @returns The submesh index count
+    [[nodiscard]] const uint32_t& getSubmeshIndexCount(uint32_t meshIndex, uint32_t submeshIndex) const;
 
     /// Check if the data exists
     /// @returns True if the data exists
@@ -124,7 +130,8 @@ private:
     vk::DispatchLoaderDynamic* m_DispatchHandle;
 
     // ---- Data ----
-    std::vector<MeshBuffer> m_MeshBuffers;
+    AxrVulkanBuffer m_ModelBuffer;
+    std::vector<MeshBufferLocation> m_MeshBufferLocations;
 
     // ----------------------------------------- //
     // Private Functions
@@ -135,18 +142,9 @@ private:
 
     // ---- Data ----
 
-    /// Create all the mesh buffers
+    /// Create the model buffer
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createMeshBuffers();
-    /// Destroy all mesh buffers
-    void destroyMeshBuffers();
-
-    /// Create a mesh buffer for the given mesh
-    /// @param mesh Mesh to use
-    /// @param meshBuffer Output mesh buffer
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createMeshBuffer(const AxrMeshRAII& mesh, MeshBuffer& meshBuffer) const;
-    /// Destroy the given mesh buffer
-    /// @param meshBuffer Mesh buffer to destroy
-    void destroyMeshBuffer(MeshBuffer& meshBuffer) const;
+    [[nodiscard]] AxrResult createModelBuffer();
+    /// Destroy the model buffer
+    void destroyModelBuffer();
 };
