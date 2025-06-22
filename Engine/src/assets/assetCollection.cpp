@@ -326,22 +326,6 @@ AxrResult AxrAssetCollection::createMaterial(const AxrMaterialConfig& materialCo
         return AXR_ERROR;
     }
 
-    if (!m_Shaders.contains(materialConfig.VertexShaderName)) {
-        axrLogError(
-            "Unable to create material. The shader named: {0} doesn't exist.",
-            materialConfig.VertexShaderName
-        );
-        return AXR_ERROR;
-    }
-
-    if (!m_Shaders.contains(materialConfig.FragmentShaderName)) {
-        axrLogError(
-            "Unable to create material. The shader named: {0} doesn't exist.",
-            materialConfig.FragmentShaderName
-        );
-        return AXR_ERROR;
-    }
-
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //
@@ -383,22 +367,6 @@ AxrResult AxrAssetCollection::createMaterial(
 
     if (!material.isValid()) {
         axrLogError("Unable to create material. Material is invalid.");
-        return AXR_ERROR;
-    }
-
-    if (!m_Shaders.contains(material.getVertexShaderName())) {
-        axrLogError(
-            "Unable to create material. The shader named: {0} doesn't exist.",
-            material.getVertexShaderName()
-        );
-        return AXR_ERROR;
-    }
-
-    if (!m_Shaders.contains(material.getFragmentShaderName())) {
-        axrLogError(
-            "Unable to create material. The shader named: {0} doesn't exist.",
-            material.getFragmentShaderName()
-        );
         return AXR_ERROR;
     }
 

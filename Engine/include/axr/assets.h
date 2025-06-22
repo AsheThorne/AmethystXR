@@ -404,7 +404,7 @@ enum AxrShaderBufferLinkEnum {
 
 /// Shader Buffer Link Base Structure
 struct AxrShaderBufferLinkStructure {
-    AxrShaderBufferLinkEnum Type = AXR_SHADER_BUFFER_LINK_UNDEFINED;
+    const AxrShaderBufferLinkEnum Type = AXR_SHADER_BUFFER_LINK_UNDEFINED;
 };
 
 /// AxrShaderBufferLinkStructure Handle Type
@@ -604,7 +604,7 @@ extern "C" {
     /// @param indicesCount Number of indices in the given array
     /// @param indices Index array to destroy
     AXR_API void axrSubmeshDestroyIndices(uint32_t* indicesCount, uint32_t** indices);
-    
+
     /// Clone the given submeshes
     /// @param submeshesCount Number of submeshes in the given array
     /// @param submeshes Submesh array to clone
@@ -725,6 +725,7 @@ enum AxrImageSamplerFilterEnum {
     AXR_IMAGE_SAMPLER_FILTER_LINEAR,
 };
 
+// TODO: Should this be renamed to AxrImageSamplerWrapEnum? glTF uses Wrap instead of Wrapping
 /// Image sampler wrapping enum
 enum AxrImageSamplerWrappingEnum {
     AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED = 0,
@@ -959,5 +960,130 @@ extern "C" {
     AXR_API AxrResult axrAssetCollectionCreateImageSampler(
         AxrAssetCollection_T assetCollection,
         const AxrImageSamplerConfig* imageSamplerConfig
+    );
+}
+
+// ---------------------------------------------------------------------------------- //
+//                                    Asset Utils                                     //
+// ---------------------------------------------------------------------------------- //
+
+// ----------------------------------------- //
+// Structs
+// ----------------------------------------- //
+
+/// Model file image sampler info
+struct AxrModelFileImageSamplerInfo {
+    char* Name;
+    AxrImageSamplerFilterEnum MinFilter;
+    AxrImageSamplerFilterEnum MagFilter;
+    AxrImageSamplerFilterEnum MipmapFilter;
+    AxrImageSamplerWrappingEnum WrappingU;
+    AxrImageSamplerWrappingEnum WrappingV;
+};
+
+/// Model file image info
+struct AxrModelFileImageInfo {
+    char* Name;
+    char* FilePath;
+};
+
+/// Model file material info
+struct AxrModelFileMaterialInfo {
+    char* Name;
+    int32_t ColorImageIndex;
+    int32_t ColorImageSamplerIndex;
+    glm::vec4 ColorFactor;
+};
+
+/// Model file submesh info
+struct AxrModelFileSubmeshInfo {
+    int32_t MaterialIndex;
+};
+
+/// Model file mesh info
+struct AxrModelFileMeshInfo {
+    uint32_t SubmeshCount;
+    AxrModelFileSubmeshInfo* Submeshes;
+};
+
+/// Model file info
+struct AxrModelFileInfo {
+    uint32_t ImageSamplerCount;
+    AxrModelFileImageSamplerInfo* ImageSamplers;
+    uint32_t ImageCount;
+    AxrModelFileImageInfo* Images;
+    uint32_t MaterialCount;
+    AxrModelFileMaterialInfo* Materials;
+    uint32_t MeshCount;
+    AxrModelFileMeshInfo* Meshes;
+};
+
+// ----------------------------------------- //
+// External Function Definitions
+// ----------------------------------------- //
+extern "C" {
+    /// Clone the given model file image sampler info
+    /// @param modelFileImageSamplerInfo Model file image sampler info
+    /// @returns The cloned model file image sampler info
+    AXR_API AxrModelFileImageSamplerInfo axrModelFileImageSamplerInfoClone(
+        const AxrModelFileImageSamplerInfo* modelFileImageSamplerInfo
+    );
+    /// Destroy the given model file image sampler info
+    /// @param modelFileImageSamplerInfo Model file image sampler info
+    AXR_API void axrModelFileImageSamplerInfoDestroy(AxrModelFileImageSamplerInfo* modelFileImageSamplerInfo);
+
+    /// Clone the given model file image info
+    /// @param modelFileImageInfo Model file image info
+    /// @returns The cloned model file image info
+    AXR_API AxrModelFileImageInfo axrModelFileImageInfoClone(const AxrModelFileImageInfo* modelFileImageInfo);
+    /// Destroy the given model file image info
+    /// @param modelFileImageInfo Model file image info
+    AXR_API void axrModelFileImageInfoDestroy(AxrModelFileImageInfo* modelFileImageInfo);
+
+    /// Clone the given model file material info
+    /// @param modelFileMaterialInfo Model file material info
+    /// @returns The cloned model file material info
+    AXR_API AxrModelFileMaterialInfo axrModelFileMaterialInfoClone(
+        const AxrModelFileMaterialInfo* modelFileMaterialInfo
+    );
+    /// Destroy the given model file material info
+    /// @param modelFileMaterialInfo Model file material info
+    AXR_API void axrModelFileMaterialInfoDestroy(AxrModelFileMaterialInfo* modelFileMaterialInfo);
+
+    /// Clone the given model file submesh info
+    /// @param modelFileSubmeshInfo Model file submesh info
+    /// @returns The cloned model file submesh info
+    AXR_API AxrModelFileSubmeshInfo axrModelFileSubmeshInfoClone(
+        const AxrModelFileSubmeshInfo* modelFileSubmeshInfo
+    );
+    /// Destroy the given model file submesh info
+    /// @param modelFileSubmeshInfo Model file submesh info
+    AXR_API void axrModelFileSubmeshInfoDestroy(AxrModelFileSubmeshInfo* modelFileSubmeshInfo);
+
+    /// Clone the given model file mesh info
+    /// @param modelFileMeshInfo Model file mesh info
+    /// @returns The cloned model file mesh info
+    AXR_API AxrModelFileMeshInfo axrModelFileMeshInfoClone(
+        const AxrModelFileMeshInfo* modelFileMeshInfo
+    );
+    /// Destroy the given model file mesh info
+    /// @param modelFileMeshInfo Model file mesh info
+    AXR_API void axrModelFileMeshInfoDestroy(AxrModelFileMeshInfo* modelFileMeshInfo);
+
+    /// Clone the given model file info
+    /// @param modelFileInfo Model file info
+    /// @returns The cloned model file info
+    AXR_API AxrModelFileInfo axrModelFileInfoClone(const AxrModelFileInfo* modelFileInfo);
+    /// Destroy the given model file info
+    /// @param modelFileInfo Model file info
+    AXR_API void axrModelFileInfoDestroy(AxrModelFileInfo* modelFileInfo);
+    
+    /// Get a model's file info
+    /// @param path The model's file path
+    /// @param modelFileInfo Output model file info
+    /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrGetModelFileInfo(
+        const char* path,
+        AxrModelFileInfo* modelFileInfo
     );
 }

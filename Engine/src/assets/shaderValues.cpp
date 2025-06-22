@@ -9,6 +9,8 @@
 // ----------------------------------------- //
 #include <unordered_set>
 
+#include "axr/utils.h"
+
 // ----------------------------------------- //
 // External Functions
 // ----------------------------------------- //
@@ -355,6 +357,8 @@ AxrShaderUniformBufferLink_T AxrShaderValuesRAII::clone(
 }
 
 void AxrShaderValuesRAII::destroy(AxrShaderUniformBufferLink_T& shaderBufferLink) {
+    if (shaderBufferLink == nullptr) return;
+
     delete shaderBufferLink;
     shaderBufferLink = nullptr;
 }
@@ -372,6 +376,8 @@ AxrShaderImageSamplerBufferLink_T AxrShaderValuesRAII::clone(
 }
 
 void AxrShaderValuesRAII::destroy(AxrShaderImageSamplerBufferLink_T& shaderBufferLink) {
+    if (shaderBufferLink == nullptr) return;
+
     delete shaderBufferLink;
     shaderBufferLink = nullptr;
 }

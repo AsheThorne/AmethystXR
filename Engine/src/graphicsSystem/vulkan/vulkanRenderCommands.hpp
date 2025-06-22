@@ -15,6 +15,7 @@
 #include "../../assets/pushConstantBuffer.hpp"
 #include "sceneData/vulkanSceneData.hpp"
 #include "../../scene/sceneUtils.hpp"
+#include "axr/utils.h"
 
 /// Wrapper for recording vulkan render commands
 /// @tparam RenderTarget Render target class. Like a window or xr device

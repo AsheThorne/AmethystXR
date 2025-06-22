@@ -4,6 +4,7 @@
 #include "model.hpp"
 #include "../utils.hpp"
 #include "axr/logger.h"
+#include "assetsUtils.hpp"
 
 // ----------------------------------------- //
 // External Functions
@@ -155,9 +156,7 @@ AxrResult AxrModel::loadFile() const {
     // Process
     // ----------------------------------------- //
 
-    // TODO: implement this
-    // return axrLoadModel(m_FilePath, m_Meshes);
-    return AXR_ERROR;
+    return axrLoadModel(m_FilePath, m_Meshes);
 }
 
 void AxrModel::unloadFile() const {
@@ -176,7 +175,7 @@ const std::vector<AxrMeshRAII>& AxrModel::getMeshes() const {
 AxrMesh* AxrModel::cloneMeshes(const uint32_t meshesCount, const AxrMesh* meshes) {
     if (meshes == nullptr) return nullptr;
 
-    AxrMesh* newMeshes = new AxrMesh[meshesCount];
+    AxrMesh* newMeshes = new AxrMesh[meshesCount]{};
     for (uint32_t i = 0; i < meshesCount; ++i) {
         newMeshes[i] = AxrMeshRAII::cloneMesh(meshes[i]);
     }

@@ -3,11 +3,43 @@
 // ----------------------------------------- //
 #include "utils.hpp"
 #include "axr/logger.h"
+#include "axr/utils.h"
 
 // ----------------------------------------- //
 // C/C++ Headers
 // ----------------------------------------- //
 #include <cstdlib>
+
+// ----------------------------------------- //
+// External Functions
+// ----------------------------------------- //
+
+bool axrStringIsEmpty(const char* string) {
+    return string == nullptr || strcmp(string, "") == 0;
+}
+
+char* axrCloneString(const char* string) {
+    if (axrStringIsEmpty(string)) {
+        return nullptr;
+    }
+
+    char* newString = new char[strlen(string) + 1]{};
+    strcpy_s(newString, strlen(string) + 1, string);
+    return newString;
+}
+
+void axrDestroyString(char** string) {
+    if (string == nullptr || axrStringIsEmpty(*string)) {
+        return;
+    }
+
+    delete[] *string;
+    *string = nullptr;
+}
+
+// ----------------------------------------- //
+// Internal Functions
+// ----------------------------------------- //
 
 // ---- String Utils ----
 
@@ -43,8 +75,4 @@ bool axrContainsString(
     }
 
     return false;
-}
-
-bool axrStringIsEmpty(const char* string) {
-    return string == nullptr || strcmp(string, "") == 0;
 }

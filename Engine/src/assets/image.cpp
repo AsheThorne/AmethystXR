@@ -297,7 +297,7 @@ AxrResult AxrImage::loadImage(const std::string& path, Data& imageData) {
 
     imageData.Width = width;
     imageData.Height = height;
-    imageData.ColorChannels = axrToImageColorChannels(colorChannels);
+    imageData.ColorChannels = axrToImageColorChannels(STBI_rgb_alpha);
 
     const size_t pixelsSize =
         static_cast<uint64_t>(imageData.Width) *

@@ -6,6 +6,7 @@
 // ----------------------------------------- //
 #include "axr/vulkanApi.h"
 #include "flags.hpp"
+#include "logger.hpp"
 
 namespace axr {
     // ---------------------------------------------------------------------------------- //
@@ -321,22 +322,22 @@ namespace axr {
         /// @param apiLayer Api layer to add
         void addApiLayer(const AxrVulkanApiLayer_T apiLayer) {
             if (apiLayer == nullptr) {
-                axrLogErrorLocation("Api Layer is null.");
+                axr::logErrorLocation("Api Layer is null.");
                 return;
             }
 
             if (apiLayerExists(static_cast<axr::VulkanApiLayerTypeEnum>(apiLayer->Type))) {
-                axrLogErrorLocation("Api Layer already exists.");
+                axr::logErrorLocation("Api Layer already exists.");
                 return;
             }
 
             if (ApiLayersCount + 1 > static_cast<uint32_t>(VulkanApiLayerTypeEnum::End) - 1) {
-                axrLogErrorLocation("Api Layers array is full.");
+                axr::logErrorLocation("Api Layers array is full.");
                 return;
             }
 
             if (ApiLayers[ApiLayersCount] != nullptr) {
-                axrLogErrorLocation("This slot should be free. If this error triggered, something went really wrong.");
+                axr::logErrorLocation("This slot should be free. If this error triggered, something went really wrong.");
                 return;
             }
 
@@ -348,22 +349,22 @@ namespace axr {
         /// @param extension Extension to add
         void addExtension(const AxrVulkanExtension_T extension) {
             if (extension == nullptr) {
-                axrLogErrorLocation("Extension is null.");
+                axr::logErrorLocation("Extension is null.");
                 return;
             }
 
             if (extensionExists(static_cast<axr::VulkanExtensionTypeEnum>(extension->Type))) {
-                axrLogErrorLocation("Extension already exists.");
+                axr::logErrorLocation("Extension already exists.");
                 return;
             }
 
             if (ExtensionsCount + 1 > static_cast<uint32_t>(VulkanExtensionTypeEnum::End) - 1) {
-                axrLogErrorLocation("Extensions array is full.");
+                axr::logErrorLocation("Extensions array is full.");
                 return;
             }
 
             if (Extensions[ExtensionsCount] != nullptr) {
-                axrLogErrorLocation("This slot should be free. If this error triggered, something went really wrong.");
+                axr::logErrorLocation("This slot should be free. If this error triggered, something went really wrong.");
                 return;
             }
 

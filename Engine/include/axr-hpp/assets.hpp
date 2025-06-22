@@ -3,10 +3,9 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include <utility>
-
-#include "common/enums.hpp"
 #include "axr/assets.h"
+#include "common/enums.hpp"
+#include "utils.hpp"
 
 namespace axr {
     // ---------------------------------------------------------------------------------- //
@@ -1045,7 +1044,7 @@ namespace axr {
     // ---------------------------------------------------------------------------------- //
 
     // ----------------------------------------- //
-    // Material Config definition
+    // Structs
     // ----------------------------------------- //
 
     /// Material Config
@@ -1754,14 +1753,6 @@ namespace axr {
         /// Default Constructor
         ModelConfig():
             Name(""),
-            FilePath(nullptr) {
-        }
-
-        /// Constructor
-        /// @param name Name of the model
-        /// @param meshes Model meshes
-        ModelConfig(const char* name, const std::vector<axr::Mesh>& meshes):
-            Name(name),
             FilePath(nullptr) {
         }
 
@@ -2786,4 +2777,811 @@ namespace axr {
         // ----------------------------------------- //
         AxrAssetCollection_T m_AssetCollection;
     };
+
+    // ---------------------------------------------------------------------------------- //
+    //                                    Asset Utils                                     //
+    // ---------------------------------------------------------------------------------- //
+
+    // ----------------------------------------- //
+    // Structs
+    // ----------------------------------------- //
+
+    /// Model file image sampler info
+    struct ModelFileImageSamplerInfo {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        char* Name;
+        axr::ImageSamplerFilterEnum MinFilter;
+        axr::ImageSamplerFilterEnum MagFilter;
+        axr::ImageSamplerFilterEnum MipmapFilter;
+        axr::ImageSamplerWrappingEnum WrappingU;
+        axr::ImageSamplerWrappingEnum WrappingV;
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        ModelFileImageSamplerInfo() :
+            Name(nullptr),
+            MinFilter(axr::ImageSamplerFilterEnum::Undefined),
+            MagFilter(axr::ImageSamplerFilterEnum::Undefined),
+            MipmapFilter(axr::ImageSamplerFilterEnum::Undefined),
+            WrappingU(axr::ImageSamplerWrappingEnum::Undefined),
+            WrappingV(axr::ImageSamplerWrappingEnum::Undefined) {
+        }
+
+        /// Constructor
+        /// @param src Source ModelFileImageSamplerInfo
+        explicit ModelFileImageSamplerInfo(AxrModelFileImageSamplerInfo&& src) {
+            Name = src.Name;
+            MinFilter = static_cast<axr::ImageSamplerFilterEnum>(src.MinFilter);
+            MagFilter = static_cast<axr::ImageSamplerFilterEnum>(src.MagFilter);
+            MipmapFilter = static_cast<axr::ImageSamplerFilterEnum>(src.MipmapFilter);
+            WrappingU = static_cast<axr::ImageSamplerWrappingEnum>(src.WrappingU);
+            WrappingV = static_cast<axr::ImageSamplerWrappingEnum>(src.WrappingV);
+
+            src.Name = nullptr;
+            src.MinFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
+            src.MagFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
+            src.MipmapFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
+            src.WrappingU = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
+            src.WrappingV = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
+        }
+
+        /// Copy Constructor
+        /// @param src Source ModelFileImageSamplerInfo to copy from
+        ModelFileImageSamplerInfo(const axr::ModelFileImageSamplerInfo& src) {
+            *this = static_cast<axr::ModelFileImageSamplerInfo>(axrModelFileImageSamplerInfoClone(src.toRaw()));
+        }
+
+        /// Move Constructor
+        /// @param src Source ModelFileImageSamplerInfo to move from
+        ModelFileImageSamplerInfo(ModelFileImageSamplerInfo&& src) noexcept {
+            Name = src.Name;
+            MinFilter = src.MinFilter;
+            MagFilter = src.MagFilter;
+            MipmapFilter = src.MipmapFilter;
+            WrappingU = src.WrappingU;
+            WrappingV = src.WrappingV;
+
+            src.Name = nullptr;
+            src.MinFilter = axr::ImageSamplerFilterEnum::Undefined;
+            src.MagFilter = axr::ImageSamplerFilterEnum::Undefined;
+            src.MipmapFilter = axr::ImageSamplerFilterEnum::Undefined;
+            src.WrappingU = axr::ImageSamplerWrappingEnum::Undefined;
+            src.WrappingV = axr::ImageSamplerWrappingEnum::Undefined;
+        }
+
+        // ---- Destructor ----
+
+        /// Destructor
+        ~ModelFileImageSamplerInfo() {
+            cleanup();
+        }
+
+        // ---- Operator Overloads ----
+
+        /// Copy Assignment Operator
+        /// @param src Source ModelFileImageSamplerInfo to copy from
+        ModelFileImageSamplerInfo& operator=(const ModelFileImageSamplerInfo& src) {
+            if (this != &src) {
+                cleanup();
+
+                *this = static_cast<axr::ModelFileImageSamplerInfo>(axrModelFileImageSamplerInfoClone(src.toRaw()));
+            }
+
+            return *this;
+        }
+
+        /// Move Assignment Operator
+        /// @param src Source ModelFileImageSamplerInfo to move from
+        ModelFileImageSamplerInfo& operator=(ModelFileImageSamplerInfo&& src) noexcept {
+            if (this != &src) {
+                cleanup();
+
+                Name = src.Name;
+                MinFilter = src.MinFilter;
+                MagFilter = src.MagFilter;
+                MipmapFilter = src.MipmapFilter;
+                WrappingU = src.WrappingU;
+                WrappingV = src.WrappingV;
+
+                src.Name = nullptr;
+                src.MinFilter = axr::ImageSamplerFilterEnum::Undefined;
+                src.MagFilter = axr::ImageSamplerFilterEnum::Undefined;
+                src.MipmapFilter = axr::ImageSamplerFilterEnum::Undefined;
+                src.WrappingU = axr::ImageSamplerWrappingEnum::Undefined;
+                src.WrappingV = axr::ImageSamplerWrappingEnum::Undefined;
+            }
+
+            return *this;
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the ModelFileImageSamplerInfo as an AxrModelFileImageSamplerInfo
+        /// @returns This as an AxrModelFileImageSamplerInfo
+        const AxrModelFileImageSamplerInfo* toRaw() const {
+            return reinterpret_cast<const AxrModelFileImageSamplerInfo*>(this);
+        }
+
+        /// Get a handle to the ModelFileImageSamplerInfo as an AxrModelFileImageSamplerInfo
+        /// @returns This as an AxrModelFileImageSamplerInfo
+        AxrModelFileImageSamplerInfo* toRaw() {
+            return reinterpret_cast<AxrModelFileImageSamplerInfo*>(this);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Functions
+        // ----------------------------------------- //
+
+        /// Clean up this class
+        void cleanup() {
+            axrModelFileImageSamplerInfoDestroy(this->toRaw());
+        }
+    };
+
+    static_assert(
+        sizeof(AxrModelFileImageSamplerInfo) == sizeof(axr::ModelFileImageSamplerInfo),
+        "Original type and wrapper have different size!"
+    );
+
+    /// Model file image info
+    struct ModelFileImageInfo {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        char* Name;
+        char* FilePath;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        ModelFileImageInfo() :
+            Name(nullptr),
+            FilePath(nullptr) {
+        }
+
+        /// Constructor
+        /// @param src Source ModelFileImageInfo
+        explicit ModelFileImageInfo(AxrModelFileImageInfo&& src) {
+            Name = src.Name;
+            FilePath = src.FilePath;
+
+            src.Name = nullptr;
+            src.FilePath = nullptr;
+        }
+
+        /// Copy Constructor
+        /// @param src Source ModelFileImageInfo to copy from
+        ModelFileImageInfo(const axr::ModelFileImageInfo& src) {
+            *this = static_cast<axr::ModelFileImageInfo>(axrModelFileImageInfoClone(src.toRaw()));
+        }
+
+        /// Move Constructor
+        /// @param src Source ModelFileImageInfo to move from
+        ModelFileImageInfo(ModelFileImageInfo&& src) noexcept {
+            Name = src.Name;
+            FilePath = src.FilePath;
+
+            src.Name = nullptr;
+            src.FilePath = nullptr;
+        }
+
+        // ---- Destructor ----
+
+        /// Destructor
+        ~ModelFileImageInfo() {
+            cleanup();
+        }
+
+        // ---- Operator Overloads ----
+
+        /// Copy Assignment Operator
+        /// @param src Source ModelFileImageInfo to copy from
+        ModelFileImageInfo& operator=(const ModelFileImageInfo& src) {
+            if (this != &src) {
+                cleanup();
+
+                *this = static_cast<axr::ModelFileImageInfo>(axrModelFileImageInfoClone(src.toRaw()));
+            }
+
+            return *this;
+        }
+
+        /// Move Assignment Operator
+        /// @param src Source ModelFileImageInfo to move from
+        ModelFileImageInfo& operator=(ModelFileImageInfo&& src) noexcept {
+            if (this != &src) {
+                cleanup();
+
+                Name = src.Name;
+                FilePath = src.FilePath;
+
+                src.Name = nullptr;
+                src.FilePath = nullptr;
+            }
+
+            return *this;
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the ModelFileImageInfo as an AxrModelFileImageInfo
+        /// @returns This as an AxrModelFileImageInfo
+        const AxrModelFileImageInfo* toRaw() const {
+            return reinterpret_cast<const AxrModelFileImageInfo*>(this);
+        }
+
+        /// Get a handle to the ModelFileImageInfo as an AxrModelFileImageInfo
+        /// @returns This as an AxrModelFileImageInfo
+        AxrModelFileImageInfo* toRaw() {
+            return reinterpret_cast<AxrModelFileImageInfo*>(this);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Functions
+        // ----------------------------------------- //
+
+        /// Clean up this class
+        void cleanup() {
+            axrModelFileImageInfoDestroy(this->toRaw());
+        }
+    };
+
+    static_assert(
+        sizeof(AxrModelFileImageInfo) == sizeof(axr::ModelFileImageInfo),
+        "Original type and wrapper have different size!"
+    );
+
+    /// Model file material info
+    struct ModelFileMaterialInfo {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        char* Name;
+        int32_t ColorImageIndex;
+        int32_t ColorImageSamplerIndex;
+        glm::vec4 ColorFactor;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        ModelFileMaterialInfo() :
+            Name(nullptr),
+            ColorImageIndex(-1),
+            ColorImageSamplerIndex(-1),
+            ColorFactor({}) {
+        }
+
+        /// Constructor
+        /// @param src Source ModelFileMaterialInfo
+        explicit ModelFileMaterialInfo(AxrModelFileMaterialInfo&& src) {
+            Name = src.Name;
+            ColorImageIndex = src.ColorImageIndex;
+            ColorImageSamplerIndex = src.ColorImageSamplerIndex;
+            ColorFactor = src.ColorFactor;
+
+            src.Name = nullptr;
+            src.ColorImageIndex = -1;
+            src.ColorImageSamplerIndex = -1;
+            src.ColorFactor = {};
+        }
+
+        /// Copy Constructor
+        /// @param src Source ModelFileMaterialInfo to copy from
+        ModelFileMaterialInfo(const axr::ModelFileMaterialInfo& src) {
+            *this = static_cast<axr::ModelFileMaterialInfo>(axrModelFileMaterialInfoClone(src.toRaw()));
+        }
+
+        /// Move Constructor
+        /// @param src Source ModelFileMaterialInfo to move from
+        ModelFileMaterialInfo(ModelFileMaterialInfo&& src) noexcept {
+            Name = src.Name;
+            ColorImageIndex = src.ColorImageIndex;
+            ColorImageSamplerIndex = src.ColorImageSamplerIndex;
+            ColorFactor = src.ColorFactor;
+
+            src.Name = nullptr;
+            src.ColorImageIndex = -1;
+            src.ColorImageSamplerIndex = -1;
+            src.ColorFactor = {};
+        }
+
+        // ---- Destructor ----
+
+        /// Destructor
+        ~ModelFileMaterialInfo() {
+            cleanup();
+        }
+
+        // ---- Operator Overloads ----
+
+        /// Copy Assignment Operator
+        /// @param src Source ModelFileMaterialInfo to copy from
+        ModelFileMaterialInfo& operator=(const ModelFileMaterialInfo& src) {
+            if (this != &src) {
+                cleanup();
+
+                *this = static_cast<axr::ModelFileMaterialInfo>(axrModelFileMaterialInfoClone(src.toRaw()));
+            }
+
+            return *this;
+        }
+
+        /// Move Assignment Operator
+        /// @param src Source ModelFileMaterialInfo to move from
+        ModelFileMaterialInfo& operator=(ModelFileMaterialInfo&& src) noexcept {
+            if (this != &src) {
+                cleanup();
+
+                Name = src.Name;
+                ColorImageIndex = src.ColorImageIndex;
+                ColorImageSamplerIndex = src.ColorImageSamplerIndex;
+                ColorFactor = src.ColorFactor;
+
+                src.Name = nullptr;
+                src.ColorImageIndex = -1;
+                src.ColorImageSamplerIndex = -1;
+                src.ColorFactor = {};
+            }
+
+            return *this;
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the ModelFileMaterialInfo as an AxrModelFileMaterialInfo
+        /// @returns This as an AxrModelFileMaterialInfo
+        const AxrModelFileMaterialInfo* toRaw() const {
+            return reinterpret_cast<const AxrModelFileMaterialInfo*>(this);
+        }
+
+        /// Get a handle to the ModelFileMaterialInfo as an AxrModelFileMaterialInfo
+        /// @returns This as an AxrModelFileMaterialInfo
+        AxrModelFileMaterialInfo* toRaw() {
+            return reinterpret_cast<AxrModelFileMaterialInfo*>(this);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Functions
+        // ----------------------------------------- //
+
+        /// Clean up this class
+        void cleanup() {
+            axrModelFileMaterialInfoDestroy(this->toRaw());
+        }
+    };
+
+    static_assert(
+        sizeof(AxrModelFileMaterialInfo) == sizeof(axr::ModelFileMaterialInfo),
+        "Original type and wrapper have different size!"
+    );
+
+    /// Model file submesh info
+    struct ModelFileSubmeshInfo {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        int32_t MaterialIndex;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        ModelFileSubmeshInfo() :
+            MaterialIndex(-1) {
+        }
+
+        /// Constructor
+        /// @param src Source ModelFileSubmeshInfo
+        explicit ModelFileSubmeshInfo(AxrModelFileSubmeshInfo&& src) {
+            MaterialIndex = src.MaterialIndex;
+
+            src.MaterialIndex = -1;
+        }
+
+        /// Copy Constructor
+        /// @param src Source ModelFileSubmeshInfo to copy from
+        ModelFileSubmeshInfo(const axr::ModelFileSubmeshInfo& src) {
+            *this = static_cast<axr::ModelFileSubmeshInfo>(axrModelFileSubmeshInfoClone(src.toRaw()));
+        }
+
+        /// Move Constructor
+        /// @param src Source ModelFileSubmeshInfo to move from
+        ModelFileSubmeshInfo(ModelFileSubmeshInfo&& src) noexcept {
+            MaterialIndex = src.MaterialIndex;
+
+            src.MaterialIndex = -1;
+        }
+
+        // ---- Destructor ----
+
+        /// Destructor
+        ~ModelFileSubmeshInfo() {
+            cleanup();
+        }
+
+        // ---- Operator Overloads ----
+
+        /// Copy Assignment Operator
+        /// @param src Source ModelFileSubmeshInfo to copy from
+        ModelFileSubmeshInfo& operator=(const ModelFileSubmeshInfo& src) {
+            if (this != &src) {
+                cleanup();
+
+                *this = static_cast<axr::ModelFileSubmeshInfo>(axrModelFileSubmeshInfoClone(src.toRaw()));
+            }
+
+            return *this;
+        }
+
+        /// Move Assignment Operator
+        /// @param src Source ModelFileSubmeshInfo to move from
+        ModelFileSubmeshInfo& operator=(ModelFileSubmeshInfo&& src) noexcept {
+            if (this != &src) {
+                cleanup();
+
+                MaterialIndex = src.MaterialIndex;
+
+                src.MaterialIndex = -1;
+            }
+
+            return *this;
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the ModelFileSubmeshInfo as an AxrModelFileSubmeshInfo
+        /// @returns This as an AxrModelFileSubmeshInfo
+        const AxrModelFileSubmeshInfo* toRaw() const {
+            return reinterpret_cast<const AxrModelFileSubmeshInfo*>(this);
+        }
+
+        /// Get a handle to the ModelFileSubmeshInfo as an AxrModelFileSubmeshInfo
+        /// @returns This as an AxrModelFileSubmeshInfo
+        AxrModelFileSubmeshInfo* toRaw() {
+            return reinterpret_cast<AxrModelFileSubmeshInfo*>(this);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Functions
+        // ----------------------------------------- //
+
+        /// Clean up this class
+        void cleanup() {
+            axrModelFileSubmeshInfoDestroy(this->toRaw());
+        }
+    };
+
+    static_assert(
+        sizeof(AxrModelFileSubmeshInfo) == sizeof(axr::ModelFileSubmeshInfo),
+        "Original type and wrapper have different size!"
+    );
+
+    /// Model file mesh info
+    struct ModelFileMeshInfo {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        uint32_t SubmeshCount;
+        axr::ModelFileSubmeshInfo* Submeshes;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        ModelFileMeshInfo() :
+            SubmeshCount(0),
+            Submeshes(nullptr) {
+        }
+
+        /// Constructor
+        /// @param src Source ModelFileMeshInfo
+        explicit ModelFileMeshInfo(AxrModelFileMeshInfo&& src) {
+            SubmeshCount = src.SubmeshCount;
+            Submeshes = reinterpret_cast<axr::ModelFileSubmeshInfo*>(src.Submeshes);
+
+            src.SubmeshCount = 0;
+            src.Submeshes = nullptr;
+        }
+
+        /// Copy Constructor
+        /// @param src Source ModelFileMeshInfo to copy from
+        ModelFileMeshInfo(const axr::ModelFileMeshInfo& src) {
+            *this = static_cast<axr::ModelFileMeshInfo>(axrModelFileMeshInfoClone(src.toRaw()));
+        }
+
+        /// Move Constructor
+        /// @param src Source ModelFileMeshInfo to move from
+        ModelFileMeshInfo(ModelFileMeshInfo&& src) noexcept {
+            SubmeshCount = src.SubmeshCount;
+            Submeshes = src.Submeshes;
+
+            src.SubmeshCount = 0;
+            src.Submeshes = nullptr;
+        }
+
+        // ---- Destructor ----
+
+        /// Destructor
+        ~ModelFileMeshInfo() {
+            cleanup();
+        }
+
+        // ---- Operator Overloads ----
+
+        /// Copy Assignment Operator
+        /// @param src Source ModelFileMeshInfo to copy from
+        ModelFileMeshInfo& operator=(const ModelFileMeshInfo& src) {
+            if (this != &src) {
+                cleanup();
+
+                *this = static_cast<axr::ModelFileMeshInfo>(axrModelFileMeshInfoClone(src.toRaw()));
+            }
+
+            return *this;
+        }
+
+        /// Move Assignment Operator
+        /// @param src Source ModelFileMeshInfo to move from
+        ModelFileMeshInfo& operator=(ModelFileMeshInfo&& src) noexcept {
+            if (this != &src) {
+                cleanup();
+
+                SubmeshCount = src.SubmeshCount;
+                Submeshes = src.Submeshes;
+
+                src.SubmeshCount = 0;
+                src.Submeshes = nullptr;
+            }
+
+            return *this;
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the ModelFileMeshInfo as an AxrModelFileMeshInfo
+        /// @returns This as an AxrModelFileMeshInfo
+        const AxrModelFileMeshInfo* toRaw() const {
+            return reinterpret_cast<const AxrModelFileMeshInfo*>(this);
+        }
+
+        /// Get a handle to the ModelFileMeshInfo as an AxrModelFileMeshInfo
+        /// @returns This as an AxrModelFileMeshInfo
+        AxrModelFileMeshInfo* toRaw() {
+            return reinterpret_cast<AxrModelFileMeshInfo*>(this);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Functions
+        // ----------------------------------------- //
+
+        /// Clean up this class
+        void cleanup() {
+            axrModelFileMeshInfoDestroy(this->toRaw());
+        }
+    };
+
+    static_assert(
+        sizeof(AxrModelFileMeshInfo) == sizeof(axr::ModelFileMeshInfo),
+        "Original type and wrapper have different size!"
+    );
+
+    /// Model file info
+    struct ModelFileInfo {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        uint32_t ImageSamplerCount;
+        axr::ModelFileImageSamplerInfo* ImageSamplers;
+        uint32_t ImageCount;
+        axr::ModelFileImageInfo* Images;
+        uint32_t MaterialCount;
+        axr::ModelFileMaterialInfo* Materials;
+        uint32_t MeshCount;
+        axr::ModelFileMeshInfo* Meshes;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        ModelFileInfo() :
+            ImageSamplerCount(0),
+            ImageSamplers(nullptr),
+            ImageCount(0),
+            Images(nullptr),
+            MaterialCount(0),
+            Materials(nullptr),
+            MeshCount(0),
+            Meshes(nullptr) {
+        }
+
+        /// Constructor
+        /// @param src Source ModelFileInfo
+        explicit ModelFileInfo(AxrModelFileInfo&& src) {
+            ImageSamplerCount = src.ImageSamplerCount;
+            ImageSamplers = reinterpret_cast<axr::ModelFileImageSamplerInfo*>(src.ImageSamplers);
+            ImageCount = src.ImageCount;
+            Images = reinterpret_cast<axr::ModelFileImageInfo*>(src.Images);
+            MaterialCount = src.MaterialCount;
+            Materials = reinterpret_cast<axr::ModelFileMaterialInfo*>(src.Materials);
+            MeshCount = src.MeshCount;
+            Meshes = reinterpret_cast<axr::ModelFileMeshInfo*>(src.Meshes);
+
+            src.ImageSamplerCount = 0;
+            src.ImageSamplers = nullptr;
+            src.ImageCount = 0;
+            src.Images = nullptr;
+            src.MaterialCount = 0;
+            src.Materials = nullptr;
+            src.MeshCount = 0;
+            src.Meshes = nullptr;
+        }
+
+        /// Copy Constructor
+        /// @param src Source ModelFileInfo to copy from
+        ModelFileInfo(const axr::ModelFileInfo& src) {
+            *this = static_cast<axr::ModelFileInfo>(axrModelFileInfoClone(src.toRaw()));
+        }
+
+        /// Move Constructor
+        /// @param src Source ModelFileInfo to move from
+        ModelFileInfo(ModelFileInfo&& src) noexcept {
+            ImageSamplerCount = src.ImageSamplerCount;
+            ImageSamplers = src.ImageSamplers;
+            ImageCount = src.ImageCount;
+            Images = src.Images;
+            MaterialCount = src.MaterialCount;
+            Materials = src.Materials;
+            MeshCount = src.MeshCount;
+            Meshes = src.Meshes;
+
+            src.ImageSamplerCount = 0;
+            src.ImageSamplers = nullptr;
+            src.ImageCount = 0;
+            src.Images = nullptr;
+            src.MaterialCount = 0;
+            src.Materials = nullptr;
+            src.MeshCount = 0;
+            src.Meshes = nullptr;
+        }
+
+        // ---- Destructor ----
+
+        /// Destructor
+        ~ModelFileInfo() {
+            cleanup();
+        }
+
+        // ---- Operator Overloads ----
+
+        /// Copy Assignment Operator
+        /// @param src Source ModelFileInfo to copy from
+        ModelFileInfo& operator=(const ModelFileInfo& src) {
+            if (this != &src) {
+                cleanup();
+
+                *this = static_cast<axr::ModelFileInfo>(axrModelFileInfoClone(src.toRaw()));
+            }
+
+            return *this;
+        }
+
+        /// Move Assignment Operator
+        /// @param src Source ModelFileInfo to move from
+        ModelFileInfo& operator=(ModelFileInfo&& src) noexcept {
+            if (this != &src) {
+                cleanup();
+
+                ImageSamplerCount = src.ImageSamplerCount;
+                ImageSamplers = src.ImageSamplers;
+                ImageCount = src.ImageCount;
+                Images = src.Images;
+                MaterialCount = src.MaterialCount;
+                Materials = src.Materials;
+                MeshCount = src.MeshCount;
+                Meshes = src.Meshes;
+
+                src.ImageSamplerCount = 0;
+                src.ImageSamplers = nullptr;
+                src.ImageCount = 0;
+                src.Images = nullptr;
+                src.MaterialCount = 0;
+                src.Materials = nullptr;
+                src.MeshCount = 0;
+                src.Meshes = nullptr;
+            }
+
+            return *this;
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the ModelFileInfo as an AxrModelFileInfo
+        /// @returns This as an AxrModelFileInfo
+        const AxrModelFileInfo* toRaw() const {
+            return reinterpret_cast<const AxrModelFileInfo*>(this);
+        }
+
+        /// Get a handle to the ModelFileInfo as an AxrModelFileInfo
+        /// @returns This as an AxrModelFileInfo
+        AxrModelFileInfo* toRaw() {
+            return reinterpret_cast<AxrModelFileInfo*>(this);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Functions
+        // ----------------------------------------- //
+
+        /// Clean up this class
+        void cleanup() {
+            axrModelFileInfoDestroy(this->toRaw());
+        }
+    };
+
+    static_assert(
+        sizeof(AxrModelFileInfo) == sizeof(axr::ModelFileInfo),
+        "Original type and wrapper have different size!"
+    );
+
+    // ----------------------------------------- //
+    // Function Definitions
+    // ----------------------------------------- //
+
+    /// Get a model's file info
+    /// @param path The model's file path
+    /// @param modelFileInfo Output model file info
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] inline AxrResult getModelFileData(
+        const char* path,
+        axr::ModelFileInfo& modelFileInfo
+    ) {
+        AxrModelFileInfo rawModelFileInfo;
+        const AxrResult axrResult = axrGetModelFileInfo(path, &rawModelFileInfo);
+        if (AXR_FAILED(axrResult)) {
+            return axrResult;
+        }
+        modelFileInfo = axr::ModelFileInfo(std::move(rawModelFileInfo));
+
+        return AXR_SUCCESS;
+    }
 }

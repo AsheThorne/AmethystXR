@@ -9,6 +9,7 @@
 #include "../../../assets/material.hpp"
 #include "../vulkanUtils.hpp"
 #include "../../../utils.hpp"
+#include "axr/utils.h"
 
 // ---- Special Functions ----
 
@@ -144,13 +145,13 @@ AxrResult AxrVulkanSceneData::loadWindowData(const vk::RenderPass renderPass) {
         return axrResult;
     }
 
+    m_IsWindowDataLoaded = true;
+
     axrResult = writeAllWindowDescriptorSets();
     if (AXR_FAILED(axrResult)) {
         unloadWindowData();
         return axrResult;
     }
-
-    m_IsWindowDataLoaded = true;
 
     return AXR_SUCCESS;
 }
@@ -1388,6 +1389,9 @@ const AxrVulkanMaterialData* AxrVulkanSceneData::findMaterialData_shared(const s
 AxrResult AxrVulkanSceneData::writeAllWindowDescriptorSets() {
     AxrResult axrResult = AXR_SUCCESS;
 
+    // WARNING: There are rendering bugs when we have a material in a scene asset collection instead of the global asset collection.
+    // TODO: Fix those bugs. We probably need to just rewrite the writeDescriptorSets stuff. it's really hard to follow
+
     for (auto& [name, data] : m_MaterialData) {
         axrResult = writeDescriptorSets(AXR_PLATFORM_TYPE_WINDOW, AXR_SHADER_BUFFER_SCOPE_MATERIAL, this, data);
 
@@ -1705,7 +1709,8 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
 
     for (uint32_t meshIndex = 0; meshIndex < modelComponent.MeshCount; ++meshIndex) {
         for (int submeshIndex = 0; submeshIndex < modelComponent.Meshes[meshIndex].SubmeshCount; ++submeshIndex) {
-            const AxrModelComponent::Mesh::Submesh& currentSubmesh = modelComponent.Meshes[meshIndex].Submeshes[submeshIndex];
+            const AxrModelComponent::Mesh::Submesh& currentSubmesh = modelComponent.Meshes[meshIndex].Submeshes[
+                submeshIndex];
 
             const AxrVulkanMaterialData* foundMaterialData = findMaterialData_shared(currentSubmesh.MaterialName);
             if (foundMaterialData == nullptr) {

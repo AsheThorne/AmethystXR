@@ -208,15 +208,15 @@ AxrResult AxrVulkanWindowGraphics::updateSceneDataUniformBuffer(const AxrVulkanS
     // TODO: Use the active camera's properties
     AxrEngineAssetUniformBuffer_SceneData sceneDataEngineAsset{
         .ViewMatrix = glm::lookAt(
-            glm::vec3(1.0f, 0.8f, 2.8f),
-            glm::vec3(0.0f, 0.5f, 0.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f),
+            glm::vec3(1.0f, 1.0f, 0.0f),
             glm::vec3(0.0f, 1.0f, 0.0f)
         ),
         .ProjectionMatrix = glm::perspective(
             glm::radians(45.0f),
             static_cast<float>(m_SwapchainExtent.width) / static_cast<float>(m_SwapchainExtent.height),
             0.1f,
-            100.0f
+            1000.0f
         )
     };
     sceneDataEngineAsset.ProjectionMatrix[1][1] *= -1.0f;

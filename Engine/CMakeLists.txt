@@ -33,6 +33,7 @@ set(AXR_PUBLIC_HEADER_FILES
     ${AXR_INCLUDE_DIR}/axr/vulkanApi.h
     ${AXR_INCLUDE_DIR}/axr/assets.h
     ${AXR_INCLUDE_DIR}/axr/scene.h
+    ${AXR_INCLUDE_DIR}/axr/utils.h
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr/common/defines.h.in
     ${AXR_INCLUDE_DIR}/axr/common/defines.h
@@ -55,6 +56,7 @@ set(AXR_PUBLIC_HEADER_HPP_FILES
     ${AXR_INCLUDE_DIR}/axr-hpp/flags.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/assets.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/scene.hpp
+    ${AXR_INCLUDE_DIR}/axr-hpp/utils.hpp
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr-hpp/common/defines.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/common/enums.hpp
@@ -208,8 +210,8 @@ target_include_directories(AXR_Engine
     ${SPDLOG_DIRECTORY}/include
     ${EnTT_DIRECTORY}/single_include
     ${STB_DIRECTORY}/include
-    # ${TINY_GLTF_DIRECTORY}/include
-    # ${JSON_DIRECTORY}/include
+    ${TINY_GLTF_DIRECTORY}/include
+    ${JSON_DIRECTORY}/include
 )
 
 if (VULKAN_HPP_DIRECTORY)

@@ -122,7 +122,7 @@ void AxrSubmeshRAII::destroySubmesh(AxrSubmesh& submesh) {
 AxrVertex* AxrSubmeshRAII::cloneVertices(const uint32_t verticesCount, const AxrVertex* vertices) {
     if (vertices == nullptr) return nullptr;
 
-    AxrVertex* newVertices = new AxrVertex[verticesCount];
+    AxrVertex* newVertices = new AxrVertex[verticesCount]{};
     for (uint32_t i = 0; i < verticesCount; ++i) {
         newVertices[i] = vertices[i];
     }
@@ -141,7 +141,7 @@ void AxrSubmeshRAII::destroyVertices(uint32_t& verticesCount, AxrVertex*& vertic
 uint32_t* AxrSubmeshRAII::cloneIndices(const uint32_t indicesCount, const uint32_t* indices) {
     if (indices == nullptr) return nullptr;
 
-    uint32_t* newIndices = new uint32_t[indicesCount];
+    uint32_t* newIndices = new uint32_t[indicesCount]{};
     for (uint32_t i = 0; i < indicesCount; ++i) {
         newIndices[i] = indices[i];
     }
