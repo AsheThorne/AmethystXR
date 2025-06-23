@@ -20,6 +20,10 @@ set(AXR_SANDBOX_HEADER_FILES
 set(AXR_SANDBOX_CPP_FILES
     # ---- Root ----
     ${AXR_SANDBOX_SRC_DIR}/main.cpp
+    ${AXR_SANDBOX_SRC_DIR}/testScene.cpp
+    ${AXR_SANDBOX_SRC_DIR}/testScene.hpp
+    ${AXR_SANDBOX_SRC_DIR}/sponzaScene.cpp
+    ${AXR_SANDBOX_SRC_DIR}/sponzaScene.hpp
 )
 
 # ---------------------------------------------

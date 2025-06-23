@@ -10,3 +10,6 @@
 [submodule "external/entt"]
 	path = external/entt
 	url = https://github.com/skypjack/entt
+[submodule "Sandbox/assets/sample-models"]
+	path = Sandbox/assets/sample-models
+	url = https://github.com/KhronosGroup/glTF-Sample-Models.git

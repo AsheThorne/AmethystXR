@@ -11,6 +11,11 @@
 // ----------------------------------------- //
 #include <glm/glm.hpp>
 
+// ----------------------------------------- //
+// STB Headers
+// ----------------------------------------- //
+#include <stb_image.h>
+
 // ---------------------------------------------------------------------------------- //
 //                               Engine Defined Assets                                //
 // ---------------------------------------------------------------------------------- //
@@ -48,7 +53,8 @@ enum AxrEngineAssetEnum {
 
     // ---- Images ----
     AXR_ENGINE_ASSET_IMAGE_START = 193,
-    AXR_ENGINE_ASSET_IMAGE_UV_TESTER = 193,
+    AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE = 193,
+    AXR_ENGINE_ASSET_IMAGE_UV_TESTER = 194,
     AXR_ENGINE_ASSET_IMAGE_END = 256,
 };
 
@@ -76,6 +82,7 @@ struct AxrEngineAssetPushConstantBuffer_ModelMatrix {
 /// Engine asset material named 'Default Material' values
 struct AxrEngineAssetMaterial_DefaultMaterial {
     const char* ImageName;
+    const char* SamplerName;
 };
 
 // ----------------------------------------- //
@@ -397,7 +404,7 @@ enum AxrShaderBufferLinkEnum {
 
 /// Shader Buffer Link Base Structure
 struct AxrShaderBufferLinkStructure {
-    AxrShaderBufferLinkEnum Type = AXR_SHADER_BUFFER_LINK_UNDEFINED;
+    const AxrShaderBufferLinkEnum Type = AXR_SHADER_BUFFER_LINK_UNDEFINED;
 };
 
 /// AxrShaderBufferLinkStructure Handle Type
@@ -422,6 +429,7 @@ struct AxrShaderImageSamplerBufferLink {
     const AxrShaderBufferLinkEnum Type = AXR_SHADER_BUFFER_LINK_IMAGE_SAMPLER_BUFFER;
     uint32_t Binding;
     const char* ImageName;
+    const char* SamplerName;
 };
 
 /// AxrShaderImageSamplerBufferLink Handle Type
@@ -545,12 +553,19 @@ struct AxrVertex {
     glm::vec2 TexCoords;
 };
 
-/// Mesh
-struct AxrMesh {
+/// Submesh
+struct AxrSubmesh {
+    // TODO: Anything with 'Count' in it shouldn't be plural. For example, this should be VertexCount
     uint32_t VerticesCount;
     AxrVertex* Vertices;
     uint32_t IndicesCount;
     uint32_t* Indices;
+};
+
+/// Mesh
+struct AxrMesh {
+    uint32_t SubmeshCount;
+    AxrSubmesh* Submeshes;
 };
 
 /// Model Config
@@ -574,21 +589,31 @@ extern "C" {
     /// @param verticesCount Number of vertices in the given array
     /// @param vertices Vertex array to clone
     /// @returns A cloned array of the given vertices
-    AXR_API AxrVertex* axrMeshCloneVertices(uint32_t verticesCount, const AxrVertex* vertices);
+    AXR_API AxrVertex* axrSubmeshCloneVertices(uint32_t verticesCount, const AxrVertex* vertices);
     /// Destroy the given vertices
     /// @param verticesCount Number of vertices in the given array
     /// @param vertices Vertex array to destroy
-    AXR_API void axrMeshDestroyVertices(uint32_t* verticesCount, AxrVertex** vertices);
+    AXR_API void axrSubmeshDestroyVertices(uint32_t* verticesCount, AxrVertex** vertices);
 
     /// Clone the given indices
     /// @param indicesCount Number of indices in the given array
     /// @param indices Index array to clone
     /// @returns A cloned array of the given indices
-    AXR_API uint32_t* axrMeshCloneIndices(uint32_t indicesCount, const uint32_t* indices);
+    AXR_API uint32_t* axrSubmeshCloneIndices(uint32_t indicesCount, const uint32_t* indices);
     /// Destroy the given indices
     /// @param indicesCount Number of indices in the given array
     /// @param indices Index array to destroy
-    AXR_API void axrMeshDestroyIndices(uint32_t* indicesCount, uint32_t** indices);
+    AXR_API void axrSubmeshDestroyIndices(uint32_t* indicesCount, uint32_t** indices);
+
+    /// Clone the given submeshes
+    /// @param submeshesCount Number of submeshes in the given array
+    /// @param submeshes Submesh array to clone
+    /// @returns A cloned array of the given submeshes
+    AXR_API AxrSubmesh* axrMeshCloneSubmeshes(uint32_t submeshesCount, const AxrSubmesh* submeshes);
+    /// Destroy the given submeshes
+    /// @param submeshesCount Number of submeshes in the given array
+    /// @param submeshes Submesh array to destroy
+    AXR_API void axrMeshDestroySubmeshes(uint32_t* submeshesCount, AxrSubmesh** submeshes);
 
     /// Clone the given meshes
     /// @param meshesCount Number of meshes in the given array
@@ -686,7 +711,7 @@ extern "C" {
 }
 
 // ---------------------------------------------------------------------------------- //
-//                                   Image Assets                                     //
+//                               Image Sampler Assets                                 //
 // ---------------------------------------------------------------------------------- //
 
 // ----------------------------------------- //
@@ -700,6 +725,7 @@ enum AxrImageSamplerFilterEnum {
     AXR_IMAGE_SAMPLER_FILTER_LINEAR,
 };
 
+// TODO: Should this be renamed to AxrImageSamplerWrapEnum? glTF uses Wrap instead of Wrapping
 /// Image sampler wrapping enum
 enum AxrImageSamplerWrappingEnum {
     AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED = 0,
@@ -713,13 +739,58 @@ enum AxrImageSamplerWrappingEnum {
 // Structs
 // ----------------------------------------- //
 
+struct AxrImageSamplerConfig {
+    const char* Name;
+    AxrImageSamplerFilterEnum MinFilter;
+    AxrImageSamplerFilterEnum MagFilter;
+    AxrImageSamplerFilterEnum MipmapFilter;
+    AxrImageSamplerWrappingEnum WrappingU;
+    AxrImageSamplerWrappingEnum WrappingV;
+};
+
+// ----------------------------------------- //
+// Forward Declared Handles
+// ----------------------------------------- //
+
+/// AxrImageSampler Handle
+typedef class AxrImageSampler* AxrImageSampler_T;
+typedef const AxrImageSampler* AxrImageSamplerConst_T;
+
+// ----------------------------------------- //
+// External Function Definitions
+// ----------------------------------------- //
+extern "C" {
+    /// Get the image sampler's name
+    /// @param imageSampler ImageSampler to use
+    /// @returns The imageSampler's name
+    AXR_API const char* axrImageSamplerGetName(AxrImageSampler_T imageSampler);
+}
+
+// ---------------------------------------------------------------------------------- //
+//                                   Image Assets                                     //
+// ---------------------------------------------------------------------------------- //
+
+// ----------------------------------------- //
+// Enums
+// ----------------------------------------- //
+
+/// Image color channels enum
+enum AxrImageColorChannelsEnum {
+    AXR_IMAGE_COLOR_CHANNELS_UNDEFINED = 0,
+    AXR_IMAGE_COLOR_CHANNELS_GRAY = 1,
+    AXR_IMAGE_COLOR_CHANNELS_GRAY_ALPHA = 2,
+    AXR_IMAGE_COLOR_CHANNELS_RGB = 3,
+    AXR_IMAGE_COLOR_CHANNELS_RGB_ALPHA = 4,
+};
+
+// ----------------------------------------- //
+// Structs
+// ----------------------------------------- //
+
 /// Image Config
 struct AxrImageConfig {
     const char* Name;
     const char* FilePath;
-    // TODO: Move these out of the image config and create a sampler object for them instead
-    AxrImageSamplerFilterEnum Filter;
-    AxrImageSamplerWrappingEnum Wrapping;
 };
 
 // ----------------------------------------- //
@@ -739,6 +810,22 @@ extern "C" {
     /// @param image Image to use
     /// @returns The image's name
     AXR_API const char* axrImageGetName(AxrImage_T image);
+
+    /// Set the image data
+    /// @param image Image to use
+    /// @param width Image width
+    /// @param height Image height
+    /// @param colorChannels Image number of color channels
+    /// @param data Image data. Stored from left-to-right, top-to-bottom. Each pixel contains a value for each 'colorChannel', stored with 8-bits
+    /// per channel, in the following order: 1=Y, 2=YA, 3=RGB, 4=RGBA. (Y is monochrome color.)
+    /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrImageSetData(
+        AxrImage_T image,
+        uint32_t width,
+        uint32_t height,
+        AxrImageColorChannelsEnum colorChannels,
+        const stbi_uc* data
+    );
 }
 
 // ---------------------------------------------------------------------------------- //
@@ -862,5 +949,141 @@ extern "C" {
         AxrAssetCollection_T assetCollection,
         const char* imageName,
         AxrEngineAssetEnum engineAssetEnum
+    );
+
+    // ---- Image Sampler ----
+
+    /// Create a new image sampler
+    /// @param assetCollection Asset collection to use
+    /// @param imageSamplerConfig Image sampler config
+    /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrAssetCollectionCreateImageSampler(
+        AxrAssetCollection_T assetCollection,
+        const AxrImageSamplerConfig* imageSamplerConfig
+    );
+}
+
+// ---------------------------------------------------------------------------------- //
+//                                    Asset Utils                                     //
+// ---------------------------------------------------------------------------------- //
+
+// ----------------------------------------- //
+// Structs
+// ----------------------------------------- //
+
+/// Model file image sampler info
+struct AxrModelFileImageSamplerInfo {
+    char* Name;
+    AxrImageSamplerFilterEnum MinFilter;
+    AxrImageSamplerFilterEnum MagFilter;
+    AxrImageSamplerFilterEnum MipmapFilter;
+    AxrImageSamplerWrappingEnum WrappingU;
+    AxrImageSamplerWrappingEnum WrappingV;
+};
+
+/// Model file image info
+struct AxrModelFileImageInfo {
+    char* Name;
+    char* FilePath;
+};
+
+/// Model file material info
+struct AxrModelFileMaterialInfo {
+    char* Name;
+    int32_t ColorImageIndex;
+    int32_t ColorImageSamplerIndex;
+    glm::vec4 ColorFactor;
+};
+
+/// Model file submesh info
+struct AxrModelFileSubmeshInfo {
+    int32_t MaterialIndex;
+};
+
+/// Model file mesh info
+struct AxrModelFileMeshInfo {
+    uint32_t SubmeshCount;
+    AxrModelFileSubmeshInfo* Submeshes;
+};
+
+/// Model file info
+struct AxrModelFileInfo {
+    uint32_t ImageSamplerCount;
+    AxrModelFileImageSamplerInfo* ImageSamplers;
+    uint32_t ImageCount;
+    AxrModelFileImageInfo* Images;
+    uint32_t MaterialCount;
+    AxrModelFileMaterialInfo* Materials;
+    uint32_t MeshCount;
+    AxrModelFileMeshInfo* Meshes;
+};
+
+// ----------------------------------------- //
+// External Function Definitions
+// ----------------------------------------- //
+extern "C" {
+    /// Clone the given model file image sampler info
+    /// @param modelFileImageSamplerInfo Model file image sampler info
+    /// @returns The cloned model file image sampler info
+    AXR_API AxrModelFileImageSamplerInfo axrModelFileImageSamplerInfoClone(
+        const AxrModelFileImageSamplerInfo* modelFileImageSamplerInfo
+    );
+    /// Destroy the given model file image sampler info
+    /// @param modelFileImageSamplerInfo Model file image sampler info
+    AXR_API void axrModelFileImageSamplerInfoDestroy(AxrModelFileImageSamplerInfo* modelFileImageSamplerInfo);
+
+    /// Clone the given model file image info
+    /// @param modelFileImageInfo Model file image info
+    /// @returns The cloned model file image info
+    AXR_API AxrModelFileImageInfo axrModelFileImageInfoClone(const AxrModelFileImageInfo* modelFileImageInfo);
+    /// Destroy the given model file image info
+    /// @param modelFileImageInfo Model file image info
+    AXR_API void axrModelFileImageInfoDestroy(AxrModelFileImageInfo* modelFileImageInfo);
+
+    /// Clone the given model file material info
+    /// @param modelFileMaterialInfo Model file material info
+    /// @returns The cloned model file material info
+    AXR_API AxrModelFileMaterialInfo axrModelFileMaterialInfoClone(
+        const AxrModelFileMaterialInfo* modelFileMaterialInfo
+    );
+    /// Destroy the given model file material info
+    /// @param modelFileMaterialInfo Model file material info
+    AXR_API void axrModelFileMaterialInfoDestroy(AxrModelFileMaterialInfo* modelFileMaterialInfo);
+
+    /// Clone the given model file submesh info
+    /// @param modelFileSubmeshInfo Model file submesh info
+    /// @returns The cloned model file submesh info
+    AXR_API AxrModelFileSubmeshInfo axrModelFileSubmeshInfoClone(
+        const AxrModelFileSubmeshInfo* modelFileSubmeshInfo
+    );
+    /// Destroy the given model file submesh info
+    /// @param modelFileSubmeshInfo Model file submesh info
+    AXR_API void axrModelFileSubmeshInfoDestroy(AxrModelFileSubmeshInfo* modelFileSubmeshInfo);
+
+    /// Clone the given model file mesh info
+    /// @param modelFileMeshInfo Model file mesh info
+    /// @returns The cloned model file mesh info
+    AXR_API AxrModelFileMeshInfo axrModelFileMeshInfoClone(
+        const AxrModelFileMeshInfo* modelFileMeshInfo
+    );
+    /// Destroy the given model file mesh info
+    /// @param modelFileMeshInfo Model file mesh info
+    AXR_API void axrModelFileMeshInfoDestroy(AxrModelFileMeshInfo* modelFileMeshInfo);
+
+    /// Clone the given model file info
+    /// @param modelFileInfo Model file info
+    /// @returns The cloned model file info
+    AXR_API AxrModelFileInfo axrModelFileInfoClone(const AxrModelFileInfo* modelFileInfo);
+    /// Destroy the given model file info
+    /// @param modelFileInfo Model file info
+    AXR_API void axrModelFileInfoDestroy(AxrModelFileInfo* modelFileInfo);
+    
+    /// Get a model's file info
+    /// @param path The model's file path
+    /// @param modelFileInfo Output model file info
+    /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrGetModelFileInfo(
+        const char* path,
+        AxrModelFileInfo* modelFileInfo
     );
 }

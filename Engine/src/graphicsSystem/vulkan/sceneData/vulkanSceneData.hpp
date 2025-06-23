@@ -10,8 +10,8 @@
 #include "vulkanMaterialLayoutData.hpp"
 #include "vulkanMaterialData.hpp"
 #include "vulkanImageData.hpp"
+#include "vulkanImageSamplerData.hpp"
 #include "axr/scene.h"
-#include "../../../assets/engineAssets.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -139,11 +139,6 @@ public:
         const void* data
     ) const;
 
-    /// Set the active scene
-    /// @param activeSceneHandle Handle to the new active scene
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult onSetActiveScene(const AxrVulkanSceneData* activeSceneHandle);
-
     // ---- Find Assets ----
 
     /// Find the named push constant buffer, including the global data in the search
@@ -172,12 +167,16 @@ private:
     vk::DispatchLoaderDynamic* m_DispatchHandle;
     bool m_IsWindowDataLoaded;
 
+    /// Missing texture image asset
+    AxrImage m_MissingTextureImage;
+
     /// Window specific engine defined uniform buffers
     std::unordered_map<std::string, AxrVulkanUniformBufferData> m_WindowUniformBufferData;
 
     std::unordered_map<std::string, AxrVulkanUniformBufferData> m_UniformBufferData;
     std::unordered_map<std::string, AxrVulkanModelData> m_ModelData;
     std::unordered_map<std::string, AxrVulkanImageData> m_ImageData;
+    std::unordered_map<std::string, AxrVulkanImageSamplerData> m_ImageSamplerData;
     std::unordered_map<std::string, AxrVulkanMaterialLayoutData> m_MaterialLayoutData;
     std::unordered_map<std::string, AxrVulkanMaterialData> m_MaterialData;
     std::unordered_map<std::string, MaterialForRendering> m_MaterialsForRendering;
@@ -298,6 +297,10 @@ private:
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult initializeImageData(const AxrImage& image);
 
+    /// Initialize the 'Missing Texture' image data
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult initializeMissingTextureImageData();
+
     /// Create the given image data
     /// @param imageData Image data to create
     /// @returns AXR_SUCCESS if the function succeeded
@@ -310,6 +313,35 @@ private:
     /// @param name The name of the image
     /// @returns A handle to the found image. Or nullptr if it wasn't found
     [[nodiscard]] const AxrVulkanImageData* findImageData_shared(const std::string& name) const;
+
+    // ---- Image Sampler ----
+
+    /// Create all image sampler data
+    /// @results AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createAllImageSamplerData();
+    /// Destroy all image sampler data
+    void destroyAllImageSamplerData();
+
+    /// Initialize all the image sampler data
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult initializeAllImageSamplerData();
+    /// Initialize a single image sampler's data for the given image sampler
+    /// @param imageSampler Image sampler to use
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult initializeImageSamplerData(const AxrImageSampler& imageSampler);
+
+    /// Create the given image sampler data
+    /// @param imageSamplerData Image sampler data to create
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createImageSamplerData(AxrVulkanImageSamplerData& imageSamplerData);
+    /// Destroy the given image sampler data
+    /// @param imageSamplerData Image sampler data to destroy
+    void destroyImageSamplerData(AxrVulkanImageSamplerData& imageSamplerData);
+
+    /// Find the named image sampler data, including the global data in the search
+    /// @param name The name of the image sampler
+    /// @returns A handle to the found image sampler. Or nullptr if it wasn't found
+    [[nodiscard]] const AxrVulkanImageSamplerData* findImageSamplerData_shared(const std::string& name) const;
 
     // ---- Shader ----
 
@@ -398,35 +430,25 @@ private:
     // ---- Write Descriptor Sets ----
 
     /// Write all material descriptor sets
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult writeAllWindowDescriptorSets();
-    /// Reset all material descriptor sets
-    void resetAllWindowDescriptorSets();
-
-    /// Write all scene specific material descriptor sets
     /// @param platformType The platform type to use
-    /// @param sceneData Scene data to search for uniform buffers in
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult writeAllSceneSpecificDescriptorSets(
-        AxrPlatformType platformType,
-        const AxrVulkanSceneData* sceneData
-    );
+    [[nodiscard]] AxrResult writeAllDescriptorSets(AxrPlatformType platformType);
+    /// Reset all material descriptor sets
+    /// @param platformType The platform type to use
+    void resetAllDescriptorSets(AxrPlatformType platformType);
 
     /// Write the descriptor sets for the given material data
     /// @param platformType The platform type to use
-    /// @param bufferScope The buffer scope we're currently writing to
-    /// @param sceneData Scene data to search for uniform buffers in
     /// @param materialData The material data to use
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult writeDescriptorSets(
         AxrPlatformType platformType,
-        AxrShaderBufferScopeEnum bufferScope,
-        const AxrVulkanSceneData* sceneData,
         AxrVulkanMaterialData& materialData
     ) const;
     /// Reset the descriptor sets for the given material data
+    /// @param platformType The platform type to use
     /// @param materialData The material data
-    void resetDescriptorSets(AxrVulkanMaterialData& materialData) const;
+    void resetDescriptorSets(AxrPlatformType platformType, AxrVulkanMaterialData& materialData) const;
 
     // ---- Materials For Rendering ----
 

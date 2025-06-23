@@ -72,10 +72,14 @@ public:
     /// @returns The fragment shader values
     [[nodiscard]] const AxrShaderValuesRAII& getFragmentShaderValues() const;
 
-    /// Find the shader buffer name at the given binding
+    /// Find the shader uniform buffer at the given binding
     /// @param binding Binding to use
-    /// @returns The name of the buffer at the given binding
-    [[nodiscard]] std::string findShaderBufferName(uint32_t binding) const;
+    /// @returns The uniform buffer at the given binding
+    [[nodiscard]] AxrShaderUniformBufferLinkConst_T findShaderUniformBuffer(uint32_t binding) const;
+    /// Find the shader image sampler buffer at the given binding
+    /// @param binding Binding to use
+    /// @returns The image sampler buffer at the given binding
+    [[nodiscard]] AxrShaderImageSamplerBufferLinkConst_T findShaderImageSamplerBuffer(uint32_t binding) const;
 
     /// Get the material layout's name
     /// @returns The material layout's name

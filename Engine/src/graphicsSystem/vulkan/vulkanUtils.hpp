@@ -131,12 +131,17 @@ const char* axrGetExtensionName(AxrVulkanExtensionTypeEnum extensionType);
     const vk::DispatchLoaderDynamic& dispatch
 );
 
-// ---- Image ----
+// ---- Image Sampler ----
 
 /// Convert an AxrImageSamplerFilterEnum to a vk::Filter
 /// @param samplerFilter Image sampler filter to convert
 /// @returns The converted image sampler filter
 [[nodiscard]] vk::Filter axrToVkFilter(AxrImageSamplerFilterEnum samplerFilter);
+
+/// Convert an AxrImageSamplerFilterEnum to a vk::SamplerMipmapMode
+/// @param samplerFilter Image sampler filter to convert
+/// @returns The converted image sampler filter
+[[nodiscard]] vk::SamplerMipmapMode axrToVkSamplerMipmapMode(AxrImageSamplerFilterEnum samplerFilter);
 
 /// Convert an AxrImageSamplerWrappingEnum to a vk::SamplerAddressMode
 /// @param samplerWrapping Image sampler wrapper to convert

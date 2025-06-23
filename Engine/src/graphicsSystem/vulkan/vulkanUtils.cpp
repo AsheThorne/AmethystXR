@@ -283,6 +283,22 @@ vk::Filter axrToVkFilter(const AxrImageSamplerFilterEnum samplerFilter) {
     }
 }
 
+vk::SamplerMipmapMode axrToVkSamplerMipmapMode(AxrImageSamplerFilterEnum samplerFilter) {
+    switch (samplerFilter) {
+        case AXR_IMAGE_SAMPLER_FILTER_NEAREST: {
+            return vk::SamplerMipmapMode::eNearest;
+        }
+        case AXR_IMAGE_SAMPLER_FILTER_LINEAR: {
+            return vk::SamplerMipmapMode::eLinear;
+        }
+        case AXR_IMAGE_SAMPLER_FILTER_UNDEFINED:
+        default: {
+            axrLogErrorLocation("Unknown vk::Filter type.");
+            return static_cast<vk::SamplerMipmapMode>(VK_SAMPLER_MIPMAP_MODE_MAX_ENUM);
+        }
+    }
+}
+
 vk::SamplerAddressMode axrToVkSamplerAddressMode(const AxrImageSamplerWrappingEnum samplerWrapping) {
     switch (samplerWrapping) {
         case AXR_IMAGE_SAMPLER_WRAPPING_REPEAT: {

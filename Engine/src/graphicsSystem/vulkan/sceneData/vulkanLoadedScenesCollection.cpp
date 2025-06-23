@@ -293,17 +293,6 @@ AxrResult AxrVulkanLoadedScenesCollection::setActiveScene(const std::string& sce
         return AXR_ERROR;
     }
 
-    AxrVulkanSceneData* globalSceneData = getGlobalSceneData();
-    if (globalSceneData == nullptr) {
-        axrLogErrorLocation("No global scene data found.");
-        return AXR_ERROR;
-    }
-
-    const AxrResult axrResult = globalSceneData->onSetActiveScene(foundScene);
-    if (AXR_FAILED(axrResult)) {
-        return axrResult;
-    }
-
     m_ActiveScene = foundScene;
 
     return AXR_SUCCESS;

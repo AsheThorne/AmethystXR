@@ -4,7 +4,6 @@
 #include "assetCollection.hpp"
 #include "axr/logger.h"
 #include "engineAssets.hpp"
-#include "../utils.hpp"
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 #include "pushConstantBuffer.hpp"
@@ -170,6 +169,23 @@ AxrResult axrAssetCollectionCreateEngineAssetImage(
 
 }
 
+AxrResult axrAssetCollectionCreateImageSampler(
+    const AxrAssetCollection_T assetCollection,
+    const AxrImageSamplerConfig* imageSamplerConfig
+) {
+    if (assetCollection == nullptr) {
+        axrLogErrorLocation("`assetCollection` is null.");
+        return AXR_ERROR;
+    }
+
+    if (imageSamplerConfig == nullptr) {
+        axrLogErrorLocation("`imageConfig` is null.");
+        return AXR_ERROR;
+    }
+
+    return assetCollection->createImageSampler(*imageSamplerConfig);
+}
+
 // ----------------------------------------- //
 // Internal Functions
 // ----------------------------------------- //
@@ -310,22 +326,6 @@ AxrResult AxrAssetCollection::createMaterial(const AxrMaterialConfig& materialCo
         return AXR_ERROR;
     }
 
-    if (!m_Shaders.contains(materialConfig.VertexShaderName)) {
-        axrLogError(
-            "Unable to create material. The shader named: {0} doesn't exist.",
-            materialConfig.VertexShaderName
-        );
-        return AXR_ERROR;
-    }
-
-    if (!m_Shaders.contains(materialConfig.FragmentShaderName)) {
-        axrLogError(
-            "Unable to create material. The shader named: {0} doesn't exist.",
-            materialConfig.FragmentShaderName
-        );
-        return AXR_ERROR;
-    }
-
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //
@@ -367,22 +367,6 @@ AxrResult AxrAssetCollection::createMaterial(
 
     if (!material.isValid()) {
         axrLogError("Unable to create material. Material is invalid.");
-        return AXR_ERROR;
-    }
-
-    if (!m_Shaders.contains(material.getVertexShaderName())) {
-        axrLogError(
-            "Unable to create material. The shader named: {0} doesn't exist.",
-            material.getVertexShaderName()
-        );
-        return AXR_ERROR;
-    }
-
-    if (!m_Shaders.contains(material.getFragmentShaderName())) {
-        axrLogError(
-            "Unable to create material. The shader named: {0} doesn't exist.",
-            material.getFragmentShaderName()
-        );
         return AXR_ERROR;
     }
 
@@ -546,6 +530,11 @@ AxrResult AxrAssetCollection::createImage(const AxrImageConfig& imageConfig) {
     // Validation
     // ----------------------------------------- //
 
+    if (axrEngineAssetIsImageNameReserved(imageConfig.Name)) {
+        axrLogError("Unable to create image. The image name: {0} is reserved by the engine.", imageConfig.Name);
+        return AXR_ERROR;
+    }
+    
     if (m_Images.contains(imageConfig.Name)) {
         axrLogError("Unable to create image. An image named: {0} already exists.", imageConfig.Name);
         return AXR_ERROR;
@@ -576,6 +565,11 @@ AxrResult AxrAssetCollection::createImage(const std::string& imageName, const Ax
         return AXR_ERROR;
     }
 
+    if (axrEngineAssetIsImageNameReserved(imageName.c_str())) {
+        axrLogError("Unable to create image. The image name: {0} is reserved by the engine.", imageName.c_str());
+        return AXR_ERROR;
+    }
+
     if (m_Images.contains(imageName)) {
         axrLogError("Unable to create image. An image named: {0} already exists.", imageName.c_str());
         return AXR_ERROR;
@@ -595,6 +589,31 @@ AxrResult AxrAssetCollection::createImage(const std::string& imageName, const Ax
     const auto insertResult = m_Images.insert(std::pair(imageName, std::move(image)));
     if (!insertResult.second) {
         axrLogErrorLocation("Failed to insert image.");
+        return AXR_ERROR;
+    }
+
+    // TODO: Reload vulkan scene assets if they're already loaded.
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrAssetCollection::createImageSampler(const AxrImageSamplerConfig& imageSamplerConfig) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+    
+    if (m_ImageSamplers.contains(imageSamplerConfig.Name)) {
+        axrLogError("Unable to create image sampler. An image sampler named: {0} already exists.", imageSamplerConfig.Name);
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const auto insertResult = m_ImageSamplers.insert(std::pair(imageSamplerConfig.Name, AxrImageSampler(imageSamplerConfig)));
+    if (!insertResult.second) {
+        axrLogErrorLocation("Failed to insert image sampler.");
         return AXR_ERROR;
     }
 
@@ -724,4 +743,8 @@ const std::unordered_map<std::string, AxrPushConstantBuffer>& AxrAssetCollection
 
 const std::unordered_map<std::string, AxrImage>& AxrAssetCollection::getImages() {
     return m_Images;
+}
+
+const std::unordered_map<std::string, AxrImageSampler>& AxrAssetCollection::getImageSamplers() {
+    return m_ImageSamplers;
 }

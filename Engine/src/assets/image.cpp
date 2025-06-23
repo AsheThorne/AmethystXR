@@ -4,7 +4,6 @@
 #include "image.hpp"
 #include "assetsUtils.hpp"
 #include "axr/logger.h"
-#include "engineAssets.hpp"
 
 // ----------------------------------------- //
 // External Functions
@@ -19,6 +18,21 @@ const char* axrImageGetName(const AxrImage_T image) {
     return image->getName().c_str();
 }
 
+AxrResult axrImageSetData(
+    const AxrImage_T image,
+    const uint32_t width,
+    const uint32_t height,
+    const AxrImageColorChannelsEnum colorChannels,
+    const stbi_uc* data
+) {
+    if (image == nullptr) {
+        axrLogErrorLocation("`image` is null.");
+        return AXR_ERROR;
+    }
+
+    return image->setData(width, height, colorChannels, data);
+}
+
 // ----------------------------------------- //
 // Internal Functions
 // ----------------------------------------- //
@@ -26,24 +40,18 @@ const char* axrImageGetName(const AxrImage_T image) {
 // ---- Special Functions ----
 
 AxrImage::AxrImage():
-    m_Filter(AXR_IMAGE_SAMPLER_FILTER_UNDEFINED),
-    m_Wrapping(AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED),
     m_Data() {
 }
 
 AxrImage::AxrImage(const AxrImageConfig& config):
     m_Name(config.Name),
     m_FilePath(config.FilePath),
-    m_Filter(config.Filter),
-    m_Wrapping(config.Wrapping),
     m_Data() {
 }
 
 AxrImage::AxrImage(const AxrImage& src) {
     m_Name = src.m_Name;
     m_FilePath = src.m_FilePath;
-    m_Filter = src.m_Filter;
-    m_Wrapping = src.m_Wrapping;
     m_Data = src.m_Data;
 }
 
@@ -51,12 +59,6 @@ AxrImage::AxrImage(AxrImage&& src) noexcept {
     m_Name = std::move(src.m_Name);
     m_FilePath = std::move(src.m_FilePath);
     m_Data = std::move(src.m_Data);
-
-    m_Filter = src.m_Filter;
-    m_Wrapping = src.m_Wrapping;
-
-    src.m_Filter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
-    src.m_Wrapping = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
 }
 
 AxrImage::~AxrImage() {
@@ -69,8 +71,6 @@ AxrImage& AxrImage::operator=(const AxrImage& src) {
 
         m_Name = src.m_Name;
         m_FilePath = src.m_FilePath;
-        m_Filter = src.m_Filter;
-        m_Wrapping = src.m_Wrapping;
         m_Data = src.m_Data;
     }
 
@@ -84,12 +84,6 @@ AxrImage& AxrImage::operator=(AxrImage&& src) noexcept {
         m_Name = std::move(src.m_Name);
         m_FilePath = std::move(src.m_FilePath);
         m_Data = std::move(src.m_Data);
-
-        m_Filter = src.m_Filter;
-        m_Wrapping = src.m_Wrapping;
-
-        src.m_Filter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
-        src.m_Wrapping = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
     }
 
     return *this;
@@ -99,6 +93,31 @@ AxrImage& AxrImage::operator=(AxrImage&& src) noexcept {
 
 const std::string& AxrImage::getName() const {
     return m_Name;
+}
+
+AxrResult AxrImage::setData(
+    const uint32_t width,
+    const uint32_t height,
+    const AxrImageColorChannelsEnum colorChannels,
+    const stbi_uc* data
+) {
+    if (data == nullptr) {
+        axrLogErrorLocation("data is null.");
+        return AXR_ERROR;
+    }
+
+    m_Data.Width = width;
+    m_Data.Height = height;
+    m_Data.ColorChannels = AXR_IMAGE_COLOR_CHANNELS_RGB_ALPHA;
+    m_Data.Pixels = convertColorChannels(
+        m_Data.Width,
+        m_Data.Height,
+        colorChannels,
+        m_Data.ColorChannels,
+        data
+    );
+
+    return AXR_SUCCESS;
 }
 
 bool AxrImage::isLoaded() const {
@@ -145,16 +164,8 @@ uint32_t AxrImage::getHeight() const {
     return m_Data.Height;
 }
 
-uint32_t AxrImage::getColorChannels() const {
+AxrImageColorChannelsEnum AxrImage::getColorChannels() const {
     return m_Data.ColorChannels;
-}
-
-AxrImageSamplerFilterEnum AxrImage::getSamplerFilter() const {
-    return m_Filter;
-}
-
-AxrImageSamplerWrappingEnum AxrImage::getSamplerWrapping() const {
-    return m_Wrapping;
 }
 
 // ---- Private Functions ----
@@ -163,6 +174,106 @@ void AxrImage::cleanup() {
     m_Name.clear();
     m_FilePath.clear();
     m_Data.clear();
+}
+
+std::vector<stbi_uc> AxrImage::convertColorChannels(
+    const uint32_t width,
+    const uint32_t height,
+    const AxrImageColorChannelsEnum srcColorChannels,
+    const AxrImageColorChannelsEnum dstColorChannels,
+    const stbi_uc* data
+) const {
+    // ---- Based off STB image library's stbi__convert_format() function. ----
+
+    if (srcColorChannels == dstColorChannels)
+        return std::vector(data, data + width * height * srcColorChannels);
+
+    std::vector<stbi_uc> convertedData(width * height * dstColorChannels);
+
+    for (uint32_t y = 0; y < height; ++y) {
+        const stbi_uc* src = data + y * width * srcColorChannels;
+        stbi_uc* dest = convertedData.data() + y * width * dstColorChannels;
+
+#define AXR_COMBO(a,b)  ((a)*8+(b))
+#define AXR_CASE(a, b) case AXR_COMBO(a, b): for(uint32_t x = 0; x < width; ++x, src += a, dest += b)
+
+        // convert source image with srcColorChannels components to one with dstColorChannels components;
+        // avoid switch per pixel, so use switch per scanline and massive macros
+        switch (AXR_COMBO(srcColorChannels, dstColorChannels)) {
+            AXR_CASE(AXR_IMAGE_COLOR_CHANNELS_GRAY, AXR_IMAGE_COLOR_CHANNELS_GRAY_ALPHA) {
+                    dest[0] = src[0];
+                    dest[1] = 255;
+                }
+                break;
+            AXR_CASE(AXR_IMAGE_COLOR_CHANNELS_GRAY, AXR_IMAGE_COLOR_CHANNELS_RGB) {
+                    dest[0] = dest[1] = dest[2] = src[0];
+                }
+                break;
+            AXR_CASE(AXR_IMAGE_COLOR_CHANNELS_GRAY, AXR_IMAGE_COLOR_CHANNELS_RGB_ALPHA) {
+                    dest[0] = dest[1] = dest[2] = src[0];
+                    dest[3] = 255;
+                }
+                break;
+            AXR_CASE(AXR_IMAGE_COLOR_CHANNELS_GRAY_ALPHA, AXR_IMAGE_COLOR_CHANNELS_GRAY) {
+                    dest[0] = src[0];
+                }
+                break;
+            AXR_CASE(AXR_IMAGE_COLOR_CHANNELS_GRAY_ALPHA, AXR_IMAGE_COLOR_CHANNELS_RGB) {
+                    dest[0] = dest[1] = dest[2] = src[0];
+                }
+                break;
+            AXR_CASE(AXR_IMAGE_COLOR_CHANNELS_GRAY_ALPHA, AXR_IMAGE_COLOR_CHANNELS_RGB_ALPHA) {
+                    dest[0] = dest[1] = dest[2] = src[0];
+                    dest[3] = src[1];
+                }
+                break;
+            AXR_CASE(AXR_IMAGE_COLOR_CHANNELS_RGB, AXR_IMAGE_COLOR_CHANNELS_RGB_ALPHA) {
+                    dest[0] = src[0];
+                    dest[1] = src[1];
+                    dest[2] = src[2];
+                    dest[3] = 255;
+                }
+                break;
+            AXR_CASE(AXR_IMAGE_COLOR_CHANNELS_RGB, AXR_IMAGE_COLOR_CHANNELS_GRAY) {
+                    dest[0] = toGrayScale(src[0], src[1], src[2]);
+                }
+                break;
+            AXR_CASE(AXR_IMAGE_COLOR_CHANNELS_RGB, AXR_IMAGE_COLOR_CHANNELS_GRAY_ALPHA) {
+                    dest[0] = toGrayScale(src[0], src[1], src[2]);
+                    dest[1] = 255;
+                }
+                break;
+            AXR_CASE(AXR_IMAGE_COLOR_CHANNELS_RGB_ALPHA, AXR_IMAGE_COLOR_CHANNELS_GRAY) {
+                    dest[0] = toGrayScale(src[0], src[1], src[2]);
+                }
+                break;
+            AXR_CASE(AXR_IMAGE_COLOR_CHANNELS_RGB_ALPHA, AXR_IMAGE_COLOR_CHANNELS_GRAY_ALPHA) {
+                    dest[0] = toGrayScale(src[0], src[1], src[2]);
+                    dest[1] = src[3];
+                }
+                break;
+            AXR_CASE(AXR_IMAGE_COLOR_CHANNELS_RGB_ALPHA, AXR_IMAGE_COLOR_CHANNELS_RGB) {
+                    dest[0] = src[0];
+                    dest[1] = src[1];
+                    dest[2] = src[2];
+                }
+                break;
+            default: {
+                axrLogErrorLocation("Unsupported channel count.");
+                return {};
+            }
+        }
+    }
+
+#undef AXR_CASE
+#undef AXR_COMBO
+
+    return convertedData;
+}
+
+stbi_uc AxrImage::toGrayScale(const int32_t red, const int32_t green, const int32_t blue) const {
+    // ---- Based off the STB image library's stbi__compute_y() function ----
+    return static_cast<stbi_uc>(((red * 77) + (green * 150) + (29 * blue)) >> 8);
 }
 
 AxrResult AxrImage::loadImage(const std::string& path, Data& imageData) {
@@ -176,7 +287,7 @@ AxrResult AxrImage::loadImage(const std::string& path, Data& imageData) {
         &width,
         &height,
         &colorChannels,
-        0
+        STBI_rgb_alpha
     );
 
     if (pixelData == nullptr) {
@@ -186,7 +297,7 @@ AxrResult AxrImage::loadImage(const std::string& path, Data& imageData) {
 
     imageData.Width = width;
     imageData.Height = height;
-    imageData.ColorChannels = colorChannels;
+    imageData.ColorChannels = axrToImageColorChannels(STBI_rgb_alpha);
 
     const size_t pixelsSize =
         static_cast<uint64_t>(imageData.Width) *

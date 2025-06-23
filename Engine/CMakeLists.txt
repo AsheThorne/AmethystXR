@@ -33,6 +33,7 @@ set(AXR_PUBLIC_HEADER_FILES
     ${AXR_INCLUDE_DIR}/axr/vulkanApi.h
     ${AXR_INCLUDE_DIR}/axr/assets.h
     ${AXR_INCLUDE_DIR}/axr/scene.h
+    ${AXR_INCLUDE_DIR}/axr/utils.h
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr/common/defines.h.in
     ${AXR_INCLUDE_DIR}/axr/common/defines.h
@@ -55,6 +56,7 @@ set(AXR_PUBLIC_HEADER_HPP_FILES
     ${AXR_INCLUDE_DIR}/axr-hpp/flags.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/assets.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/scene.hpp
+    ${AXR_INCLUDE_DIR}/axr-hpp/utils.hpp
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr-hpp/common/defines.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/common/enums.hpp
@@ -93,12 +95,14 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanUniformBufferData.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanLoadedScenesCollection.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanImageData.hpp
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanImageSamplerData.hpp
     # ---- Assets ----
     ${AXR_SRC_DIR}/assets/assetCollection.hpp
     ${AXR_SRC_DIR}/assets/shader.hpp
     ${AXR_SRC_DIR}/assets/material.hpp
     ${AXR_SRC_DIR}/assets/model.hpp
     ${AXR_SRC_DIR}/assets/mesh.hpp
+    ${AXR_SRC_DIR}/assets/submesh.hpp
     ${AXR_SRC_DIR}/assets/engineAssets.hpp
     ${AXR_SRC_DIR}/assets/shaderProperties.hpp
     ${AXR_SRC_DIR}/assets/shaderValues.hpp
@@ -106,6 +110,7 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/assets/uniformBuffer.hpp
     ${AXR_SRC_DIR}/assets/pushConstantBuffer.hpp
     ${AXR_SRC_DIR}/assets/image.hpp
+    ${AXR_SRC_DIR}/assets/imageSampler.hpp
     # ---- Scene ----
     ${AXR_SRC_DIR}/scene/scene.hpp
     ${AXR_SRC_DIR}/scene/sceneUtils.hpp
@@ -145,12 +150,14 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanUniformBufferData.cpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanLoadedScenesCollection.cpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanImageData.cpp
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanImageSamplerData.cpp
     # ---- Assets ----
     ${AXR_SRC_DIR}/assets/assetCollection.cpp
     ${AXR_SRC_DIR}/assets/shader.cpp
     ${AXR_SRC_DIR}/assets/material.cpp
     ${AXR_SRC_DIR}/assets/model.cpp
     ${AXR_SRC_DIR}/assets/mesh.cpp
+    ${AXR_SRC_DIR}/assets/submesh.cpp
     ${AXR_SRC_DIR}/assets/engineAssets.cpp
     ${AXR_SRC_DIR}/assets/shaderProperties.cpp
     ${AXR_SRC_DIR}/assets/shaderValues.cpp
@@ -158,6 +165,7 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/assets/uniformBuffer.cpp
     ${AXR_SRC_DIR}/assets/pushConstantBuffer.cpp
     ${AXR_SRC_DIR}/assets/image.cpp
+    ${AXR_SRC_DIR}/assets/imageSampler.cpp
     # ---- Scene ----
     ${AXR_SRC_DIR}/scene/scene.cpp
     ${AXR_SRC_DIR}/scene/sceneUtils.cpp
@@ -202,8 +210,8 @@ target_include_directories(AXR_Engine
     ${SPDLOG_DIRECTORY}/include
     ${EnTT_DIRECTORY}/single_include
     ${STB_DIRECTORY}/include
-    # ${TINY_GLTF_DIRECTORY}/include
-    # ${JSON_DIRECTORY}/include
+    ${TINY_GLTF_DIRECTORY}/include
+    ${JSON_DIRECTORY}/include
 )
 
 if (VULKAN_HPP_DIRECTORY)

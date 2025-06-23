@@ -9,6 +9,8 @@
 #include "../../../assets/material.hpp"
 #include "../vulkanUtils.hpp"
 #include "../../../utils.hpp"
+#include "axr/utils.h"
+#include "../../../assets/engineAssets.hpp"
 
 // ---- Special Functions ----
 
@@ -74,6 +76,12 @@ AxrResult AxrVulkanSceneData::loadScene() {
         return axrResult;
     }
 
+    axrResult = createAllImageSamplerData();
+    if (AXR_FAILED(axrResult)) {
+        unloadScene();
+        return axrResult;
+    }
+
     axrResult = createAllImageData();
     if (AXR_FAILED(axrResult)) {
         unloadScene();
@@ -91,8 +99,6 @@ AxrResult AxrVulkanSceneData::loadScene() {
         unloadScene();
         return axrResult;
     }
-
-    // TODO: Aren't we missing the writeAllDescriptorSets??
 
     axrResult = createAllMaterialsForRendering();
     if (AXR_FAILED(axrResult)) {
@@ -114,6 +120,8 @@ void AxrVulkanSceneData::unloadScene() {
     destroyAllMaterialsForRendering();
     destroyAllMaterialData();
     destroyAllMaterialLayoutData();
+    destroyAllImageData();
+    destroyAllImageSamplerData();
     destroyAllModelData();
     destroyAllUniformBufferData();
     if (m_AssetCollection != nullptr) {
@@ -136,13 +144,13 @@ AxrResult AxrVulkanSceneData::loadWindowData(const vk::RenderPass renderPass) {
         return axrResult;
     }
 
-    axrResult = writeAllWindowDescriptorSets();
+    m_IsWindowDataLoaded = true;
+
+    axrResult = writeAllDescriptorSets(AXR_PLATFORM_TYPE_WINDOW);
     if (AXR_FAILED(axrResult)) {
         unloadWindowData();
         return axrResult;
     }
-
-    m_IsWindowDataLoaded = true;
 
     return AXR_SUCCESS;
 }
@@ -154,7 +162,7 @@ void AxrVulkanSceneData::unloadWindowData() {
     const vk::Result vkResult = m_Device.waitIdle(*m_DispatchHandle);
     axrLogVkResult(vkResult, "m_Device.waitIdle");
 
-    resetAllWindowDescriptorSets();
+    resetAllDescriptorSets(AXR_PLATFORM_TYPE_WINDOW);
     destroyAllWindowMaterialData();
     destroyAllWindowUniformBufferData();
 }
@@ -186,19 +194,6 @@ AxrResult AxrVulkanSceneData::setWindowUniformBufferData(
         );
         return AXR_ERROR;
     }
-
-    return AXR_SUCCESS;
-}
-
-AxrResult AxrVulkanSceneData::onSetActiveScene(const AxrVulkanSceneData* activeSceneHandle) {
-    AxrResult axrResult = AXR_SUCCESS;
-
-    axrResult = writeAllSceneSpecificDescriptorSets(AXR_PLATFORM_TYPE_WINDOW, activeSceneHandle);
-    if (AXR_FAILED(axrResult)) {
-        return axrResult;
-    }
-
-    // TODO: Write all for XR too, if it's loaded
 
     return AXR_SUCCESS;
 }
@@ -515,9 +510,7 @@ AxrResult AxrVulkanSceneData::initializeAllWindowUniformBufferData() {
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    if (!isThisGlobalSceneData()) {
-        // ---- Scene Specific Uniform Buffers ----
-
+    if (isThisGlobalSceneData()) {
         axrResult = initializeUniformBufferData(
             nullptr,
             AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA,
@@ -755,6 +748,12 @@ AxrResult AxrVulkanSceneData::initializeAllImageData() {
 
     AxrResult axrResult = AXR_SUCCESS;
 
+    axrResult = initializeMissingTextureImageData();
+    if (AXR_FAILED(axrResult)) {
+        destroyAllImageData();
+        return axrResult;
+    }
+
     for (const auto& [imageName, image] : m_AssetCollection->getImages()) {
         axrResult = initializeImageData(image);
         if (AXR_FAILED(axrResult)) {
@@ -782,7 +781,6 @@ AxrResult AxrVulkanSceneData::initializeImageData(const AxrImage& image) {
         .Device = m_Device,
         .GraphicsCommandPool = m_GraphicsCommandPool,
         .GraphicsQueue = m_GraphicsQueue,
-        .MaxSamplerAnisotropy = m_MaxSamplerAnisotropy,
         .DispatchHandle = m_DispatchHandle,
     };
 
@@ -792,6 +790,36 @@ AxrResult AxrVulkanSceneData::initializeImageData(const AxrImage& image) {
             AxrVulkanImageData(imageDataConfig)
         )
     );
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrVulkanSceneData::initializeMissingTextureImageData() {
+    if (!isThisGlobalSceneData()) return AXR_SUCCESS;
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    if (!m_MissingTextureImage.isLoaded()) {
+        axrResult = axrEngineAssetCreateImage(
+            axrEngineAssetGetImageName(AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE),
+            AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE,
+            m_MissingTextureImage
+        );
+
+        if (AXR_FAILED(axrResult)) {
+            axrLogErrorLocation("Failed to create missing texture image.");
+            destroyAllImageData();
+            return axrResult;
+        }
+    }
+
+    axrResult = initializeImageData(m_MissingTextureImage);
+
+    if (AXR_FAILED(axrResult)) {
+        axrLogErrorLocation("Failed to initialize missing texture image data.");
+        destroyAllImageData();
+        return axrResult;
+    }
 
     return AXR_SUCCESS;
 }
@@ -822,6 +850,141 @@ const AxrVulkanImageData* AxrVulkanSceneData::findImageData_shared(const std::st
 
         if (foundImageData != nullptr) {
             return foundImageData;
+        }
+    }
+
+    return nullptr;
+}
+
+AxrResult AxrVulkanSceneData::createAllImageSamplerData() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!m_ImageSamplerData.empty()) {
+        axrLogErrorLocation("Image sampler data already exists.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = initializeAllImageSamplerData();
+    if (AXR_FAILED(axrResult)) {
+        destroyAllImageSamplerData();
+        return axrResult;
+    }
+
+    for (auto& [name, data] : m_ImageSamplerData) {
+        axrResult = createImageSamplerData(data);
+        if (AXR_FAILED(axrResult)) {
+            break;
+        }
+    }
+
+    if (AXR_FAILED(axrResult)) {
+        destroyAllImageSamplerData();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanSceneData::destroyAllImageSamplerData() {
+    for (auto& [name, data] : m_ImageSamplerData) {
+        destroyImageSamplerData(data);
+    }
+    m_ImageSamplerData.clear();
+}
+
+AxrResult AxrVulkanSceneData::initializeAllImageSamplerData() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!m_ImageSamplerData.empty()) {
+        axrLogErrorLocation("Image sampler data already exists.");
+        return AXR_ERROR;
+    }
+
+    if (m_AssetCollection == nullptr) {
+        axrLogErrorLocation("Asset collection is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    for (const auto& [imageSamplerName, imageSampler] : m_AssetCollection->getImageSamplers()) {
+        axrResult = initializeImageSamplerData(imageSampler);
+        if (AXR_FAILED(axrResult)) {
+            break;
+        }
+    }
+
+    if (AXR_FAILED(axrResult)) {
+        axrLogErrorLocation("Failed to initialize image sampler data.");
+        destroyAllImageSamplerData();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrVulkanSceneData::initializeImageSamplerData(const AxrImageSampler& imageSampler) {
+    const std::string imageSamplerName = imageSampler.getName();
+    if (m_ImageSamplerData.contains(imageSamplerName)) return AXR_SUCCESS;
+
+    const AxrVulkanImageSamplerData::Config imageSamplerDataConfig{
+        .Name = imageSamplerName,
+        .ImageSamplerHandle = &imageSampler,
+        .Device = m_Device,
+        .MaxSamplerAnisotropy = m_MaxSamplerAnisotropy,
+        .DispatchHandle = m_DispatchHandle,
+    };
+
+    m_ImageSamplerData.insert(
+        std::pair(
+            imageSamplerName,
+            AxrVulkanImageSamplerData(imageSamplerDataConfig)
+        )
+    );
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrVulkanSceneData::createImageSamplerData(AxrVulkanImageSamplerData& imageSamplerData) {
+    const AxrResult axrResult = imageSamplerData.createData();
+
+    if (AXR_FAILED(axrResult)) {
+        destroyImageSamplerData(imageSamplerData);
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanSceneData::destroyImageSamplerData(AxrVulkanImageSamplerData& imageSamplerData) {
+    imageSamplerData.destroyData();
+}
+
+const AxrVulkanImageSamplerData* AxrVulkanSceneData::findImageSamplerData_shared(const std::string& name) const {
+    const auto foundImageSamplerDataIt = m_ImageSamplerData.find(name);
+    if (foundImageSamplerDataIt != m_ImageSamplerData.end()) {
+        return &foundImageSamplerDataIt->second;
+    }
+
+    if (m_GlobalSceneData != nullptr) {
+        const auto foundImageSamplerData = m_GlobalSceneData->findImageSamplerData_shared(name);
+
+        if (foundImageSamplerData != nullptr) {
+            return foundImageSamplerData;
         }
     }
 
@@ -1207,11 +1370,11 @@ const AxrVulkanMaterialData* AxrVulkanSceneData::findMaterialData_shared(const s
     return nullptr;
 }
 
-AxrResult AxrVulkanSceneData::writeAllWindowDescriptorSets() {
+AxrResult AxrVulkanSceneData::writeAllDescriptorSets(const AxrPlatformType platformType) {
     AxrResult axrResult = AXR_SUCCESS;
 
     for (auto& [name, data] : m_MaterialData) {
-        axrResult = writeDescriptorSets(AXR_PLATFORM_TYPE_WINDOW, AXR_SHADER_BUFFER_SCOPE_MATERIAL, this, data);
+        axrResult = writeDescriptorSets(platformType, data);
 
         if (AXR_FAILED(axrResult)) {
             break;
@@ -1221,57 +1384,21 @@ AxrResult AxrVulkanSceneData::writeAllWindowDescriptorSets() {
     // TODO: We probably don't need to reset everything if 1 fails.
     //  This will be a big task but we should go through everything and check if it should reset everything if 1 thing fails too.
     if (AXR_FAILED(axrResult)) {
-        resetAllWindowDescriptorSets();
+        resetAllDescriptorSets(platformType);
         return axrResult;
-    }
-
-
-    if (m_GlobalSceneData != nullptr) {
-        axrResult = m_GlobalSceneData->writeAllSceneSpecificDescriptorSets(AXR_PLATFORM_TYPE_WINDOW, this);
-        if (AXR_FAILED(axrResult)) {
-            m_GlobalSceneData->resetAllWindowDescriptorSets();
-            return axrResult;
-        }
     }
 
     return AXR_SUCCESS;
 }
 
-void AxrVulkanSceneData::resetAllWindowDescriptorSets() {
+void AxrVulkanSceneData::resetAllDescriptorSets(const AxrPlatformType platformType) {
     for (auto& [name, data] : m_MaterialData) {
-        resetDescriptorSets(data);
+        resetDescriptorSets(platformType, data);
     }
-}
-
-AxrResult AxrVulkanSceneData::writeAllSceneSpecificDescriptorSets(
-    const AxrPlatformType platformType,
-    const AxrVulkanSceneData* sceneData
-) {
-    // Nothing to do if we're not in the global scene data
-    if (!isThisGlobalSceneData()) return AXR_SUCCESS;
-
-    AxrResult axrResult = AXR_SUCCESS;
-
-    for (auto& [name, data] : m_MaterialData) {
-        axrResult = writeDescriptorSets(platformType, AXR_SHADER_BUFFER_SCOPE_SCENE, sceneData, data);
-
-        if (AXR_FAILED(axrResult)) {
-            break;
-        }
-    }
-
-    if (AXR_FAILED(axrResult)) {
-        axrLogErrorLocation("Failed to set all scene specific descriptor sets.");
-        return axrResult;
-    }
-
-    return AXR_SUCCESS;
 }
 
 AxrResult AxrVulkanSceneData::writeDescriptorSets(
     const AxrPlatformType platformType,
-    const AxrShaderBufferScopeEnum bufferScope,
-    const AxrVulkanSceneData* sceneData,
     AxrVulkanMaterialData& materialData
 ) const {
     // ----------------------------------------- //
@@ -1293,11 +1420,6 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
         return AXR_ERROR;
     }
 
-    if (sceneData == nullptr) {
-        axrLogErrorLocation("Scene data is null.");
-        return AXR_ERROR;
-    }
-
     const AxrVulkanMaterialLayoutData* materialLayoutData = materialData.getMaterialLayoutData();
     if (materialLayoutData == nullptr) {
         axrLogErrorLocation("Material layout data is null.");
@@ -1310,7 +1432,7 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
         return AXR_ERROR;
     }
 
-    const std::vector<vk::DescriptorSet>& descriptorSets = materialData.getWindowDescriptorSets();
+    const std::vector<vk::DescriptorSet>& descriptorSets = materialData.getDescriptorSets(platformType);
     if (descriptorSets.empty()) {
         axrLogErrorLocation("Descriptor sets are empty.");
         return AXR_ERROR;
@@ -1334,23 +1456,27 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
     descriptorImageInfos.reserve(descriptorSetItemLocations.size() + m_MaxFramesInFlight);
 
     for (auto descriptorSetItemLocation : descriptorSetItemLocations) {
-        const std::string& bufferName = material->findShaderBufferName(descriptorSetItemLocation.ShaderBinding);
-        if (axrEngineAssetIsBufferNameReserved(bufferName.c_str()) &&
-            axrEngineAssetGetBufferScope(bufferName.c_str()) != bufferScope) {
-            // If the buffer's scope doesn't match the current scope we are writing for, we skip it.
-            // We also check if it's an engine asset because they're the only buffers with a scope.
-            continue;
-        }
+        if (descriptorSetItemLocation.DescriptorType == vk::DescriptorType::eUniformBuffer) {
+            const AxrShaderUniformBufferLinkConst_T uniformBuffer = material->findShaderUniformBuffer(
+                descriptorSetItemLocation.ShaderBinding
+            );
+            if (uniformBuffer == nullptr) {
+                axrLogErrorLocation(
+                    "Failed to get uniform buffer at binding: {0}.",
+                    descriptorSetItemLocation.ShaderBinding
+                );
+                axrResult = AXR_ERROR;
+                break;
+            }
 
-        for (uint32_t frameIndex = 0; frameIndex < m_MaxFramesInFlight; ++frameIndex) {
-            if (descriptorSetItemLocation.DescriptorType == vk::DescriptorType::eUniformBuffer) {
-                const AxrVulkanUniformBufferData* foundUniformBufferData = sceneData->findUniformBufferData_shared(
-                    bufferName,
+            for (uint32_t frameIndex = 0; frameIndex < m_MaxFramesInFlight; ++frameIndex) {
+                const AxrVulkanUniformBufferData* foundUniformBufferData = findUniformBufferData_shared(
+                    uniformBuffer->BufferName,
                     platformType
                 );
 
                 if (foundUniformBufferData == nullptr) {
-                    axrLogErrorLocation("Failed to find uniform buffer named: {0}.", bufferName);
+                    axrLogErrorLocation("Failed to find uniform buffer named: {0}.", uniformBuffer->BufferName);
                     axrResult = AXR_ERROR;
                     break;
                 }
@@ -1371,21 +1497,54 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
                     &descriptorBufferInfos.back(),
                     nullptr
                 );
-            } else if (descriptorSetItemLocation.DescriptorType == vk::DescriptorType::eCombinedImageSampler) {
-                const AxrVulkanImageData* foundImageData = sceneData->findImageData_shared(bufferName);
+            }
+        } else if (descriptorSetItemLocation.DescriptorType == vk::DescriptorType::eCombinedImageSampler) {
+            const AxrShaderImageSamplerBufferLinkConst_T imageSamplerBuffer = material->findShaderImageSamplerBuffer(
+                descriptorSetItemLocation.ShaderBinding
+            );
+            if (imageSamplerBuffer == nullptr) {
+                axrLogErrorLocation(
+                    "Failed to get image sampler buffer at binding: {0}.",
+                    descriptorSetItemLocation.ShaderBinding
+                );
+                axrResult = AXR_ERROR;
+                break;
+            }
+
+            const AxrVulkanImageData* foundImageData = findImageData_shared(imageSamplerBuffer->ImageName);
+
+            if (foundImageData == nullptr) {
+                // If image data wasn't found, use the "Missing Texture" image
+                foundImageData = findImageData_shared(
+                    axrEngineAssetGetImageName(AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE)
+                );
 
                 if (foundImageData == nullptr) {
-                    axrLogErrorLocation("Failed to find image named: {0}.", bufferName);
+                    axrLogErrorLocation("Failed to find image named: {0}.", imageSamplerBuffer->ImageName);
                     axrResult = AXR_ERROR;
                     break;
                 }
 
-                descriptorImageInfos.emplace_back(
-                    foundImageData->getSampler(),
-                    foundImageData->getImageView(),
-                    vk::ImageLayout::eShaderReadOnlyOptimal
-                );
+                // TODO: When we use the 'missing texture', make sure we use these sampler options NEAREST and REPEAT. otherwise it looks weird
+            }
 
+            const AxrVulkanImageSamplerData* foundImageSamplerData = findImageSamplerData_shared(
+                imageSamplerBuffer->SamplerName
+            );
+
+            if (foundImageSamplerData == nullptr) {
+                axrLogErrorLocation("Failed to find image sampler named: {0}.", imageSamplerBuffer->SamplerName);
+                axrResult = AXR_ERROR;
+                break;
+            }
+
+            descriptorImageInfos.emplace_back(
+                foundImageSamplerData->getSampler(),
+                foundImageData->getImageView(),
+                vk::ImageLayout::eShaderReadOnlyOptimal
+            );
+
+            for (uint32_t frameIndex = 0; frameIndex < m_MaxFramesInFlight; ++frameIndex) {
                 descriptorWrites.emplace_back(
                     descriptorSets[frameIndex],
                     descriptorSetItemLocation.ItemIndex,
@@ -1407,7 +1566,7 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
     // TODO: We probably don't need to reset everything if 1 fails.
     //  This will be a big task but we should go through everything and check if it should reset everything if 1 thing fails too.
     if (AXR_FAILED(axrResult)) {
-        resetDescriptorSets(materialData);
+        resetDescriptorSets(platformType, materialData);
         return axrResult;
     }
 
@@ -1422,8 +1581,11 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
     return AXR_SUCCESS;
 }
 
-void AxrVulkanSceneData::resetDescriptorSets(AxrVulkanMaterialData& materialData) const {
-    materialData.resetWindowDescriptorSets();
+void AxrVulkanSceneData::resetDescriptorSets(
+    const AxrPlatformType platformType,
+    AxrVulkanMaterialData& materialData
+) const {
+    materialData.resetDescriptorSets(platformType);
 }
 
 AxrResult AxrVulkanSceneData::createAllMaterialsForRendering() {
@@ -1481,58 +1643,61 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
         axrLogErrorLocation("Failed to find model data for model: {0}.", modelComponent.ModelName);
     }
 
-    for (uint32_t i = 0; i < modelComponent.MeshCount; ++i) {
-        AxrModelComponent::Mesh& currentMesh = modelComponent.Meshes[i];
+    for (uint32_t meshIndex = 0; meshIndex < modelComponent.MeshCount; ++meshIndex) {
+        for (int submeshIndex = 0; submeshIndex < modelComponent.Meshes[meshIndex].SubmeshCount; ++submeshIndex) {
+            const AxrModelComponent::Mesh::Submesh& currentSubmesh = modelComponent.Meshes[meshIndex].Submeshes[
+                submeshIndex];
 
-        const AxrVulkanMaterialData* foundMaterialData = findMaterialData_shared(currentMesh.MaterialName);
-        if (foundMaterialData == nullptr) {
-            axrLogErrorLocation("Failed to find material data for material: {0}.", currentMesh.MaterialName);
-            continue;
-        }
+            const AxrVulkanMaterialData* foundMaterialData = findMaterialData_shared(currentSubmesh.MaterialName);
+            if (foundMaterialData == nullptr) {
+                axrLogErrorLocation("Failed to find material data for material: {0}.", currentSubmesh.MaterialName);
+                continue;
+            }
 
-        auto foundMaterialForRendering = materialsForRendering.find(currentMesh.MaterialName);
-        const vk::ShaderStageFlags& pushConstantStageFlags = foundMaterialData->getMaterialLayoutData()
-                                                                              ->getPushConstantShaderStages();
+            auto foundMaterialForRendering = materialsForRendering.find(currentSubmesh.MaterialName);
+            const vk::ShaderStageFlags& pushConstantStageFlags = foundMaterialData->getMaterialLayoutData()
+                ->getPushConstantShaderStages();
 
-        auto meshForRendering = MeshForRendering{
-            .Buffer = foundModelData->getMeshBuffer(i),
-            .BufferIndicesOffset = foundModelData->getMeshBufferIndicesOffset(i),
-            .BufferVerticesOffset = foundModelData->getMeshBufferVerticesOffset(i),
-            .IndexCount = foundModelData->getMeshIndexCount(i),
-            .PushConstant = axrStringIsEmpty(modelComponent.PushConstantBufferName) ||
-                            pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
-                                ? PushConstantForRendering{}
-                                : PushConstantForRendering{
-                                    .ShaderStages = &pushConstantStageFlags,
-                                    .BufferName = modelComponent.PushConstantBufferName,
-                                    .TransformComponent = &transformComponent,
-                                },
-        };
+            auto meshForRendering = MeshForRendering{
+                .Buffer = foundModelData->getModelBuffer(),
+                .BufferIndicesOffset = foundModelData->getSubmeshBufferIndicesOffset(meshIndex, submeshIndex),
+                .BufferVerticesOffset = foundModelData->getSubmeshBufferVerticesOffset(meshIndex, submeshIndex),
+                .IndexCount = foundModelData->getSubmeshIndexCount(meshIndex, submeshIndex),
+                .PushConstant = axrStringIsEmpty(modelComponent.PushConstantBufferName) ||
+                                pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
+                                    ? PushConstantForRendering{}
+                                    : PushConstantForRendering{
+                                        .ShaderStages = &pushConstantStageFlags,
+                                        .BufferName = modelComponent.PushConstantBufferName,
+                                        .TransformComponent = &transformComponent,
+                                    },
+            };
 
-        if (foundMaterialForRendering == materialsForRendering.end()) {
-            const std::string& materialPushConstantBufferName = foundMaterialData->getPushConstantBufferName();
+            if (foundMaterialForRendering == materialsForRendering.end()) {
+                const std::string& materialPushConstantBufferName = foundMaterialData->getPushConstantBufferName();
 
-            materialsForRendering.insert(
-                std::pair(
-                    currentMesh.MaterialName,
-                    MaterialForRendering{
-                        .PipelineLayout = foundMaterialData->getMaterialLayoutData()->getPipelineLayout(),
-                        .WindowPipeline = foundMaterialData->getWindowPipeline(),
-                        .WindowDescriptorSets = foundMaterialData->getWindowDescriptorSets(),
-                        .PushConstant = materialPushConstantBufferName.empty() ||
-                                        pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
-                                            ? PushConstantForRendering{}
-                                            : PushConstantForRendering{
-                                                .ShaderStages = &pushConstantStageFlags,
-                                                .BufferName = materialPushConstantBufferName.c_str(),
-                                                .TransformComponent = &transformComponent,
-                                            },
-                        .Meshes = {meshForRendering}
-                    }
-                )
-            );
-        } else {
-            foundMaterialForRendering->second.Meshes.push_back(meshForRendering);
+                materialsForRendering.insert(
+                    std::pair(
+                        currentSubmesh.MaterialName,
+                        MaterialForRendering{
+                            .PipelineLayout = foundMaterialData->getMaterialLayoutData()->getPipelineLayout(),
+                            .WindowPipeline = foundMaterialData->getWindowPipeline(),
+                            .WindowDescriptorSets = foundMaterialData->getDescriptorSets(AXR_PLATFORM_TYPE_WINDOW),
+                            .PushConstant = materialPushConstantBufferName.empty() ||
+                                            pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
+                                                ? PushConstantForRendering{}
+                                                : PushConstantForRendering{
+                                                    .ShaderStages = &pushConstantStageFlags,
+                                                    .BufferName = materialPushConstantBufferName.c_str(),
+                                                    .TransformComponent = &transformComponent,
+                                                },
+                            .Meshes = {meshForRendering}
+                        }
+                    )
+                );
+            } else {
+                foundMaterialForRendering->second.Meshes.push_back(meshForRendering);
+            }
         }
     }
 

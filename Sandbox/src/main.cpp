@@ -7,6 +7,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include <axr.hpp>
+#include "sponzaScene.hpp"
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd) {
     const std::string applicationName = "Sandbox";
@@ -52,58 +53,17 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
     auto app = axr::Application(appConfig);
 
-    const std::string imageName = "UvTesterImage";
-    const std::string materialName = "MyMaterial";
-    const std::string modelName = "Cube";
-
     axr::AssetCollection globalAssetCollection = app.getGlobalAssetCollection();
-    if (AXR_FAILED(globalAssetCollection.createImage(imageName.c_str(), axr::EngineAssetEnum::ImageUvTester))) return -1;
     if (AXR_FAILED(globalAssetCollection.createShader(axr::EngineAssetEnum::ShaderDefaultFrag))) return -1;
     if (AXR_FAILED(globalAssetCollection.createShader(axr::EngineAssetEnum::ShaderDefaultVert))) return -1;
-    if (AXR_FAILED(
-        globalAssetCollection.createMaterial(
-            materialName.c_str(),
-            axr::EngineAssetMaterial_DefaultMaterial(imageName.c_str())
-        )
-    )) {
-        return -1;
-    }
 
-    if (AXR_FAILED(
-        globalAssetCollection.createModel(modelName.c_str(), axr::EngineAssetEnum::ModelCube)
-    ))
-        return -1;
-
-    const std::string scene1Name = "Scene1";
-    if (AXR_FAILED(app.createScene(scene1Name.c_str()))) return -1;
-    const axr::Scene scene1 = app.findScene(scene1Name.c_str());
-    const axr::Entity_T entity = scene1.createEntity();
-
-    entity.emplace<AxrTransformComponent>(
-        AxrTransformComponent{
-            .Position = glm::vec3(0.0f, 0.0f, 0.0f),
-            .Scale = glm::vec3(1.0f, 1.0f, 1.0f),
-            .Orientation = glm::quat(1.f, 0.f, 0.f, 0.f),
-        }
-    );
-    AxrModelComponent::Mesh mesh{
-        .MaterialName = materialName.c_str(),
-    };
-    entity.emplace<AxrModelComponent>(
-        AxrModelComponent{
-            .ModelName = modelName.c_str(),
-            .MeshCount = 1,
-            .Meshes = &mesh,
-            .PushConstantBufferName = axr::engineAssetGetName(
-                axr::EngineAssetEnum::PushConstantBufferModelMatrix
-            ),
-        }
-    );
+    SponzaScene sponzaScene(app);
+    if (AXR_FAILED(sponzaScene.setup())) return -1;
 
     if (AXR_FAILED(app.setup())) return -1;
 
-    if (AXR_FAILED(app.loadScene(scene1Name.c_str()))) return -1;
-    if (AXR_FAILED(app.setActiveScene(scene1Name.c_str()))) return -1;
+    if (AXR_FAILED(sponzaScene.loadScene())) return -1;
+    if (AXR_FAILED(sponzaScene.setAsActiveScene())) return -1;
 
     axr::WindowSystem windowSystem = app.getWindowSystem();
     if (AXR_FAILED(windowSystem.openWindow())) return -1;
@@ -113,12 +73,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     while (app.isRunning()) {
         app.processEvents();
 
-        entity.patch<AxrTransformComponent>(
-            [](AxrTransformComponent& transform) {
-                //TODO: Get and use delta time
-                transform.Orientation = glm::rotate(transform.Orientation, 0.0001f, glm::vec3(0.0f, 1.0f, 0.0f));
-            }
-        );
+        sponzaScene.update();
 
         graphicsSystem.drawFrame();
     }

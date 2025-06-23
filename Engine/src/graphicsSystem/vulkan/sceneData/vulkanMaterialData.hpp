@@ -84,9 +84,13 @@ public:
     /// Get the push constant buffer name
     /// @returns The push constant buffer name
     [[nodiscard]] const std::string& getPushConstantBufferName() const;
-    /// Get the window specific descriptor sets
-    /// @returns The window specific descriptor sets
-    [[nodiscard]] const std::vector<vk::DescriptorSet>& getWindowDescriptorSets() const;
+    /// Get the descriptor sets for the given platform
+    /// @param platformType Platform to get the descriptor sets of
+    /// @returns The descriptor sets
+    [[nodiscard]] const std::vector<vk::DescriptorSet>& getDescriptorSets(AxrPlatformType platformType) const;
+    /// Reset the descriptor sets for the given platform
+    /// @param platformType Platform to reset the descriptor sets of
+    void resetDescriptorSets(AxrPlatformType platformType);
     /// Get a handle to the material this class is built from
     /// @returns A handle to the material this class is built from 
     [[nodiscard]] const AxrMaterial* getMaterial() const;
@@ -113,9 +117,6 @@ public:
     /// Destroy the window specific material data
     void destroyWindowData();
 
-    /// Reset the window descriptor sets
-    void resetWindowDescriptorSets();
-
 private:
     // ----------------------------------------- //
     // Private Variables
@@ -130,6 +131,8 @@ private:
     uint32_t m_MaxFramesInFlight;
     vk::Device m_Device;
     vk::DispatchLoaderDynamic* m_DispatchHandle;
+    /// These should never be used for anything other than returning a reference to descriptor sets when there's no other option.
+    std::vector<vk::DescriptorSet> m_DummyDescriptorSets;
 
     // ---- Window Data ----
     vk::DescriptorPool m_WindowDescriptorPool;

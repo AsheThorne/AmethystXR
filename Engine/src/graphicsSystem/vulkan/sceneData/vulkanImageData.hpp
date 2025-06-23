@@ -31,7 +31,6 @@ public:
         vk::Device Device;
         vk::CommandPool GraphicsCommandPool;
         vk::Queue GraphicsQueue;
-        float MaxSamplerAnisotropy;
         vk::DispatchLoaderDynamic* DispatchHandle;
     };
 
@@ -77,9 +76,6 @@ public:
     /// Get the image view
     /// @returns The image view
     [[nodiscard]] const vk::ImageView& getImageView() const;
-    /// Get the image sampler
-    /// @return The image sampler
-    [[nodiscard]] const vk::Sampler& getSampler() const;
 
     /// Check if the data exists
     /// @returns True if the data exists
@@ -99,13 +95,9 @@ private:
     // ---- Config Variables ----
     std::string m_Name;
     const AxrImage* m_ImageHandle;
-    vk::Device m_Device;
-    float m_MaxSamplerAnisotropy;
-    vk::DispatchLoaderDynamic* m_DispatchHandle;
 
     // ---- Data ----
     AxrVulkanImage m_Image;
-    vk::Sampler m_Sampler;
 
     // ----------------------------------------- //
     // Private Functions
@@ -113,24 +105,6 @@ private:
 
     /// Clean up this class
     void cleanup();
-
-    // ---- Data ----
-
-    /// Create image sampler
-    /// @param mipLevelCount Mip level count
-    /// @param imageSamplerFilter Image sampler filter 
-    /// @param imageSamplerWrapping Image sampler wrapping enum
-    /// @param sampler Output image sampler
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createSampler(
-        uint32_t mipLevelCount,
-        AxrImageSamplerFilterEnum imageSamplerFilter,
-        AxrImageSamplerWrappingEnum imageSamplerWrapping,
-        vk::Sampler& sampler
-    ) const;
-    /// Destroy the given image sampler
-    /// @param sampler Sampler to destroy
-    void destroySampler(vk::Sampler& sampler) const;
 };
 
 #endif
