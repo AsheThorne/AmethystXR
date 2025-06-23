@@ -15,6 +15,9 @@ public:
     // Types
     // ----------------------------------------- //
 
+    // TODO: Discovered something cool. we can use class functions (meaning we won't need to do the static function fuckery)
+    //  by defining the class in the (*) section. like, T(AxrClass::*)(void* userData, Args... args).
+    //  So find a way to use that. but it'd be nice to somehow have the option to still use static functions like we are now
     /// Callback function type
     using CallbackFunction_T = T(*)(void* userData, Args... args);
 

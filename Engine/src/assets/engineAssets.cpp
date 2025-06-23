@@ -41,20 +41,14 @@ const std::unordered_map EngineAssetShaderNames{
 // ----------------------------------------- //
 
 /// Engine asset buffer properties
-const std::unordered_map EngineAssetBufferProperties{
+const std::unordered_map EngineAssetBufferNames{
     std::pair(
         AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA,
-        AxrEngineAssetBufferProperties{
-            .Name = "AXR:UniformBufferSceneData",
-            .Scope = AXR_SHADER_BUFFER_SCOPE_SCENE
-        }
+        "AXR:UniformBufferSceneData"
     ),
     std::pair(
         AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX,
-        AxrEngineAssetBufferProperties{
-            .Name = "AXR:PushConstantBufferModelMatrix",
-            .Scope = AXR_SHADER_BUFFER_SCOPE_MODEL
-        }
+        "AXR:PushConstantBufferModelMatrix"
     ),
 };
 
@@ -304,43 +298,25 @@ bool axrEngineAssetIsPushConstantBuffer(const AxrEngineAssetEnum engineAssetEnum
 }
 #endif
 
-AxrShaderBufferScopeEnum axrEngineAssetGetBufferScope(const char* bufferName) {
-    for (const auto& properties : EngineAssetBufferProperties | std::views::values) {
-        if (std::strcmp(properties.Name, bufferName) == 0) {
-            return properties.Scope;
-        }
-    }
-
-    for (const auto& properties : EngineAssetBufferProperties | std::views::values) {
-        if (std::strcmp(properties.Name, bufferName) == 0) {
-            return properties.Scope;
-        }
-    }
-
-    axrLogErrorLocation("Failed to find buffer engine asset named: {0}.", bufferName);
-    return AXR_SHADER_BUFFER_SCOPE_UNDEFINED;
-}
-
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 const char* axrEngineAssetGetBufferName(const AxrEngineAssetEnum engineAssetEnum) {
-    // If the given engine asset is neither a uniform buffer nor a push constant buffer
     if (!(
-        axrEngineAssetIsUniformBuffer(engineAssetEnum) ||
-        axrEngineAssetIsPushConstantBuffer(engineAssetEnum)
+        axrEngineAssetIsUniformBuffer(engineAssetEnum)
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+        || axrEngineAssetIsPushConstantBuffer(engineAssetEnum)
+#endif
     )) {
         axrLogErrorLocation("Engine asset is not a buffer.");
         return "";
     }
 
-    const auto foundEngineAssetIt = EngineAssetBufferProperties.find(engineAssetEnum);
-    if (foundEngineAssetIt == EngineAssetBufferProperties.end()) {
+    const auto foundEngineAssetIt = EngineAssetBufferNames.find(engineAssetEnum);
+    if (foundEngineAssetIt == EngineAssetBufferNames.end()) {
         axrLogError("Failed to find name for engine asset: {0}.", static_cast<int>(engineAssetEnum));
         return "";
     }
 
-    return foundEngineAssetIt->second.Name;
+    return foundEngineAssetIt->second;
 }
-#endif
 
 const char* axrEngineAssetGetUniformBufferName(const AxrEngineAssetEnum engineAssetEnum) {
     if (!axrEngineAssetIsUniformBuffer(engineAssetEnum)) {
@@ -363,8 +339,8 @@ const char* axrEngineAssetGetPushConstantBufferName(const AxrEngineAssetEnum eng
 #endif
 
 bool axrEngineAssetIsBufferNameReserved(const char* name) {
-    for (const auto& properties : EngineAssetBufferProperties | std::views::values) {
-        if (std::strcmp(properties.Name, name) == 0) {
+    for (const auto& bufferName : EngineAssetBufferNames | std::views::values) {
+        if (std::strcmp(bufferName, name) == 0) {
             return true;
         }
     }
@@ -373,8 +349,8 @@ bool axrEngineAssetIsBufferNameReserved(const char* name) {
 }
 
 bool axrEngineAssetIsUniformBufferNameReserved(const char* name) {
-    for (const auto& [engineAsset, properties] : EngineAssetBufferProperties) {
-        if (axrEngineAssetIsUniformBuffer(engineAsset) && std::strcmp(properties.Name, name) == 0) {
+    for (const auto& [engineAsset, bufferName] : EngineAssetBufferNames) {
+        if (axrEngineAssetIsUniformBuffer(engineAsset) && std::strcmp(bufferName, name) == 0) {
             return true;
         }
     }
@@ -384,8 +360,8 @@ bool axrEngineAssetIsUniformBufferNameReserved(const char* name) {
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 bool axrEngineAssetIsPushConstantBufferNameReserved(const char* name) {
-    for (const auto& [engineAsset, properties] : EngineAssetBufferProperties) {
-        if (axrEngineAssetIsPushConstantBuffer(engineAsset) && std::strcmp(properties.Name, name) == 0) {
+    for (const auto& [engineAsset, bufferName] : EngineAssetBufferNames) {
+        if (axrEngineAssetIsPushConstantBuffer(engineAsset) && std::strcmp(bufferName, name) == 0) {
             return true;
         }
     }

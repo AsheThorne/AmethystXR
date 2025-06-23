@@ -12,9 +12,8 @@ axr::Result TestScene::setup() {
     if (AXR_FAILED(m_Application.createScene(m_SceneName.c_str()))) return axr::Result::Error;
     m_Scene = m_Application.findScene(m_SceneName.c_str());
 
-        // TODO: There are rendering bugs so we need materials on the global assets for now
     if (AXR_FAILED(
-        m_Application.getGlobalAssetCollection().createImage(m_ImageName.c_str(), axr::EngineAssetEnum::ImageUvTester)
+        m_Scene.getAssetCollection().createImage(m_ImageName.c_str(), axr::EngineAssetEnum::ImageUvTester)
     )) {
         return axr::Result::Error;
     }
@@ -27,13 +26,11 @@ axr::Result TestScene::setup() {
         axr::ImageSamplerWrappingEnum::Repeat,
         axr::ImageSamplerWrappingEnum::Repeat
     );
-        // TODO: There are rendering bugs so we need materials on the global assets for now
-    if (AXR_FAILED(m_Application.getGlobalAssetCollection().createImageSampler(imageSamplerConfig))) return axr::Result::Error;
+    if (AXR_FAILED(m_Scene.getAssetCollection().createImageSampler(imageSamplerConfig))) return axr::Result::Error;
 
 
     if (AXR_FAILED(
-        // TODO: There are rendering bugs so we need materials on the global assets for now
-        m_Application.getGlobalAssetCollection().createMaterial(
+        m_Scene.getAssetCollection().createMaterial(
             m_MaterialName.c_str(),
             axr::EngineAssetMaterial_DefaultMaterial(
                 m_ImageName.c_str(),

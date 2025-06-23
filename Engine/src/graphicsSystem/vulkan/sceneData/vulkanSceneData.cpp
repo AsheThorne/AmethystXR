@@ -10,6 +10,7 @@
 #include "../vulkanUtils.hpp"
 #include "../../../utils.hpp"
 #include "axr/utils.h"
+#include "../../../assets/engineAssets.hpp"
 
 // ---- Special Functions ----
 
@@ -147,7 +148,7 @@ AxrResult AxrVulkanSceneData::loadWindowData(const vk::RenderPass renderPass) {
 
     m_IsWindowDataLoaded = true;
 
-    axrResult = writeAllWindowDescriptorSets();
+    axrResult = writeAllDescriptorSets(AXR_PLATFORM_TYPE_WINDOW);
     if (AXR_FAILED(axrResult)) {
         unloadWindowData();
         return axrResult;
@@ -163,7 +164,7 @@ void AxrVulkanSceneData::unloadWindowData() {
     const vk::Result vkResult = m_Device.waitIdle(*m_DispatchHandle);
     axrLogVkResult(vkResult, "m_Device.waitIdle");
 
-    resetAllWindowDescriptorSets();
+    resetAllDescriptorSets(AXR_PLATFORM_TYPE_WINDOW);
     destroyAllWindowMaterialData();
     destroyAllWindowUniformBufferData();
 }
@@ -195,19 +196,6 @@ AxrResult AxrVulkanSceneData::setWindowUniformBufferData(
         );
         return AXR_ERROR;
     }
-
-    return AXR_SUCCESS;
-}
-
-AxrResult AxrVulkanSceneData::onSetActiveScene(const AxrVulkanSceneData* activeSceneHandle) {
-    AxrResult axrResult = AXR_SUCCESS;
-
-    axrResult = writeAllSceneSpecificDescriptorSets(AXR_PLATFORM_TYPE_WINDOW, activeSceneHandle);
-    if (AXR_FAILED(axrResult)) {
-        return axrResult;
-    }
-
-    // TODO: Write all for XR too, if it's loaded
 
     return AXR_SUCCESS;
 }
@@ -524,9 +512,7 @@ AxrResult AxrVulkanSceneData::initializeAllWindowUniformBufferData() {
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    if (!isThisGlobalSceneData()) {
-        // ---- Scene Specific Uniform Buffers ----
-
+    if (isThisGlobalSceneData()) {
         axrResult = initializeUniformBufferData(
             nullptr,
             AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA,
@@ -1386,14 +1372,11 @@ const AxrVulkanMaterialData* AxrVulkanSceneData::findMaterialData_shared(const s
     return nullptr;
 }
 
-AxrResult AxrVulkanSceneData::writeAllWindowDescriptorSets() {
+AxrResult AxrVulkanSceneData::writeAllDescriptorSets(const AxrPlatformType platformType) {
     AxrResult axrResult = AXR_SUCCESS;
 
-    // WARNING: There are rendering bugs when we have a material in a scene asset collection instead of the global asset collection.
-    // TODO: Fix those bugs. We probably need to just rewrite the writeDescriptorSets stuff. it's really hard to follow
-
     for (auto& [name, data] : m_MaterialData) {
-        axrResult = writeDescriptorSets(AXR_PLATFORM_TYPE_WINDOW, AXR_SHADER_BUFFER_SCOPE_MATERIAL, this, data);
+        axrResult = writeDescriptorSets(platformType, data);
 
         if (AXR_FAILED(axrResult)) {
             break;
@@ -1403,57 +1386,21 @@ AxrResult AxrVulkanSceneData::writeAllWindowDescriptorSets() {
     // TODO: We probably don't need to reset everything if 1 fails.
     //  This will be a big task but we should go through everything and check if it should reset everything if 1 thing fails too.
     if (AXR_FAILED(axrResult)) {
-        resetAllWindowDescriptorSets();
+        resetAllDescriptorSets(platformType);
         return axrResult;
-    }
-
-
-    if (m_GlobalSceneData != nullptr) {
-        axrResult = m_GlobalSceneData->writeAllSceneSpecificDescriptorSets(AXR_PLATFORM_TYPE_WINDOW, this);
-        if (AXR_FAILED(axrResult)) {
-            m_GlobalSceneData->resetAllWindowDescriptorSets();
-            return axrResult;
-        }
     }
 
     return AXR_SUCCESS;
 }
 
-void AxrVulkanSceneData::resetAllWindowDescriptorSets() {
+void AxrVulkanSceneData::resetAllDescriptorSets(const AxrPlatformType platformType) {
     for (auto& [name, data] : m_MaterialData) {
-        resetDescriptorSets(data);
+        resetDescriptorSets(platformType, data);
     }
-}
-
-AxrResult AxrVulkanSceneData::writeAllSceneSpecificDescriptorSets(
-    const AxrPlatformType platformType,
-    const AxrVulkanSceneData* sceneData
-) {
-    // Nothing to do if we're not in the global scene data
-    if (!isThisGlobalSceneData()) return AXR_SUCCESS;
-
-    AxrResult axrResult = AXR_SUCCESS;
-
-    for (auto& [name, data] : m_MaterialData) {
-        axrResult = writeDescriptorSets(platformType, AXR_SHADER_BUFFER_SCOPE_SCENE, sceneData, data);
-
-        if (AXR_FAILED(axrResult)) {
-            break;
-        }
-    }
-
-    if (AXR_FAILED(axrResult)) {
-        axrLogErrorLocation("Failed to set all scene specific descriptor sets.");
-        return axrResult;
-    }
-
-    return AXR_SUCCESS;
 }
 
 AxrResult AxrVulkanSceneData::writeDescriptorSets(
     const AxrPlatformType platformType,
-    const AxrShaderBufferScopeEnum bufferScope,
-    const AxrVulkanSceneData* sceneData,
     AxrVulkanMaterialData& materialData
 ) const {
     // ----------------------------------------- //
@@ -1475,11 +1422,6 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
         return AXR_ERROR;
     }
 
-    if (sceneData == nullptr) {
-        axrLogErrorLocation("Scene data is null.");
-        return AXR_ERROR;
-    }
-
     const AxrVulkanMaterialLayoutData* materialLayoutData = materialData.getMaterialLayoutData();
     if (materialLayoutData == nullptr) {
         axrLogErrorLocation("Material layout data is null.");
@@ -1492,7 +1434,7 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
         return AXR_ERROR;
     }
 
-    const std::vector<vk::DescriptorSet>& descriptorSets = materialData.getWindowDescriptorSets();
+    const std::vector<vk::DescriptorSet>& descriptorSets = materialData.getDescriptorSets(platformType);
     if (descriptorSets.empty()) {
         axrLogErrorLocation("Descriptor sets are empty.");
         return AXR_ERROR;
@@ -1529,15 +1471,8 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
                 break;
             }
 
-            if (axrEngineAssetIsBufferNameReserved(uniformBuffer->BufferName) &&
-                axrEngineAssetGetBufferScope(uniformBuffer->BufferName) != bufferScope) {
-                // If the buffer's scope doesn't match the current scope we are writing for, we skip it.
-                // We also check if it's an engine asset because they're the only buffers with a scope.
-                continue;
-            }
-
             for (uint32_t frameIndex = 0; frameIndex < m_MaxFramesInFlight; ++frameIndex) {
-                const AxrVulkanUniformBufferData* foundUniformBufferData = sceneData->findUniformBufferData_shared(
+                const AxrVulkanUniformBufferData* foundUniformBufferData = findUniformBufferData_shared(
                     uniformBuffer->BufferName,
                     platformType
                 );
@@ -1578,11 +1513,11 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
                 break;
             }
 
-            const AxrVulkanImageData* foundImageData = sceneData->findImageData_shared(imageSamplerBuffer->ImageName);
+            const AxrVulkanImageData* foundImageData = findImageData_shared(imageSamplerBuffer->ImageName);
 
             if (foundImageData == nullptr) {
                 // If image data wasn't found, use the "Missing Texture" image
-                foundImageData = sceneData->findImageData_shared(
+                foundImageData = findImageData_shared(
                     axrEngineAssetGetImageName(AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE)
                 );
 
@@ -1595,7 +1530,7 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
                 // TODO: When we use the 'missing texture', make sure we use these sampler options NEAREST and REPEAT. otherwise it looks weird
             }
 
-            const AxrVulkanImageSamplerData* foundImageSamplerData = sceneData->findImageSamplerData_shared(
+            const AxrVulkanImageSamplerData* foundImageSamplerData = findImageSamplerData_shared(
                 imageSamplerBuffer->SamplerName
             );
 
@@ -1633,7 +1568,7 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
     // TODO: We probably don't need to reset everything if 1 fails.
     //  This will be a big task but we should go through everything and check if it should reset everything if 1 thing fails too.
     if (AXR_FAILED(axrResult)) {
-        resetDescriptorSets(materialData);
+        resetDescriptorSets(platformType, materialData);
         return axrResult;
     }
 
@@ -1648,8 +1583,11 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
     return AXR_SUCCESS;
 }
 
-void AxrVulkanSceneData::resetDescriptorSets(AxrVulkanMaterialData& materialData) const {
-    materialData.resetWindowDescriptorSets();
+void AxrVulkanSceneData::resetDescriptorSets(
+    const AxrPlatformType platformType,
+    AxrVulkanMaterialData& materialData
+) const {
+    materialData.resetDescriptorSets(platformType);
 }
 
 AxrResult AxrVulkanSceneData::createAllMaterialsForRendering() {
@@ -1746,7 +1684,7 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
                         MaterialForRendering{
                             .PipelineLayout = foundMaterialData->getMaterialLayoutData()->getPipelineLayout(),
                             .WindowPipeline = foundMaterialData->getWindowPipeline(),
-                            .WindowDescriptorSets = foundMaterialData->getWindowDescriptorSets(),
+                            .WindowDescriptorSets = foundMaterialData->getDescriptorSets(AXR_PLATFORM_TYPE_WINDOW),
                             .PushConstant = materialPushConstantBufferName.empty() ||
                                             pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
                                                 ? PushConstantForRendering{}

@@ -47,20 +47,6 @@ AxrResult axrEngineAssetCreateShader_DefaultFrag(AxrShader& shader);
 //                               Buffer Engine Assets                                 //
 // ---------------------------------------------------------------------------------- //
 
-/// Shader buffer scope enum
-enum AxrShaderBufferScopeEnum {
-    AXR_SHADER_BUFFER_SCOPE_UNDEFINED = 0,
-    AXR_SHADER_BUFFER_SCOPE_SCENE,
-    AXR_SHADER_BUFFER_SCOPE_MATERIAL,
-    AXR_SHADER_BUFFER_SCOPE_MODEL,
-};
-
-/// Engine asset buffer properties
-struct AxrEngineAssetBufferProperties {
-    const char* Name;
-    AxrShaderBufferScopeEnum Scope;
-};
-
 /// Check if the given engine asset is a uniform buffer
 /// @param engineAssetEnum Engine asset to check
 /// @returns True if the given engine asset is a uniform buffer
@@ -71,11 +57,6 @@ bool axrEngineAssetIsUniformBuffer(AxrEngineAssetEnum engineAssetEnum);
 /// @returns True if the given engine asset is a push constant buffer
 bool axrEngineAssetIsPushConstantBuffer(AxrEngineAssetEnum engineAssetEnum);
 #endif
-
-/// Get the scope of the named buffer engine asset
-/// @param bufferName Buffer name
-/// @returns Buffer scope
-AxrShaderBufferScopeEnum axrEngineAssetGetBufferScope(const char* bufferName);
 
 /// Get the name for the given buffer engine asset
 /// @param engineAssetEnum Engine asset to get the name of

@@ -9,6 +9,7 @@
 #include "../../windowSystem/windowSystem.hpp"
 #include "vulkanSharedFunctions.hpp"
 #include "vulkanImage.hpp"
+#include "../../assets/engineAssets.hpp"
 
 // ---- Special Functions ----
 

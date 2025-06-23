@@ -120,8 +120,41 @@ const std::string& AxrVulkanMaterialData::getPushConstantBufferName() const {
     return m_MaterialHandle->getPushConstantBufferName();
 }
 
-const std::vector<vk::DescriptorSet>& AxrVulkanMaterialData::getWindowDescriptorSets() const {
-    return m_WindowDescriptorSets;
+const std::vector<vk::DescriptorSet>& AxrVulkanMaterialData::getDescriptorSets(
+    const AxrPlatformType platformType
+) const {
+    switch (platformType) {
+        case AXR_PLATFORM_TYPE_WINDOW: {
+            return m_WindowDescriptorSets;
+        }
+        case AXR_PLATFORM_TYPE_XR_DEVICE: {
+            axrLogErrorLocation("XR descriptor sets don't exist yet.");
+            return m_DummyDescriptorSets;
+        }
+        case AXR_PLATFORM_TYPE_UNDEFINED:
+        default: {
+            axrLogErrorLocation("Unknown platform type.");
+            return m_DummyDescriptorSets;
+        }
+    }
+}
+
+void AxrVulkanMaterialData::resetDescriptorSets(const AxrPlatformType platformType) {
+    switch (platformType) {
+        case AXR_PLATFORM_TYPE_WINDOW: {
+            resetDescriptorSets(m_WindowDescriptorPool, m_WindowDescriptorSets);
+            break;
+        }
+        case AXR_PLATFORM_TYPE_XR_DEVICE: {
+            axrLogErrorLocation("XR descriptor sets don't exist yet.");
+            break;
+        }
+        case AXR_PLATFORM_TYPE_UNDEFINED:
+        default: {
+            axrLogErrorLocation("Unknown platform type.");
+            break;
+        }
+    }
 }
 
 const AxrMaterial* AxrVulkanMaterialData::getMaterial() const {
@@ -196,12 +229,8 @@ AxrResult AxrVulkanMaterialData::createWindowData(
 
 void AxrVulkanMaterialData::destroyWindowData() {
     destroyPipeline(m_WindowPipeline);
-    resetWindowDescriptorSets();
+    resetDescriptorSets(AXR_PLATFORM_TYPE_WINDOW);
     destroyDescriptorPool(m_WindowDescriptorPool);
-}
-
-void AxrVulkanMaterialData::resetWindowDescriptorSets() {
-    resetDescriptorSets(m_WindowDescriptorPool, m_WindowDescriptorSets);
 }
 
 // ---- Private Functions ----
@@ -256,7 +285,7 @@ AxrResult AxrVulkanMaterialData::createDescriptorPool(
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //
-    
+
     uint32_t uniformBufferLayoutsCount = static_cast<uint32_t>(
         m_VertexShaderHandle->getProperties().getUniformBufferLayouts().size() +
         m_FragmentShaderHandle->getProperties().getUniformBufferLayouts().size()

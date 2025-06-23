@@ -12,7 +12,6 @@
 #include "vulkanImageData.hpp"
 #include "vulkanImageSamplerData.hpp"
 #include "axr/scene.h"
-#include "../../../assets/engineAssets.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -139,11 +138,6 @@ public:
         vk::DeviceSize dataSize,
         const void* data
     ) const;
-
-    /// Set the active scene
-    /// @param activeSceneHandle Handle to the new active scene
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult onSetActiveScene(const AxrVulkanSceneData* activeSceneHandle);
 
     // ---- Find Assets ----
 
@@ -436,35 +430,25 @@ private:
     // ---- Write Descriptor Sets ----
 
     /// Write all material descriptor sets
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult writeAllWindowDescriptorSets();
-    /// Reset all material descriptor sets
-    void resetAllWindowDescriptorSets();
-
-    /// Write all scene specific material descriptor sets
     /// @param platformType The platform type to use
-    /// @param sceneData Scene data to search for uniform buffers in
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult writeAllSceneSpecificDescriptorSets(
-        AxrPlatformType platformType,
-        const AxrVulkanSceneData* sceneData
-    );
+    [[nodiscard]] AxrResult writeAllDescriptorSets(AxrPlatformType platformType);
+    /// Reset all material descriptor sets
+    /// @param platformType The platform type to use
+    void resetAllDescriptorSets(AxrPlatformType platformType);
 
     /// Write the descriptor sets for the given material data
     /// @param platformType The platform type to use
-    /// @param bufferScope The buffer scope we're currently writing to
-    /// @param sceneData Scene data to search for uniform buffers in
     /// @param materialData The material data to use
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult writeDescriptorSets(
         AxrPlatformType platformType,
-        AxrShaderBufferScopeEnum bufferScope,
-        const AxrVulkanSceneData* sceneData,
         AxrVulkanMaterialData& materialData
     ) const;
     /// Reset the descriptor sets for the given material data
+    /// @param platformType The platform type to use
     /// @param materialData The material data
-    void resetDescriptorSets(AxrVulkanMaterialData& materialData) const;
+    void resetDescriptorSets(AxrPlatformType platformType, AxrVulkanMaterialData& materialData) const;
 
     // ---- Materials For Rendering ----
 

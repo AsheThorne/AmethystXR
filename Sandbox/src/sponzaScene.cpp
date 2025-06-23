@@ -17,7 +17,7 @@ axr::Result SponzaScene::setup() {
         "P:/C++/AmethystXR/Sandbox/assets/sample-models/2.0/Sponza/glTF/Sponza.gltf"
     );
 
-    if (AXR_FAILED(m_Application.getGlobalAssetCollection().createModel(modelConfig))) return axr::Result::Error;
+    if (AXR_FAILED(m_Scene.getAssetCollection().createModel(modelConfig))) return axr::Result::Error;
 
     axr::ModelFileInfo modelInfo;
     if (AXR_FAILED(axr::getModelFileData(modelConfig.FilePath, modelInfo))) return axr::Result::Error;
@@ -38,7 +38,7 @@ axr::Result SponzaScene::setup() {
             modelInfo.ImageSamplers[i].WrappingU,
             modelInfo.ImageSamplers[i].WrappingV
         );
-        if (AXR_FAILED(m_Application.getGlobalAssetCollection().createImageSampler(config))) return axr::Result::Error;
+        if (AXR_FAILED(m_Scene.getAssetCollection().createImageSampler(config))) return axr::Result::Error;
     }
 
     m_ImageNames = std::vector<std::string>(modelInfo.ImageCount, "");
@@ -53,7 +53,7 @@ axr::Result SponzaScene::setup() {
             m_ImageNames[i].c_str(),
             modelInfo.Images[i].FilePath
         );
-        if (AXR_FAILED(m_Application.getGlobalAssetCollection().createImage(config))) return axr::Result::Error;
+        if (AXR_FAILED(m_Scene.getAssetCollection().createImage(config))) return axr::Result::Error;
     }
 
     m_MaterialNames = std::vector<std::string>(modelInfo.MaterialCount, "");
@@ -69,7 +69,7 @@ axr::Result SponzaScene::setup() {
         if (modelInfo.Materials[i].ColorImageSamplerIndex == -1) continue;
 
         if (AXR_FAILED(
-            m_Application.getGlobalAssetCollection().createMaterial(
+            m_Scene.getAssetCollection().createMaterial(
                 m_MaterialNames[i].c_str(),
                 axr::EngineAssetMaterial_DefaultMaterial(
                     m_ImageNames[modelInfo.Materials[i].ColorImageIndex].c_str(),

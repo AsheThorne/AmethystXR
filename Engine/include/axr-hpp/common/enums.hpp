@@ -29,7 +29,7 @@ namespace axr {
     // ----------------------------------------- //
 
     /// Axr Platform Type
-    enum class AxrPlatformType {
+    enum class PlatformType {
         Undefined = AXR_PLATFORM_TYPE_UNDEFINED,
         Window = AXR_PLATFORM_TYPE_WINDOW,
         XrDevice = AXR_PLATFORM_TYPE_XR_DEVICE,

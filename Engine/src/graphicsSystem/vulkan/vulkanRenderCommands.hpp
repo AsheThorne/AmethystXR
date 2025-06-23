@@ -16,6 +16,7 @@
 #include "sceneData/vulkanSceneData.hpp"
 #include "../../scene/sceneUtils.hpp"
 #include "axr/utils.h"
+#include "../../assets/engineAssets.hpp"
 
 /// Wrapper for recording vulkan render commands
 /// @tparam RenderTarget Render target class. Like a window or xr device
