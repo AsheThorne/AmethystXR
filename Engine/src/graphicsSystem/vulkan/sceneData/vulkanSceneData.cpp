@@ -100,8 +100,6 @@ AxrResult AxrVulkanSceneData::loadScene() {
         return axrResult;
     }
 
-    // TODO: Aren't we missing the writeAllDescriptorSets??
-
     axrResult = createAllMaterialsForRendering();
     if (AXR_FAILED(axrResult)) {
         unloadScene();
