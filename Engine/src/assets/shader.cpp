@@ -21,9 +21,9 @@ bool axrShaderConfigIsValid(const AxrShaderConfig* shaderConfig) {
         return false;
     }
 
-    // TODO: Maybe check that the file path is a valid path and the file exists
     return !axrStringIsEmpty(shaderConfig->Name) &&
         !axrStringIsEmpty(shaderConfig->FilePath) &&
+        axrFileExists(shaderConfig->FilePath) &&
         AxrShaderPropertiesRAII::isValid(shaderConfig->Properties);
 }
 
@@ -160,9 +160,9 @@ const AxrShaderPropertiesRAII& AxrShader::getProperties() const {
 }
 
 bool AxrShader::isValid() const {
-    // TODO: Maybe check that the file path is a valid path and the file exists
     return !m_Name.empty() &&
         !m_FilePath.empty() &&
+        axrFileExists(m_FilePath) &&
         m_Properties.isValid();
 }
 

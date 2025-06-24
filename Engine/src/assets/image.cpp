@@ -47,6 +47,9 @@ AxrImage::AxrImage(const AxrImageConfig& config):
     m_Name(config.Name),
     m_FilePath(config.FilePath),
     m_Data() {
+    if (!m_FilePath.empty() && !axrFileExists(m_FilePath)) {
+        axrLogErrorLocation("File path is invalid.");
+    }
 }
 
 AxrImage::AxrImage(const AxrImage& src) {

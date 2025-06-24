@@ -63,6 +63,9 @@ AxrModel::AxrModel() = default;
 AxrModel::AxrModel(const AxrModelConfig& config):
     m_Name(config.Name),
     m_FilePath(config.FilePath) {
+    if (!m_FilePath.empty() && !axrFileExists(m_FilePath)) {
+        axrLogErrorLocation("File path is invalid.");
+    }
 }
 
 AxrModel::AxrModel(const AxrModel& src) {

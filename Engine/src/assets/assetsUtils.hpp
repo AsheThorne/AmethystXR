@@ -39,6 +39,11 @@ AxrImageSamplerWrapEnum axrToImageSamplerWrap(int samplerWrap);
 /// @returns AXR_SUCCESS if the function succeeded
 AxrResult axrReadFileBytes(const std::filesystem::path& path, std::vector<char>& data);
 
+/// Check if the given file exists
+/// @param path File path
+/// @returns True if the file exists
+bool axrFileExists(const std::filesystem::path& path);
+
 /// Get the absolute file path for the given path to the assets directory
 /// @param path Path to use
 /// @returns The absolute path

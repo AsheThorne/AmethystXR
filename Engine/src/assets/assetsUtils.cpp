@@ -359,6 +359,10 @@ AxrResult axrReadFileBytes(const std::filesystem::path& path, std::vector<char>&
     return AXR_SUCCESS;
 }
 
+bool axrFileExists(const std::filesystem::path& path) {
+    return std::filesystem::exists(axrGetAbsolutePathToAsset(path));;
+}
+
 std::filesystem::path axrGetAbsolutePathToAsset(const std::filesystem::path& path) {
     if (path.is_absolute()) {
         return path;
