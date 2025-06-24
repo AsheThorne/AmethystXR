@@ -23,8 +23,8 @@ axr::Result TestScene::setup() {
         axr::ImageSamplerFilterEnum::Nearest,
         axr::ImageSamplerFilterEnum::Nearest,
         axr::ImageSamplerFilterEnum::Nearest,
-        axr::ImageSamplerWrappingEnum::Repeat,
-        axr::ImageSamplerWrappingEnum::Repeat
+        axr::ImageSamplerWrapEnum::Repeat,
+        axr::ImageSamplerWrapEnum::Repeat
     );
     if (AXR_FAILED(m_Scene.getAssetCollection().createImageSampler(imageSamplerConfig))) return axr::Result::Error;
 

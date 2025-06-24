@@ -143,9 +143,9 @@ const char* axrGetExtensionName(AxrVulkanExtensionTypeEnum extensionType);
 /// @returns The converted image sampler filter
 [[nodiscard]] vk::SamplerMipmapMode axrToVkSamplerMipmapMode(AxrImageSamplerFilterEnum samplerFilter);
 
-/// Convert an AxrImageSamplerWrappingEnum to a vk::SamplerAddressMode
-/// @param samplerWrapping Image sampler wrapper to convert
+/// Convert an AxrImageSamplerWrapEnum to a vk::SamplerAddressMode
+/// @param samplerWrap Image sampler wrapper to convert
 /// @returns The converted image sampler wrapper
-[[nodiscard]] vk::SamplerAddressMode axrToVkSamplerAddressMode(AxrImageSamplerWrappingEnum samplerWrapping);
+[[nodiscard]] vk::SamplerAddressMode axrToVkSamplerAddressMode(AxrImageSamplerWrapEnum samplerWrap);
 
 #endif

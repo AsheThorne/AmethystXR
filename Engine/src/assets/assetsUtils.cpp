@@ -39,8 +39,8 @@ AxrModelFileImageSamplerInfo axrModelFileImageSamplerInfoClone(
         .MinFilter = modelFileImageSamplerInfo->MinFilter,
         .MagFilter = modelFileImageSamplerInfo->MagFilter,
         .MipmapFilter = modelFileImageSamplerInfo->MipmapFilter,
-        .WrappingU = modelFileImageSamplerInfo->WrappingU,
-        .WrappingV = modelFileImageSamplerInfo->WrappingV,
+        .WrapU = modelFileImageSamplerInfo->WrapU,
+        .WrapV = modelFileImageSamplerInfo->WrapV,
     };
 }
 
@@ -51,8 +51,8 @@ void axrModelFileImageSamplerInfoDestroy(AxrModelFileImageSamplerInfo* modelFile
     modelFileImageSamplerInfo->MinFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
     modelFileImageSamplerInfo->MagFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
     modelFileImageSamplerInfo->MipmapFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
-    modelFileImageSamplerInfo->WrappingU = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
-    modelFileImageSamplerInfo->WrappingV = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
+    modelFileImageSamplerInfo->WrapU = AXR_IMAGE_SAMPLER_WRAP_UNDEFINED;
+    modelFileImageSamplerInfo->WrapV = AXR_IMAGE_SAMPLER_WRAP_UNDEFINED;
 }
 
 AxrModelFileImageInfo axrModelFileImageInfoClone(const AxrModelFileImageInfo* modelFileImageInfo) {
@@ -322,20 +322,20 @@ AxrImageSamplerFilterEnum axrToImageSamplerFilter(const int samplerFilter, AxrIm
     }
 }
 
-AxrImageSamplerWrappingEnum axrToImageSamplerWrapping(const int samplerWrapping) {
-    switch (samplerWrapping) {
+AxrImageSamplerWrapEnum axrToImageSamplerWrap(const int samplerWrap) {
+    switch (samplerWrap) {
         case TINYGLTF_TEXTURE_WRAP_REPEAT: {
-            return AXR_IMAGE_SAMPLER_WRAPPING_REPEAT;
+            return AXR_IMAGE_SAMPLER_WRAP_REPEAT;
         }
         case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: {
-            return AXR_IMAGE_SAMPLER_WRAPPING_MIRRORED_REPEAT;
+            return AXR_IMAGE_SAMPLER_WRAP_MIRRORED_REPEAT;
         }
         case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: {
-            return AXR_IMAGE_SAMPLER_WRAPPING_CLAMP_TO_EDGE;
+            return AXR_IMAGE_SAMPLER_WRAP_CLAMP_TO_EDGE;
         }
         default: {
-            axrLogErrorLocation("Unknown sampler wrapping: {0}.", samplerWrapping);
-            return AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
+            axrLogErrorLocation("Unknown sampler wrap: {0}.", samplerWrap);
+            return AXR_IMAGE_SAMPLER_WRAP_UNDEFINED;
         }
     }
 }
@@ -556,8 +556,8 @@ AxrResult axrGetModelFileInfo_glTF(
             model.samplers[i].magFilter,
             filterPlaceholder
         );
-        modelFileInfo->ImageSamplers[i].WrappingU = axrToImageSamplerWrapping(model.samplers[i].wrapS);
-        modelFileInfo->ImageSamplers[i].WrappingV = axrToImageSamplerWrapping(model.samplers[i].wrapT);
+        modelFileInfo->ImageSamplers[i].WrapU = axrToImageSamplerWrap(model.samplers[i].wrapS);
+        modelFileInfo->ImageSamplers[i].WrapV = axrToImageSamplerWrap(model.samplers[i].wrapT);
     }
 
     modelFileInfo->ImageCount = model.images.size();

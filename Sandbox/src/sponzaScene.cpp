@@ -35,8 +35,8 @@ axr::Result SponzaScene::setup() {
             modelInfo.ImageSamplers[i].MinFilter,
             modelInfo.ImageSamplers[i].MagFilter,
             modelInfo.ImageSamplers[i].MipmapFilter,
-            modelInfo.ImageSamplers[i].WrappingU,
-            modelInfo.ImageSamplers[i].WrappingV
+            modelInfo.ImageSamplers[i].WrapU,
+            modelInfo.ImageSamplers[i].WrapV
         );
         if (AXR_FAILED(m_Scene.getAssetCollection().createImageSampler(config))) return axr::Result::Error;
     }

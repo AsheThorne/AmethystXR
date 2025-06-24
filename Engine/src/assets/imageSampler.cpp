@@ -27,8 +27,8 @@ AxrImageSampler::AxrImageSampler():
     m_MinFilter(AXR_IMAGE_SAMPLER_FILTER_UNDEFINED),
     m_MagFilter(AXR_IMAGE_SAMPLER_FILTER_UNDEFINED),
     m_MipmapFilter(AXR_IMAGE_SAMPLER_FILTER_UNDEFINED),
-    m_WrappingU(AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED),
-    m_WrappingV(AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED) {
+    m_WrapU(AXR_IMAGE_SAMPLER_WRAP_UNDEFINED),
+    m_WrapV(AXR_IMAGE_SAMPLER_WRAP_UNDEFINED) {
 }
 
 AxrImageSampler::AxrImageSampler(const AxrImageSamplerConfig& config):
@@ -36,8 +36,8 @@ AxrImageSampler::AxrImageSampler(const AxrImageSamplerConfig& config):
     m_MinFilter(config.MinFilter),
     m_MagFilter(config.MagFilter),
     m_MipmapFilter(config.MipmapFilter),
-    m_WrappingU(config.WrappingU),
-    m_WrappingV(config.WrappingV) {
+    m_WrapU(config.WrapU),
+    m_WrapV(config.WrapV) {
 }
 
 AxrImageSampler::AxrImageSampler(const AxrImageSampler& src) {
@@ -45,8 +45,8 @@ AxrImageSampler::AxrImageSampler(const AxrImageSampler& src) {
     m_MinFilter = src.m_MinFilter;
     m_MagFilter = src.m_MagFilter;
     m_MipmapFilter = src.m_MipmapFilter;
-    m_WrappingU = src.m_WrappingU;
-    m_WrappingV = src.m_WrappingV;
+    m_WrapU = src.m_WrapU;
+    m_WrapV = src.m_WrapV;
 }
 
 AxrImageSampler::AxrImageSampler(AxrImageSampler&& src) noexcept {
@@ -55,14 +55,14 @@ AxrImageSampler::AxrImageSampler(AxrImageSampler&& src) noexcept {
     m_MinFilter = src.m_MinFilter;
     m_MagFilter = src.m_MagFilter;
     m_MipmapFilter = src.m_MipmapFilter;
-    m_WrappingU = src.m_WrappingU;
-    m_WrappingV = src.m_WrappingV;
+    m_WrapU = src.m_WrapU;
+    m_WrapV = src.m_WrapV;
 
     src.m_MinFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
     src.m_MagFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
     src.m_MipmapFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
-    src.m_WrappingU = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
-    src.m_WrappingV = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
+    src.m_WrapU = AXR_IMAGE_SAMPLER_WRAP_UNDEFINED;
+    src.m_WrapV = AXR_IMAGE_SAMPLER_WRAP_UNDEFINED;
 }
 
 AxrImageSampler::~AxrImageSampler() {
@@ -77,8 +77,8 @@ AxrImageSampler& AxrImageSampler::operator=(const AxrImageSampler& src) {
         m_MinFilter = src.m_MinFilter;
         m_MagFilter = src.m_MagFilter;
         m_MipmapFilter = src.m_MipmapFilter;
-        m_WrappingU = src.m_WrappingU;
-        m_WrappingV = src.m_WrappingV;
+        m_WrapU = src.m_WrapU;
+        m_WrapV = src.m_WrapV;
     }
 
     return *this;
@@ -93,14 +93,14 @@ AxrImageSampler& AxrImageSampler::operator=(AxrImageSampler&& src) noexcept {
         m_MinFilter = src.m_MinFilter;
         m_MagFilter = src.m_MagFilter;
         m_MipmapFilter = src.m_MipmapFilter;
-        m_WrappingU = src.m_WrappingU;
-        m_WrappingV = src.m_WrappingV;
+        m_WrapU = src.m_WrapU;
+        m_WrapV = src.m_WrapV;
 
         src.m_MinFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
         src.m_MagFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
         src.m_MipmapFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
-        src.m_WrappingU = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
-        src.m_WrappingV = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
+        src.m_WrapU = AXR_IMAGE_SAMPLER_WRAP_UNDEFINED;
+        src.m_WrapV = AXR_IMAGE_SAMPLER_WRAP_UNDEFINED;
     }
 
     return *this;
@@ -124,12 +124,12 @@ AxrImageSamplerFilterEnum AxrImageSampler::getMipmapFilter() const {
     return m_MipmapFilter;
 }
 
-AxrImageSamplerWrappingEnum AxrImageSampler::getWrappingU() const {
-    return m_WrappingU;
+AxrImageSamplerWrapEnum AxrImageSampler::getWrapU() const {
+    return m_WrapU;
 }
 
-AxrImageSamplerWrappingEnum AxrImageSampler::getWrappingV() const {
-    return m_WrappingV;
+AxrImageSamplerWrapEnum AxrImageSampler::getWrapV() const {
+    return m_WrapV;
 }
 
 // ---- Private Functions ----
@@ -140,6 +140,6 @@ void AxrImageSampler::cleanup() {
     m_MinFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
     m_MagFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
     m_MipmapFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
-    m_WrappingU = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
-    m_WrappingV = AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED;
+    m_WrapU = AXR_IMAGE_SAMPLER_WRAP_UNDEFINED;
+    m_WrapV = AXR_IMAGE_SAMPLER_WRAP_UNDEFINED;
 }

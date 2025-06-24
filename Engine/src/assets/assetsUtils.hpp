@@ -28,10 +28,10 @@ AxrImageColorChannelsEnum axrToImageColorChannels(int colorChannels);
 /// @param mipmapFilter Output mip map filter component of the sampler filter
 /// @returns The converted image sampler filter
 AxrImageSamplerFilterEnum axrToImageSamplerFilter(int samplerFilter, AxrImageSamplerFilterEnum& mipmapFilter);
-/// Convert a tiny_gltf image sampler wrap to an AxrImageSamplerWrappingEnum
-/// @param samplerWrapping tiny_gltf image sampler wrap
+/// Convert a tiny_gltf image sampler wrap to an AxrImageSamplerWrapEnum
+/// @param samplerWrap tiny_gltf image sampler wrap
 /// @returns The converted image sampler wrap
-AxrImageSamplerWrappingEnum axrToImageSamplerWrapping(int samplerWrapping);
+AxrImageSamplerWrapEnum axrToImageSamplerWrap(int samplerWrap);
 
 /// Read file bytes on disk
 /// @param path Path to the file

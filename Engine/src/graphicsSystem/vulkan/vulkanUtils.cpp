@@ -299,23 +299,23 @@ vk::SamplerMipmapMode axrToVkSamplerMipmapMode(AxrImageSamplerFilterEnum sampler
     }
 }
 
-vk::SamplerAddressMode axrToVkSamplerAddressMode(const AxrImageSamplerWrappingEnum samplerWrapping) {
-    switch (samplerWrapping) {
-        case AXR_IMAGE_SAMPLER_WRAPPING_REPEAT: {
+vk::SamplerAddressMode axrToVkSamplerAddressMode(const AxrImageSamplerWrapEnum samplerWrap) {
+    switch (samplerWrap) {
+        case AXR_IMAGE_SAMPLER_WRAP_REPEAT: {
             return vk::SamplerAddressMode::eRepeat;
         }
-        case AXR_IMAGE_SAMPLER_WRAPPING_MIRRORED_REPEAT: {
+        case AXR_IMAGE_SAMPLER_WRAP_MIRRORED_REPEAT: {
             return vk::SamplerAddressMode::eMirroredRepeat;
         }
-        case AXR_IMAGE_SAMPLER_WRAPPING_CLAMP_TO_EDGE: {
+        case AXR_IMAGE_SAMPLER_WRAP_CLAMP_TO_EDGE: {
             return vk::SamplerAddressMode::eClampToEdge;
         }
-        case AXR_IMAGE_SAMPLER_WRAPPING_CLAMP_TO_BORDER: {
+        case AXR_IMAGE_SAMPLER_WRAP_CLAMP_TO_BORDER: {
             return vk::SamplerAddressMode::eClampToBorder;
         }
-        case AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED:
+        case AXR_IMAGE_SAMPLER_WRAP_UNDEFINED:
         default: {
-            axrLogErrorLocation("Unknown vk::SamplerAddressMode type.");
+            axrLogErrorLocation("Unknown AxrImageSamplerWrapEnum type.");
             return static_cast<vk::SamplerAddressMode>(VK_SAMPLER_ADDRESS_MODE_MAX_ENUM);
         }
     }

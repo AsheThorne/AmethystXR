@@ -724,14 +724,13 @@ enum AxrImageSamplerFilterEnum {
     AXR_IMAGE_SAMPLER_FILTER_LINEAR,
 };
 
-// TODO: Should this be renamed to AxrImageSamplerWrapEnum? glTF uses Wrap instead of Wrapping
-/// Image sampler wrapping enum
-enum AxrImageSamplerWrappingEnum {
-    AXR_IMAGE_SAMPLER_WRAPPING_UNDEFINED = 0,
-    AXR_IMAGE_SAMPLER_WRAPPING_REPEAT,
-    AXR_IMAGE_SAMPLER_WRAPPING_MIRRORED_REPEAT,
-    AXR_IMAGE_SAMPLER_WRAPPING_CLAMP_TO_EDGE,
-    AXR_IMAGE_SAMPLER_WRAPPING_CLAMP_TO_BORDER,
+/// Image sampler wrap enum
+enum AxrImageSamplerWrapEnum {
+    AXR_IMAGE_SAMPLER_WRAP_UNDEFINED = 0,
+    AXR_IMAGE_SAMPLER_WRAP_REPEAT,
+    AXR_IMAGE_SAMPLER_WRAP_MIRRORED_REPEAT,
+    AXR_IMAGE_SAMPLER_WRAP_CLAMP_TO_EDGE,
+    AXR_IMAGE_SAMPLER_WRAP_CLAMP_TO_BORDER,
 };
 
 // ----------------------------------------- //
@@ -743,8 +742,8 @@ struct AxrImageSamplerConfig {
     AxrImageSamplerFilterEnum MinFilter;
     AxrImageSamplerFilterEnum MagFilter;
     AxrImageSamplerFilterEnum MipmapFilter;
-    AxrImageSamplerWrappingEnum WrappingU;
-    AxrImageSamplerWrappingEnum WrappingV;
+    AxrImageSamplerWrapEnum WrapU;
+    AxrImageSamplerWrapEnum WrapV;
 };
 
 // ----------------------------------------- //
@@ -976,8 +975,8 @@ struct AxrModelFileImageSamplerInfo {
     AxrImageSamplerFilterEnum MinFilter;
     AxrImageSamplerFilterEnum MagFilter;
     AxrImageSamplerFilterEnum MipmapFilter;
-    AxrImageSamplerWrappingEnum WrappingU;
-    AxrImageSamplerWrappingEnum WrappingV;
+    AxrImageSamplerWrapEnum WrapU;
+    AxrImageSamplerWrapEnum WrapV;
 };
 
 /// Model file image info

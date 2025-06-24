@@ -66,12 +66,12 @@ public:
     /// Get the image sampler mipmap filter enum
     /// @returns The image sampler filter enum
     [[nodiscard]] AxrImageSamplerFilterEnum getMipmapFilter() const;
-    /// Get the image sampler u axis wrapping enum
-    /// @returns The image sampler wrapping enum
-    [[nodiscard]] AxrImageSamplerWrappingEnum getWrappingU() const;
-    /// Get the image sampler v axis wrapping enum
-    /// @returns The image sampler wrapping enum
-    [[nodiscard]] AxrImageSamplerWrappingEnum getWrappingV() const;
+    /// Get the image sampler u axis wrap enum
+    /// @returns The image sampler wrap enum
+    [[nodiscard]] AxrImageSamplerWrapEnum getWrapU() const;
+    /// Get the image sampler v axis wrap enum
+    /// @returns The image sampler wrap enum
+    [[nodiscard]] AxrImageSamplerWrapEnum getWrapV() const;
 
 private:
     // ----------------------------------------- //
@@ -83,8 +83,8 @@ private:
     AxrImageSamplerFilterEnum m_MinFilter;
     AxrImageSamplerFilterEnum m_MagFilter;
     AxrImageSamplerFilterEnum m_MipmapFilter;
-    AxrImageSamplerWrappingEnum m_WrappingU;
-    AxrImageSamplerWrappingEnum m_WrappingV;
+    AxrImageSamplerWrapEnum m_WrapU;
+    AxrImageSamplerWrapEnum m_WrapV;
 
     // ----------------------------------------- //
     // Private Functions
