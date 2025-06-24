@@ -166,7 +166,6 @@ AxrResult axrAssetCollectionCreateEngineAssetImage(
     }
 
     return assetCollection->createImage(imageName, engineAssetEnum);
-
 }
 
 AxrResult axrAssetCollectionCreateImageSampler(
@@ -195,6 +194,15 @@ AxrResult axrAssetCollectionCreateImageSampler(
 AxrAssetCollection::AxrAssetCollection() = default;
 
 AxrAssetCollection::AxrAssetCollection(AxrAssetCollection&& src) noexcept {
+    OnMaterialCreatedCallbackGraphics = std::move(src.OnMaterialCreatedCallbackGraphics);
+    OnModelCreatedCallbackGraphics = std::move(src.OnModelCreatedCallbackGraphics);
+    OnUniformBufferCreatedCallbackGraphics = std::move(src.OnUniformBufferCreatedCallbackGraphics);
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    OnPushConstantBufferCreatedCallbackGraphics = std::move(src.OnPushConstantBufferCreatedCallbackGraphics);
+#endif
+    OnImageCreatedCallbackGraphics = std::move(src.OnImageCreatedCallbackGraphics);
+    OnImageSamplerCreatedCallbackGraphics = std::move(src.OnImageSamplerCreatedCallbackGraphics);
+
     m_Shaders = std::move(src.m_Shaders);
     m_Materials = std::move(src.m_Materials);
     m_Models = std::move(src.m_Models);
@@ -212,6 +220,15 @@ AxrAssetCollection::~AxrAssetCollection() {
 AxrAssetCollection& AxrAssetCollection::operator=(AxrAssetCollection&& src) noexcept {
     if (this == &src) {
         cleanup();
+
+        OnMaterialCreatedCallbackGraphics = std::move(src.OnMaterialCreatedCallbackGraphics);
+        OnModelCreatedCallbackGraphics = std::move(src.OnModelCreatedCallbackGraphics);
+        OnUniformBufferCreatedCallbackGraphics = std::move(src.OnUniformBufferCreatedCallbackGraphics);
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+        OnPushConstantBufferCreatedCallbackGraphics = std::move(src.OnPushConstantBufferCreatedCallbackGraphics);
+#endif
+        OnImageCreatedCallbackGraphics = std::move(src.OnImageCreatedCallbackGraphics);
+        OnImageSamplerCreatedCallbackGraphics = std::move(src.OnImageSamplerCreatedCallbackGraphics);
 
         m_Shaders = std::move(src.m_Shaders);
         m_Materials = std::move(src.m_Materials);
@@ -257,8 +274,6 @@ AxrResult AxrAssetCollection::createShader(const AxrShaderConfig& shaderConfig) 
         axrLogErrorLocation("Failed to insert shader.");
         return AXR_ERROR;
     }
-
-    // TODO: Reload vulkan scene assets if they're already loaded.
 
     return AXR_SUCCESS;
 }
@@ -306,8 +321,6 @@ AxrResult AxrAssetCollection::createShader(const AxrEngineAssetEnum engineAssetE
         return AXR_ERROR;
     }
 
-    // TODO: Reload vulkan scene assets if they're already loaded.
-
     return AXR_SUCCESS;
 }
 
@@ -336,7 +349,7 @@ AxrResult AxrAssetCollection::createMaterial(const AxrMaterialConfig& materialCo
         return AXR_ERROR;
     }
 
-    // TODO: Reload vulkan scene assets if they're already loaded.
+    OnMaterialCreatedCallbackGraphics(&insertResult.first->second);
 
     return AXR_SUCCESS;
 }
@@ -380,7 +393,7 @@ AxrResult AxrAssetCollection::createMaterial(
         return AXR_ERROR;
     }
 
-    // TODO: Reload vulkan scene assets if they're already loaded.
+    OnMaterialCreatedCallbackGraphics(&insertResult.first->second);
 
     return AXR_SUCCESS;
 }
@@ -405,7 +418,7 @@ AxrResult AxrAssetCollection::createModel(const AxrModelConfig& modelConfig) {
         return AXR_ERROR;
     }
 
-    // TODO: Reload vulkan scene assets if they're already loaded.
+    OnModelCreatedCallbackGraphics(&insertResult.first->second);
 
     return AXR_SUCCESS;
 }
@@ -442,7 +455,7 @@ AxrResult AxrAssetCollection::createModel(const std::string& modelName, const Ax
         return AXR_ERROR;
     }
 
-    // TODO: Reload vulkan scene assets if they're already loaded.
+    OnModelCreatedCallbackGraphics(&insertResult.first->second);
 
     return AXR_SUCCESS;
 }
@@ -480,7 +493,7 @@ AxrResult AxrAssetCollection::createUniformBuffer(const AxrUniformBufferConfig& 
         return AXR_ERROR;
     }
 
-    // TODO: Reload vulkan scene assets if they're already loaded.
+    OnUniformBufferCreatedCallbackGraphics(&insertResult.first->second);
 
     return AXR_SUCCESS;
 }
@@ -519,7 +532,7 @@ AxrResult AxrAssetCollection::createPushConstantBuffer(const AxrPushConstantBuff
         return AXR_ERROR;
     }
 
-    // TODO: Reload vulkan scene assets if they're already loaded.
+    OnPushConstantBufferCreatedCallbackGraphics(&insertResult.first->second);
 
     return AXR_SUCCESS;
 }
@@ -534,7 +547,7 @@ AxrResult AxrAssetCollection::createImage(const AxrImageConfig& imageConfig) {
         axrLogError("Unable to create image. The image name: {0} is reserved by the engine.", imageConfig.Name);
         return AXR_ERROR;
     }
-    
+
     if (m_Images.contains(imageConfig.Name)) {
         axrLogError("Unable to create image. An image named: {0} already exists.", imageConfig.Name);
         return AXR_ERROR;
@@ -550,7 +563,7 @@ AxrResult AxrAssetCollection::createImage(const AxrImageConfig& imageConfig) {
         return AXR_ERROR;
     }
 
-    // TODO: Reload vulkan scene assets if they're already loaded.
+    OnImageCreatedCallbackGraphics(&insertResult.first->second);
 
     return AXR_SUCCESS;
 }
@@ -592,7 +605,7 @@ AxrResult AxrAssetCollection::createImage(const std::string& imageName, const Ax
         return AXR_ERROR;
     }
 
-    // TODO: Reload vulkan scene assets if they're already loaded.
+    OnImageCreatedCallbackGraphics(&insertResult.first->second);
 
     return AXR_SUCCESS;
 }
@@ -601,9 +614,12 @@ AxrResult AxrAssetCollection::createImageSampler(const AxrImageSamplerConfig& im
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
-    
+
     if (m_ImageSamplers.contains(imageSamplerConfig.Name)) {
-        axrLogError("Unable to create image sampler. An image sampler named: {0} already exists.", imageSamplerConfig.Name);
+        axrLogError(
+            "Unable to create image sampler. An image sampler named: {0} already exists.",
+            imageSamplerConfig.Name
+        );
         return AXR_ERROR;
     }
 
@@ -611,19 +627,30 @@ AxrResult AxrAssetCollection::createImageSampler(const AxrImageSamplerConfig& im
     // Process
     // ----------------------------------------- //
 
-    const auto insertResult = m_ImageSamplers.insert(std::pair(imageSamplerConfig.Name, AxrImageSampler(imageSamplerConfig)));
+    const auto insertResult = m_ImageSamplers.insert(
+        std::pair(imageSamplerConfig.Name, AxrImageSampler(imageSamplerConfig))
+    );
     if (!insertResult.second) {
         axrLogErrorLocation("Failed to insert image sampler.");
         return AXR_ERROR;
     }
 
-    // TODO: Reload vulkan scene assets if they're already loaded.
+    OnImageSamplerCreatedCallbackGraphics(&insertResult.first->second);
 
     return AXR_SUCCESS;
 }
 
 void AxrAssetCollection::cleanup() {
     unloadAssets();
+
+    OnMaterialCreatedCallbackGraphics.reset();
+    OnModelCreatedCallbackGraphics.reset();
+    OnUniformBufferCreatedCallbackGraphics.reset();
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    OnPushConstantBufferCreatedCallbackGraphics.reset();
+#endif
+    OnImageCreatedCallbackGraphics.reset();
+    OnImageSamplerCreatedCallbackGraphics.reset();
 
     m_Shaders.clear();
     m_Materials.clear();

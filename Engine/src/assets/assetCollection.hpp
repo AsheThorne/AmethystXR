@@ -16,10 +16,55 @@
 #include "image.hpp"
 #include "uniformBuffer.hpp"
 #include "imageSampler.hpp"
+#include "axr/common/callback.h"
 
 /// Axr Asset Collection
 class AxrAssetCollection {
 public:
+    // ----------------------------------------- //
+    // Types
+    // ----------------------------------------- //
+
+    /// On material created callback function type
+    /// @param 1: Material that was created
+    using OnMaterialCreatedCallback_T = AxrCallback<void(AxrMaterialConst_T)>;
+    /// On model created callback function type
+    /// @param 1: Model that was created
+    using OnModelCreatedCallback_T = AxrCallback<void(AxrModelConst_T)>;
+    /// On uniform buffer created callback function type
+    /// @param 1: Uniform buffer that was created
+    using OnUniformBufferCreatedCallback_T = AxrCallback<void(AxrUniformBufferConst_T)>;
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    /// On push constant buffer created callback function type
+    /// @param 1: Push constant buffer that was created
+    using OnPushConstantBufferCreatedCallback_T = AxrCallback<void(AxrPushConstantBufferConst_T)>;
+#endif
+    /// On image created callback function type
+    /// @param 1: Image that was created
+    using OnImageCreatedCallback_T = AxrCallback<void(AxrImageConst_T)>;
+    /// On image sampler created callback function type
+    /// @param 1: Image sampler that was created
+    using OnImageSamplerCreatedCallback_T = AxrCallback<void(AxrImageSamplerConst_T)>;
+
+    // ----------------------------------------- //
+    // Public Variables
+    // ----------------------------------------- //
+
+    /// On material created for the graphics system
+    OnMaterialCreatedCallback_T OnMaterialCreatedCallbackGraphics;
+    /// On model created for the graphics system
+    OnModelCreatedCallback_T OnModelCreatedCallbackGraphics;
+    /// On uniform buffer created for the graphics system
+    OnUniformBufferCreatedCallback_T OnUniformBufferCreatedCallbackGraphics;
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    /// On push constant buffer created for the graphics system
+    OnPushConstantBufferCreatedCallback_T OnPushConstantBufferCreatedCallbackGraphics;
+#endif
+    /// On image created for the graphics system
+    OnImageCreatedCallback_T OnImageCreatedCallbackGraphics;
+    /// On image sampler created for the graphics system
+    OnImageSamplerCreatedCallback_T OnImageSamplerCreatedCallbackGraphics;
+
     // ----------------------------------------- //
     // Special Functions
     // ----------------------------------------- //

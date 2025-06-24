@@ -28,7 +28,8 @@ AxrVulkanSceneData::AxrVulkanSceneData(const Config& config):
     m_MaxFramesInFlight(config.MaxFramesInFlight),
     m_MaxSamplerAnisotropy(config.MaxSamplerAnisotropy),
     m_DispatchHandle(config.DispatchHandle),
-    m_IsWindowDataLoaded(false) {
+    m_IsWindowDataLoaded(false),
+    m_WindowRenderPass(VK_NULL_HANDLE) {
 }
 
 AxrVulkanSceneData::~AxrVulkanSceneData() {
@@ -106,6 +107,23 @@ AxrResult AxrVulkanSceneData::loadScene() {
         return axrResult;
     }
 
+    // TODO: Maybe validate push constant buffers?
+    // m_AssetCollection->OnPushConstantBufferCreatedCallbackGraphics
+    //                  .connect<&AxrVulkanSceneData::onPushConstantBufferCreatedCallback>(this);
+    m_AssetCollection->OnUniformBufferCreatedCallbackGraphics
+                     .connect<&AxrVulkanSceneData::onUniformBufferCreatedCallback>(this);
+    m_AssetCollection->OnModelCreatedCallbackGraphics
+                     .connect<&AxrVulkanSceneData::onModelCreatedCallback>(this);
+    m_AssetCollection->OnImageSamplerCreatedCallbackGraphics
+                     .connect<&AxrVulkanSceneData::onImageSamplerCreatedCallback>(this);
+    m_AssetCollection->OnImageCreatedCallbackGraphics
+                     .connect<&AxrVulkanSceneData::onImageCreatedCallback>(this);
+    m_AssetCollection->OnMaterialCreatedCallbackGraphics
+                     .connect<&AxrVulkanSceneData::onMaterialCreatedCallback>(this);
+
+    // TODO: create callback anytime a new AxrTransformComponent and AxrModelComponent combo gets added.
+    //  For createAllMaterialsForRendering
+
     return AXR_SUCCESS;
 }
 
@@ -113,6 +131,13 @@ void AxrVulkanSceneData::unloadScene() {
     // TODO: See if we can wait for all the scene specific fences to be finished instead of doing this.
     const vk::Result vkResult = m_Device.waitIdle(*m_DispatchHandle);
     axrLogVkResult(vkResult, "m_Device.waitIdle");
+
+    m_AssetCollection->OnMaterialCreatedCallbackGraphics.reset();
+    m_AssetCollection->OnImageCreatedCallbackGraphics.reset();
+    m_AssetCollection->OnImageSamplerCreatedCallbackGraphics.reset();
+    m_AssetCollection->OnModelCreatedCallbackGraphics.reset();
+    m_AssetCollection->OnUniformBufferCreatedCallbackGraphics.reset();
+    m_AssetCollection->OnPushConstantBufferCreatedCallbackGraphics.reset();
 
     // TODO: Unload OpenXR data
     unloadWindowData();
@@ -144,6 +169,7 @@ AxrResult AxrVulkanSceneData::loadWindowData(const vk::RenderPass renderPass) {
         return axrResult;
     }
 
+    m_WindowRenderPass = renderPass;
     m_IsWindowDataLoaded = true;
 
     axrResult = writeAllDescriptorSets(AXR_PLATFORM_TYPE_WINDOW);
@@ -165,6 +191,8 @@ void AxrVulkanSceneData::unloadWindowData() {
     resetAllDescriptorSets(AXR_PLATFORM_TYPE_WINDOW);
     destroyAllWindowMaterialData();
     destroyAllWindowUniformBufferData();
+
+    m_WindowRenderPass = VK_NULL_HANDLE;
 }
 
 const std::unordered_map<std::string, AxrVulkanSceneData::MaterialForRendering>&
@@ -250,7 +278,7 @@ void AxrVulkanSceneData::destroyUniformBufferData(
     std::unordered_map<std::string, AxrVulkanUniformBufferData>& uniformBufferData
 ) {
     for (auto& [name, data] : uniformBufferData) {
-        destroyUniformBufferData(data);
+        data.destroyData();
     }
     uniformBufferData.clear();
 }
@@ -278,7 +306,7 @@ AxrResult AxrVulkanSceneData::createAllUniformBufferData() {
     }
 
     for (auto& [name, data] : m_UniformBufferData) {
-        axrResult = createUniformBufferData(data);
+        axrResult = data.createData();
         if (AXR_FAILED(axrResult)) {
             break;
         }
@@ -386,21 +414,6 @@ AxrResult AxrVulkanSceneData::initializeUniformBufferData(
     return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanSceneData::createUniformBufferData(AxrVulkanUniformBufferData& uniformBufferData) {
-    const AxrResult axrResult = uniformBufferData.createData();
-
-    if (AXR_FAILED(axrResult)) {
-        destroyUniformBufferData(uniformBufferData);
-        return axrResult;
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanSceneData::destroyUniformBufferData(AxrVulkanUniformBufferData& uniformBufferData) {
-    uniformBufferData.destroyData();
-}
-
 const AxrVulkanUniformBufferData* AxrVulkanSceneData::findUniformBufferData_shared(
     const std::string& name,
     const AxrPlatformType platformType
@@ -471,7 +484,7 @@ AxrResult AxrVulkanSceneData::createAllWindowUniformBufferData() {
     }
 
     for (auto& [name, data] : m_WindowUniformBufferData) {
-        axrResult = createUniformBufferData(data);
+        axrResult = data.createData();
         if (AXR_FAILED(axrResult)) {
             break;
         }
@@ -546,6 +559,27 @@ const AxrVulkanUniformBufferData* AxrVulkanSceneData::findWindowUniformBufferDat
     return nullptr;
 }
 
+void AxrVulkanSceneData::onUniformBufferCreatedCallback(const AxrUniformBufferConst_T uniformBuffer) {
+    if (uniformBuffer == nullptr) {
+        axrLogErrorLocation("Uniform buffer is null.");
+        return;
+    }
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = initializeUniformBufferData(uniformBuffer, AXR_ENGINE_ASSET_UNDEFINED, m_UniformBufferData);
+    if (AXR_FAILED(axrResult)) {
+        return;
+    }
+
+    AxrVulkanUniformBufferData& uniformBufferData = m_UniformBufferData.at(uniformBuffer->getName());
+    axrResult = uniformBufferData.createData();
+
+    if (AXR_FAILED(axrResult)) {
+        uniformBufferData.destroyData();
+    }
+}
+
 AxrResult AxrVulkanSceneData::createAllModelData() {
     // ----------------------------------------- //
     // Validation
@@ -569,7 +603,7 @@ AxrResult AxrVulkanSceneData::createAllModelData() {
     }
 
     for (auto& [name, data] : m_ModelData) {
-        axrResult = createModelData(data);
+        axrResult = data.createData();
         if (AXR_FAILED(axrResult)) {
             break;
         }
@@ -585,7 +619,7 @@ AxrResult AxrVulkanSceneData::createAllModelData() {
 
 void AxrVulkanSceneData::destroyAllModelData() {
     for (auto& [name, data] : m_ModelData) {
-        destroyModelData(data);
+        data.destroyData();
     }
     m_ModelData.clear();
 }
@@ -651,21 +685,6 @@ AxrResult AxrVulkanSceneData::initializeModelData(const AxrModel& model) {
     return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanSceneData::createModelData(AxrVulkanModelData& modelData) {
-    const AxrResult axrResult = modelData.createData();
-
-    if (AXR_FAILED(axrResult)) {
-        destroyModelData(modelData);
-        return axrResult;
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanSceneData::destroyModelData(AxrVulkanModelData& modelData) {
-    modelData.destroyData();
-}
-
 const AxrVulkanModelData* AxrVulkanSceneData::findModelData_shared(const std::string& name) const {
     const auto foundModelDataIt = m_ModelData.find(name);
     if (foundModelDataIt != m_ModelData.end()) {
@@ -681,6 +700,27 @@ const AxrVulkanModelData* AxrVulkanSceneData::findModelData_shared(const std::st
     }
 
     return nullptr;
+}
+
+void AxrVulkanSceneData::onModelCreatedCallback(const AxrModelConst_T model) {
+    if (model == nullptr) {
+        axrLogErrorLocation("Model is null.");
+        return;
+    }
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = initializeModelData(*model);
+    if (AXR_FAILED(axrResult)) {
+        return;
+    }
+
+    AxrVulkanModelData& modelData = m_ModelData.at(model->getName());
+    axrResult = modelData.createData();
+
+    if (AXR_FAILED(axrResult)) {
+        modelData.destroyData();
+    }
 }
 
 AxrResult AxrVulkanSceneData::createAllImageData() {
@@ -706,7 +746,7 @@ AxrResult AxrVulkanSceneData::createAllImageData() {
     }
 
     for (auto& [name, data] : m_ImageData) {
-        axrResult = createImageData(data);
+        axrResult = data.createData();
         if (AXR_FAILED(axrResult)) {
             break;
         }
@@ -722,7 +762,7 @@ AxrResult AxrVulkanSceneData::createAllImageData() {
 
 void AxrVulkanSceneData::destroyAllImageData() {
     for (auto& [name, data] : m_ImageData) {
-        destroyImageData(data);
+        data.destroyData();
     }
     m_ImageData.clear();
 }
@@ -824,21 +864,6 @@ AxrResult AxrVulkanSceneData::initializeMissingTextureImageData() {
     return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanSceneData::createImageData(AxrVulkanImageData& imageData) {
-    const AxrResult axrResult = imageData.createData();
-
-    if (AXR_FAILED(axrResult)) {
-        destroyImageData(imageData);
-        return axrResult;
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanSceneData::destroyImageData(AxrVulkanImageData& imageData) {
-    imageData.destroyData();
-}
-
 const AxrVulkanImageData* AxrVulkanSceneData::findImageData_shared(const std::string& name) const {
     const auto foundImageDataIt = m_ImageData.find(name);
     if (foundImageDataIt != m_ImageData.end()) {
@@ -854,6 +879,27 @@ const AxrVulkanImageData* AxrVulkanSceneData::findImageData_shared(const std::st
     }
 
     return nullptr;
+}
+
+void AxrVulkanSceneData::onImageCreatedCallback(const AxrImageConst_T image) {
+    if (image == nullptr) {
+        axrLogErrorLocation("Image is null.");
+        return;
+    }
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = initializeImageData(*image);
+    if (AXR_FAILED(axrResult)) {
+        return;
+    }
+
+    AxrVulkanImageData& imageData = m_ImageData.at(image->getName());
+    axrResult = imageData.createData();
+
+    if (AXR_FAILED(axrResult)) {
+        imageData.destroyData();
+    }
 }
 
 AxrResult AxrVulkanSceneData::createAllImageSamplerData() {
@@ -879,7 +925,7 @@ AxrResult AxrVulkanSceneData::createAllImageSamplerData() {
     }
 
     for (auto& [name, data] : m_ImageSamplerData) {
-        axrResult = createImageSamplerData(data);
+        axrResult = data.createData();
         if (AXR_FAILED(axrResult)) {
             break;
         }
@@ -895,7 +941,7 @@ AxrResult AxrVulkanSceneData::createAllImageSamplerData() {
 
 void AxrVulkanSceneData::destroyAllImageSamplerData() {
     for (auto& [name, data] : m_ImageSamplerData) {
-        destroyImageSamplerData(data);
+        data.destroyData();
     }
     m_ImageSamplerData.clear();
 }
@@ -959,21 +1005,6 @@ AxrResult AxrVulkanSceneData::initializeImageSamplerData(const AxrImageSampler& 
     return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanSceneData::createImageSamplerData(AxrVulkanImageSamplerData& imageSamplerData) {
-    const AxrResult axrResult = imageSamplerData.createData();
-
-    if (AXR_FAILED(axrResult)) {
-        destroyImageSamplerData(imageSamplerData);
-        return axrResult;
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanSceneData::destroyImageSamplerData(AxrVulkanImageSamplerData& imageSamplerData) {
-    imageSamplerData.destroyData();
-}
-
 const AxrVulkanImageSamplerData* AxrVulkanSceneData::findImageSamplerData_shared(const std::string& name) const {
     const auto foundImageSamplerDataIt = m_ImageSamplerData.find(name);
     if (foundImageSamplerDataIt != m_ImageSamplerData.end()) {
@@ -989,6 +1020,27 @@ const AxrVulkanImageSamplerData* AxrVulkanSceneData::findImageSamplerData_shared
     }
 
     return nullptr;
+}
+
+void AxrVulkanSceneData::onImageSamplerCreatedCallback(const AxrImageSamplerConst_T imageSampler) {
+    if (imageSampler == nullptr) {
+        axrLogErrorLocation("Image sampler is null.");
+        return;
+    }
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = initializeImageSamplerData(*imageSampler);
+    if (AXR_FAILED(axrResult)) {
+        return;
+    }
+
+    AxrVulkanImageSamplerData& imageSamplerData = m_ImageSamplerData.at(imageSampler->getName());
+    axrResult = imageSamplerData.createData();
+
+    if (AXR_FAILED(axrResult)) {
+        imageSamplerData.destroyData();
+    }
 }
 
 const AxrShader* AxrVulkanSceneData::findShader_shared(const std::string& name) const {
@@ -1037,7 +1089,7 @@ AxrResult AxrVulkanSceneData::createAllMaterialLayoutData() {
     }
 
     for (auto& [name, data] : m_MaterialLayoutData) {
-        axrResult = createMaterialLayoutData(data);
+        axrResult = data.createData();
         if (AXR_FAILED(axrResult)) {
             break;
         }
@@ -1053,7 +1105,7 @@ AxrResult AxrVulkanSceneData::createAllMaterialLayoutData() {
 
 void AxrVulkanSceneData::destroyAllMaterialLayoutData() {
     for (auto& [name, data] : m_MaterialLayoutData) {
-        destroyMaterialLayoutData(data);
+        data.destroyData();
     }
     m_MaterialLayoutData.clear();
 }
@@ -1135,21 +1187,6 @@ AxrResult AxrVulkanSceneData::initializeMaterialLayoutData(const AxrMaterial& ma
     return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanSceneData::createMaterialLayoutData(AxrVulkanMaterialLayoutData& materialLayoutData) {
-    const AxrResult axrResult = materialLayoutData.createData();
-
-    if (AXR_FAILED(axrResult)) {
-        destroyMaterialLayoutData(materialLayoutData);
-        return axrResult;
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanSceneData::destroyMaterialLayoutData(AxrVulkanMaterialLayoutData& materialLayoutData) {
-    materialLayoutData.destroyData();
-}
-
 const AxrVulkanMaterialLayoutData* AxrVulkanSceneData::findMaterialLayoutData(const std::string& name) const {
     const auto foundMaterialLayoutData = m_MaterialLayoutData.find(name);
     if (foundMaterialLayoutData == m_MaterialLayoutData.end()) {
@@ -1182,7 +1219,7 @@ AxrResult AxrVulkanSceneData::createAllMaterialData() {
     }
 
     for (auto& [name, data] : m_MaterialData) {
-        axrResult = createMaterialData(data);
+        axrResult = data.createData();
         if (AXR_FAILED(axrResult)) {
             break;
         }
@@ -1198,7 +1235,7 @@ AxrResult AxrVulkanSceneData::createAllMaterialData() {
 
 void AxrVulkanSceneData::destroyAllMaterialData() {
     for (auto& [name, data] : m_MaterialData) {
-        destroyMaterialData(data);
+        data.destroyData();
     }
     m_MaterialData.clear();
 }
@@ -1294,26 +1331,11 @@ AxrResult AxrVulkanSceneData::initializeMaterialData(const AxrMaterial& material
     return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanSceneData::createMaterialData(AxrVulkanMaterialData& materialData) {
-    const AxrResult axrResult = materialData.createData();
-
-    if (AXR_FAILED(axrResult)) {
-        destroyMaterialData(materialData);
-        return axrResult;
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanSceneData::destroyMaterialData(AxrVulkanMaterialData& materialData) {
-    materialData.destroyData();
-}
-
 AxrResult AxrVulkanSceneData::createAllWindowMaterialData(const vk::RenderPass renderPass) {
     AxrResult axrResult = AXR_SUCCESS;
 
     for (auto& [name, data] : m_MaterialData) {
-        axrResult = createWindowMaterialData(renderPass, data);
+        axrResult = data.createWindowData(renderPass);
         if (AXR_FAILED(axrResult)) {
             break;
         }
@@ -1329,28 +1351,8 @@ AxrResult AxrVulkanSceneData::createAllWindowMaterialData(const vk::RenderPass r
 
 void AxrVulkanSceneData::destroyAllWindowMaterialData() {
     for (auto& [name, data] : m_MaterialData) {
-        destroyWindowMaterialData(data);
+        data.destroyWindowData();
     }
-}
-
-// TODO: These function seems really pointless. just call materialData.createWindowData() and delete this function
-//  Repeat for all of the same functions like this one
-AxrResult AxrVulkanSceneData::createWindowMaterialData(
-    const vk::RenderPass renderPass,
-    AxrVulkanMaterialData& materialData
-) {
-    const AxrResult axrResult = materialData.createWindowData(renderPass);
-
-    if (AXR_FAILED(axrResult)) {
-        destroyWindowMaterialData(materialData);
-        return axrResult;
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanSceneData::destroyWindowMaterialData(AxrVulkanMaterialData& materialData) {
-    materialData.destroyWindowData();
 }
 
 const AxrVulkanMaterialData* AxrVulkanSceneData::findMaterialData_shared(const std::string& name) const {
@@ -1368,6 +1370,59 @@ const AxrVulkanMaterialData* AxrVulkanSceneData::findMaterialData_shared(const s
     }
 
     return nullptr;
+}
+
+void AxrVulkanSceneData::onMaterialCreatedCallback(const AxrMaterialConst_T material) {
+    if (material == nullptr) {
+        axrLogErrorLocation("Material is null.");
+        return;
+    }
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = initializeMaterialLayoutData(*material);
+    if (AXR_FAILED(axrResult)) {
+        return;
+    }
+    // TODO: We don't have a way to remove a single initialized object. So if something goes wrong, it stays. Which isn't ideal
+
+    AxrVulkanMaterialLayoutData& materialLayoutData = m_MaterialLayoutData.at(material->getMaterialLayoutName());
+    // Keep track if the layout already existed. If it did, we don't want to destroy it if things go wrong
+    const bool materialLayoutDataExists = materialLayoutData.doesDataExist();
+    if (!materialLayoutDataExists) {
+        axrResult = materialLayoutData.createData();
+    }
+
+    if (AXR_FAILED(axrResult)) {
+        if (!materialLayoutDataExists) {
+            materialLayoutData.destroyData();
+        }
+        return;
+    }
+
+    axrResult = initializeMaterialData(*material);
+    if (AXR_FAILED(axrResult)) {
+        if (!materialLayoutDataExists) {
+            materialLayoutData.destroyData();
+        }
+        return;
+    }
+
+    AxrVulkanMaterialData& materialData = m_MaterialData.at(material->getName());
+    axrResult = materialData.createData();
+
+    if (AXR_SUCCEEDED(axrResult) && isPlatformLoaded(AXR_PLATFORM_TYPE_WINDOW)) {
+        axrResult = materialData.createWindowData(m_WindowRenderPass);
+    }
+
+    if (AXR_FAILED(axrResult)) {
+        materialData.destroyWindowData();
+        materialData.destroyData();
+
+        if (!materialLayoutDataExists) {
+            materialLayoutData.destroyData();
+        }
+    }
 }
 
 AxrResult AxrVulkanSceneData::writeAllDescriptorSets(const AxrPlatformType platformType) {
@@ -1622,8 +1677,6 @@ AxrResult AxrVulkanSceneData::createAllMaterialsForRendering() {
         destroyAllMaterialLayoutData();
         return axrResult;
     }
-
-    // TODO: create callback anytime a new AxrTransformComponent and AxrModelComponent combo gets added.
 
     return AXR_SUCCESS;
 }

@@ -142,8 +142,8 @@ void AxrWindowSystem::cleanup() {
     }
 #endif
 
-    OnWindowOpenStateChangedCallbackGraphics = {};
-    OnWindowResizedCallbackGraphics = {};
+    OnWindowOpenStateChangedCallbackGraphics.reset();
+    OnWindowResizedCallbackGraphics.reset();
 }
 
 void AxrWindowSystem::processEvents() {

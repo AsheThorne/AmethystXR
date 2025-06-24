@@ -35,7 +35,7 @@ public:
     using OnWindowResizedCallback_T = AxrCallback<void(uint32_t, uint32_t)>;
 
     // ----------------------------------------- //
-    // Public Functions
+    // Public Variables
     // ----------------------------------------- //
 
     /// On window open state changed for the graphics system
@@ -123,7 +123,7 @@ private:
     // Private Functions
     // ----------------------------------------- //
 
-    /// Invoke 'On window resized' callback
+    /// 'On window resized' callback for the platform specific window system
     /// @param width New window width
     /// @param height New window height
     void onWindowResizedCallback(uint32_t width, uint32_t height) const;

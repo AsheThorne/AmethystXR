@@ -165,11 +165,13 @@ private:
     uint32_t m_MaxFramesInFlight;
     float m_MaxSamplerAnisotropy;
     vk::DispatchLoaderDynamic* m_DispatchHandle;
-    bool m_IsWindowDataLoaded;
 
     /// Missing texture image asset
     AxrImage m_MissingTextureImage;
 
+    // ---- Window data ----
+    bool m_IsWindowDataLoaded;
+    vk::RenderPass m_WindowRenderPass;
     /// Window specific engine defined uniform buffers
     std::unordered_map<std::string, AxrVulkanUniformBufferData> m_WindowUniformBufferData;
 
@@ -220,14 +222,6 @@ private:
         std::unordered_map<std::string, AxrVulkanUniformBufferData>& uniformBufferDataCollection
     ) const;
 
-    /// Create the given uniform buffer data
-    /// @param uniformBufferData Uniform buffer data to create
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createUniformBufferData(AxrVulkanUniformBufferData& uniformBufferData);
-    /// Destroy the given uniform buffer data
-    /// @param uniformBufferData Uniform buffer data to destroy
-    void destroyUniformBufferData(AxrVulkanUniformBufferData& uniformBufferData);
-
     /// Find the named uniform buffer data, including the global data in the search
     /// @param name The name of the uniform buffer
     /// @param platformType The platform type to check for platform specific uniform buffers
@@ -252,6 +246,10 @@ private:
     /// @returns A handle to the found window uniform buffer. Or nullptr if it wasn't found
     [[nodiscard]] const AxrVulkanUniformBufferData* findWindowUniformBufferData_shared(const std::string& name) const;
 
+    /// 'On uniform buffer created' callback for the asset collection
+    /// @param uniformBuffer Newly created uniform buffer 
+    void onUniformBufferCreatedCallback(AxrUniformBufferConst_T uniformBuffer);
+
     // ---- Model ----
 
     /// Create all model data
@@ -268,18 +266,14 @@ private:
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult initializeModelData(const AxrModel& model);
 
-    /// Create the given model data
-    /// @param modelData Model data to create
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createModelData(AxrVulkanModelData& modelData);
-    /// Destroy the given model data
-    /// @param modelData Model data to destroy
-    void destroyModelData(AxrVulkanModelData& modelData);
-
     /// Find the named model data, including the global data in the search
     /// @param name The name of the model
     /// @returns A handle to the found model. Or nullptr if it wasn't found
     [[nodiscard]] const AxrVulkanModelData* findModelData_shared(const std::string& name) const;
+
+    /// 'On model created' callback for the asset collection
+    /// @param model Newly created model 
+    void onModelCreatedCallback(AxrModelConst_T model);
 
     // ---- Image ----
 
@@ -301,18 +295,14 @@ private:
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult initializeMissingTextureImageData();
 
-    /// Create the given image data
-    /// @param imageData Image data to create
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createImageData(AxrVulkanImageData& imageData);
-    /// Destroy the given image data
-    /// @param imageData Image data to destroy
-    void destroyImageData(AxrVulkanImageData& imageData);
-
     /// Find the named image data, including the global data in the search
     /// @param name The name of the image
     /// @returns A handle to the found image. Or nullptr if it wasn't found
     [[nodiscard]] const AxrVulkanImageData* findImageData_shared(const std::string& name) const;
+
+    /// 'On image created' callback for the asset collection
+    /// @param image Newly created image 
+    void onImageCreatedCallback(AxrImageConst_T image);
 
     // ---- Image Sampler ----
 
@@ -330,18 +320,14 @@ private:
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult initializeImageSamplerData(const AxrImageSampler& imageSampler);
 
-    /// Create the given image sampler data
-    /// @param imageSamplerData Image sampler data to create
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createImageSamplerData(AxrVulkanImageSamplerData& imageSamplerData);
-    /// Destroy the given image sampler data
-    /// @param imageSamplerData Image sampler data to destroy
-    void destroyImageSamplerData(AxrVulkanImageSamplerData& imageSamplerData);
-
     /// Find the named image sampler data, including the global data in the search
     /// @param name The name of the image sampler
     /// @returns A handle to the found image sampler. Or nullptr if it wasn't found
     [[nodiscard]] const AxrVulkanImageSamplerData* findImageSamplerData_shared(const std::string& name) const;
+
+    /// 'On image sampler created' callback for the asset collection
+    /// @param imageSampler Newly created image sampler
+    void onImageSamplerCreatedCallback(AxrImageSamplerConst_T imageSampler);
 
     // ---- Shader ----
 
@@ -366,14 +352,6 @@ private:
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult initializeMaterialLayoutData(const AxrMaterial& material);
 
-    /// Create the given material layout data
-    /// @param materialLayoutData Material layout data to create
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createMaterialLayoutData(AxrVulkanMaterialLayoutData& materialLayoutData);
-    /// Destroy the given material layout data
-    /// @param materialLayoutData Material layout data to destroy
-    void destroyMaterialLayoutData(AxrVulkanMaterialLayoutData& materialLayoutData);
-
     /// Find the named material layout data
     /// @param name The name of the material layout
     /// @returns A handle to the found material layout. Or nullptr if it wasn't found
@@ -395,14 +373,6 @@ private:
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult initializeMaterialData(const AxrMaterial& material);
 
-    /// Create the given material data
-    /// @param materialData Material data to create
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createMaterialData(AxrVulkanMaterialData& materialData);
-    /// Destroy the given material data
-    /// @param materialData Material data to destroy
-    void destroyMaterialData(AxrVulkanMaterialData& materialData);
-
     /// Create all window specific material data
     /// @param renderPass Render pass to use
     /// @returns AXR_SUCCESS if the function succeeded
@@ -410,22 +380,14 @@ private:
     /// Destroy all window specific material data
     void destroyAllWindowMaterialData();
 
-    /// Create the given window specific material data
-    /// @param renderPass Render pass to use
-    /// @param materialData Input/Output material data to use and create window scene data for
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createWindowMaterialData(
-        vk::RenderPass renderPass,
-        AxrVulkanMaterialData& materialData
-    );
-    /// Destroy the given window specific material data
-    /// @param materialData Material data to destroy
-    void destroyWindowMaterialData(AxrVulkanMaterialData& materialData);
-
     /// Find the named material data, including the global data in the search
     /// @param name The name of the material
     /// @returns A handle to the found material. Or nullptr if it wasn't found
     [[nodiscard]] const AxrVulkanMaterialData* findMaterialData_shared(const std::string& name) const;
+
+    /// 'On material created' callback for the asset collection
+    /// @param material Newly created material
+    void onMaterialCreatedCallback(AxrMaterialConst_T material);
 
     // ---- Write Descriptor Sets ----
 
