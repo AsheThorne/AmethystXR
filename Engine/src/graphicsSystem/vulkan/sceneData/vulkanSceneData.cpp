@@ -11,6 +11,7 @@
 #include "../../../utils.hpp"
 #include "axr/common/utils.h"
 #include "../../../assets/engineAssets.hpp"
+#include "../../../assets/pushConstantBuffer.hpp"
 
 // ---- Special Functions ----
 
@@ -63,7 +64,11 @@ AxrResult AxrVulkanSceneData::loadScene() {
         return axrResult;
     }
 
-    // TODO: Maybe validate push constant buffers?
+    axrResult = validateAllPushConstantBuffers();
+    if (AXR_FAILED(axrResult)) {
+        unloadScene();
+        return axrResult;
+    }
 
     axrResult = createAllUniformBufferData();
     if (AXR_FAILED(axrResult)) {
@@ -107,9 +112,8 @@ AxrResult AxrVulkanSceneData::loadScene() {
         return axrResult;
     }
 
-    // TODO: Maybe validate push constant buffers?
-    // m_AssetCollection->OnPushConstantBufferCreatedCallbackGraphics
-    //                  .connect<&AxrVulkanSceneData::onPushConstantBufferCreatedCallback>(this);
+    m_AssetCollection->OnPushConstantBufferCreatedCallbackGraphics
+                     .connect<&AxrVulkanSceneData::onPushConstantBufferCreatedCallback>(this);
     m_AssetCollection->OnUniformBufferCreatedCallbackGraphics
                      .connect<&AxrVulkanSceneData::onUniformBufferCreatedCallback>(this);
     m_AssetCollection->OnModelCreatedCallbackGraphics
@@ -272,6 +276,91 @@ bool AxrVulkanSceneData::isPlatformLoaded(const AxrPlatformType platformType) co
             return false;
         }
     }
+}
+
+AxrResult AxrVulkanSceneData::validateAllPushConstantBuffers() const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_AssetCollection == nullptr) {
+        axrLogErrorLocation("Asset collection is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_PhysicalDevice == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Physical device is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_DispatchHandle == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Dispatch handle is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    const vk::PhysicalDeviceProperties properties = m_PhysicalDevice.getProperties(*m_DispatchHandle);
+
+    for (const auto& [bufferName, buffer] : m_AssetCollection->getPushConstantBuffers()) {
+        axrResult = validatePushConstantBuffer(properties, buffer);
+        if (AXR_FAILED(axrResult)) {
+            break;
+        }
+    }
+
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrVulkanSceneData::validatePushConstantBuffer(
+    const vk::PhysicalDeviceProperties& properties,
+    const AxrPushConstantBuffer& pushConstantBuffer
+) const {
+    if (pushConstantBuffer.getSize() <= properties.limits.maxPushConstantsSize) {
+        return AXR_SUCCESS;
+    }
+
+    axrLogErrorLocation(
+        "Failed push constant buffer validation for buffer named: {0}.",
+        pushConstantBuffer.getName().c_str()
+    );
+    return AXR_ERROR;
+}
+
+void AxrVulkanSceneData::onPushConstantBufferCreatedCallback(const AxrPushConstantBufferConst_T pushConstantBuffer) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (pushConstantBuffer == nullptr) {
+        axrLogErrorLocation("Push constant buffer is null.");
+        return;
+    }
+    
+    if (m_PhysicalDevice == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Physical device is null.");
+        return;
+    }
+
+    if (m_DispatchHandle == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Dispatch handle is null.");
+        return;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const vk::PhysicalDeviceProperties properties = m_PhysicalDevice.getProperties(*m_DispatchHandle);
+    AXR_FAILED(validatePushConstantBuffer(properties, *pushConstantBuffer));
 }
 
 void AxrVulkanSceneData::destroyUniformBufferData(

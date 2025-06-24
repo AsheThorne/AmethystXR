@@ -196,6 +196,25 @@ private:
     /// @returns True if the given platform's data is loaded
     [[nodiscard]] bool isPlatformLoaded(AxrPlatformType platformType) const;
 
+    // ---- Push Constant Buffer ----
+
+    /// Validate all push constant buffers
+    /// @returns AXR_SUCCESS if all push constant buffers are valid
+    [[nodiscard]] AxrResult validateAllPushConstantBuffers() const;
+
+    /// Validate the given push constant buffer
+    /// @param properties Physical device properties to use
+    /// @param pushConstantBuffer Push constant buffer to validate
+    /// @returns AXR_SUCCESS if the push constant buffer is valid
+    [[nodiscard]] AxrResult validatePushConstantBuffer(
+        const vk::PhysicalDeviceProperties& properties,
+        const AxrPushConstantBuffer& pushConstantBuffer
+    ) const;
+
+    /// 'On push constant buffer created' callback for the asset collection
+    /// @param pushConstantBuffer Newly created push constant buffer 
+    void onPushConstantBufferCreatedCallback(AxrPushConstantBufferConst_T pushConstantBuffer);
+
     // ---- Uniform Buffer ----
 
     /// Destroy all uniform buffer data
