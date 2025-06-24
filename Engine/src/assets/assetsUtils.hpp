@@ -33,12 +33,6 @@ AxrImageSamplerFilterEnum axrToImageSamplerFilter(int samplerFilter, AxrImageSam
 /// @returns The converted image sampler wrap
 AxrImageSamplerWrapEnum axrToImageSamplerWrap(int samplerWrap);
 
-/// Read file bytes on disk
-/// @param path Path to the file
-/// @param data Output file data
-/// @returns AXR_SUCCESS if the function succeeded
-AxrResult axrReadFileBytes(const std::filesystem::path& path, std::vector<char>& data);
-
 /// Check if the given file exists
 /// @param path File path
 /// @returns True if the file exists

@@ -11,6 +11,7 @@
 // C/C++ Headers
 // ----------------------------------------- //
 #include <string>
+#include <filesystem>
 
 /// Axr Shader
 class AxrShader {
@@ -108,4 +109,10 @@ private:
 
     /// Cleanup the shader class
     void cleanup();
+
+    /// Read shader file bytes
+    /// @param path Path to the file
+    /// @param data Output file data
+    /// @returns AXR_SUCCESS if the function succeeded
+    static AxrResult readShaderFile(const std::filesystem::path& path, std::vector<char>& data);
 };

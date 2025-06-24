@@ -340,25 +340,6 @@ AxrImageSamplerWrapEnum axrToImageSamplerWrap(const int samplerWrap) {
     }
 }
 
-AxrResult axrReadFileBytes(const std::filesystem::path& path, std::vector<char>& data) {
-    const std::filesystem::path fullPath = axrGetAbsolutePathToAsset(path);
-
-    // Open the file at the end so we can get the file size easily
-    std::ifstream file(fullPath.c_str(), std::ios::ate | std::ios::binary);
-
-    if (!file.is_open()) {
-        axrLogErrorLocation("Failed to open file");
-        return AXR_ERROR;
-    }
-
-    data = std::vector<char>(file.tellg());
-    file.seekg(0);
-    file.read(data.data(), static_cast<std::streamsize>(data.size()));
-    file.close();
-
-    return AXR_SUCCESS;
-}
-
 bool axrFileExists(const std::filesystem::path& path) {
     return std::filesystem::exists(axrGetAbsolutePathToAsset(path));;
 }

@@ -1,7 +1,7 @@
 ﻿// ----------------------------------------- //
 // C/C++ Headers
 // ----------------------------------------- //
-#include <filesystem>
+#include <fstream>
 
 // ----------------------------------------- //
 // AXR Headers
@@ -147,8 +147,7 @@ AxrResult AxrShader::loadFile(const AxrGraphicsApiEnum graphicsApi) const {
         path.replace_extension(extension + ".spv");
     }
 
-    //  TODO: Should we move this just to this class? I think so.
-    return axrReadFileBytes(path, m_FileData);
+    return readShaderFile(path, m_FileData);
 }
 
 void AxrShader::unloadFile() const {
@@ -180,4 +179,23 @@ void AxrShader::cleanup() {
     m_Name = "";
     m_FilePath = "";
     m_Properties.cleanup();
+}
+
+AxrResult AxrShader::readShaderFile(const std::filesystem::path& path, std::vector<char>& data) {
+    const std::filesystem::path fullPath = axrGetAbsolutePathToAsset(path);
+
+    // Open the file at the end so we can get the file size easily
+    std::ifstream file(fullPath.c_str(), std::ios::ate | std::ios::binary);
+
+    if (!file.is_open()) {
+        axrLogErrorLocation("Failed to open file");
+        return AXR_ERROR;
+    }
+
+    data = std::vector<char>(file.tellg());
+    file.seekg(0);
+    file.read(data.data(), static_cast<std::streamsize>(data.size()));
+    file.close();
+
+    return AXR_SUCCESS;
 }
