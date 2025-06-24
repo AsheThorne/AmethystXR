@@ -8,18 +8,18 @@
 // External Functions
 // ----------------------------------------- //
 
-AxrSubmesh* axrMeshCloneSubmeshes(const uint32_t submeshesCount, const AxrSubmesh* submeshes) {
+AxrSubmesh* axrMeshCloneSubmeshes(const uint32_t submeshCount, const AxrSubmesh* submeshes) {
     if (submeshes == nullptr) {
         axrLogErrorLocation("`submeshes` is null.");
         return {};
     }
 
-    return AxrMeshRAII::cloneSubmeshes(submeshesCount, submeshes);
+    return AxrMeshRAII::cloneSubmeshes(submeshCount, submeshes);
 }
 
-void axrMeshDestroySubmeshes(uint32_t* submeshesCount, AxrSubmesh** submeshes) {
-    if (submeshesCount == nullptr) {
-        axrLogErrorLocation("`submeshesCount` is null.");
+void axrMeshDestroySubmeshes(uint32_t* submeshCount, AxrSubmesh** submeshes) {
+    if (submeshCount == nullptr) {
+        axrLogErrorLocation("`submeshCount` is null.");
         return;
     }
 
@@ -28,7 +28,7 @@ void axrMeshDestroySubmeshes(uint32_t* submeshesCount, AxrSubmesh** submeshes) {
         return;
     }
 
-    return AxrMeshRAII::destroySubmeshes(*submeshesCount, *submeshes);
+    return AxrMeshRAII::destroySubmeshes(*submeshCount, *submeshes);
 }
 
 // ----------------------------------------- //
@@ -88,26 +88,26 @@ void AxrMeshRAII::destroyMesh(AxrMesh& mesh) {
     destroySubmeshes(mesh.SubmeshCount, mesh.Submeshes);
 }
 
-AxrSubmesh* AxrMeshRAII::cloneSubmeshes(const uint32_t submeshesCount, const AxrSubmesh* submeshes) {
+AxrSubmesh* AxrMeshRAII::cloneSubmeshes(const uint32_t submeshCount, const AxrSubmesh* submeshes) {
     if (submeshes == nullptr) return nullptr;
 
-    AxrSubmesh* newSubmeshes = new AxrSubmesh[submeshesCount]{};
-    for (uint32_t i = 0; i < submeshesCount; ++i) {
+    AxrSubmesh* newSubmeshes = new AxrSubmesh[submeshCount]{};
+    for (uint32_t i = 0; i < submeshCount; ++i) {
         newSubmeshes[i] = AxrSubmeshRAII::cloneSubmesh(submeshes[i]);
     }
 
     return newSubmeshes;
 }
 
-void AxrMeshRAII::destroySubmeshes(uint32_t& submeshesCount, AxrSubmesh*& submeshes) {
+void AxrMeshRAII::destroySubmeshes(uint32_t& submeshCount, AxrSubmesh*& submeshes) {
     if (submeshes == nullptr) return;
 
-    for (uint32_t i = 0; i < submeshesCount; ++i) {
+    for (uint32_t i = 0; i < submeshCount; ++i) {
         AxrSubmeshRAII::destroySubmesh(submeshes[i]);
     }
     delete[] submeshes;
     submeshes = nullptr;
-    submeshesCount = 0;
+    submeshCount = 0;
 }
 
 // ---- Private Functions ----
@@ -118,11 +118,11 @@ void AxrMeshRAII::cleanup() {
 
 // ---- Private Static Functions ----
 
-std::vector<AxrSubmeshRAII> AxrMeshRAII::toVector(const uint32_t submeshesCount, const AxrSubmesh* submeshes) {
+std::vector<AxrSubmeshRAII> AxrMeshRAII::toVector(const uint32_t submeshCount, const AxrSubmesh* submeshes) {
     if (submeshes == nullptr) return {};
 
-    std::vector<AxrSubmeshRAII> submeshVector = std::vector<AxrSubmeshRAII>(submeshesCount);
-    for (uint32_t i = 0; i < submeshesCount; ++i) {
+    std::vector<AxrSubmeshRAII> submeshVector = std::vector<AxrSubmeshRAII>(submeshCount);
+    for (uint32_t i = 0; i < submeshCount; ++i) {
         submeshVector[i] = AxrSubmeshRAII(submeshes[i]);
     }
 

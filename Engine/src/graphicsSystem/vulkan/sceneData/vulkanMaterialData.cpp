@@ -286,29 +286,29 @@ AxrResult AxrVulkanMaterialData::createDescriptorPool(
     // Process
     // ----------------------------------------- //
 
-    uint32_t uniformBufferLayoutsCount = static_cast<uint32_t>(
+    uint32_t uniformBufferLayoutCount = static_cast<uint32_t>(
         m_VertexShaderHandle->getProperties().getUniformBufferLayouts().size() +
         m_FragmentShaderHandle->getProperties().getUniformBufferLayouts().size()
     );
-    uint32_t imageSamplerBufferLayoutsCount = static_cast<uint32_t>(
+    uint32_t imageSamplerBufferLayoutCount = static_cast<uint32_t>(
         m_VertexShaderHandle->getProperties().getImageSamplerBufferLayouts().size() +
         m_FragmentShaderHandle->getProperties().getImageSamplerBufferLayouts().size()
     );
 
     std::vector<vk::DescriptorPoolSize> poolSizes;
 
-    if (uniformBufferLayoutsCount != 0) {
+    if (uniformBufferLayoutCount != 0) {
         const vk::DescriptorPoolSize poolSize(
             vk::DescriptorType::eUniformBuffer,
-            uniformBufferLayoutsCount * m_MaxFramesInFlight * viewCount
+            uniformBufferLayoutCount * m_MaxFramesInFlight * viewCount
         );
         poolSizes.push_back(poolSize);
     }
 
-    if (imageSamplerBufferLayoutsCount != 0) {
+    if (imageSamplerBufferLayoutCount != 0) {
         const vk::DescriptorPoolSize poolSize(
             vk::DescriptorType::eSampledImage,
-            imageSamplerBufferLayoutsCount * m_MaxFramesInFlight * viewCount
+            imageSamplerBufferLayoutCount * m_MaxFramesInFlight * viewCount
         );
         poolSizes.push_back(poolSize);
     }

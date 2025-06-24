@@ -158,9 +158,9 @@ struct AxrVulkanWindowConfig {
 
 /// Vulkan Api Graphics System Config
 struct AxrVulkanApiConfig {
-    uint32_t ApiLayersCount;
+    uint32_t ApiLayerCount;
     AxrVulkanApiLayer_T* ApiLayers;
-    uint32_t ExtensionsCount;
+    uint32_t ExtensionCount;
     AxrVulkanExtension_T* Extensions;
     AxrVulkanWindowConfig* WindowConfig;
 };

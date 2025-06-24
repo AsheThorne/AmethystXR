@@ -72,9 +72,9 @@ public:
     /// @param extensions The extensions to add
     void add(const std::vector<Extension>& extensions);
     /// Add the given extensions
-    /// @param extensionsCount Number of extensions in the given extensions pointer
+    /// @param extensionCount Number of extensions in the given extensions pointer
     /// @param extensions The extensions to add
-    void add(uint32_t extensionsCount, const Extension* extensions);
+    void add(uint32_t extensionCount, const Extension* extensions);
     /// Add the given extension
     /// @param extension The extension to add
     void add(Extension extension);
@@ -123,11 +123,11 @@ private:
         const std::vector<Extension>& extensions
     ) const;
     /// Clone all the given vulkan extensions
-    /// @param extensionsCount Number of extensions in the given extensions pointer
+    /// @param extensionCount Number of extensions in the given extensions pointer
     /// @param extensions Extensions to clone
     /// @returns A collection of cloned extensions
     [[nodiscard]] std::vector<Extension> clone(
-        uint32_t extensionsCount,
+        uint32_t extensionCount,
         const Extension* extensions
     ) const;
     /// Clone the given extension
@@ -219,10 +219,10 @@ void AxrVulkanExtensionCollection<Extension, ExtensionTypeEnum>::add(const std::
 
 template <typename Extension, typename ExtensionTypeEnum>
 void AxrVulkanExtensionCollection<Extension, ExtensionTypeEnum>::add(
-    const uint32_t extensionsCount,
+    const uint32_t extensionCount,
     const Extension* extensions
 ) {
-    for (uint32_t i = 0; i < extensionsCount; ++i) {
+    for (uint32_t i = 0; i < extensionCount; ++i) {
         if (extensions[i] == nullptr) continue;
 
         add(extensions[i]);
@@ -306,12 +306,12 @@ std::vector<Extension> AxrVulkanExtensionCollection<Extension, ExtensionTypeEnum
 
 template <typename Extension, typename ExtensionTypeEnum>
 std::vector<Extension> AxrVulkanExtensionCollection<Extension, ExtensionTypeEnum>::clone(
-    const uint32_t extensionsCount,
+    const uint32_t extensionCount,
     const Extension* extensions
 ) const {
     std::vector<Extension> clonedExtensions{};
 
-    for (uint32_t i = 0; i < extensionsCount; ++i) {
+    for (uint32_t i = 0; i < extensionCount; ++i) {
         if (extensions[i] == nullptr) continue;
 
         clonedExtensions.push_back(cloneExtension(extensions[i]));

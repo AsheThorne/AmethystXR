@@ -297,9 +297,9 @@ namespace axr {
         // Public Variables
         // ----------------------------------------- //
         const AxrShaderStageEnum Type = AXR_SHADER_STAGE_VERTEX;
-        uint32_t VertexAttributesCount;
+        uint32_t VertexAttributeCount;
         AxrShaderVertexAttribute* VertexAttributes;
-        uint32_t BufferLayoutsCount;
+        uint32_t BufferLayoutCount;
         AxrShaderBufferLayout_T* BufferLayouts;
 
         // ----------------------------------------- //
@@ -310,9 +310,9 @@ namespace axr {
 
         /// Default Constructor
         VertexShaderProperties():
-            VertexAttributesCount(0),
+            VertexAttributeCount(0),
             VertexAttributes(nullptr),
-            BufferLayoutsCount(0),
+            BufferLayoutCount(0),
             BufferLayouts(nullptr) {
         }
 
@@ -379,27 +379,27 @@ namespace axr {
             const uint32_t binding,
             const uint32_t location
         ) {
-            resizeVertexAttributes(VertexAttributesCount + 1);
+            resizeVertexAttributes(VertexAttributeCount + 1);
 
             const AxrShaderVertexAttribute vertexAttribute{
                 .Type = static_cast<AxrShaderVertexAttributeEnum>(type),
                 .Binding = binding,
                 .Location = location
             };
-            VertexAttributes[VertexAttributesCount - 1] = axrShaderVertexAttributeClone(vertexAttribute);
+            VertexAttributes[VertexAttributeCount - 1] = axrShaderVertexAttributeClone(vertexAttribute);
         }
 
         /// Clear the vertex attributes
         void clearVertexAttributes() {
             if (VertexAttributes == nullptr) return;
 
-            for (uint32_t i = 0; i < VertexAttributesCount; ++i) {
+            for (uint32_t i = 0; i < VertexAttributeCount; ++i) {
                 axrShaderVertexAttributeDestroy(&VertexAttributes[i]);
             }
 
             delete[] VertexAttributes;
             VertexAttributes = nullptr;
-            VertexAttributesCount = 0;
+            VertexAttributeCount = 0;
         }
 
         // ---- Buffer Layouts ----
@@ -408,13 +408,13 @@ namespace axr {
         /// @param binding Uniform buffer layout binding
         /// @param bufferSize Uniform buffer layout buffer size
         void addUniformBufferLayout(const uint32_t binding, const uint64_t bufferSize) {
-            resizeBufferLayouts(BufferLayoutsCount + 1);
+            resizeBufferLayouts(BufferLayoutCount + 1);
 
             const AxrShaderUniformBufferLayout bufferLayout{
                 .Binding = binding,
                 .BufferSize = bufferSize
             };
-            BufferLayouts[BufferLayoutsCount - 1] = reinterpret_cast<AxrShaderBufferLayout_T>(
+            BufferLayouts[BufferLayoutCount - 1] = reinterpret_cast<AxrShaderBufferLayout_T>(
                 axrShaderUniformBufferLayoutClone(&bufferLayout)
             );
         }
@@ -422,12 +422,12 @@ namespace axr {
         /// Add an image sampler buffer layout
         /// @param binding Image sampler buffer layout binding
         void addImageSamplerBufferLayout(const uint32_t binding) {
-            resizeBufferLayouts(BufferLayoutsCount + 1);
+            resizeBufferLayouts(BufferLayoutCount + 1);
 
             const AxrShaderImageSamplerBufferLayout bufferLayout{
                 .Binding = binding,
             };
-            BufferLayouts[BufferLayoutsCount - 1] = reinterpret_cast<AxrShaderBufferLayout_T>(
+            BufferLayouts[BufferLayoutCount - 1] = reinterpret_cast<AxrShaderBufferLayout_T>(
                 axrShaderImageSamplerBufferLayoutClone(&bufferLayout)
             );
         }
@@ -436,12 +436,12 @@ namespace axr {
         /// Add a push constant buffer layout
         /// @param bufferSize Push constant buffer layout buffer size
         void addPushConstantBufferLayout(const uint32_t bufferSize) {
-            resizeBufferLayouts(BufferLayoutsCount + 1);
+            resizeBufferLayouts(BufferLayoutCount + 1);
 
             const AxrShaderPushConstantBufferLayout bufferLayout{
                 .BufferSize = bufferSize
             };
-            BufferLayouts[BufferLayoutsCount - 1] = reinterpret_cast<AxrShaderBufferLayout_T>(
+            BufferLayouts[BufferLayoutCount - 1] = reinterpret_cast<AxrShaderBufferLayout_T>(
                 axrShaderPushConstantBufferLayoutClone(&bufferLayout)
             );
         }
@@ -451,7 +451,7 @@ namespace axr {
         void clearBufferLayouts() {
             if (BufferLayouts == nullptr) return;
 
-            for (uint32_t i = 0; i < BufferLayoutsCount; ++i) {
+            for (uint32_t i = 0; i < BufferLayoutCount; ++i) {
                 if (BufferLayouts[i] == nullptr) continue;
 
                 axrShaderBufferLayoutDestroy(&BufferLayouts[i]);
@@ -459,7 +459,7 @@ namespace axr {
 
             delete[] BufferLayouts;
             BufferLayouts = nullptr;
-            BufferLayoutsCount = 0;
+            BufferLayoutCount = 0;
         }
 
     private:
@@ -473,7 +473,7 @@ namespace axr {
         /// @param size New size
         void resizeVertexAttributes(const uint32_t size) {
             auto newVertexAttributes = new AxrShaderVertexAttribute[size]{};
-            for (uint32_t i = 0; i < std::min(VertexAttributesCount, size); ++i) {
+            for (uint32_t i = 0; i < std::min(VertexAttributeCount, size); ++i) {
                 // Move vertex attributes to new array
                 newVertexAttributes[i] = VertexAttributes[i];
                 VertexAttributes[i] = {};
@@ -481,7 +481,7 @@ namespace axr {
 
             clearVertexAttributes();
             VertexAttributes = newVertexAttributes;
-            VertexAttributesCount = size;
+            VertexAttributeCount = size;
         }
 
         // ---- Buffer Layouts ----
@@ -490,7 +490,7 @@ namespace axr {
         /// @param size New size
         void resizeBufferLayouts(const uint32_t size) {
             auto newBufferLayouts = new AxrShaderBufferLayout_T[size]{};
-            for (uint32_t i = 0; i < std::min(BufferLayoutsCount, size); ++i) {
+            for (uint32_t i = 0; i < std::min(BufferLayoutCount, size); ++i) {
                 // Move buffer layouts to new array
                 newBufferLayouts[i] = BufferLayouts[i];
                 BufferLayouts[i] = nullptr;
@@ -498,7 +498,7 @@ namespace axr {
 
             clearBufferLayouts();
             BufferLayouts = newBufferLayouts;
-            BufferLayoutsCount = size;
+            BufferLayoutCount = size;
         }
     };
 
@@ -513,7 +513,7 @@ namespace axr {
         // Public Variables
         // ----------------------------------------- //
         const AxrShaderStageEnum Type = AXR_SHADER_STAGE_FRAGMENT;
-        uint32_t BufferLayoutsCount;
+        uint32_t BufferLayoutCount;
         AxrShaderBufferLayout_T* BufferLayouts;
 
         // ----------------------------------------- //
@@ -524,7 +524,7 @@ namespace axr {
 
         /// Default Constructor
         FragmentShaderProperties():
-            BufferLayoutsCount(0),
+            BufferLayoutCount(0),
             BufferLayouts(nullptr) {
         }
 
@@ -585,13 +585,13 @@ namespace axr {
         /// @param binding Uniform buffer layout binding
         /// @param bufferSize Uniform buffer layout buffer size
         void addUniformBufferLayout(const uint32_t binding, const uint64_t bufferSize) {
-            resizeBufferLayouts(BufferLayoutsCount + 1);
+            resizeBufferLayouts(BufferLayoutCount + 1);
 
             const AxrShaderUniformBufferLayout bufferLayout{
                 .Binding = binding,
                 .BufferSize = bufferSize
             };
-            BufferLayouts[BufferLayoutsCount - 1] = reinterpret_cast<AxrShaderBufferLayout_T>(
+            BufferLayouts[BufferLayoutCount - 1] = reinterpret_cast<AxrShaderBufferLayout_T>(
                 axrShaderUniformBufferLayoutClone(&bufferLayout)
             );
         }
@@ -599,12 +599,12 @@ namespace axr {
         /// Add an image sampler buffer layout
         /// @param binding Image sampler buffer layout binding
         void addImageSamplerBufferLayout(const uint32_t binding) {
-            resizeBufferLayouts(BufferLayoutsCount + 1);
+            resizeBufferLayouts(BufferLayoutCount + 1);
 
             const AxrShaderImageSamplerBufferLayout bufferLayout{
                 .Binding = binding,
             };
-            BufferLayouts[BufferLayoutsCount - 1] = reinterpret_cast<AxrShaderBufferLayout_T>(
+            BufferLayouts[BufferLayoutCount - 1] = reinterpret_cast<AxrShaderBufferLayout_T>(
                 axrShaderImageSamplerBufferLayoutClone(&bufferLayout)
             );
         }
@@ -613,12 +613,12 @@ namespace axr {
         /// Add a push constant buffer layout
         /// @param bufferSize Push constant buffer layout buffer size
         void addPushConstantBufferLayout(const uint32_t bufferSize) {
-            resizeBufferLayouts(BufferLayoutsCount + 1);
+            resizeBufferLayouts(BufferLayoutCount + 1);
 
             const AxrShaderPushConstantBufferLayout bufferLayout{
                 .BufferSize = bufferSize
             };
-            BufferLayouts[BufferLayoutsCount - 1] = reinterpret_cast<AxrShaderBufferLayout_T>(
+            BufferLayouts[BufferLayoutCount - 1] = reinterpret_cast<AxrShaderBufferLayout_T>(
                 axrShaderPushConstantBufferLayoutClone(&bufferLayout)
             );
         }
@@ -628,7 +628,7 @@ namespace axr {
         void clearBufferLayouts() {
             if (BufferLayouts == nullptr) return;
 
-            for (uint32_t i = 0; i < BufferLayoutsCount; ++i) {
+            for (uint32_t i = 0; i < BufferLayoutCount; ++i) {
                 if (BufferLayouts[i] == nullptr) continue;
 
                 axrShaderBufferLayoutDestroy(&BufferLayouts[i]);
@@ -636,7 +636,7 @@ namespace axr {
 
             delete[] BufferLayouts;
             BufferLayouts = nullptr;
-            BufferLayoutsCount = 0;
+            BufferLayoutCount = 0;
         }
 
     private:
@@ -650,7 +650,7 @@ namespace axr {
         /// @param size New size
         void resizeBufferLayouts(const uint32_t size) {
             auto newBufferLayouts = new AxrShaderBufferLayout_T[size]{};
-            for (uint32_t i = 0; i < std::min(BufferLayoutsCount, size); ++i) {
+            for (uint32_t i = 0; i < std::min(BufferLayoutCount, size); ++i) {
                 // Move buffer layouts to new array
                 newBufferLayouts[i] = BufferLayouts[i];
                 BufferLayouts[i] = nullptr;
@@ -658,7 +658,7 @@ namespace axr {
 
             clearBufferLayouts();
             BufferLayouts = newBufferLayouts;
-            BufferLayoutsCount = size;
+            BufferLayoutCount = size;
         }
     };
 
@@ -895,7 +895,7 @@ namespace axr {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-        uint32_t BufferLinksCount;
+        uint32_t BufferLinkCount;
         AxrShaderBufferLink_T* BufferLinks;
 
         // ----------------------------------------- //
@@ -906,7 +906,7 @@ namespace axr {
 
         /// Default Constructor
         ShaderValues():
-            BufferLinksCount(0),
+            BufferLinkCount(0),
             BufferLinks(nullptr) {
         }
 
@@ -967,13 +967,13 @@ namespace axr {
         /// @param binding Uniform buffer binding
         /// @param bufferName Uniform buffer name 
         void addUniformBufferLink(const uint32_t binding, const char* bufferName) {
-            resizeBufferLinks(BufferLinksCount + 1);
+            resizeBufferLinks(BufferLinkCount + 1);
 
             const AxrShaderUniformBufferLink bufferLink{
                 .Binding = binding,
                 .BufferName = bufferName
             };
-            BufferLinks[BufferLinksCount - 1] = reinterpret_cast<AxrShaderBufferLink_T>(
+            BufferLinks[BufferLinkCount - 1] = reinterpret_cast<AxrShaderBufferLink_T>(
                 axrShaderUniformBufferLinkClone(&bufferLink)
             );
         }
@@ -983,14 +983,14 @@ namespace axr {
         /// @param imageName Image name
         /// @param samplerName Image sampler name
         void addImageSamplerBufferLink(const uint32_t binding, const char* imageName, const char* samplerName) {
-            resizeBufferLinks(BufferLinksCount + 1);
+            resizeBufferLinks(BufferLinkCount + 1);
 
             const AxrShaderImageSamplerBufferLink bufferLink{
                 .Binding = binding,
                 .ImageName = imageName,
                 .SamplerName = samplerName
             };
-            BufferLinks[BufferLinksCount - 1] = reinterpret_cast<AxrShaderBufferLink_T>(
+            BufferLinks[BufferLinkCount - 1] = reinterpret_cast<AxrShaderBufferLink_T>(
                 axrShaderImageSamplerBufferLinkClone(&bufferLink)
             );
         }
@@ -999,7 +999,7 @@ namespace axr {
         void clearBufferLinks() {
             if (BufferLinks == nullptr) return;
 
-            for (uint32_t i = 0; i < BufferLinksCount; ++i) {
+            for (uint32_t i = 0; i < BufferLinkCount; ++i) {
                 if (BufferLinks[i] == nullptr) continue;
 
                 axrShaderBufferLinkDestroy(&BufferLinks[i]);
@@ -1007,7 +1007,7 @@ namespace axr {
 
             delete[] BufferLinks;
             BufferLinks = nullptr;
-            BufferLinksCount = 0;
+            BufferLinkCount = 0;
         }
 
     private:
@@ -1021,7 +1021,7 @@ namespace axr {
         /// @param size New size
         void resizeBufferLinks(const uint32_t size) {
             auto newBufferLinks = new AxrShaderBufferLink_T[size]{};
-            for (uint32_t i = 0; i < std::min(BufferLinksCount, size); ++i) {
+            for (uint32_t i = 0; i < std::min(BufferLinkCount, size); ++i) {
                 // Move buffer links to new array
                 newBufferLinks[i] = BufferLinks[i];
                 BufferLinks[i] = nullptr;
@@ -1029,7 +1029,7 @@ namespace axr {
 
             clearBufferLinks();
             BufferLinks = newBufferLinks;
-            BufferLinksCount = size;
+            BufferLinkCount = size;
         }
     };
 
@@ -1462,9 +1462,9 @@ namespace axr {
         // Public Variables
         // ----------------------------------------- //
 
-        uint32_t VerticesCount;
+        uint32_t VertexCount;
         axr::Vertex* Vertices;
-        uint32_t IndicesCount;
+        uint32_t IndexCount;
         uint32_t* Indices;
 
         // ----------------------------------------- //
@@ -1474,9 +1474,9 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        Submesh(): VerticesCount(0),
+        Submesh(): VertexCount(0),
             Vertices(nullptr),
-            IndicesCount(0),
+            IndexCount(0),
             Indices(nullptr) {
         }
 
@@ -1484,32 +1484,32 @@ namespace axr {
         /// @param vertices Vertices to copy
         /// @param indices Indices to copy
         Submesh(const std::vector<axr::Vertex>& vertices, const std::vector<uint32_t>& indices) {
-            VerticesCount = static_cast<uint32_t>(vertices.size());
-            Vertices = cloneVertices(VerticesCount, vertices.data());
-            IndicesCount = static_cast<uint32_t>(indices.size());
-            Indices = cloneIndices(IndicesCount, indices.data());
+            VertexCount = static_cast<uint32_t>(vertices.size());
+            Vertices = cloneVertices(VertexCount, vertices.data());
+            IndexCount = static_cast<uint32_t>(indices.size());
+            Indices = cloneIndices(IndexCount, indices.data());
         }
 
         /// Copy Constructor
         /// @param src Source Submesh to copy from
         Submesh(const Submesh& src) {
-            VerticesCount = src.VerticesCount;
-            Vertices = cloneVertices(src.VerticesCount, src.Vertices);
-            IndicesCount = src.IndicesCount;
-            Indices = cloneIndices(src.IndicesCount, src.Indices);
+            VertexCount = src.VertexCount;
+            Vertices = cloneVertices(src.VertexCount, src.Vertices);
+            IndexCount = src.IndexCount;
+            Indices = cloneIndices(src.IndexCount, src.Indices);
         }
 
         /// Move Constructor
         /// @param src Source Submesh to move from
         Submesh(Submesh&& src) noexcept {
-            VerticesCount = src.VerticesCount;
+            VertexCount = src.VertexCount;
             Vertices = src.Vertices;
-            IndicesCount = src.IndicesCount;
+            IndexCount = src.IndexCount;
             Indices = src.Indices;
 
-            src.VerticesCount = 0;
+            src.VertexCount = 0;
             src.Vertices = nullptr;
-            src.IndicesCount = 0;
+            src.IndexCount = 0;
             src.Indices = nullptr;
         }
 
@@ -1528,10 +1528,10 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                VerticesCount = src.VerticesCount;
-                Vertices = cloneVertices(src.VerticesCount, src.Vertices);
-                IndicesCount = src.IndicesCount;
-                Indices = cloneIndices(src.IndicesCount, src.Indices);
+                VertexCount = src.VertexCount;
+                Vertices = cloneVertices(src.VertexCount, src.Vertices);
+                IndexCount = src.IndexCount;
+                Indices = cloneIndices(src.IndexCount, src.Indices);
             }
 
             return *this;
@@ -1543,14 +1543,14 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                VerticesCount = src.VerticesCount;
+                VertexCount = src.VertexCount;
                 Vertices = src.Vertices;
-                IndicesCount = src.IndicesCount;
+                IndexCount = src.IndexCount;
                 Indices = src.Indices;
 
-                src.VerticesCount = 0;
+                src.VertexCount = 0;
                 src.Vertices = nullptr;
-                src.IndicesCount = 0;
+                src.IndexCount = 0;
                 src.Indices = nullptr;
             }
 
@@ -1580,27 +1580,27 @@ namespace axr {
 
         /// Clean up this class
         void cleanup() {
-            axrSubmeshDestroyVertices(&VerticesCount, reinterpret_cast<AxrVertex**>(&Vertices));
-            axrSubmeshDestroyIndices(&IndicesCount, &Indices);
+            axrSubmeshDestroyVertices(&VertexCount, reinterpret_cast<AxrVertex**>(&Vertices));
+            axrSubmeshDestroyIndices(&IndexCount, &Indices);
         }
 
         /// Clone the given vertices
-        /// @param verticesCount Number of vertices in the given array
+        /// @param vertexCount Number of vertices in the given array
         /// @param vertices Vertex array to clone
         /// @returns A cloned array of the given vertices
-        axr::Vertex* cloneVertices(const uint32_t verticesCount, const axr::Vertex* vertices) {
+        axr::Vertex* cloneVertices(const uint32_t vertexCount, const axr::Vertex* vertices) {
             return reinterpret_cast<axr::Vertex*>(axrSubmeshCloneVertices(
-                verticesCount,
+                vertexCount,
                 reinterpret_cast<const AxrVertex*>(vertices)
             ));
         }
 
         /// Clone the given indices
-        /// @param indicesCount Number of indices in the given array
+        /// @param indexCount Number of indices in the given array
         /// @param indices Index array to clone
         /// @returns A cloned array of the given indices
-        uint32_t* cloneIndices(const uint32_t indicesCount, const uint32_t* indices) {
-            return axrSubmeshCloneIndices(indicesCount, indices);
+        uint32_t* cloneIndices(const uint32_t indexCount, const uint32_t* indices) {
+            return axrSubmeshCloneIndices(indexCount, indices);
         }
     };
 
@@ -1718,12 +1718,12 @@ namespace axr {
         }
 
         /// Clone the given submeshes
-        /// @param submeshesCount Number of submeshes in the given array
+        /// @param submeshCount Number of submeshes in the given array
         /// @param submeshes Submesh array to clone
         /// @returns A cloned array of the given submeshes
-        axr::Submesh* cloneSubmeshes(const uint32_t submeshesCount, const axr::Submesh* submeshes) {
+        axr::Submesh* cloneSubmeshes(const uint32_t submeshCount, const axr::Submesh* submeshes) {
             return reinterpret_cast<axr::Submesh*>(axrMeshCloneSubmeshes(
-                submeshesCount,
+                submeshCount,
                 reinterpret_cast<const AxrSubmesh*>(submeshes)
             ));
         }
@@ -1881,11 +1881,11 @@ namespace axr {
         }
 
         /// Set the mesh data for the model
-        /// @param meshesCount Number of meshes in the array
+        /// @param meshCount Number of meshes in the array
         /// @param meshes Meshes array
         /// @returns AXR_SUCCESS if the function succeeded
-        [[nodiscard]] AxrResult setData(const uint32_t meshesCount, const AxrMesh* meshes) {
-            return axrModelSetData(m_Model, meshesCount, meshes);
+        [[nodiscard]] AxrResult setData(const uint32_t meshCount, const AxrMesh* meshes) {
+            return axrModelSetData(m_Model, meshCount, meshes);
         }
 
     private:

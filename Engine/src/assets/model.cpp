@@ -10,18 +10,18 @@
 // External Functions
 // ----------------------------------------- //
 
-AxrMesh* axrModelCloneMeshes(const uint32_t meshesCount, const AxrMesh* meshes) {
+AxrMesh* axrModelCloneMeshes(const uint32_t meshCount, const AxrMesh* meshes) {
     if (meshes == nullptr) {
         axrLogErrorLocation("`meshes` is null.");
         return nullptr;
     }
 
-    return AxrModel::cloneMeshes(meshesCount, meshes);
+    return AxrModel::cloneMeshes(meshCount, meshes);
 }
 
-void axrModelDestroyMeshes(uint32_t* meshesCount, AxrMesh** meshes) {
-    if (meshesCount == nullptr) {
-        axrLogErrorLocation("`meshesCount` is null.");
+void axrModelDestroyMeshes(uint32_t* meshCount, AxrMesh** meshes) {
+    if (meshCount == nullptr) {
+        axrLogErrorLocation("`meshCount` is null.");
         return;
     }
 
@@ -30,7 +30,7 @@ void axrModelDestroyMeshes(uint32_t* meshesCount, AxrMesh** meshes) {
         return;
     }
 
-    return AxrModel::destroyMeshes(*meshesCount, *meshes);
+    return AxrModel::destroyMeshes(*meshCount, *meshes);
 }
 
 const char* axrModelGetName(const AxrModel_T model) {
@@ -42,13 +42,13 @@ const char* axrModelGetName(const AxrModel_T model) {
     return model->getName().c_str();
 }
 
-AxrResult axrModelSetData(const AxrModel_T model, const uint32_t meshesCount, const AxrMesh* meshes) {
+AxrResult axrModelSetData(const AxrModel_T model, const uint32_t meshCount, const AxrMesh* meshes) {
     if (model == nullptr) {
         axrLogErrorLocation("`model` is null.");
         return AXR_ERROR;
     }
 
-    return model->setData(meshesCount, meshes);
+    return model->setData(meshCount, meshes);
 }
 
 
@@ -119,14 +119,14 @@ const std::string& AxrModel::getName() const {
     return m_Name;
 }
 
-AxrResult AxrModel::setData(const uint32_t meshesCount, const AxrMesh* meshes) {
+AxrResult AxrModel::setData(const uint32_t meshCount, const AxrMesh* meshes) {
     if (meshes == nullptr) {
         axrLogErrorLocation("Meshes are null.");
         return AXR_ERROR;
     }
 
-    std::vector<AxrMeshRAII> meshVector = std::vector<AxrMeshRAII>(meshesCount);
-    for (uint32_t i = 0; i < meshesCount; ++i) {
+    std::vector<AxrMeshRAII> meshVector = std::vector<AxrMeshRAII>(meshCount);
+    for (uint32_t i = 0; i < meshCount; ++i) {
         meshVector[i] = AxrMeshRAII(meshes[i]);
     }
 
@@ -172,20 +172,20 @@ const std::vector<AxrMeshRAII>& AxrModel::getMeshes() const {
 
 // ---- Public Static Functions ----
 
-AxrMesh* AxrModel::cloneMeshes(const uint32_t meshesCount, const AxrMesh* meshes) {
+AxrMesh* AxrModel::cloneMeshes(const uint32_t meshCount, const AxrMesh* meshes) {
     if (meshes == nullptr) return nullptr;
 
-    AxrMesh* newMeshes = new AxrMesh[meshesCount]{};
-    for (uint32_t i = 0; i < meshesCount; ++i) {
+    AxrMesh* newMeshes = new AxrMesh[meshCount]{};
+    for (uint32_t i = 0; i < meshCount; ++i) {
         newMeshes[i] = AxrMeshRAII::cloneMesh(meshes[i]);
     }
 
     return newMeshes;
 }
 
-void AxrModel::destroyMeshes(uint32_t& meshesCount, AxrMesh*& meshes) {
+void AxrModel::destroyMeshes(uint32_t& meshCount, AxrMesh*& meshes) {
     if (meshes != nullptr) {
-        for (uint32_t i = 0; i < meshesCount; ++i) {
+        for (uint32_t i = 0; i < meshCount; ++i) {
             AxrMeshRAII::destroyMesh(meshes[i]);
         }
 
@@ -193,7 +193,7 @@ void AxrModel::destroyMeshes(uint32_t& meshesCount, AxrMesh*& meshes) {
         meshes = nullptr;
     }
 
-    meshesCount = 0;
+    meshCount = 0;
 }
 
 // ---- Private Functions ----

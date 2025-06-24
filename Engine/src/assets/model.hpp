@@ -55,10 +55,10 @@ public:
     [[nodiscard]] const std::string& getName() const;
 
     /// Set the mesh data for the model
-    /// @param meshesCount Number of meshes in the array
+    /// @param meshCount Number of meshes in the array
     /// @param meshes Meshes array
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setData(uint32_t meshesCount, const AxrMesh* meshes);
+    [[nodiscard]] AxrResult setData(uint32_t meshCount, const AxrMesh* meshes);
 
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
@@ -82,14 +82,14 @@ public:
     // ----------------------------------------- //
 
     /// Clone the given meshes
-    /// @param meshesCount Number of meshes in the given array
+    /// @param meshCount Number of meshes in the given array
     /// @param meshes Mesh array to clone
     /// @returns A cloned array of the given meshes
-    [[nodiscard]] static AxrMesh* cloneMeshes(uint32_t meshesCount, const AxrMesh* meshes);
+    [[nodiscard]] static AxrMesh* cloneMeshes(uint32_t meshCount, const AxrMesh* meshes);
     /// Destroy the given meshes
-    /// @param meshesCount Number of meshes in the given array
+    /// @param meshCount Number of meshes in the given array
     /// @param meshes Mesh array to destroy
-    static void destroyMeshes(uint32_t& meshesCount, AxrMesh*& meshes);
+    static void destroyMeshes(uint32_t& meshCount, AxrMesh*& meshes);
 
 private:
     // ----------------------------------------- //

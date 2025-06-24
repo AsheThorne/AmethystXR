@@ -225,9 +225,9 @@ typedef const AxrShaderPropertiesStructure* AxrShaderPropertiesConst_T;
 /// Vertex shader properties
 struct AxrVertexShaderProperties {
     const AxrShaderStageEnum Type = AXR_SHADER_STAGE_VERTEX;
-    uint32_t VertexAttributesCount;
+    uint32_t VertexAttributeCount;
     AxrShaderVertexAttribute* VertexAttributes;
-    uint32_t BufferLayoutsCount;
+    uint32_t BufferLayoutCount;
     AxrShaderBufferLayout_T* BufferLayouts;
 };
 
@@ -239,7 +239,7 @@ typedef const AxrVertexShaderProperties* AxrVertexShaderPropertiesConst_T;
 /// Fragment shader properties
 struct AxrFragmentShaderProperties {
     const AxrShaderStageEnum Type = AXR_SHADER_STAGE_FRAGMENT;
-    uint32_t BufferLayoutsCount;
+    uint32_t BufferLayoutCount;
     AxrShaderBufferLayout_T* BufferLayouts;
 };
 
@@ -439,7 +439,7 @@ typedef const AxrShaderImageSamplerBufferLink* AxrShaderImageSamplerBufferLinkCo
 
 /// Shader Values
 struct AxrShaderValues {
-    uint32_t BufferLinksCount;
+    uint32_t BufferLinkCount;
     AxrShaderBufferLink_T* BufferLinks;
 };
 
@@ -555,10 +555,9 @@ struct AxrVertex {
 
 /// Submesh
 struct AxrSubmesh {
-    // TODO: Anything with 'Count' in it shouldn't be plural. For example, this should be VertexCount
-    uint32_t VerticesCount;
+    uint32_t VertexCount;
     AxrVertex* Vertices;
-    uint32_t IndicesCount;
+    uint32_t IndexCount;
     uint32_t* Indices;
 };
 
@@ -586,44 +585,44 @@ typedef class AxrModel* AxrModel_T;
 // ----------------------------------------- //
 extern "C" {
     /// Clone the given vertices
-    /// @param verticesCount Number of vertices in the given array
+    /// @param vertexCount Number of vertices in the given array
     /// @param vertices Vertex array to clone
     /// @returns A cloned array of the given vertices
-    AXR_API AxrVertex* axrSubmeshCloneVertices(uint32_t verticesCount, const AxrVertex* vertices);
+    AXR_API AxrVertex* axrSubmeshCloneVertices(uint32_t vertexCount, const AxrVertex* vertices);
     /// Destroy the given vertices
-    /// @param verticesCount Number of vertices in the given array
+    /// @param vertexCount Number of vertices in the given array
     /// @param vertices Vertex array to destroy
-    AXR_API void axrSubmeshDestroyVertices(uint32_t* verticesCount, AxrVertex** vertices);
+    AXR_API void axrSubmeshDestroyVertices(uint32_t* vertexCount, AxrVertex** vertices);
 
     /// Clone the given indices
-    /// @param indicesCount Number of indices in the given array
+    /// @param indexCount Number of indices in the given array
     /// @param indices Index array to clone
     /// @returns A cloned array of the given indices
-    AXR_API uint32_t* axrSubmeshCloneIndices(uint32_t indicesCount, const uint32_t* indices);
+    AXR_API uint32_t* axrSubmeshCloneIndices(uint32_t indexCount, const uint32_t* indices);
     /// Destroy the given indices
-    /// @param indicesCount Number of indices in the given array
+    /// @param indexCount Number of indices in the given array
     /// @param indices Index array to destroy
-    AXR_API void axrSubmeshDestroyIndices(uint32_t* indicesCount, uint32_t** indices);
+    AXR_API void axrSubmeshDestroyIndices(uint32_t* indexCount, uint32_t** indices);
 
     /// Clone the given submeshes
-    /// @param submeshesCount Number of submeshes in the given array
+    /// @param submeshCount Number of submeshes in the given array
     /// @param submeshes Submesh array to clone
     /// @returns A cloned array of the given submeshes
-    AXR_API AxrSubmesh* axrMeshCloneSubmeshes(uint32_t submeshesCount, const AxrSubmesh* submeshes);
+    AXR_API AxrSubmesh* axrMeshCloneSubmeshes(uint32_t submeshCount, const AxrSubmesh* submeshes);
     /// Destroy the given submeshes
-    /// @param submeshesCount Number of submeshes in the given array
+    /// @param submeshCount Number of submeshes in the given array
     /// @param submeshes Submesh array to destroy
-    AXR_API void axrMeshDestroySubmeshes(uint32_t* submeshesCount, AxrSubmesh** submeshes);
+    AXR_API void axrMeshDestroySubmeshes(uint32_t* submeshCount, AxrSubmesh** submeshes);
 
     /// Clone the given meshes
-    /// @param meshesCount Number of meshes in the given array
+    /// @param meshCount Number of meshes in the given array
     /// @param meshes Mesh array to clone
     /// @returns A cloned array of the given meshes
-    AXR_API AxrMesh* axrModelCloneMeshes(uint32_t meshesCount, const AxrMesh* meshes);
+    AXR_API AxrMesh* axrModelCloneMeshes(uint32_t meshCount, const AxrMesh* meshes);
     /// Destroy the given meshes
-    /// @param meshesCount Number of meshes in the given array
+    /// @param meshCount Number of meshes in the given array
     /// @param meshes Mesh array to destroy
-    AXR_API void axrModelDestroyMeshes(uint32_t* meshesCount, AxrMesh** meshes);
+    AXR_API void axrModelDestroyMeshes(uint32_t* meshCount, AxrMesh** meshes);
 
     /// Get the model's name
     /// @param model Model to use
@@ -631,10 +630,10 @@ extern "C" {
     AXR_API const char* axrModelGetName(AxrModel_T model);
     /// Set the mesh data for the model
     /// @param model Model to use
-    /// @param meshesCount Number of meshes in the array
+    /// @param meshCount Number of meshes in the array
     /// @param meshes Meshes array
     /// @returns AXR_SUCCESS if the function succeeded
-    AXR_API AxrResult axrModelSetData(AxrModel_T model, uint32_t meshesCount, const AxrMesh* meshes);
+    AXR_API AxrResult axrModelSetData(AxrModel_T model, uint32_t meshCount, const AxrMesh* meshes);
 }
 
 // ---------------------------------------------------------------------------------- //

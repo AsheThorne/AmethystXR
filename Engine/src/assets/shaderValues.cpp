@@ -147,7 +147,7 @@ std::vector<AxrShaderUniformBufferLinkConst_T> AxrShaderValuesRAII::getUniformBu
 
     std::vector<AxrShaderUniformBufferLinkConst_T> uniformBufferLinks;
 
-    for (uint32_t i = 0; i < m_RawShaderValues->BufferLinksCount; ++i) {
+    for (uint32_t i = 0; i < m_RawShaderValues->BufferLinkCount; ++i) {
         if (m_RawShaderValues->BufferLinks[i] == nullptr) {
             continue;
         }
@@ -170,7 +170,7 @@ std::vector<AxrShaderImageSamplerBufferLinkConst_T> AxrShaderValuesRAII::getImag
 
     std::vector<AxrShaderImageSamplerBufferLinkConst_T> imageSamplerBufferLinks;
 
-    for (uint32_t i = 0; i < m_RawShaderValues->BufferLinksCount; ++i) {
+    for (uint32_t i = 0; i < m_RawShaderValues->BufferLinkCount; ++i) {
         if (m_RawShaderValues->BufferLinks[i] == nullptr) {
             continue;
         }
@@ -199,7 +199,7 @@ AxrShaderUniformBufferLinkConst_T AxrShaderValuesRAII::findShaderUniformBuffer(c
     // Process
     // ----------------------------------------- //
 
-    for (uint32_t i = 0; i < m_RawShaderValues->BufferLinksCount; ++i) {
+    for (uint32_t i = 0; i < m_RawShaderValues->BufferLinkCount; ++i) {
         if (m_RawShaderValues->BufferLinks[i] == nullptr) continue;
         if (m_RawShaderValues->BufferLinks[i]->Type != AXR_SHADER_BUFFER_LINK_UNIFORM_BUFFER) continue;
 
@@ -229,7 +229,7 @@ AxrShaderImageSamplerBufferLinkConst_T AxrShaderValuesRAII::findShaderImageSampl
     // Process
     // ----------------------------------------- //
 
-    for (uint32_t i = 0; i < m_RawShaderValues->BufferLinksCount; ++i) {
+    for (uint32_t i = 0; i < m_RawShaderValues->BufferLinkCount; ++i) {
         if (m_RawShaderValues->BufferLinks[i] == nullptr) continue;
         if (m_RawShaderValues->BufferLinks[i]->Type != AXR_SHADER_BUFFER_LINK_IMAGE_SAMPLER_BUFFER) continue;
 
@@ -255,9 +255,9 @@ AxrShaderValues_T AxrShaderValuesRAII::clone(const AxrShaderValuesConst_T values
     if (values == nullptr) return nullptr;
 
     return new AxrShaderValues{
-        .BufferLinksCount = values->BufferLinksCount,
+        .BufferLinkCount = values->BufferLinkCount,
         .BufferLinks = clone(
-            values->BufferLinksCount,
+            values->BufferLinkCount,
             values->BufferLinks
         ),
     };
@@ -266,20 +266,20 @@ AxrShaderValues_T AxrShaderValuesRAII::clone(const AxrShaderValuesConst_T values
 void AxrShaderValuesRAII::destroy(AxrShaderValues_T& values) {
     if (values == nullptr) return;
 
-    destroy(values->BufferLinksCount, values->BufferLinks);
+    destroy(values->BufferLinkCount, values->BufferLinks);
 
     delete values;
     values = nullptr;
 }
 
 AxrShaderBufferLink_T* AxrShaderValuesRAII::clone(
-    const uint32_t shaderBufferLinksCount,
+    const uint32_t shaderBufferLinkCount,
     const AxrShaderBufferLinkConst_T* shaderBufferLinks
 ) {
     if (shaderBufferLinks == nullptr) return nullptr;
 
-    const auto newShaderBufferLinks = new AxrShaderBufferLink_T[shaderBufferLinksCount]{};
-    for (uint32_t i = 0; i < shaderBufferLinksCount; ++i) {
+    const auto newShaderBufferLinks = new AxrShaderBufferLink_T[shaderBufferLinkCount]{};
+    for (uint32_t i = 0; i < shaderBufferLinkCount; ++i) {
         newShaderBufferLinks[i] = clone(shaderBufferLinks[i]);
     }
 
@@ -287,18 +287,18 @@ AxrShaderBufferLink_T* AxrShaderValuesRAII::clone(
 }
 
 void AxrShaderValuesRAII::destroy(
-    uint32_t& shaderBufferLinksCount,
+    uint32_t& shaderBufferLinkCount,
     AxrShaderBufferLink_T*& shaderBufferLinks
 ) {
     if (shaderBufferLinks == nullptr) return;
 
-    for (uint32_t i = 0; i < shaderBufferLinksCount; ++i) {
+    for (uint32_t i = 0; i < shaderBufferLinkCount; ++i) {
         destroy(shaderBufferLinks[i]);
     }
 
     delete[] shaderBufferLinks;
     shaderBufferLinks = nullptr;
-    shaderBufferLinksCount = 0;
+    shaderBufferLinkCount = 0;
 }
 
 AxrShaderBufferLink_T AxrShaderValuesRAII::clone(const AxrShaderBufferLinkConst_T shaderBufferLink) {
@@ -388,11 +388,11 @@ bool AxrShaderValuesRAII::isValid(const AxrShaderValuesConst_T values) {
         return false;
     }
 
-    return isValid(values->BufferLinksCount, values->BufferLinks);
+    return isValid(values->BufferLinkCount, values->BufferLinks);
 }
 
 bool AxrShaderValuesRAII::isValid(
-    const uint32_t bufferLinksCount,
+    const uint32_t bufferLinkCount,
     const AxrShaderBufferLinkConst_T* bufferLinks
 ) {
     if (bufferLinks == nullptr) {
@@ -402,7 +402,7 @@ bool AxrShaderValuesRAII::isValid(
 
     std::unordered_set<uint32_t> bufferBindings;
 
-    for (uint32_t i = 0; i < bufferLinksCount; ++i) {
+    for (uint32_t i = 0; i < bufferLinkCount; ++i) {
         if (bufferLinks[i] == nullptr) {
             axrLogError("Validation for shader buffer links failed. Buffer link at index: {0} is null.", i);
             return false;

@@ -64,24 +64,24 @@ public:
     static void destroySubmesh(AxrSubmesh& submesh);
 
     /// Clone the given vertices
-    /// @param verticesCount Number of vertices in the given array
+    /// @param vertexCount Number of vertices in the given array
     /// @param vertices Vertex array to clone
     /// @returns A cloned array of the given vertices
-    static AxrVertex* cloneVertices(uint32_t verticesCount, const AxrVertex* vertices);
+    static AxrVertex* cloneVertices(uint32_t vertexCount, const AxrVertex* vertices);
     /// Destroy the given vertices
-    /// @param verticesCount Number of vertices in the given array
+    /// @param vertexCount Number of vertices in the given array
     /// @param vertices Vertex array to destroy
-    static void destroyVertices(uint32_t& verticesCount, AxrVertex*& vertices);
+    static void destroyVertices(uint32_t& vertexCount, AxrVertex*& vertices);
 
     /// Clone the given indices
-    /// @param indicesCount Number of indices in the given array
+    /// @param indexCount Number of indices in the given array
     /// @param indices Index array to clone
     /// @returns A cloned array of the given indices
-    static uint32_t* cloneIndices(uint32_t indicesCount, const uint32_t* indices);
+    static uint32_t* cloneIndices(uint32_t indexCount, const uint32_t* indices);
     /// Destroy the given indices
-    /// @param indicesCount Number of indices in the given array
+    /// @param indexCount Number of indices in the given array
     /// @param indices Index array to destroy
-    static void destroyIndices(uint32_t& indicesCount, uint32_t*& indices);
+    static void destroyIndices(uint32_t& indexCount, uint32_t*& indices);
 
 private:
     // ----------------------------------------- //
@@ -96,13 +96,13 @@ private:
     // ----------------------------------------- //
     
     /// Convert the given vertices to a c++ vector
-    /// @param verticesCount Number of vertices in the given array
+    /// @param vertexCount Number of vertices in the given array
     /// @param vertices Vertex array to convert
     /// @returns The given vertices converted to a c++ vector
-    static std::vector<AxrVertex> toVector(uint32_t verticesCount, const AxrVertex* vertices);
+    static std::vector<AxrVertex> toVector(uint32_t vertexCount, const AxrVertex* vertices);
     /// Convert the given indices to a c++ vector
-    /// @param indicesCount Number of indices in the given array
+    /// @param indexCount Number of indices in the given array
     /// @param indices Index array to convert
     /// @returns The given indices converted to a c++ vector
-    static std::vector<uint32_t> toVector(uint32_t indicesCount, const uint32_t* indices);
+    static std::vector<uint32_t> toVector(uint32_t indexCount, const uint32_t* indices);
 };

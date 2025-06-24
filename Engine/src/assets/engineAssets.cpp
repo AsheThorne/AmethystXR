@@ -228,9 +228,9 @@ AxrResult axrEngineAssetCreateShader_DefaultVert(AxrShader& shader) {
     };
 
     AxrVertexShaderProperties shaderProperties{
-        .VertexAttributesCount = static_cast<uint32_t>(vertexAttributes.size()),
+        .VertexAttributeCount = static_cast<uint32_t>(vertexAttributes.size()),
         .VertexAttributes = vertexAttributes.data(),
-        .BufferLayoutsCount = static_cast<uint32_t>(bufferLayouts.size()),
+        .BufferLayoutCount = static_cast<uint32_t>(bufferLayouts.size()),
         .BufferLayouts = bufferLayouts.data(),
     };
 
@@ -261,7 +261,7 @@ AxrResult axrEngineAssetCreateShader_DefaultFrag(AxrShader& shader) {
     };
 
     AxrFragmentShaderProperties shaderProperties{
-        .BufferLayoutsCount = static_cast<uint32_t>(bufferLayouts.size()),
+        .BufferLayoutCount = static_cast<uint32_t>(bufferLayouts.size()),
         .BufferLayouts = bufferLayouts.data(),
     };
 
@@ -389,7 +389,7 @@ AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
     };
 
     AxrShaderValues vertexShaderValues{
-        .BufferLinksCount = static_cast<uint32_t>(vertexBufferLinks.size()),
+        .BufferLinkCount = static_cast<uint32_t>(vertexBufferLinks.size()),
         .BufferLinks = vertexBufferLinks.data(),
     };
 
@@ -404,7 +404,7 @@ AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
     };
 
     AxrShaderValues fragmentShaderValues{
-        .BufferLinksCount = static_cast<uint32_t>(fragmentBufferLinks.size()),
+        .BufferLinkCount = static_cast<uint32_t>(fragmentBufferLinks.size()),
         .BufferLinks = fragmentBufferLinks.data()
     };
 
@@ -493,9 +493,9 @@ AxrResult axrEngineAssetCreateModel_Triangle(const std::string& modelName, AxrMo
     };
 
     AxrSubmesh submesh{
-        .VerticesCount = static_cast<uint32_t>(vertices.size()),
+        .VertexCount = static_cast<uint32_t>(vertices.size()),
         .Vertices = vertices.data(),
-        .IndicesCount = static_cast<uint32_t>(indices.size()),
+        .IndexCount = static_cast<uint32_t>(indices.size()),
         .Indices = indices.data(),
     };
 
@@ -549,9 +549,9 @@ AxrResult axrEngineAssetCreateModel_Square(const std::string& modelName, AxrMode
     };
 
     AxrSubmesh submesh{
-        .VerticesCount = static_cast<uint32_t>(vertices.size()),
+        .VertexCount = static_cast<uint32_t>(vertices.size()),
         .Vertices = vertices.data(),
-        .IndicesCount = static_cast<uint32_t>(indices.size()),
+        .IndexCount = static_cast<uint32_t>(indices.size()),
         .Indices = indices.data(),
     };
 
@@ -737,9 +737,9 @@ AxrResult axrEngineAssetCreateModel_Cube(const std::string& modelName, AxrModel&
     };
 
     AxrSubmesh submesh{
-        .VerticesCount = static_cast<uint32_t>(vertices.size()),
+        .VertexCount = static_cast<uint32_t>(vertices.size()),
         .Vertices = vertices.data(),
-        .IndicesCount = static_cast<uint32_t>(indices.size()),
+        .IndexCount = static_cast<uint32_t>(indices.size()),
         .Indices = indices.data(),
     };
 

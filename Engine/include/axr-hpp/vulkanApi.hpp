@@ -162,9 +162,9 @@ namespace axr {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-        uint32_t ApiLayersCount;
+        uint32_t ApiLayerCount;
         AxrVulkanApiLayer_T* ApiLayers;
-        uint32_t ExtensionsCount;
+        uint32_t ExtensionCount;
         AxrVulkanExtension_T* Extensions;
         axr::VulkanWindowConfig* WindowConfig;
 
@@ -176,10 +176,10 @@ namespace axr {
 
         /// Default Constructor
         VulkanApiConfig():
-            ApiLayersCount(0),
+            ApiLayerCount(0),
             // equal to the same number of available options in VulkanApiLayerTypeEnum
             ApiLayers(new AxrVulkanApiLayer_T[static_cast<uint32_t>(VulkanApiLayerTypeEnum::End) - 1]{}),
-            ExtensionsCount(0),
+            ExtensionCount(0),
             // equal to the same number of available options in VulkanExtensionTypeEnum
             Extensions(new AxrVulkanExtension_T[static_cast<uint32_t>(VulkanExtensionTypeEnum::End) - 1]{}),
             WindowConfig(nullptr) {
@@ -187,10 +187,10 @@ namespace axr {
 
         /// Constructor
         VulkanApiConfig(axr::VulkanWindowConfig* windowConfig):
-            ApiLayersCount(0),
+            ApiLayerCount(0),
             // equal to the same number of available options in VulkanApiLayerTypeEnum
             ApiLayers(new AxrVulkanApiLayer_T[static_cast<uint32_t>(VulkanApiLayerTypeEnum::End) - 1]{}),
-            ExtensionsCount(0),
+            ExtensionCount(0),
             // equal to the same number of available options in VulkanExtensionTypeEnum
             Extensions(new AxrVulkanExtension_T[static_cast<uint32_t>(VulkanExtensionTypeEnum::End) - 1]{}),
             WindowConfig(windowConfig) {
@@ -233,7 +233,7 @@ namespace axr {
         /// @param apiLayerType The api layer type
         /// @returns True if the given api layer exists
         [[nodiscard]] bool apiLayerExists(axr::VulkanApiLayerTypeEnum apiLayerType) const {
-            for (uint32_t i = 0; i < ApiLayersCount; ++i) {
+            for (uint32_t i = 0; i < ApiLayerCount; ++i) {
                 if (ApiLayers[i] != nullptr &&
                     ApiLayers[i]->Type == static_cast<AxrVulkanApiLayerTypeEnum>(apiLayerType)) {
                     return true;
@@ -247,7 +247,7 @@ namespace axr {
         /// @param extensionType The extension type
         /// @returns True if the given extension exists
         [[nodiscard]] bool extensionExists(axr::VulkanExtensionTypeEnum extensionType) const {
-            for (uint32_t i = 0; i < ExtensionsCount; ++i) {
+            for (uint32_t i = 0; i < ExtensionCount; ++i) {
                 if (Extensions[i] != nullptr &&
                     Extensions[i]->Type == static_cast<AxrVulkanExtensionTypeEnum>(extensionType)) {
                     return true;
@@ -329,20 +329,20 @@ namespace axr {
                 return;
             }
 
-            if (ApiLayersCount + 1 > static_cast<uint32_t>(VulkanApiLayerTypeEnum::End) - 1) {
+            if (ApiLayerCount + 1 > static_cast<uint32_t>(VulkanApiLayerTypeEnum::End) - 1) {
                 axr::logErrorLocation("Api Layers array is full.");
                 return;
             }
 
-            if (ApiLayers[ApiLayersCount] != nullptr) {
+            if (ApiLayers[ApiLayerCount] != nullptr) {
                 axr::logErrorLocation(
                     "This slot should be free. If this error triggered, something went really wrong."
                 );
                 return;
             }
 
-            ApiLayers[ApiLayersCount] = apiLayer;
-            ApiLayersCount++;
+            ApiLayers[ApiLayerCount] = apiLayer;
+            ApiLayerCount++;
         }
 
         /// Add the given extension
@@ -358,20 +358,20 @@ namespace axr {
                 return;
             }
 
-            if (ExtensionsCount + 1 > static_cast<uint32_t>(VulkanExtensionTypeEnum::End) - 1) {
+            if (ExtensionCount + 1 > static_cast<uint32_t>(VulkanExtensionTypeEnum::End) - 1) {
                 axr::logErrorLocation("Extensions array is full.");
                 return;
             }
 
-            if (Extensions[ExtensionsCount] != nullptr) {
+            if (Extensions[ExtensionCount] != nullptr) {
                 axr::logErrorLocation(
                     "This slot should be free. If this error triggered, something went really wrong."
                 );
                 return;
             }
 
-            Extensions[ExtensionsCount] = extension;
-            ExtensionsCount++;
+            Extensions[ExtensionCount] = extension;
+            ExtensionCount++;
         }
 
         /// Clear all the api layers
@@ -383,7 +383,7 @@ namespace axr {
                 }
             }
 
-            ApiLayersCount = 0;
+            ApiLayerCount = 0;
         }
 
         /// Clear all the extensions
@@ -395,7 +395,7 @@ namespace axr {
                 }
             }
 
-            ExtensionsCount = 0;
+            ExtensionCount = 0;
         }
     };
 

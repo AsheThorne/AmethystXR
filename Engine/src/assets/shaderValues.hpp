@@ -101,17 +101,17 @@ public:
     // ---- Shader Buffer Links ----
 
     /// Clone the given shader buffer links
-    /// @param shaderBufferLinksCount Number of shader buffer links
+    /// @param shaderBufferLinkCount Number of shader buffer links
     /// @param shaderBufferLinks Shader buffer links to clone
     /// @returns The cloned shader buffer links
     [[nodiscard]] static AxrShaderBufferLink_T* clone(
-        uint32_t shaderBufferLinksCount,
+        uint32_t shaderBufferLinkCount,
         const AxrShaderBufferLinkConst_T* shaderBufferLinks
     );
     /// Destroy the given shader buffer links
-    /// @param shaderBufferLinksCount Number of shader buffer links
+    /// @param shaderBufferLinkCount Number of shader buffer links
     /// @param shaderBufferLinks Shader buffer links to destroy
-    static void destroy(uint32_t& shaderBufferLinksCount, AxrShaderBufferLink_T*& shaderBufferLinks);
+    static void destroy(uint32_t& shaderBufferLinkCount, AxrShaderBufferLink_T*& shaderBufferLinks);
     /// Clone the given shader buffer link
     /// @param shaderBufferLink Shader buffer link to clone
     /// @returns The cloned shader buffer link
@@ -146,11 +146,11 @@ public:
     [[nodiscard]] static bool isValid(AxrShaderValuesConst_T values);
 
     /// Check if the given shader buffer links are valid
-    /// @param bufferLinksCount Number of shader buffer links
+    /// @param bufferLinkCount Number of shader buffer links
     /// @param bufferLinks Shader buffer links to check
     /// @returns True if the shader buffer links are valid
     [[nodiscard]] static bool isValid(
-        uint32_t bufferLinksCount,
+        uint32_t bufferLinkCount,
         const AxrShaderBufferLinkConst_T* bufferLinks
     );
 };

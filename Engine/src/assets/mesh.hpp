@@ -64,14 +64,14 @@ public:
     static void destroyMesh(AxrMesh& mesh);
 
     /// Clone the given submeshes
-    /// @param submeshesCount Number of submeshes in the given array
+    /// @param submeshCount Number of submeshes in the given array
     /// @param submeshes Submesh array to clone
     /// @returns A cloned array of the given submeshes
-    static AxrSubmesh* cloneSubmeshes(uint32_t submeshesCount, const AxrSubmesh* submeshes);
+    static AxrSubmesh* cloneSubmeshes(uint32_t submeshCount, const AxrSubmesh* submeshes);
     /// Destroy the given submeshes
-    /// @param submeshesCount Number of submeshes in the given array
+    /// @param submeshCount Number of submeshes in the given array
     /// @param submeshes Submesh array to destroy
-    static void destroySubmeshes(uint32_t& submeshesCount, AxrSubmesh*& submeshes);
+    static void destroySubmeshes(uint32_t& submeshCount, AxrSubmesh*& submeshes);
 
 private:
     // ----------------------------------------- //
@@ -86,8 +86,8 @@ private:
     // ----------------------------------------- //
     
     /// Convert the given submeshes to a c++ vector
-    /// @param submeshesCount Number of submeshes in the given array
+    /// @param submeshCount Number of submeshes in the given array
     /// @param submeshes Submesh array to convert
     /// @returns The given submeshes converted to a c++ vector
-    static std::vector<AxrSubmeshRAII> toVector(uint32_t submeshesCount, const AxrSubmesh* submeshes);
+    static std::vector<AxrSubmeshRAII> toVector(uint32_t submeshCount, const AxrSubmesh* submeshes);
 };

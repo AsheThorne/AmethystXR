@@ -52,8 +52,8 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
 
     m_Dispatch.init();
 
-    m_ApiLayers.add(config.VulkanConfig->ApiLayersCount, config.VulkanConfig->ApiLayers);
-    m_Extensions.add(config.VulkanConfig->ExtensionsCount, config.VulkanConfig->Extensions);
+    m_ApiLayers.add(config.VulkanConfig->ApiLayerCount, config.VulkanConfig->ApiLayers);
+    m_Extensions.add(config.VulkanConfig->ExtensionCount, config.VulkanConfig->Extensions);
 
     addRequiredInstanceExtensions();
     addRequiredDeviceExtensions();
