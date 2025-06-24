@@ -125,8 +125,13 @@ AxrResult AxrVulkanSceneData::loadScene() {
     m_AssetCollection->OnMaterialCreatedCallbackGraphics
                      .connect<&AxrVulkanSceneData::onMaterialCreatedCallback>(this);
 
-    // TODO: create callback anytime a new AxrTransformComponent and AxrModelComponent combo gets added.
-    //  For createAllMaterialsForRendering
+
+    if (m_EcsRegistryHandle != nullptr) {
+        m_EcsRegistryHandle->on_construct<AxrTransformComponent>()
+                           .connect<&AxrVulkanSceneData::onNewRenderableEntityCallback>(this);
+        m_EcsRegistryHandle->on_construct<AxrModelComponent>()
+                           .connect<&AxrVulkanSceneData::onNewRenderableEntityCallback>(this);
+    }
 
     return AXR_SUCCESS;
 }
@@ -135,6 +140,13 @@ void AxrVulkanSceneData::unloadScene() {
     // TODO: See if we can wait for all the scene specific fences to be finished instead of doing this.
     const vk::Result vkResult = m_Device.waitIdle(*m_DispatchHandle);
     axrLogVkResult(vkResult, "m_Device.waitIdle");
+
+    if (m_EcsRegistryHandle != nullptr) {
+        m_EcsRegistryHandle->on_construct<AxrTransformComponent>()
+                           .disconnect<&AxrVulkanSceneData::onNewRenderableEntityCallback>(this);
+        m_EcsRegistryHandle->on_construct<AxrModelComponent>()
+                           .disconnect<&AxrVulkanSceneData::onNewRenderableEntityCallback>(this);
+    }
 
     m_AssetCollection->OnMaterialCreatedCallbackGraphics.reset();
     m_AssetCollection->OnImageCreatedCallbackGraphics.reset();
@@ -344,7 +356,7 @@ void AxrVulkanSceneData::onPushConstantBufferCreatedCallback(const AxrPushConsta
         axrLogErrorLocation("Push constant buffer is null.");
         return;
     }
-    
+
     if (m_PhysicalDevice == VK_NULL_HANDLE) {
         axrLogErrorLocation("Physical device is null.");
         return;
@@ -1783,6 +1795,7 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
     const AxrVulkanModelData* foundModelData = findModelData_shared(modelComponent.ModelName);
     if (foundModelData == nullptr) {
         axrLogErrorLocation("Failed to find model data for model: {0}.", modelComponent.ModelName);
+        return AXR_ERROR;
     }
 
     for (uint32_t meshIndex = 0; meshIndex < modelComponent.MeshCount; ++meshIndex) {
@@ -1844,6 +1857,15 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
     }
 
     return AXR_SUCCESS;
+}
+
+void AxrVulkanSceneData::onNewRenderableEntityCallback(entt::registry& registry, const entt::entity entity) {
+    auto [transformComponent, modelComponent] = registry.try_get<AxrTransformComponent, AxrModelComponent>(entity);
+    if (transformComponent == nullptr || modelComponent == nullptr) {
+        return;
+    }
+
+    AXR_FAILED(addMaterialForRendering(*transformComponent, *modelComponent, m_MaterialsForRendering));
 }
 
 #endif

@@ -449,6 +449,11 @@ private:
         const AxrModelComponent& modelComponent,
         std::unordered_map<std::string, MaterialForRendering>& materialsForRendering
     ) const;
+
+    /// 'On new renderable entity' callback for the entt registry
+    /// @param registry The entt registry 
+    /// @param entity The new renderable entity 
+    void onNewRenderableEntityCallback(entt::registry& registry, entt::entity entity);
 };
 
 #endif
