@@ -573,9 +573,8 @@ AxrResult AxrVulkanMaterialData::createPipeline(
         vk::False,
         vk::False,
         vk::PolygonMode::eFill,
-        // TODO: Change to eBack
-        vk::CullModeFlagBits::eNone,
-        vk::FrontFace::eClockwise,
+        vk::CullModeFlagBits::eBack,
+        vk::FrontFace::eCounterClockwise,
         vk::False,
         0.0f,
         0.0f,
