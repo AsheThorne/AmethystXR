@@ -99,8 +99,6 @@ namespace axr {
     // Enums
     // ----------------------------------------- //
 
-    // TODO: This probably doesn't need to be vulkan specific. We can probably change this to a generic PresentationModeEnum
-
     /// Vulkan Presentation Mode Enum
     enum class VulkanPresentationModeEnum {
         Undefined = AXR_VULKAN_PRESENTATION_MODE_UNDEFINED,
@@ -337,7 +335,9 @@ namespace axr {
             }
 
             if (ApiLayers[ApiLayersCount] != nullptr) {
-                axr::logErrorLocation("This slot should be free. If this error triggered, something went really wrong.");
+                axr::logErrorLocation(
+                    "This slot should be free. If this error triggered, something went really wrong."
+                );
                 return;
             }
 
@@ -364,7 +364,9 @@ namespace axr {
             }
 
             if (Extensions[ExtensionsCount] != nullptr) {
-                axr::logErrorLocation("This slot should be free. If this error triggered, something went really wrong.");
+                axr::logErrorLocation(
+                    "This slot should be free. If this error triggered, something went really wrong."
+                );
                 return;
             }
 
