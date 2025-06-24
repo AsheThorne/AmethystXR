@@ -8,7 +8,7 @@
 // External Functions
 // ----------------------------------------- //
 
-const char* axrImageSamplerGetName(const AxrImageSampler_T imageSampler) {
+const char* axrImageSamplerGetName(const AxrImageSamplerConst_T imageSampler) {
     if (imageSampler == nullptr) {
         axrLogErrorLocation("`imageSampler` is null.");
         return "";

@@ -33,7 +33,7 @@ void axrModelDestroyMeshes(uint32_t* meshCount, AxrMesh** meshes) {
     return AxrModel::destroyMeshes(*meshCount, *meshes);
 }
 
-const char* axrModelGetName(const AxrModel_T model) {
+const char* axrModelGetName(const AxrModelConst_T model) {
     if (model == nullptr) {
         axrLogErrorLocation("`model` is null.");
         return "";

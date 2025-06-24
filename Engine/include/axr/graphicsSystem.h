@@ -46,6 +46,8 @@ struct AxrGraphicsSystemConfig {
 
 /// AxrGraphicsSystem Handle
 typedef class AxrGraphicsSystem* AxrGraphicsSystem_T;
+/// const AxrGraphicsSystem Handle
+typedef const AxrGraphicsSystem* AxrGraphicsSystemConst_T;
 
 // ----------------------------------------- //
 // External Function Definitions

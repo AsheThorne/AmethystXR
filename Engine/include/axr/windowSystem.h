@@ -16,6 +16,8 @@
 
 /// AxrWindowSystem Handle
 typedef class AxrWindowSystem* AxrWindowSystem_T;
+/// const AxrWindowSystem Handle
+typedef const AxrWindowSystem* AxrWindowSystemConst_T;
 
 // ----------------------------------------- //
 // Structs
@@ -34,7 +36,7 @@ extern "C" {
     /// Check if the window is open
     /// @param windowSystem The window system to use
     /// @returns True if the window is open
-    AXR_API bool axrWindowSystemIsWindowOpen(AxrWindowSystem_T windowSystem);
+    AXR_API bool axrWindowSystemIsWindowOpen(AxrWindowSystemConst_T windowSystem);
     /// Open the window
     /// @param windowSystem The window system to use
     /// @returns AXR_SUCCESS if the function succeeded

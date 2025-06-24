@@ -474,7 +474,7 @@ void AxrVulkanGraphicsSystem::removeUnsupportedDeviceExtensions() {
 std::vector<const char*> AxrVulkanGraphicsSystem::getAllApiLayerNames() const {
     std::vector<const char*> apiLayerNames;
 
-    for (const AxrVulkanApiLayer_T apiLayer : m_ApiLayers) {
+    for (const AxrVulkanApiLayerConst_T apiLayer : m_ApiLayers) {
         if (apiLayer == nullptr) continue;
 
         apiLayerNames.push_back(axrGetApiLayerName(apiLayer->Type));
@@ -486,7 +486,7 @@ std::vector<const char*> AxrVulkanGraphicsSystem::getAllApiLayerNames() const {
 std::vector<const char*> AxrVulkanGraphicsSystem::getAllInstanceExtensionNames() const {
     std::vector<const char*> extensionNames;
 
-    for (AxrVulkanExtension_T extension : m_Extensions) {
+    for (AxrVulkanExtensionConst_T extension : m_Extensions) {
         if (extension == nullptr || extension->Level != AXR_VULKAN_EXTENSION_LEVEL_INSTANCE) continue;
 
         extensionNames.push_back(axrGetExtensionName(extension->Type));
@@ -498,7 +498,7 @@ std::vector<const char*> AxrVulkanGraphicsSystem::getAllInstanceExtensionNames()
 std::vector<const char*> AxrVulkanGraphicsSystem::getAllDeviceExtensionNames() const {
     std::vector<const char*> extensionNames;
 
-    for (AxrVulkanExtension_T extension : m_Extensions) {
+    for (AxrVulkanExtensionConst_T extension : m_Extensions) {
         if (extension == nullptr || extension->Level != AXR_VULKAN_EXTENSION_LEVEL_DEVICE) continue;
 
         extensionNames.push_back(axrGetExtensionName(extension->Type));
@@ -755,7 +755,7 @@ uint32_t AxrVulkanGraphicsSystem::scorePhysicalDeviceExtensions(const vk::Physic
     std::vector<AxrVulkanExtension_T> deviceExtensions = m_Extensions.getCollection();
     std::erase_if(
         deviceExtensions,
-        [](const AxrVulkanExtension_T extension) {
+        [](const AxrVulkanExtensionConst_T extension) {
             return extension->Level != AXR_VULKAN_EXTENSION_LEVEL_DEVICE;
         }
     );
@@ -773,7 +773,7 @@ uint32_t AxrVulkanGraphicsSystem::scorePhysicalDeviceExtensions(const vk::Physic
     const float extensionWeightedScore = static_cast<float>(maxScore) / static_cast<float>(deviceExtensions.size());
     float score = 0.0f;
 
-    for (const AxrVulkanExtension_T extension : deviceExtensions) {
+    for (const AxrVulkanExtensionConst_T extension : deviceExtensions) {
         // TODO: Some extensions may be required and this function should fail if it doesn't have it.
         if (axrContainsString(axrGetExtensionName(extension->Type), supportedExtensions)) {
             score += extensionWeightedScore;
@@ -840,7 +840,7 @@ uint32_t AxrVulkanGraphicsSystem::scorePhysicalDeviceProperties(const vk::Physic
 bool AxrVulkanGraphicsSystem::areApiLayersSupportedForPhysicalDevice(const vk::PhysicalDevice& physicalDevice) const {
     const std::vector<std::string> supportedApiLayers = getSupportedDeviceApiLayers(physicalDevice);
 
-    for (const AxrVulkanApiLayer_T apiLayer : m_ApiLayers) {
+    for (const AxrVulkanApiLayerConst_T apiLayer : m_ApiLayers) {
         if (!axrContainsString(axrGetApiLayerName(apiLayer->Type), supportedApiLayers)) {
             // Api layer isn't supported
             return false;

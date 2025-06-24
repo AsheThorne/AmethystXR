@@ -36,7 +36,7 @@ AxrResult axrApplicationSetup(const AxrApplication_T app) {
     return app->setup();
 }
 
-bool axrApplicationIsRunning(const AxrApplication_T app) {
+bool axrApplicationIsRunning(const AxrApplicationConst_T app) {
     if (app == nullptr) {
         axrLogErrorLocation("`app` is null.");
         return false;

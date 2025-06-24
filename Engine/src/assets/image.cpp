@@ -9,7 +9,7 @@
 // External Functions
 // ----------------------------------------- //
 
-const char* axrImageGetName(const AxrImage_T image) {
+const char* axrImageGetName(const AxrImageConst_T image) {
     if (image == nullptr) {
         axrLogErrorLocation("`image` is null.");
         return "";

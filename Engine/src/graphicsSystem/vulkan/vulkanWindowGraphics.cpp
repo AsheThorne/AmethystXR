@@ -46,6 +46,7 @@ AxrVulkanWindowGraphics::~AxrVulkanWindowGraphics() {
 void AxrVulkanWindowGraphics::addRequiredInstanceExtensions(
     AxrVulkanExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum>& extensions
 ) const {
+    // TODO: Shouldn't these be `new`ed? They're gonna go out of scope and fail right?
     auto surfaceExtension = AxrVulkanExtensionSurface{};
     extensions.add(reinterpret_cast<AxrVulkanExtension_T>(&surfaceExtension));
 

@@ -16,7 +16,7 @@ void axrUniformBufferDestroyData(uint64_t* size, void** data) {
     return AxrUniformBuffer::destroyData(*size, *data);
 }
 
-const char* axrUniformBufferGetName(const AxrUniformBuffer_T uniformBuffer) {
+const char* axrUniformBufferGetName(const AxrUniformBufferConst_T uniformBuffer) {
     if (uniformBuffer == nullptr) {
         axrLogErrorLocation("`uniformBuffer` is null.");
         return "";

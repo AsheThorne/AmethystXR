@@ -33,6 +33,8 @@ struct AxrApplicationConfig {
 
 /// AxrApplication Handle
 typedef class AxrApplication* AxrApplication_T;
+/// const AxrApplication Handle
+typedef const AxrApplication* AxrApplicationConst_T;
 
 // ----------------------------------------- //
 // External Function Definitions
@@ -53,7 +55,7 @@ extern "C" {
     /// Check if the application is running
     /// @param app The AxrApplication to use
     /// @returns True if the application is running
-    AXR_API bool axrApplicationIsRunning(AxrApplication_T app);
+    AXR_API bool axrApplicationIsRunning(AxrApplicationConst_T app);
     /// Process application events
     /// @param app The AxrApplication to use
     AXR_API void axrApplicationProcessEvents(AxrApplication_T app);

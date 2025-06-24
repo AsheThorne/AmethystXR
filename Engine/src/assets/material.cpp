@@ -22,7 +22,7 @@ bool axrMaterialConfigIsValid(const AxrMaterialConfig* materialConfig) {
         AxrShaderValuesRAII::isValid(materialConfig->FragmentShaderValues);
 }
 
-const char* axrMaterialGetName(const AxrMaterial_T material) {
+const char* axrMaterialGetName(const AxrMaterialConst_T material) {
     if (material == nullptr) {
         axrLogErrorLocation("`material` is null.");
         return "";

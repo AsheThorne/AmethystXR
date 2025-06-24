@@ -18,7 +18,7 @@ void axrPushConstantBufferDestroyData(uint32_t* size, void** data) {
     return AxrPushConstantBuffer::destroyData(*size, *data);
 }
 
-const char* axrPushConstantBufferGetName(const AxrPushConstantBuffer_T pushConstantBuffer) {
+const char* axrPushConstantBufferGetName(const AxrPushConstantBufferConst_T pushConstantBuffer) {
     if (pushConstantBuffer == nullptr) {
         axrLogErrorLocation("`pushConstantBuffer` is null.");
         return "";

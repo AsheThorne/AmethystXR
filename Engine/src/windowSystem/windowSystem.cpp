@@ -8,7 +8,7 @@
 // External Functions
 // ----------------------------------------- //
 
-bool axrWindowSystemIsWindowOpen(const AxrWindowSystem_T windowSystem) {
+bool axrWindowSystemIsWindowOpen(const AxrWindowSystemConst_T windowSystem) {
     if (windowSystem == nullptr) {
         axrLogErrorLocation("`windowSystem` is null.");
         return false;
@@ -33,15 +33,6 @@ void axrWindowSystemCloseWindow(const AxrWindowSystem_T windowSystem) {
     }
 
     windowSystem->closeWindow();
-}
-
-void axrWindowSystemProcessEvents(const AxrWindowSystem_T windowSystem) {
-    if (windowSystem == nullptr) {
-        axrLogErrorLocation("`windowSystem` is null.");
-        return;
-    }
-
-    windowSystem->processEvents();
 }
 
 // ----------------------------------------- //

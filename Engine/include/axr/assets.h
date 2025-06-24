@@ -368,6 +368,8 @@ struct AxrShaderConfig {
 
 /// AxrShader Handle
 typedef class AxrShader* AxrShader_T;
+/// const AxrShader Handle
+typedef const AxrShader* AxrShaderConst_T;
 
 // ----------------------------------------- //
 // External Function Definitions
@@ -380,7 +382,7 @@ extern "C" {
     /// Get the shader's name
     /// @param shader Shader to use
     /// @returns The shader's name
-    AXR_API const char* axrShaderGetName(AxrShader_T shader);
+    AXR_API const char* axrShaderGetName(AxrShaderConst_T shader);
 }
 
 // ---------------------------------------------------------------------------------- //
@@ -523,6 +525,8 @@ struct AxrMaterialConfig {
 
 /// AxrMaterial Handle
 typedef class AxrMaterial* AxrMaterial_T;
+/// const AxrMaterial Handle
+typedef const AxrMaterial* AxrMaterialConst_T;
 
 // ----------------------------------------- //
 // External Function Definitions
@@ -535,7 +539,7 @@ extern "C" {
     /// Get the material's name
     /// @param material Material to use
     /// @returns The material's name
-    AXR_API const char* axrMaterialGetName(AxrMaterial_T material);
+    AXR_API const char* axrMaterialGetName(AxrMaterialConst_T material);
 }
 
 // ---------------------------------------------------------------------------------- //
@@ -579,6 +583,8 @@ struct AxrModelConfig {
 
 /// AxrModel Handle
 typedef class AxrModel* AxrModel_T;
+/// const  AxrModel Handle
+typedef const AxrModel* AxrModelConst_T;
 
 // ----------------------------------------- //
 // External Function Definitions
@@ -627,7 +633,7 @@ extern "C" {
     /// Get the model's name
     /// @param model Model to use
     /// @returns The model's name
-    AXR_API const char* axrModelGetName(AxrModel_T model);
+    AXR_API const char* axrModelGetName(AxrModelConst_T model);
     /// Set the mesh data for the model
     /// @param model Model to use
     /// @param meshCount Number of meshes in the array
@@ -666,10 +672,14 @@ struct AxrPushConstantBufferConfig {
 
 /// AxrUniformBuffer Handle
 typedef class AxrUniformBuffer* AxrUniformBuffer_T;
+/// const AxrUniformBuffer Handle
+typedef const AxrUniformBuffer* AxrUniformBufferConst_T;
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 /// AxrPushConstantBuffer Handle
 typedef class AxrPushConstantBuffer* AxrPushConstantBuffer_T;
+/// const AxrPushConstantBuffer Handle
+typedef const AxrPushConstantBuffer* AxrPushConstantBufferConst_T;
 #endif
 
 // ----------------------------------------- //
@@ -689,7 +699,7 @@ extern "C" {
     /// Get the uniform buffer's name
     /// @param uniformBuffer Uniform buffer to use
     /// @returns The uniform buffer's name
-    AXR_API const char* axrUniformBufferGetName(AxrUniformBuffer_T uniformBuffer);
+    AXR_API const char* axrUniformBufferGetName(AxrUniformBufferConst_T uniformBuffer);
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     /// Clone the given push constant buffer data
@@ -705,7 +715,7 @@ extern "C" {
     /// Get the push constant buffer's name
     /// @param pushConstantBuffer Push constant buffer to use
     /// @returns The push constant buffer's name
-    AXR_API const char* axrPushConstantBufferGetName(AxrPushConstantBuffer_T pushConstantBuffer);
+    AXR_API const char* axrPushConstantBufferGetName(AxrPushConstantBufferConst_T pushConstantBuffer);
 #endif
 }
 
@@ -752,6 +762,7 @@ struct AxrImageSamplerConfig {
 
 /// AxrImageSampler Handle
 typedef class AxrImageSampler* AxrImageSampler_T;
+/// const AxrImageSampler Handle
 typedef const AxrImageSampler* AxrImageSamplerConst_T;
 
 // ----------------------------------------- //
@@ -761,7 +772,7 @@ extern "C" {
     /// Get the image sampler's name
     /// @param imageSampler ImageSampler to use
     /// @returns The imageSampler's name
-    AXR_API const char* axrImageSamplerGetName(AxrImageSampler_T imageSampler);
+    AXR_API const char* axrImageSamplerGetName(AxrImageSamplerConst_T imageSampler);
 }
 
 // ---------------------------------------------------------------------------------- //
@@ -797,7 +808,7 @@ struct AxrImageConfig {
 
 /// AxrImage Handle
 typedef class AxrImage* AxrImage_T;
-// TODO: Add a const version for most if not all similar things
+// const AxrImage Handle
 typedef const AxrImage* AxrImageConst_T;
 
 // ----------------------------------------- //
@@ -807,7 +818,7 @@ extern "C" {
     /// Get the image's name
     /// @param image Image to use
     /// @returns The image's name
-    AXR_API const char* axrImageGetName(AxrImage_T image);
+    AXR_API const char* axrImageGetName(AxrImageConst_T image);
 
     /// Set the image data
     /// @param image Image to use
@@ -836,6 +847,8 @@ extern "C" {
 
 /// AxrAssetCollection Handle
 typedef class AxrAssetCollection* AxrAssetCollection_T;
+/// const AxrAssetCollection Handle
+typedef const AxrAssetCollection* AxrAssetCollectionConst_T;
 
 // ----------------------------------------- //
 // External Function Definitions

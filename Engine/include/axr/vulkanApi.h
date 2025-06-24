@@ -34,6 +34,8 @@ struct AxrVulkanApiLayerStructure {
 
 /// AxrVulkanApiLayerStructure Handle Type
 typedef AxrVulkanApiLayerStructure* AxrVulkanApiLayer_T;
+/// const AxrVulkanApiLayerStructure Handle Type
+typedef const AxrVulkanApiLayerStructure* AxrVulkanApiLayerConst_T;
 
 /// Vulkan Api Layer Core Validation Structure
 struct AxrVulkanApiLayerCoreValidation {
@@ -102,6 +104,8 @@ struct AxrVulkanExtensionStructure {
 
 /// AxrVulkanExtensionStructure Handle Type
 typedef AxrVulkanExtensionStructure* AxrVulkanExtension_T;
+/// const AxrVulkanExtensionStructure Handle Type
+typedef const AxrVulkanExtensionStructure* AxrVulkanExtensionConst_T;
 
 /// Vulkan Extension Debug Utils
 struct AxrVulkanExtensionDebugUtils {
@@ -167,5 +171,7 @@ struct AxrVulkanApiConfig {
 
 /// AxrVulkanApiConfig Handle
 typedef AxrVulkanApiConfig* AxrVulkanApiConfig_T;
+/// const AxrVulkanApiConfig Handle
+typedef const AxrVulkanApiConfig* AxrVulkanApiConfigConst_T;
 
 #endif

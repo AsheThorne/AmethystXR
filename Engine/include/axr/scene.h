@@ -3,7 +3,7 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/common.h"
+#include "axr/common/defines.h"
 #include "axr/assets.h"
 
 // ----------------------------------------- //
@@ -61,6 +61,8 @@ struct AxrModelComponent {
 
 /// AxrScene Handle
 typedef class AxrScene* AxrScene_T;
+/// const AxrScene Handle
+typedef const AxrScene* AxrSceneConst_T;
 
 // ----------------------------------------- //
 // External Function Definitions
@@ -69,7 +71,7 @@ extern "C" {
     /// Get the scene name
     /// @param scene The scene to use
     /// @returns The name of the scene
-    AXR_API const char* axrSceneGetName(AxrScene_T scene);
+    AXR_API const char* axrSceneGetName(AxrSceneConst_T scene);
     /// Get the scene asset collection
     /// @param scene The scene to use
     /// @returns A handle to the scene asset collection

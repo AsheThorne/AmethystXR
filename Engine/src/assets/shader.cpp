@@ -27,7 +27,7 @@ bool axrShaderConfigIsValid(const AxrShaderConfig* shaderConfig) {
         AxrShaderPropertiesRAII::isValid(shaderConfig->Properties);
 }
 
-const char* axrShaderGetName(const AxrShader_T shader) {
+const char* axrShaderGetName(const AxrShaderConst_T shader) {
     if (shader == nullptr) {
         axrLogErrorLocation("`shader` is null.");
         return "";

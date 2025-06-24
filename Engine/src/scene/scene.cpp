@@ -8,7 +8,7 @@
 // External Functions
 // ----------------------------------------- //
 
-const char* axrSceneGetName(const AxrScene_T scene) {
+const char* axrSceneGetName(const AxrSceneConst_T scene) {
     if (scene == nullptr) {
         axrLogErrorLocation("`scene` is null");
         return "";
