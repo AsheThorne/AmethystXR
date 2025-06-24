@@ -3,7 +3,7 @@
 // ----------------------------------------- //
 #include "material.hpp"
 #include "axr/logger.h"
-#include "axr/utils.h"
+#include "axr/common/utils.h"
 
 // ----------------------------------------- //
 // External Functions

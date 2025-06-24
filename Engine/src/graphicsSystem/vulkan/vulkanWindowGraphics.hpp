@@ -317,21 +317,15 @@ private:
     /// Destroy the depth buffer resources
     void destroyDepthBuffer();
 
-    // ----------------------------------------- //
-    // Private Static Functions
-    // ----------------------------------------- //
-
     /// 'On window open state changed' callback function
-    /// @param userData User data
     /// @param isWindowOpen If true, the window is open. If false, the window is closed.
     /// @returns AXR_SUCCESS if the function succeeded
-    static AxrResult onWindowOpenStateChangedCallback(void* userData, bool isWindowOpen);
+    AxrResult onWindowOpenStateChangedCallback(bool isWindowOpen);
 
     /// 'On window resized' callback function
-    /// @param userData User data
     /// @param width New window width
     /// @param height New window height
-    static void onWindowResizedCallback(void* userData, uint32_t width, uint32_t height);
+    void onWindowResizedCallback(uint32_t width, uint32_t height);
 };
 
 

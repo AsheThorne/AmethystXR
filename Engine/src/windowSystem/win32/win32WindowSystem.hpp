@@ -27,7 +27,7 @@ public:
     /// On window resized callback function type
     /// @param 1: New window width 
     /// @param 2: New window height
-    using OnWindowResizedCallback_T = AxrCallback<void, uint32_t, uint32_t>;
+    using OnWindowResizedCallback_T = AxrCallback<void(uint32_t, uint32_t)>;
     
     // ----------------------------------------- //
     // Structs

@@ -20,23 +20,124 @@ public:
     // ----------------------------------------- //
 
     /// Event handler callback function signature
-    using Callback_T = AxrCallback<void, Args...>;
+    using Callback_T = AxrCallback<void(Args...)>;
 
     // ----------------------------------------- //
     // Public Functions
     // ----------------------------------------- //
 
     /// Add a new callback function
-    /// @param callback Callback to add
-    void addCallback(const Callback_T& callback);
+    /// @tparam Candidate Function callback to add
+    template <auto Candidate>
+    void addCallback() {
+        Callback_T callback;
+        callback.template connect<Candidate>();
+
+        for (const Callback_T& cb : m_Callbacks) {
+            // Don't add a callback that already exists
+            if (cb == callback) {
+                return;
+            }
+        }
+
+        m_Callbacks.push_back(std::move(callback));
+    }
+
+    /// Add a new callback function
+    /// @tparam Candidate Function callback to add
+    /// @tparam Type Instance type
+    template <auto Candidate, typename Type>
+    void addCallback(Type& instance) {
+        Callback_T callback;
+        callback.template connect<Candidate>(instance);
+
+        for (const Callback_T& cb : m_Callbacks) {
+            // Don't add a callback that already exists
+            if (cb == callback) {
+                return;
+            }
+        }
+
+        m_Callbacks.push_back(std::move(callback));
+    }
+
+    /// Add a new callback function
+    /// @tparam Candidate Function callback to add
+    /// @tparam Type Instance type
+    template <auto Candidate, typename Type>
+    void addCallback(Type* instance) {
+        Callback_T callback;
+        callback.template connect<Candidate>(instance);
+
+        for (const Callback_T& cb : m_Callbacks) {
+            // Don't add a callback that already exists
+            if (cb == callback) {
+                return;
+            }
+        }
+
+        m_Callbacks.push_back(std::move(callback));
+    }
+
     /// Remove a callback function
-    /// @param function Callback function to remove
-    void removeCallback(const typename Callback_T::CallbackFunction_T& function);
+    /// @tparam Candidate Function callback to remove
+    template <auto Candidate>
+    void removeCallback() {
+        Callback_T callback;
+        callback.template connect<Candidate>();
+
+        for (auto it = m_Callbacks.begin(); it != m_Callbacks.end(); ++it) {
+            if (*it == callback) {
+                m_Callbacks.erase(it);
+                return;
+            }
+        }
+    }
+
+    /// Remove a callback function
+    /// @tparam Candidate Function callback to remove
+    /// @tparam Type Instance type
+    template <auto Candidate, typename Type>
+    void removeCallback(Type& instance) {
+        Callback_T callback;
+        callback.template connect<Candidate>(instance);
+
+        for (auto it = m_Callbacks.begin(); it != m_Callbacks.end(); ++it) {
+            if (*it == callback) {
+                m_Callbacks.erase(it);
+                return;
+            }
+        }
+    }
+
+    /// Remove a callback function
+    /// @tparam Candidate Function callback to remove
+    /// @tparam Type Instance type
+    template <auto Candidate, typename Type>
+    void removeCallback(Type* instance) {
+        Callback_T callback;
+        callback.template connect<Candidate>(instance);
+
+        for (auto it = m_Callbacks.begin(); it != m_Callbacks.end(); ++it) {
+            if (*it == callback) {
+                m_Callbacks.erase(it);
+                return;
+            }
+        }
+    }
+
     /// Invoke all callback functions
     /// @param params Parameters to use for the callback functions
-    void invoke(Args... params);
+    void invoke(Args... params) {
+        for (const Callback_T& callback : m_Callbacks) {
+            callback(std::forward<Args>(params)...);
+        }
+    }
+
     /// Clear all callback functions
-    void clear();
+    void clear() {
+        m_Callbacks.clear();
+    }
 
 private:
     // ----------------------------------------- //
@@ -44,36 +145,3 @@ private:
     // ----------------------------------------- //
     std::vector<Callback_T> m_Callbacks;
 };
-
-template <typename... Args>
-void AxrEventHandler<Args...>::addCallback(const Callback_T& callback) {
-    for (const Callback_T& cb : m_Callbacks) {
-        // Don't add a callback that already exists
-        if (cb == callback) {
-            return;
-        }
-    }
-    m_Callbacks.push_back(callback);
-}
-
-template <typename... Args>
-void AxrEventHandler<Args...>::removeCallback(const typename Callback_T::CallbackFunction_T& function) {
-    for (auto it = m_Callbacks.begin(); it != m_Callbacks.end(); ++it) {
-        if ((*it).Function == function) {
-            m_Callbacks.erase(it);
-            return;
-        }
-    }
-}
-
-template <typename... Args>
-void AxrEventHandler<Args...>::invoke(Args... params) {
-    for (const Callback_T& callback : m_Callbacks) {
-        callback(std::forward<Args>(params)...);
-    }
-}
-
-template <typename... Args>
-void AxrEventHandler<Args...>::clear() {
-    m_Callbacks.clear();
-}

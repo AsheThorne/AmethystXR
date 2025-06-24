@@ -3,7 +3,7 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/utils.h"
+#include "axr/common/utils.h"
 
 namespace axr {
     // ----------------------------------------- //
@@ -23,7 +23,7 @@ namespace axr {
     inline char* cloneString(const char* string) {
         return axrCloneString(string);
     }
-    
+
     /// Destroy the given C string
     /// @param string String to destroy
     inline void destroyString(char** string) {

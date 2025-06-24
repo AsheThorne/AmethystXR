@@ -11,5 +11,5 @@ namespace axr {
     /// @tparam Args Callback arguments
     template <typename T, typename... Args>
     // ReSharper disable once CppInconsistentNaming
-    using Callback = AxrCallback<T, Args...>;
+    using Callback = AxrCallback<T(Args...)>;
 }

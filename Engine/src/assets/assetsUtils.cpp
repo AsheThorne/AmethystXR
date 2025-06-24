@@ -8,7 +8,7 @@
 // ----------------------------------------- //
 #include "assetsUtils.hpp"
 #include "axr/logger.h"
-#include "axr/utils.h"
+#include "axr/common/utils.h"
 
 #ifdef AXR_USE_PLATFORM_WIN32
 // ----------------------------------------- //

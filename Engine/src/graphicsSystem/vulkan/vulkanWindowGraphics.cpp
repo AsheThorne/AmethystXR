@@ -71,7 +71,8 @@ AxrResult AxrVulkanWindowGraphics::setup(const SetupConfig& config) {
         return result;
     }
 
-    m_WindowSystem.OnWindowOpenStateChangedCallbackGraphics = AxrCallback(this, onWindowOpenStateChangedCallback);
+    m_WindowSystem.OnWindowOpenStateChangedCallbackGraphics
+                  .connect<&AxrVulkanWindowGraphics::onWindowOpenStateChangedCallback>(this);
 
     return AXR_SUCCESS;
 }
@@ -79,7 +80,7 @@ AxrResult AxrVulkanWindowGraphics::setup(const SetupConfig& config) {
 void AxrVulkanWindowGraphics::resetSetup() {
     resetWindowConfiguration();
 
-    m_WindowSystem.OnWindowOpenStateChangedCallbackGraphics = {};
+    m_WindowSystem.OnWindowOpenStateChangedCallbackGraphics.reset();
     resetSetupConfigVariables();
 }
 
@@ -435,14 +436,15 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
     }
 
     m_IsReady = true;
-    m_WindowSystem.OnWindowResizedCallbackGraphics = AxrCallback(this, onWindowResizedCallback);
+    m_WindowSystem.OnWindowResizedCallbackGraphics
+                  .connect<&AxrVulkanWindowGraphics::onWindowResizedCallback>(this);
 
     return AXR_SUCCESS;
 }
 
 void AxrVulkanWindowGraphics::resetWindowConfiguration() {
     m_IsReady = false;
-    m_WindowSystem.OnWindowResizedCallbackGraphics = {};
+    m_WindowSystem.OnWindowResizedCallbackGraphics.reset();
 
     m_LoadedScenes.resetSetupWindowData();
     resetSetupSwapchain();
@@ -1188,34 +1190,19 @@ void AxrVulkanWindowGraphics::destroyDepthBuffer() {
     m_SwapchainDepthImages.clear();
 }
 
-// ---- Private Static Functions ----
 
-AxrResult AxrVulkanWindowGraphics::onWindowOpenStateChangedCallback(void* userData, const bool isWindowOpen) {
-    if (userData == nullptr) {
-        axrLogErrorLocation("userData is null.");
-        return AXR_ERROR;
-    }
-
-    const auto self = static_cast<AxrVulkanWindowGraphics*>(userData);
-
+AxrResult AxrVulkanWindowGraphics::onWindowOpenStateChangedCallback(const bool isWindowOpen) {
     if (isWindowOpen) {
-        return self->configureWindowGraphics();
-    } else {
-        self->resetWindowConfiguration();
-        return AXR_SUCCESS;
+        return configureWindowGraphics();
     }
+
+    resetWindowConfiguration();
+    return AXR_SUCCESS;
 }
 
-void AxrVulkanWindowGraphics::onWindowResizedCallback(void* userData, uint32_t width, uint32_t height) {
-    if (userData == nullptr) {
-        axrLogErrorLocation("userData is null.");
-        return;
-    }
-
-    const auto self = static_cast<AxrVulkanWindowGraphics*>(userData);
-    if (AXR_FAILED(self->recreateSwapchain())) {
+void AxrVulkanWindowGraphics::onWindowResizedCallback(uint32_t width, uint32_t height) {
+    if (AXR_FAILED(recreateSwapchain())) {
         axrLogErrorLocation("Failed to recreate swapchain.");
-        return;
     }
 }
 

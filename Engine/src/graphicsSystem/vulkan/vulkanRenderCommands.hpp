@@ -15,7 +15,7 @@
 #include "../../assets/pushConstantBuffer.hpp"
 #include "sceneData/vulkanSceneData.hpp"
 #include "../../scene/sceneUtils.hpp"
-#include "axr/utils.h"
+#include "axr/common/utils.h"
 #include "../../assets/engineAssets.hpp"
 
 /// Wrapper for recording vulkan render commands

@@ -52,12 +52,15 @@ void axrWindowSystemProcessEvents(const AxrWindowSystem_T windowSystem) {
 
 AxrWindowSystem::AxrWindowSystem(const Config& config) {
 #ifdef AXR_USE_PLATFORM_WIN32
+    OnWindowResizedCallback_T windowResizedCallback;
+    windowResizedCallback.connect<&AxrWindowSystem::onWindowResizedCallback>(this);
+
     m_Win32WindowSystem = new AxrWin32WindowSystem(
         AxrWin32WindowSystem::Config{
             .ApplicationName = config.ApplicationName,
             .Width = config.WindowConfig.Width,
             .Height = config.WindowConfig.Height,
-            .OnWindowResizedCallback = AxrCallback(this, onWindowResizedCallback)
+            .OnWindowResizedCallback = windowResizedCallback
         }
     );
 #endif
@@ -192,18 +195,6 @@ AxrResult AxrWindowSystem::getClientSize(uint32_t& width, uint32_t& height) cons
 
 // ---- Private Functions ----
 
-void AxrWindowSystem::invokeOnWindowResizedCallbacks(const uint32_t width, const uint32_t height) const {
+void AxrWindowSystem::onWindowResizedCallback(const uint32_t width, const uint32_t height) const {
     OnWindowResizedCallbackGraphics(width, height);
-}
-
-// ---- Private Static Functions ----
-
-void AxrWindowSystem::onWindowResizedCallback(void* userData, const uint32_t width, const uint32_t height) {
-    if (userData == nullptr) {
-        axrLogErrorLocation("userData is null.");
-        return;
-    }
-
-    auto self = reinterpret_cast<AxrWindowSystem_T>(userData);
-    self->invokeOnWindowResizedCallbacks(width, height);
 }

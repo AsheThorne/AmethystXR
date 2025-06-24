@@ -27,12 +27,12 @@ public:
     /// On window open state changed callback function type
     /// @param 1: True if the window is open. False if it's not
     /// @returns AXR_SUCCESS if the function succeeded
-    using OnWindowOpenStateChangedCallback_T = AxrCallback<AxrResult, bool>;
+    using OnWindowOpenStateChangedCallback_T = AxrCallback<AxrResult(bool)>;
 
     /// On window resized callback function type
     /// @param 1: New window width 
     /// @param 2: New window height
-    using OnWindowResizedCallback_T = AxrCallback<void, uint32_t, uint32_t>;
+    using OnWindowResizedCallback_T = AxrCallback<void(uint32_t, uint32_t)>;
 
     // ----------------------------------------- //
     // Public Functions
@@ -126,15 +126,5 @@ private:
     /// Invoke 'On window resized' callback
     /// @param width New window width
     /// @param height New window height
-    void invokeOnWindowResizedCallbacks(uint32_t width, uint32_t height) const;
-
-    // ----------------------------------------- //
-    // Private Static Functions
-    // ----------------------------------------- //
-    
-    /// 'On window resized' callback function
-    /// @param userData User data
-    /// @param width New window width
-    /// @param height New window height
-    static void onWindowResizedCallback(void* userData, uint32_t width, uint32_t height);
+    void onWindowResizedCallback(uint32_t width, uint32_t height) const;
 };

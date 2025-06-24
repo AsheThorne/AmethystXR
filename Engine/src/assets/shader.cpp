@@ -9,7 +9,7 @@
 #include "shader.hpp"
 #include "axr/logger.h"
 #include "assetsUtils.hpp"
-#include "axr/utils.h"
+#include "axr/common/utils.h"
 
 // ----------------------------------------- //
 // External Functions

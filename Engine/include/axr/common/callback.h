@@ -3,62 +3,114 @@
 // ----------------------------------------- //
 // C/C++ Headers
 // ----------------------------------------- //
+#include "utils.h"
+
+// ----------------------------------------- //
+// C/C++ Headers
+// ----------------------------------------- //
 #include <utility>
 
+template <typename>
+class AxrCallback;
+
 /// Generic callback
-/// @tparam T Return type
+/// A simplified version of entt::delegate<>. Works the same except we can't use shorter function signatures
+/// (https://github.com/skypjack/entt/wiki/Events,-signals-and-everything-in-between#delegate)
+/// @tparam Return_T Return type
 /// @tparam Args Callback arguments
-template <typename T, typename... Args>
-class AxrCallback {
+template <typename Return_T, typename... Args>
+class AxrCallback<Return_T(Args...)> {
 public:
     // ----------------------------------------- //
     // Types
     // ----------------------------------------- //
-
-    // TODO: Discovered something cool. we can use class functions (meaning we won't need to do the static function fuckery)
-    //  by defining the class in the (*) section. like, T(AxrClass::*)(void* userData, Args... args).
-    //  So find a way to use that. but it'd be nice to somehow have the option to still use static functions like we are now
-    /// Callback function type
-    using CallbackFunction_T = T(*)(void* userData, Args... args);
-
-    // ----------------------------------------- //
-    // Public Variables
-    // ----------------------------------------- //
-    void* UserData;
-    CallbackFunction_T Function;
+    using ReturnNoConst_T = std::remove_const_t<Return_T>;
+    using Function_T = ReturnNoConst_T(const void* instance, Args... args);
 
     // ----------------------------------------- //
     // Special Functions
     // ----------------------------------------- //
 
-    /// Default Constructor
+    /// Constructor
     AxrCallback():
-        UserData(nullptr),
-        Function(nullptr) {
+        m_Instance(nullptr),
+        m_Function(nullptr) {
     }
 
-    /// Constructor
-    /// @param userData User data
-    /// @param function Callback function
-    AxrCallback(void* userData, const CallbackFunction_T function):
-        UserData(userData),
-        Function(function) {
+    /// Connect a function pointer to this callback
+    /// @tparam Candidate Function pointer
+    template <auto Candidate>
+    void connect() {
+        m_Instance = nullptr;
+        m_Function = [](const void*, Args... args) -> ReturnNoConst_T {
+            return Return_T(std::invoke(Candidate, std::forward<Args>(args)...));
+        };
+    }
+
+    /// Connect a function pointer to this callback
+    /// @tparam Candidate Function pointer
+    /// @tparam Type Instance type
+    template <auto Candidate, typename Type>
+    void connect(Type& instance) {
+        m_Instance = &instance;
+        m_Function = [](const void* payload, Args... args) -> ReturnNoConst_T {
+            Type* curr = static_cast<Type*>(const_cast<AxrConstnessAs_T<void, Type>*>(payload));
+            return Return_T(std::invoke(Candidate, *curr, std::forward<Args>(args)...));
+        };
+    }
+
+    /// Connect a function pointer to this callback
+    /// @tparam Candidate Function pointer
+    /// @tparam Type Instance type
+    template <auto Candidate, typename Type>
+    void connect(Type* instance) {
+        m_Instance = instance;
+        m_Function = [](const void* payload, Args... args) -> ReturnNoConst_T {
+            Type* curr = static_cast<Type*>(const_cast<AxrConstnessAs_T<void, Type>*>(payload));
+            return Return_T(std::invoke(Candidate, curr, std::forward<Args>(args)...));
+        };
+    }
+
+    /// Reset the callback function pointer
+    void reset() {
+        m_Instance = nullptr;
+        m_Function = nullptr;
     }
 
     // ---- Operator overloads ----
 
+    /// bool Operator overload
+    /// @returns True if a function pointer has been defined
+    explicit operator bool() const {
+        return m_Function != nullptr;
+    }
+
     /// == Operator overload
     /// @param other Other callback to check equality with
     /// @returns True if this callback and the other callback are equal
-    bool operator==(const AxrCallback& other) const {
-        return Function == other.Function;
+    bool operator==(const AxrCallback<Return_T(Args...)>& other) const {
+        return m_Function == other.m_Function && m_Instance == other.m_Instance;
+    }
+
+    /// != Operator overload
+    /// @param other Other callback to check equality with
+    /// @returns True if this callback and the other callback are not equal
+    bool operator!=(const AxrCallback<Return_T(Args...)>& other) const {
+        return !(*this == other);
     }
 
     /// () Operator overload
     /// @param args Function arguments
-    T operator()(Args... args) const {
-        if (Function == nullptr) return static_cast<T>(0);
+    Return_T operator()(Args... args) const {
+        if (m_Function == nullptr) return static_cast<Return_T>(0);
 
-        return Function(UserData, std::forward<Args>(args)...);
+        return m_Function(m_Instance, std::forward<Args>(args)...);
     }
+
+private:
+    // ----------------------------------------- //
+    // Private Variables
+    // ----------------------------------------- //
+    const void* m_Instance;
+    Function_T* m_Function;
 };

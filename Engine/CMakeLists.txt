@@ -33,13 +33,13 @@ set(AXR_PUBLIC_HEADER_FILES
     ${AXR_INCLUDE_DIR}/axr/vulkanApi.h
     ${AXR_INCLUDE_DIR}/axr/assets.h
     ${AXR_INCLUDE_DIR}/axr/scene.h
-    ${AXR_INCLUDE_DIR}/axr/utils.h
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr/common/defines.h.in
     ${AXR_INCLUDE_DIR}/axr/common/defines.h
     ${AXR_INCLUDE_DIR}/axr/common/enums.h
     ${AXR_INCLUDE_DIR}/axr/common/eventHandler.h
     ${AXR_INCLUDE_DIR}/axr/common/callback.h
+    ${AXR_INCLUDE_DIR}/axr/common/utils.h
 )
 
 set(AXR_PUBLIC_HEADER_HPP_FILES
@@ -56,12 +56,12 @@ set(AXR_PUBLIC_HEADER_HPP_FILES
     ${AXR_INCLUDE_DIR}/axr-hpp/flags.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/assets.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/scene.hpp
-    ${AXR_INCLUDE_DIR}/axr-hpp/utils.hpp
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr-hpp/common/defines.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/common/enums.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/common/callback.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/common/eventHandler.hpp
+    ${AXR_INCLUDE_DIR}/axr-hpp/common/utils.hpp
 )
 
 set(AXR_HEADER_FILES
