@@ -166,9 +166,6 @@ private:
     float m_MaxSamplerAnisotropy;
     vk::DispatchLoaderDynamic* m_DispatchHandle;
 
-    /// Missing texture image asset
-    AxrImage m_MissingTextureImage;
-
     // ---- Window data ----
     bool m_IsWindowDataLoaded;
     vk::RenderPass m_WindowRenderPass;
@@ -309,10 +306,6 @@ private:
     /// @param image Image to use
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult initializeImageData(const AxrImage& image);
-
-    /// Initialize the 'Missing Texture' image data
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult initializeMissingTextureImageData();
 
     /// Find the named image data, including the global data in the search
     /// @param name The name of the image

@@ -175,6 +175,11 @@ public:
     // These functions are only to be used internally in the AmethystXr engine.
     // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
 
+    /// Create a new engine asset image
+    /// @param engineAssetEnum Engine asset enum
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createImage(AxrEngineAssetEnum engineAssetEnum);
+
     // ---- All Assets ----
 
     /// Clean up this class

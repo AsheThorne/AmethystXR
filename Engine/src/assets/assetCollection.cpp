@@ -640,6 +640,49 @@ AxrResult AxrAssetCollection::createImageSampler(const AxrImageSamplerConfig& im
     return AXR_SUCCESS;
 }
 
+AxrResult AxrAssetCollection::createImage(const AxrEngineAssetEnum engineAssetEnum) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!axrEngineAssetIsImage(engineAssetEnum)) {
+        axrLogError("Unable to create image. Engine asset is not an image.");
+        return AXR_ERROR;
+    }
+
+    const std::string& imageName = axrEngineAssetGetName(engineAssetEnum);
+    if (imageName.empty()) {
+        axrLogError("Unable to create image. Unknown image engine asset name.");
+        return AXR_ERROR;
+    }
+
+    if (m_Images.contains(imageName)) {
+        axrLogError("Unable to create image. An image named: {0} already exists.", imageName.c_str());
+        return AXR_ERROR;
+    }
+
+    AxrImage image;
+    const AxrResult axrResult = axrEngineAssetCreateImage(imageName, engineAssetEnum, image);
+    if (AXR_FAILED(axrResult)) {
+        axrLogErrorLocation("Failed to create image engine asset.");
+        return axrResult;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const auto insertResult = m_Images.insert(std::pair(imageName, std::move(image)));
+    if (!insertResult.second) {
+        axrLogErrorLocation("Failed to insert image.");
+        return AXR_ERROR;
+    }
+
+    OnImageCreatedCallbackGraphics(&insertResult.first->second);
+
+    return AXR_SUCCESS;
+}
+
 void AxrAssetCollection::cleanup() {
     unloadAssets();
 

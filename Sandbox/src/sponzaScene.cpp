@@ -11,13 +11,14 @@ SponzaScene::~SponzaScene() {
 axr::Result SponzaScene::setup() {
     if (AXR_FAILED(m_Application.createScene(m_SceneName.c_str()))) return axr::Result::Error;
     m_Scene = m_Application.findScene(m_SceneName.c_str());
+    axr::AssetCollection assetCollection = m_Scene.getAssetCollection();    
 
     const axr::ModelConfig modelConfig(
         m_ModelName.c_str(),
         "P:/C++/AmethystXR/Sandbox/assets/sample-models/2.0/Sponza/glTF/Sponza.gltf"
     );
 
-    if (AXR_FAILED(m_Scene.getAssetCollection().createModel(modelConfig))) return axr::Result::Error;
+    if (AXR_FAILED(assetCollection.createModel(modelConfig))) return axr::Result::Error;
 
     axr::ModelFileInfo modelInfo;
     if (AXR_FAILED(axr::getModelFileData(modelConfig.FilePath, modelInfo))) return axr::Result::Error;
@@ -38,7 +39,7 @@ axr::Result SponzaScene::setup() {
             modelInfo.ImageSamplers[i].WrapU,
             modelInfo.ImageSamplers[i].WrapV
         );
-        if (AXR_FAILED(m_Scene.getAssetCollection().createImageSampler(config))) return axr::Result::Error;
+        if (AXR_FAILED(assetCollection.createImageSampler(config))) return axr::Result::Error;
     }
 
     m_ImageNames = std::vector<std::string>(modelInfo.ImageCount, "");
@@ -53,7 +54,7 @@ axr::Result SponzaScene::setup() {
             m_ImageNames[i].c_str(),
             modelInfo.Images[i].FilePath
         );
-        if (AXR_FAILED(m_Scene.getAssetCollection().createImage(config))) return axr::Result::Error;
+        if (AXR_FAILED(assetCollection.createImage(config))) return axr::Result::Error;
     }
 
     m_MaterialNames = std::vector<std::string>(modelInfo.MaterialCount, "");
@@ -69,10 +70,10 @@ axr::Result SponzaScene::setup() {
         if (modelInfo.Materials[i].ColorImageSamplerIndex == -1) continue;
 
         if (AXR_FAILED(
-            m_Scene.getAssetCollection().createMaterial(
+            assetCollection.createMaterial(
                 m_MaterialNames[i].c_str(),
                 axr::EngineAssetMaterial_DefaultMaterial(
-                    m_ImageNames[modelInfo.Materials[i].ColorImageIndex].c_str(),
+                    nullptr,
                     m_ImageSamplerNames[modelInfo.Materials[i].ColorImageSamplerIndex].c_str()
                 )
             )

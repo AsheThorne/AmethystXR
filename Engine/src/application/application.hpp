@@ -95,4 +95,12 @@ private:
     AxrGraphicsSystem m_GraphicsSystem;
     AxrAssetCollection m_GlobalAssetCollection;
     std::unordered_map<std::string, AxrScene> m_Scenes;
+
+    // ----------------------------------------- //
+    // Private Functions
+    // ----------------------------------------- //
+
+    /// Set up the global asset collection
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setupGlobalAssetCollection();
 };

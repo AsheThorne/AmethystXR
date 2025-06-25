@@ -154,6 +154,9 @@ AxrApplication::~AxrApplication() {
 AxrResult AxrApplication::setup() {
     AxrResult axrResult = AXR_SUCCESS;
 
+    axrResult = setupGlobalAssetCollection();
+    if (AXR_FAILED(axrResult)) return axrResult;
+
     axrResult = m_WindowSystem.setup();
     if (AXR_FAILED(axrResult)) return axrResult;
 
@@ -230,4 +233,15 @@ AxrResult AxrApplication::loadScene(const std::string& sceneName) {
 
 AxrResult AxrApplication::setActiveScene(const std::string& sceneName) {
     return m_GraphicsSystem.setActiveScene(sceneName);
+}
+
+// ---- Private Functions ----
+
+AxrResult AxrApplication::setupGlobalAssetCollection() {
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = m_GlobalAssetCollection.createImage(AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE);
+    if (AXR_FAILED(axrResult)) return axrResult;
+
+    return AXR_SUCCESS;
 }

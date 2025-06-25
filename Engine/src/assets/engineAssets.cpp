@@ -58,8 +58,6 @@ const std::unordered_map EngineAssetBufferNames{
 
 /// Engine asset image names
 const std::unordered_map EngineAssetImageNames{
-    // Only the missing texture has a name.
-    // It's the only image that must be available for any scene.
     std::pair(
         AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE,
         "AXR:ImageMissingTexture"
@@ -85,6 +83,9 @@ const char* axrEngineAssetGetName(const AxrEngineAssetEnum engineAssetEnum) {
 #endif
     ) {
         return axrEngineAssetGetBufferName(engineAssetEnum);
+    }
+    if (axrEngineAssetIsImage(engineAssetEnum)) {
+        return axrEngineAssetGetImageName(engineAssetEnum);
     }
 
     axrLogErrorLocation("Unknown engine asset enum.");
@@ -822,13 +823,27 @@ AxrResult axrEngineAssetCreateImage_MissingTexture(const std::string& imageName,
     };
     image = AxrImage(imageConfig);
 
-    const std::vector<stbi_uc> imageData{
-        255, 0, 255,
-        0, 0, 0,
-        0, 0, 0,
-        255, 0, 255,
-    };
-    const AxrResult axrResult = image.setData(2, 2, AXR_IMAGE_COLOR_CHANNELS_RGB, imageData.data());
+    std::vector<stbi_uc> imageData;
+    constexpr uint32_t width = 16;
+    constexpr uint32_t height = 16;
+
+    for (uint32_t h = 0; h < height; ++h) {
+        for (uint32_t w = 0; w < width; ++w) {
+            if ((h + w) % 2 == 0) {
+                // Magenta
+                imageData.push_back(255);
+                imageData.push_back(0);
+                imageData.push_back(255);
+            } else {
+                // Black
+                imageData.push_back(0);
+                imageData.push_back(0);
+                imageData.push_back(0);
+            }
+        }
+    }
+
+    const AxrResult axrResult = image.setData(width, height, AXR_IMAGE_COLOR_CHANNELS_RGB, imageData.data());
     if (AXR_FAILED(axrResult)) {
         return axrResult;
     }
