@@ -19,6 +19,7 @@ AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
     m_LoadedScenes(config.LoadedScenes),
     m_PreferredPresentationMode(config.PresentationMode),
     m_MaxFramesInFlight(config.MaxFramesInFlight),
+    m_ClearColor(config.ClearColor),
     m_Instance(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
@@ -101,8 +102,7 @@ vk::Extent2D AxrVulkanWindowGraphics::getSwapchainExtent() const {
 }
 
 vk::ClearColorValue AxrVulkanWindowGraphics::getClearColorValue() const {
-    // TODO: Don't hard code this
-    return vk::ClearColorValue(0.2f, 0.05f, 0.2f, 1.0f);
+    return vk::ClearColorValue(m_ClearColor.x, m_ClearColor.y, m_ClearColor.z, m_ClearColor.w);
 }
 
 vk::CommandBuffer AxrVulkanWindowGraphics::getRenderingCommandBuffer() const {

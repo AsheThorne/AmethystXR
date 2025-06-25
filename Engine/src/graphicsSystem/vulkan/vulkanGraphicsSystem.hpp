@@ -46,6 +46,7 @@ public:
         AxrWindowSystem_T WindowSystem;
         AxrAssetCollection_T GlobalAssetCollection;
         AxrVulkanApiConfig_T VulkanConfig;
+        glm::vec4 ClearColor;
         AxrSamplerAnisotropyQualityEnum SamplerAnisotropyQuality;
     };
 

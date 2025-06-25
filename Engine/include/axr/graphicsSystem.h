@@ -10,6 +10,11 @@
 #endif
 
 // ----------------------------------------- //
+// GLM Headers
+// ----------------------------------------- //
+#include <glm/glm.hpp>
+
+// ----------------------------------------- //
 // Enums
 // ----------------------------------------- //
 
@@ -37,6 +42,7 @@ struct AxrGraphicsSystemConfig {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     AxrVulkanApiConfig_T VulkanConfig;
 #endif
+    glm::vec4 ClearColor;
     AxrSamplerAnisotropyQualityEnum SamplerAnisotropyQuality;
 };
 

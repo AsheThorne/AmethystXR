@@ -29,6 +29,7 @@ public:
         AxrVulkanLoadedScenesCollection& LoadedScenes;
         AxrVulkanPresentationModeEnum PresentationMode;
         uint32_t MaxFramesInFlight;
+        glm::vec4 ClearColor;
     };
 
     /// AxrVulkanWindowGraphics Setup Config
@@ -153,6 +154,7 @@ private:
     AxrVulkanLoadedScenesCollection& m_LoadedScenes;
     AxrVulkanPresentationModeEnum m_PreferredPresentationMode;
     uint32_t m_MaxFramesInFlight;
+    glm::vec4 m_ClearColor;
 
     // ---- Setup Config ----
     vk::Instance m_Instance;

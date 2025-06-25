@@ -41,6 +41,7 @@ namespace axr {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
         axr::VulkanApiConfig* VulkanApiConfig = nullptr;
 #endif
+        glm::vec4 ClearColor;
         axr::SamplerAnisotropyQualityEnum SamplerAnisotropyQuality;
 
         // ----------------------------------------- //
@@ -52,18 +53,22 @@ namespace axr {
         /// Default Constructor
         GraphicsSystemConfig() :
             GraphicsApi(axr::GraphicsApiEnum::Undefined),
+            ClearColor({1.0f}),
             SamplerAnisotropyQuality(axr::SamplerAnisotropyQualityEnum::None) {
         }
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
         /// Vulkan Graphics Constructor
         /// @param vulkanApiConfig The vulkan api config
+        /// @param clearColor The clear color
         /// @param samplerAnisotropyQuality The sampler anisotropy quality
         GraphicsSystemConfig(
             axr::VulkanApiConfig* vulkanApiConfig,
+            const glm::vec4 clearColor,
             const axr::SamplerAnisotropyQualityEnum samplerAnisotropyQuality
         ) : GraphicsApi(axr::GraphicsApiEnum::Vulkan),
             VulkanApiConfig(vulkanApiConfig),
+            ClearColor(clearColor),
             SamplerAnisotropyQuality(samplerAnisotropyQuality) {
         }
 #endif

@@ -34,6 +34,7 @@ AxrGraphicsSystem::AxrGraphicsSystem(const Config& config):
                 .WindowSystem = config.WindowSystem,
                 .GlobalAssetCollection = config.GlobalAssetCollection,
                 .VulkanConfig = config.GraphicsConfig.VulkanConfig,
+                .ClearColor = config.GraphicsConfig.ClearColor,
                 .SamplerAnisotropyQuality = config.GraphicsConfig.SamplerAnisotropyQuality
             }
         );
