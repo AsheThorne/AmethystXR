@@ -32,7 +32,6 @@ AxrVulkanMaterialData::AxrVulkanMaterialData():
 }
 
 AxrVulkanMaterialData::AxrVulkanMaterialData(const Config& config):
-    m_Name(config.Name),
     m_VertexShaderHandle(config.VertexShaderHandle),
     m_FragmentShaderHandle(config.FragmentShaderHandle),
     m_MaterialHandle(config.MaterialHandle),
@@ -45,8 +44,6 @@ AxrVulkanMaterialData::AxrVulkanMaterialData(const Config& config):
 }
 
 AxrVulkanMaterialData::AxrVulkanMaterialData(AxrVulkanMaterialData&& src) noexcept {
-    m_Name = std::move(src.m_Name);
-
     m_VertexShaderHandle = src.m_VertexShaderHandle;
     m_FragmentShaderHandle = src.m_FragmentShaderHandle;
     m_MaterialHandle = src.m_MaterialHandle;
@@ -76,8 +73,6 @@ AxrVulkanMaterialData& AxrVulkanMaterialData::operator=(AxrVulkanMaterialData&& 
     if (this != &src) {
         cleanup();
 
-        m_Name = std::move(src.m_Name);
-
         m_VertexShaderHandle = src.m_VertexShaderHandle;
         m_FragmentShaderHandle = src.m_FragmentShaderHandle;
         m_MaterialHandle = src.m_MaterialHandle;
@@ -105,7 +100,11 @@ AxrVulkanMaterialData& AxrVulkanMaterialData::operator=(AxrVulkanMaterialData&& 
 // ---- Public Functions ----
 
 const std::string& AxrVulkanMaterialData::getName() const {
-    return m_Name;
+    if (m_MaterialHandle == nullptr) {
+        return m_DummyName;
+    }
+    
+    return m_MaterialHandle->getName();
 }
 
 const AxrVulkanMaterialLayoutData* AxrVulkanMaterialData::getMaterialLayoutData() const {
@@ -239,7 +238,6 @@ void AxrVulkanMaterialData::cleanup() {
     destroyWindowData();
     destroyData();
 
-    m_Name.clear();
     m_VertexShaderHandle = nullptr;
     m_FragmentShaderHandle = nullptr;
     m_MaterialHandle = nullptr;

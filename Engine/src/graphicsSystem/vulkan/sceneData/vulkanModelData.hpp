@@ -26,7 +26,6 @@ public:
 
     /// Model data config
     struct Config {
-        std::string Name;
         const AxrModel* ModelHandle;
         vk::PhysicalDevice PhysicalDevice;
         vk::Device Device;
@@ -121,7 +120,6 @@ private:
     // ----------------------------------------- //
 
     // ---- Config Variables ----
-    std::string m_Name;
     const AxrModel* m_ModelHandle;
     vk::PhysicalDevice m_PhysicalDevice;
     vk::Device m_Device;
@@ -130,6 +128,8 @@ private:
     vk::DispatchLoaderDynamic* m_DispatchHandle;
 
     // ---- Data ----
+    /// These should never be used for anything other than returning a reference to the name if no name can be found.
+    std::string m_DummyName;
     AxrVulkanBuffer m_ModelBuffer;
     std::vector<MeshBufferLocation> m_MeshBufferLocations;
 

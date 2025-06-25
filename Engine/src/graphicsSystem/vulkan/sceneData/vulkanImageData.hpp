@@ -25,7 +25,6 @@ public:
 
     /// Image data config
     struct Config {
-        std::string Name;
         const AxrImage* ImageHandle;
         vk::PhysicalDevice PhysicalDevice;
         vk::Device Device;
@@ -93,10 +92,11 @@ private:
     // ----------------------------------------- //
 
     // ---- Config Variables ----
-    std::string m_Name;
     const AxrImage* m_ImageHandle;
 
     // ---- Data ----
+    /// These should never be used for anything other than returning a reference to the name if no name can be found.
+    std::string m_DummyName;
     AxrVulkanImage m_Image;
 
     // ----------------------------------------- //

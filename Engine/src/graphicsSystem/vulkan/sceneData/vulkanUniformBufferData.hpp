@@ -111,8 +111,6 @@ private:
     // ----------------------------------------- //
 
     // ---- Config Variables ----
-    // TODO: Check if these "vulkan*data" files need the name here. Can't we just get it from the buffer handle?
-    //  It is needed here since a uniformBufferHandle isn't required. but other classes probably don't need it.
     std::string m_Name;
     const AxrUniformBuffer* m_UniformBufferHandle;
     AxrEngineAssetEnum m_UniformBufferEngineAsset;

@@ -18,7 +18,6 @@ AxrVulkanImageSamplerData::AxrVulkanImageSamplerData():
 }
 
 AxrVulkanImageSamplerData::AxrVulkanImageSamplerData(const Config& config):
-    m_Name(config.Name),
     m_ImageSamplerHandle(config.ImageSamplerHandle),
     m_Device(config.Device),
     m_MaxSamplerAnisotropy(config.MaxSamplerAnisotropy),
@@ -27,8 +26,6 @@ AxrVulkanImageSamplerData::AxrVulkanImageSamplerData(const Config& config):
 }
 
 AxrVulkanImageSamplerData::AxrVulkanImageSamplerData(AxrVulkanImageSamplerData&& src) noexcept {
-    m_Name = std::move(src.m_Name);
-
     m_ImageSamplerHandle = src.m_ImageSamplerHandle;
     m_Device = src.m_Device;
     m_MaxSamplerAnisotropy = src.m_MaxSamplerAnisotropy;
@@ -48,8 +45,6 @@ AxrVulkanImageSamplerData::~AxrVulkanImageSamplerData() {
 
 AxrVulkanImageSamplerData& AxrVulkanImageSamplerData::operator=(AxrVulkanImageSamplerData&& src) noexcept {
     if (this != &src) {
-        m_Name = std::move(src.m_Name);
-
         m_ImageSamplerHandle = src.m_ImageSamplerHandle;
         m_Device = src.m_Device;
         m_MaxSamplerAnisotropy = src.m_MaxSamplerAnisotropy;
@@ -69,7 +64,11 @@ AxrVulkanImageSamplerData& AxrVulkanImageSamplerData::operator=(AxrVulkanImageSa
 // ---- Public Functions ----
 
 const std::string& AxrVulkanImageSamplerData::getName() const {
-    return m_Name;
+    if (m_ImageSamplerHandle == nullptr) {
+        return m_DummyName;
+    }
+    
+    return m_ImageSamplerHandle->getName();
 }
 
 const vk::Sampler& AxrVulkanImageSamplerData::getSampler() const {
@@ -119,7 +118,6 @@ void AxrVulkanImageSamplerData::destroyData() {
 void AxrVulkanImageSamplerData::cleanup() {
     destroyData();
 
-    m_Name.clear();
     m_ImageSamplerHandle = nullptr;
     m_Device = VK_NULL_HANDLE;
     m_DispatchHandle = nullptr;

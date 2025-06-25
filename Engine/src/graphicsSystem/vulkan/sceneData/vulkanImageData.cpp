@@ -14,7 +14,6 @@ AxrVulkanImageData::AxrVulkanImageData():
 }
 
 AxrVulkanImageData::AxrVulkanImageData(const Config& config):
-    m_Name(config.Name),
     m_ImageHandle(config.ImageHandle),
     m_Image(
         {
@@ -28,7 +27,6 @@ AxrVulkanImageData::AxrVulkanImageData(const Config& config):
 }
 
 AxrVulkanImageData::AxrVulkanImageData(AxrVulkanImageData&& src) noexcept {
-    m_Name = std::move(src.m_Name);
     m_Image = std::move(src.m_Image);
 
     m_ImageHandle = src.m_ImageHandle;
@@ -42,7 +40,6 @@ AxrVulkanImageData::~AxrVulkanImageData() {
 
 AxrVulkanImageData& AxrVulkanImageData::operator=(AxrVulkanImageData&& src) noexcept {
     if (this != &src) {
-        m_Name = std::move(src.m_Name);
         m_Image = std::move(src.m_Image);
 
         m_ImageHandle = src.m_ImageHandle;
@@ -56,7 +53,11 @@ AxrVulkanImageData& AxrVulkanImageData::operator=(AxrVulkanImageData&& src) noex
 // ---- Public Functions ----
 
 const std::string& AxrVulkanImageData::getName() const {
-    return m_Name;
+    if (m_ImageHandle == nullptr) {
+        return m_DummyName;
+    }
+
+    return m_ImageHandle->getName();
 }
 
 const vk::ImageView& AxrVulkanImageData::getImageView() const {
@@ -106,7 +107,6 @@ void AxrVulkanImageData::destroyData() {
 void AxrVulkanImageData::cleanup() {
     destroyData();
 
-    m_Name.clear();
     m_ImageHandle = nullptr;
 }
 

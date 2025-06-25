@@ -37,8 +37,6 @@ AxrVulkanUniformBufferData::AxrVulkanUniformBufferData(const Config& config):
         m_Name = m_UniformBufferHandle->getName();
     } else if (m_UniformBufferEngineAsset != AXR_ENGINE_ASSET_UNDEFINED) {
         m_Name = axrEngineAssetGetUniformBufferName(m_UniformBufferEngineAsset);
-    } else {
-        axrLogErrorLocation("Unable to get uniform buffer name.");
     }
 }
 

@@ -26,7 +26,6 @@ public:
 
     /// Material data config
     struct Config {
-        std::string Name;
         const AxrShader* VertexShaderHandle;
         const AxrShader* FragmentShaderHandle;
         const AxrMaterial* MaterialHandle;
@@ -123,7 +122,6 @@ private:
     // ----------------------------------------- //
 
     // ---- Config Variables ----
-    std::string m_Name;
     const AxrShader* m_VertexShaderHandle;
     const AxrShader* m_FragmentShaderHandle;
     const AxrMaterial* m_MaterialHandle;
@@ -131,8 +129,12 @@ private:
     uint32_t m_MaxFramesInFlight;
     vk::Device m_Device;
     vk::DispatchLoaderDynamic* m_DispatchHandle;
+
+    // ---- Data ----
     /// These should never be used for anything other than returning a reference to descriptor sets when there's no other option.
     std::vector<vk::DescriptorSet> m_DummyDescriptorSets;
+    /// These should never be used for anything other than returning a reference to the name if no name can be found.
+    std::string m_DummyName;
 
     // ---- Window Data ----
     vk::DescriptorPool m_WindowDescriptorPool;

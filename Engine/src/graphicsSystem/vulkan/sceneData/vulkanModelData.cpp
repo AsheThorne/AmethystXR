@@ -23,7 +23,6 @@ AxrVulkanModelData::AxrVulkanModelData():
 }
 
 AxrVulkanModelData::AxrVulkanModelData(const Config& config):
-    m_Name(config.Name),
     m_ModelHandle(config.ModelHandle),
     m_PhysicalDevice(config.PhysicalDevice),
     m_Device(config.Device),
@@ -33,7 +32,6 @@ AxrVulkanModelData::AxrVulkanModelData(const Config& config):
 }
 
 AxrVulkanModelData::AxrVulkanModelData(AxrVulkanModelData&& src) noexcept {
-    m_Name = std::move(src.m_Name);
     m_ModelBuffer = std::move(src.m_ModelBuffer);
     m_MeshBufferLocations = std::move(src.m_MeshBufferLocations);
 
@@ -60,7 +58,6 @@ AxrVulkanModelData& AxrVulkanModelData::operator=(AxrVulkanModelData&& src) noex
     if (this != &src) {
         cleanup();
 
-        m_Name = std::move(src.m_Name);
         m_ModelBuffer = std::move(src.m_ModelBuffer);
         m_MeshBufferLocations = std::move(src.m_MeshBufferLocations);
 
@@ -85,7 +82,11 @@ AxrVulkanModelData& AxrVulkanModelData::operator=(AxrVulkanModelData&& src) noex
 // ---- Public Functions ----
 
 const std::string& AxrVulkanModelData::getName() const {
-    return m_Name;
+    if (m_ModelHandle == nullptr) {
+        return m_DummyName;
+    }
+    
+    return m_ModelHandle->getName();
 }
 
 const vk::Buffer& AxrVulkanModelData::getModelBuffer() const {
@@ -143,7 +144,6 @@ void AxrVulkanModelData::destroyData() {
 void AxrVulkanModelData::cleanup() {
     destroyData();
 
-    m_Name.clear();
     m_ModelHandle = nullptr;
     m_PhysicalDevice = VK_NULL_HANDLE;
     m_Device = VK_NULL_HANDLE;

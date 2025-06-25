@@ -767,7 +767,6 @@ AxrResult AxrVulkanSceneData::initializeModelData(const AxrModel& model) {
     if (m_ModelData.contains(modelName)) return AXR_SUCCESS;
 
     const AxrVulkanModelData::Config modelDataConfig{
-        .Name = modelName,
         .ModelHandle = &model,
         .PhysicalDevice = m_PhysicalDevice,
         .Device = m_Device,
@@ -910,7 +909,6 @@ AxrResult AxrVulkanSceneData::initializeImageData(const AxrImage& image) {
     if (m_ImageData.contains(imageName)) return AXR_SUCCESS;
 
     const AxrVulkanImageData::Config imageDataConfig{
-        .Name = imageName,
         .ImageHandle = &image,
         .PhysicalDevice = m_PhysicalDevice,
         .Device = m_Device,
@@ -1053,7 +1051,6 @@ AxrResult AxrVulkanSceneData::initializeImageSamplerData(const AxrImageSampler& 
     if (m_ImageSamplerData.contains(imageSamplerName)) return AXR_SUCCESS;
 
     const AxrVulkanImageSamplerData::Config imageSamplerDataConfig{
-        .Name = imageSamplerName,
         .ImageSamplerHandle = &imageSampler,
         .Device = m_Device,
         .MaxSamplerAnisotropy = m_MaxSamplerAnisotropy,
@@ -1376,7 +1373,6 @@ AxrResult AxrVulkanSceneData::initializeMaterialData(const AxrMaterial& material
     }
 
     const AxrVulkanMaterialData::Config materialDataConfig{
-        .Name = materialName,
         .VertexShaderHandle = foundVertexShader,
         .FragmentShaderHandle = foundFragmentShader,
         .MaterialHandle = &material,

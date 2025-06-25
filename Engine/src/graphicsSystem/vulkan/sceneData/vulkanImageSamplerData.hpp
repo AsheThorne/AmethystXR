@@ -25,7 +25,6 @@ public:
 
     /// Image data config
     struct Config {
-        std::string Name;
         const AxrImageSampler* ImageSamplerHandle;
         vk::Device Device;
         float MaxSamplerAnisotropy;
@@ -91,13 +90,14 @@ private:
     // ----------------------------------------- //
 
     // ---- Config Variables ----
-    std::string m_Name;
     const AxrImageSampler* m_ImageSamplerHandle;
     vk::Device m_Device;
     float m_MaxSamplerAnisotropy;
     vk::DispatchLoaderDynamic* m_DispatchHandle;
 
     // ---- Data ----
+    /// These should never be used for anything other than returning a reference to the name if no name can be found.
+    std::string m_DummyName;
     vk::Sampler m_Sampler;
 
     // ----------------------------------------- //
