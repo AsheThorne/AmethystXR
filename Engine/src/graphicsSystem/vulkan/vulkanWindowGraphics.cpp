@@ -300,8 +300,11 @@ AxrResult AxrVulkanWindowGraphics::setSetupConfigVariables(const SetupConfig& co
     m_GraphicsCommandPool = config.GraphicsCommandPool;
     m_QueueFamilies = config.QueueFamilies;
 
-    // TODO: Don't take the whole config object. only take what it needs
-    const AxrResult axrResult = setSwapchainFormatOptions(config);
+    const AxrResult axrResult = setSwapchainFormatOptions(
+        config.PhysicalDevice,
+        config.SwapchainColorFormatOptions,
+        config.SwapchainDepthFormatOptions
+    );
     if (AXR_FAILED(axrResult)) {
         return axrResult;
     }
@@ -319,7 +322,11 @@ void AxrVulkanWindowGraphics::resetSetupConfigVariables() {
     m_QueueFamilies.reset();
 }
 
-AxrResult AxrVulkanWindowGraphics::setSwapchainFormatOptions(const SetupConfig& config) {
+AxrResult AxrVulkanWindowGraphics::setSwapchainFormatOptions(
+    const vk::PhysicalDevice& physicalDevice,
+    const std::vector<vk::SurfaceFormatKHR>& swapchainColorFormatOptions,
+    const std::vector<vk::Format>& swapchainDepthFormatOptions
+) {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -334,13 +341,13 @@ AxrResult AxrVulkanWindowGraphics::setSwapchainFormatOptions(const SetupConfig& 
         return AXR_ERROR;
     }
 
-    if (config.SwapchainColorFormatOptions.empty()) {
-        axrLogErrorLocation("Config swapchain color format options are empty.");
+    if (swapchainColorFormatOptions.empty()) {
+        axrLogErrorLocation("Swapchain color format options are empty.");
         return AXR_ERROR;
     }
 
-    if (config.SwapchainDepthFormatOptions.empty()) {
-        axrLogErrorLocation("Config swapchain depth format options are empty.");
+    if (swapchainDepthFormatOptions.empty()) {
+        axrLogErrorLocation("Swapchain depth format options are empty.");
         return AXR_ERROR;
     }
 
@@ -348,7 +355,7 @@ AxrResult AxrVulkanWindowGraphics::setSwapchainFormatOptions(const SetupConfig& 
     // Process
     // ----------------------------------------- //
 
-    for (const vk::SurfaceFormatKHR surfaceFormat : config.SwapchainColorFormatOptions) {
+    for (const vk::SurfaceFormatKHR surfaceFormat : swapchainColorFormatOptions) {
         if (axrAreFormatFeaturesSupported(
             surfaceFormat.format,
             vk::ImageTiling::eOptimal,
@@ -357,20 +364,20 @@ AxrResult AxrVulkanWindowGraphics::setSwapchainFormatOptions(const SetupConfig& 
             // TODO: Check if we're rendering directly to the surface first for asking for these.
             // vk::FormatFeatureFlagBits::eBlitDst &
             // vk::FormatFeatureFlagBits::eTransferDst,
-            config.PhysicalDevice,
+            physicalDevice,
             m_Dispatch
         )) {
             m_SwapchainColorFormatOptions.push_back(surfaceFormat);
         }
     }
 
-    for (const vk::Format format : config.SwapchainDepthFormatOptions) {
+    for (const vk::Format format : swapchainDepthFormatOptions) {
         if (axrAreFormatFeaturesSupported(
             format,
             vk::ImageTiling::eOptimal,
             vk::FormatFeatureFlagBits::eSampledImage &
             vk::FormatFeatureFlagBits::eDepthStencilAttachment,
-            config.PhysicalDevice,
+            physicalDevice,
             m_Dispatch
         )) {
             m_SwapchainDepthFormatOptions.push_back(format);

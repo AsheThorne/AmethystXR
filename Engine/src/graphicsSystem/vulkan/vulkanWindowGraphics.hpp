@@ -202,9 +202,15 @@ private:
     void resetSetupConfigVariables();
 
     /// Set the swapchain color and depth format options
-    /// @param config Setup config
+    /// @param physicalDevice Physical device to use
+    /// @param swapchainColorFormatOptions Swapchain color format options to choose from
+    /// @param swapchainDepthFormatOptions Swapchain depth format options to choose from
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setSwapchainFormatOptions(const SetupConfig& config);
+    [[nodiscard]] AxrResult setSwapchainFormatOptions(
+        const vk::PhysicalDevice& physicalDevice,
+        const std::vector<vk::SurfaceFormatKHR>& swapchainColorFormatOptions,
+        const std::vector<vk::Format>& swapchainDepthFormatOptions
+    );
     /// Reset the setSwapchainFormatOptions() function 
     void resetSwapchainFormatOptions();
 
