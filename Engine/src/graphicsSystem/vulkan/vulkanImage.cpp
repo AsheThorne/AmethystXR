@@ -170,6 +170,10 @@ AxrResult AxrVulkanImage::createImage(const AxrImageConst_T image) {
 
     m_MipLevelCount = countImageMipLevels(image->getWidth(), image->getHeight());
     constexpr vk::Format imageFormat = vk::Format::eR8G8B8A8Srgb;
+    vk::ImageUsageFlags imageUsageFlags = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
+    if (m_MipLevelCount > 1) {
+        imageUsageFlags |= vk::ImageUsageFlagBits::eTransferSrc;
+    }
 
     axrResult = createImage(
         m_Device,
@@ -179,7 +183,7 @@ AxrResult AxrVulkanImage::createImage(const AxrImageConst_T image) {
         vk::SampleCountFlagBits::e1,
         imageFormat,
         vk::ImageTiling::eOptimal,
-        vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+        imageUsageFlags,
         vk::MemoryPropertyFlagBits::eDeviceLocal,
         m_Image,
         m_ImageMemory,
@@ -196,6 +200,7 @@ AxrResult AxrVulkanImage::createImage(const AxrImageConst_T image) {
         m_Image,
         image->getWidth(),
         image->getHeight(),
+        imageFormat,
         m_MipLevelCount
     );
     // We're done with the buffer now
@@ -334,7 +339,6 @@ AxrResult AxrVulkanImage::transitionImageLayout(
         return axrResult;
     }
 
-    // TODO: I think we need to transition each mip level too
     const vk::ImageMemoryBarrier imageMemoryBarrier(
         srcAccessMask,
         dstAccessMask,
@@ -582,11 +586,9 @@ void AxrVulkanImage::cleanup() {
 }
 
 uint32_t AxrVulkanImage::countImageMipLevels(const uint32_t width, const uint32_t height) const {
-    return 1;
-    // TODO: After implementing mip levels, uncomment this
-    // return static_cast<uint32_t>(
-    //     std::floor(std::log2(std::max(width, height)))
-    // ) + 1;
+    return static_cast<uint32_t>(
+        std::floor(std::log2(std::max(width, height)))
+    ) + 1;
 }
 
 AxrResult AxrVulkanImage::copyBufferToImage(
@@ -594,6 +596,7 @@ AxrResult AxrVulkanImage::copyBufferToImage(
     const vk::Image image,
     const uint32_t imageWidth,
     const uint32_t imageHeight,
+    const vk::Format imageFormat,
     const uint32_t mipLevelCount
 ) const {
     // ----------------------------------------- //
@@ -636,7 +639,7 @@ AxrResult AxrVulkanImage::copyBufferToImage(
         return axrResult;
     }
 
-    vk::ImageMemoryBarrier imageMemoryBarrier(
+    const vk::ImageMemoryBarrier imageMemoryBarrier(
         vk::AccessFlagBits::eNone,
         vk::AccessFlagBits::eTransferWrite,
         vk::ImageLayout::eUndefined,
@@ -689,37 +692,23 @@ AxrResult AxrVulkanImage::copyBufferToImage(
         *m_DispatchHandle
     );
 
-    imageMemoryBarrier = vk::ImageMemoryBarrier(
+    // TODO: Generating mip maps at runtime isn't recommended.
+    //  We should only do this as a last resort if the application requests it and if the image doesn't already have baked in mipmaps.
+    //  We don't even load mipmaps from images yet so this is our only option for now.
+    generateMipmaps(
+        commandBuffer,
+        image,
+        imageWidth,
+        imageHeight,
+        imageFormat,
+        mipLevelCount,
         vk::AccessFlagBits::eTransferWrite,
         vk::AccessFlagBits::eShaderRead,
         vk::ImageLayout::eTransferDstOptimal,
         vk::ImageLayout::eShaderReadOnlyOptimal,
-        vk::QueueFamilyIgnored,
-        vk::QueueFamilyIgnored,
-        image,
-        vk::ImageSubresourceRange(
-            vk::ImageAspectFlagBits::eColor,
-            0,
-            mipLevelCount,
-            0,
-            1
-        )
-    );
-
-    commandBuffer.pipelineBarrier(
         vk::PipelineStageFlagBits::eTransfer,
-        vk::PipelineStageFlagBits::eFragmentShader,
-        vk::DependencyFlags(),
-        0,
-        nullptr,
-        0,
-        nullptr,
-        1,
-        &imageMemoryBarrier,
-        *m_DispatchHandle
+        vk::PipelineStageFlagBits::eFragmentShader
     );
-
-    // TODO: generate mipmaps
 
     axrResult = axrEndSingleTimeCommand(
         m_Device,
@@ -733,6 +722,210 @@ AxrResult AxrVulkanImage::copyBufferToImage(
     }
 
     return AXR_SUCCESS;
+}
+
+void AxrVulkanImage::generateMipmaps(
+    const vk::CommandBuffer commandBuffer,
+    const vk::Image image,
+    const uint32_t imageWidth,
+    const uint32_t imageHeight,
+    const vk::Format imageFormat,
+    const uint32_t mipLevelCount,
+    const vk::AccessFlags initialImageAccessMask,
+    const vk::AccessFlags finalImageAccessMask,
+    const vk::ImageLayout initialImageLayout,
+    const vk::ImageLayout finalImageLayout,
+    const vk::PipelineStageFlagBits initialImageStageMask,
+    const vk::PipelineStageFlagBits finalImageStageMask
+) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (commandBuffer == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Command buffer is null.");
+        return;
+    }
+
+    if (m_PhysicalDevice == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Physical device is null.");
+        return;
+    }
+
+    if (m_DispatchHandle == nullptr) {
+        axrLogErrorLocation("Dispatch handle is null.");
+        return;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    vk::Filter blitFilter = vk::Filter::eNearest;
+
+    // TODO: Do we need to do this check any time we want to use linear filter? like with image sampling??
+    // If linear filter is supported, use that instead
+    if (axrAreFormatFeaturesSupported(
+        imageFormat,
+        vk::ImageTiling::eOptimal,
+        vk::FormatFeatureFlagBits::eSampledImageFilterLinear,
+        m_PhysicalDevice,
+        *m_DispatchHandle
+    )) {
+        blitFilter = vk::Filter::eLinear;
+    }
+
+    vk::ImageMemoryBarrier imageMemoryBarrier(
+        // Gets set in the loop for each mip level
+        vk::AccessFlagBits::eNone,
+        // Gets set in the loop for each mip level
+        vk::AccessFlagBits::eNone,
+        // Gets set in the loop for each mip level
+        vk::ImageLayout::eUndefined,
+        // Gets set in the loop for each mip level
+        vk::ImageLayout::eUndefined,
+        vk::QueueFamilyIgnored,
+        vk::QueueFamilyIgnored,
+        image,
+        vk::ImageSubresourceRange(
+            vk::ImageAspectFlagBits::eColor,
+            // Gets set in the loop for each mip level
+            0,
+            1,
+            0,
+            1
+        )
+    );
+
+    uint32_t mipWidth = imageWidth;
+    uint32_t mipHeight = imageHeight;
+
+    for (uint32_t i = 1; i < mipLevelCount; ++i) {
+        if (initialImageLayout != vk::ImageLayout::eTransferSrcOptimal) {
+            imageMemoryBarrier.srcAccessMask = initialImageAccessMask;
+            imageMemoryBarrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
+            imageMemoryBarrier.oldLayout = initialImageLayout;
+            imageMemoryBarrier.newLayout = vk::ImageLayout::eTransferSrcOptimal;
+            imageMemoryBarrier.subresourceRange.baseMipLevel = i - 1;
+
+            commandBuffer.pipelineBarrier(
+                initialImageStageMask,
+                vk::PipelineStageFlagBits::eTransfer,
+                vk::DependencyFlags(),
+                0,
+                nullptr,
+                0,
+                nullptr,
+                1,
+                &imageMemoryBarrier,
+                *m_DispatchHandle
+            );
+        }
+
+        if (initialImageLayout != vk::ImageLayout::eTransferDstOptimal) {
+            imageMemoryBarrier.srcAccessMask = initialImageAccessMask;
+            imageMemoryBarrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+            imageMemoryBarrier.oldLayout = initialImageLayout;
+            imageMemoryBarrier.newLayout = vk::ImageLayout::eTransferDstOptimal;
+            imageMemoryBarrier.subresourceRange.baseMipLevel = i;
+
+            commandBuffer.pipelineBarrier(
+                initialImageStageMask,
+                vk::PipelineStageFlagBits::eTransfer,
+                vk::DependencyFlags(),
+                0,
+                nullptr,
+                0,
+                nullptr,
+                1,
+                &imageMemoryBarrier,
+                *m_DispatchHandle
+            );
+        }
+
+        vk::ImageBlit imageBlit(
+            vk::ImageSubresourceLayers(
+                vk::ImageAspectFlagBits::eColor,
+                i - 1,
+                0,
+                1
+            ),
+            std::array{
+                vk::Offset3D(0, 0, 0),
+                vk::Offset3D(
+                    static_cast<int32_t>(mipWidth),
+                    static_cast<int32_t>(mipHeight),
+                    1
+                ),
+            },
+            vk::ImageSubresourceLayers(
+                vk::ImageAspectFlagBits::eColor,
+                i,
+                0,
+                1
+            ),
+            std::array{
+                vk::Offset3D(0, 0, 0),
+                vk::Offset3D(
+                    mipWidth > 1 ? static_cast<int32_t>(mipWidth) / 2 : 1,
+                    mipHeight > 1 ? static_cast<int32_t>(mipHeight) / 2 : 1,
+                    1
+                ),
+            }
+        );
+
+        commandBuffer.blitImage(
+            image,
+            vk::ImageLayout::eTransferSrcOptimal,
+            image,
+            vk::ImageLayout::eTransferDstOptimal,
+            1,
+            &imageBlit,
+            blitFilter,
+            *m_DispatchHandle
+        );
+
+        imageMemoryBarrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
+        imageMemoryBarrier.dstAccessMask = finalImageAccessMask;
+        imageMemoryBarrier.oldLayout = vk::ImageLayout::eTransferSrcOptimal;
+        imageMemoryBarrier.newLayout = finalImageLayout;
+        imageMemoryBarrier.subresourceRange.baseMipLevel = i - 1;
+
+        commandBuffer.pipelineBarrier(
+            vk::PipelineStageFlagBits::eTransfer,
+            finalImageStageMask,
+            vk::DependencyFlags(),
+            0,
+            nullptr,
+            0,
+            nullptr,
+            1,
+            &imageMemoryBarrier,
+            *m_DispatchHandle
+        );
+
+        if (mipWidth > 1) mipWidth /= 2;
+        if (mipHeight > 1) mipHeight /= 2;
+    }
+
+    imageMemoryBarrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+    imageMemoryBarrier.dstAccessMask = finalImageAccessMask;
+    imageMemoryBarrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
+    imageMemoryBarrier.newLayout = finalImageLayout;
+    imageMemoryBarrier.subresourceRange.baseMipLevel = mipLevelCount - 1;
+
+    commandBuffer.pipelineBarrier(
+        vk::PipelineStageFlagBits::eTransfer,
+        finalImageStageMask,
+        vk::DependencyFlags(),
+        0,
+        nullptr,
+        0,
+        nullptr,
+        1,
+        &imageMemoryBarrier,
+        *m_DispatchHandle
+    );
 }
 
 #endif

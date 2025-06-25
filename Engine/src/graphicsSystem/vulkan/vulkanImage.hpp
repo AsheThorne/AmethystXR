@@ -227,6 +227,7 @@ private:
     /// @param image Image
     /// @param imageWidth Image width
     /// @param imageHeight Image height
+    /// @param imageFormat Image format
     /// @param mipLevelCount Mip level count
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult copyBufferToImage(
@@ -234,7 +235,36 @@ private:
         vk::Image image,
         uint32_t imageWidth,
         uint32_t imageHeight,
+        vk::Format imageFormat,
         uint32_t mipLevelCount
+    ) const;
+
+    /// Generate mipmaps and set the image layout to the finalImageLayout
+    /// @param commandBuffer Command buffer to use
+    /// @param image Image
+    /// @param imageWidth Image width
+    /// @param imageHeight Image height
+    /// @param imageFormat Image format
+    /// @param mipLevelCount Mip level count
+    /// @param initialImageAccessMask Initial image memory barrier access mask
+    /// @param finalImageAccessMask Final image memory barrier access mask
+    /// @param initialImageLayout Initial image layout
+    /// @param finalImageLayout Final image layout
+    /// @param initialImageStageMask Initial image pipeline barrier stage mask
+    /// @param finalImageStageMask Final image pipeline barrier stage mask
+    void generateMipmaps(
+        vk::CommandBuffer commandBuffer,
+        vk::Image image,
+        uint32_t imageWidth,
+        uint32_t imageHeight,
+        vk::Format imageFormat,
+        uint32_t mipLevelCount,
+        vk::AccessFlags initialImageAccessMask,
+        vk::AccessFlags finalImageAccessMask,
+        vk::ImageLayout initialImageLayout,
+        vk::ImageLayout finalImageLayout,
+        vk::PipelineStageFlagBits initialImageStageMask,
+        vk::PipelineStageFlagBits finalImageStageMask
     ) const;
 };
 

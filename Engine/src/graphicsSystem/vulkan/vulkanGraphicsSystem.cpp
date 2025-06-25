@@ -533,7 +533,7 @@ vk::DebugUtilsMessengerCreateInfoEXT AxrVulkanGraphicsSystem::createDebugUtilsCr
         return {};
     }
 
-    return {
+    return vk::DebugUtilsMessengerCreateInfoEXT{
         {},
         static_cast<vk::DebugUtilsMessageSeverityFlagsEXT>(debugUtilsExtension->SeverityFlags),
         static_cast<vk::DebugUtilsMessageTypeFlagBitsEXT>(debugUtilsExtension->TypeFlags),
