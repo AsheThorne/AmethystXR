@@ -11,7 +11,18 @@ SponzaScene::~SponzaScene() {
 axr::Result SponzaScene::setup() {
     if (AXR_FAILED(m_Application.createScene(m_SceneName.c_str()))) return axr::Result::Error;
     m_Scene = m_Application.findScene(m_SceneName.c_str());
-    axr::AssetCollection assetCollection = m_Scene.getAssetCollection();    
+    axr::AssetCollection assetCollection = m_Scene.getAssetCollection();
+
+    if (AXR_FAILED(
+        assetCollection.createMaterial(
+            m_DefaultMaterialName.c_str(),
+            axr::EngineAssetMaterial_DefaultMaterial(
+                axr::engineAssetGetName(axr::EngineAssetEnum::ImageMissingTexture),
+                axr::engineAssetGetName(axr::EngineAssetEnum::ImageSamplerNearestRepeat)
+            )
+        )
+    ))
+        return axr::Result::Error;
 
     const axr::ModelConfig modelConfig(
         m_ModelName.c_str(),
@@ -67,7 +78,7 @@ axr::Result SponzaScene::setup() {
 
         const char* imageName = nullptr;
         const char* imageSamplerName = nullptr;
-        
+
         if (modelInfo.Materials[i].ColorImageIndex >= 0) {
             imageName = m_ImageNames[modelInfo.Materials[i].ColorImageIndex].c_str();
         }
@@ -104,11 +115,17 @@ axr::Result SponzaScene::setup() {
     m_ComponentMeshes = std::vector<AxrModelComponent::Mesh>(modelInfo.MeshCount);
     for (uint32_t meshIndex = 0; meshIndex < modelInfo.MeshCount; ++meshIndex) {
         for (int submeshIndex = 0; submeshIndex < modelInfo.Meshes[meshIndex].SubmeshCount; ++submeshIndex) {
-            // TODO: We'd probably want to use a default material instead of just skipping
-            if (modelInfo.Meshes[meshIndex].Submeshes[submeshIndex].MaterialIndex == -1) continue;
+            const char* materialName = nullptr;
+
+            if (modelInfo.Meshes[meshIndex].Submeshes[submeshIndex].MaterialIndex >= 0) {
+                materialName = m_MaterialNames[modelInfo.Meshes[meshIndex].Submeshes[submeshIndex].MaterialIndex].
+                    c_str();
+            } else {
+                materialName = m_DefaultMaterialName.c_str();
+            }
 
             m_ComponentSubmeshes.emplace_back(
-                m_MaterialNames[modelInfo.Meshes[meshIndex].Submeshes[submeshIndex].MaterialIndex].c_str()
+                materialName
             );
         }
 

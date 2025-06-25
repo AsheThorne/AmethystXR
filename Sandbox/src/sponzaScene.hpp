@@ -48,6 +48,7 @@ private:
     // ----------------------------------------- //
     std::string m_SceneName = "SponzaScene";
     std::string m_ModelName = "SponzaModel";
+    std::string m_DefaultMaterialName = "SponzaDefaultMaterial";
 
     axr::Application& m_Application;
 
