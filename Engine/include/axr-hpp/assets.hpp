@@ -35,18 +35,24 @@ namespace axr {
         PushConstantBufferModelMatrix = AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX,
         PushConstantBufferEnd = AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_END,
 
+        // ---- Images ----
+        ImageStart = AXR_ENGINE_ASSET_IMAGE_START,
+        ImageMissingTexture = AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE,
+        ImageUvTester = AXR_ENGINE_ASSET_IMAGE_UV_TESTER,
+        ImageEnd = AXR_ENGINE_ASSET_IMAGE_END,
+
+        // ---- Image Samplers - Max of 8 ----
+        ImageSamplerStart = AXR_ENGINE_ASSET_IMAGE_SAMPLER_START,
+        ImageSamplerNearestRepeat = AXR_ENGINE_ASSET_IMAGE_SAMPLER_NEAREST_REPEAT,
+        ImageSamplerLinearRepeat = AXR_ENGINE_ASSET_IMAGE_SAMPLER_LINEAR_REPEAT,
+        ImageSamplerEnd = AXR_ENGINE_ASSET_IMAGE_SAMPLER_END,
+
         // ---- Models ----
         ModelStart = AXR_ENGINE_ASSET_MODEL_START,
         ModelTriangle = AXR_ENGINE_ASSET_MODEL_TRIANGLE,
         ModelSquare = AXR_ENGINE_ASSET_MODEL_SQUARE,
         ModelCube = AXR_ENGINE_ASSET_MODEL_CUBE,
         ModelEnd = AXR_ENGINE_ASSET_MODEL_END,
-
-        // ---- Images ----
-        ImageStart = AXR_ENGINE_ASSET_IMAGE_START,
-        ImageMissingTexture = AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE,
-        ImageUvTester = AXR_ENGINE_ASSET_IMAGE_UV_TESTER,
-        ImageEnd = AXR_ENGINE_ASSET_IMAGE_END,
     };
 
     // ----------------------------------------- //

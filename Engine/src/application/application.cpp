@@ -240,6 +240,12 @@ AxrResult AxrApplication::setActiveScene(const std::string& sceneName) {
 AxrResult AxrApplication::setupGlobalAssetCollection() {
     AxrResult axrResult = AXR_SUCCESS;
 
+    axrResult = m_GlobalAssetCollection.createImageSampler(AXR_ENGINE_ASSET_IMAGE_SAMPLER_NEAREST_REPEAT);
+    if (AXR_FAILED(axrResult)) return axrResult;
+
+    axrResult = m_GlobalAssetCollection.createImageSampler(AXR_ENGINE_ASSET_IMAGE_SAMPLER_LINEAR_REPEAT);
+    if (AXR_FAILED(axrResult)) return axrResult;
+
     axrResult = m_GlobalAssetCollection.createImage(AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE);
     if (AXR_FAILED(axrResult)) return axrResult;
 

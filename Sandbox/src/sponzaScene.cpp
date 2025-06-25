@@ -65,16 +65,25 @@ axr::Result SponzaScene::setup() {
             m_MaterialNames[i] = m_ModelName + "_Material(" + std::to_string(i + 1) + ")";
         }
 
-        if (modelInfo.Materials[i].ColorImageIndex == -1) continue;
-        // TODO: We'd probably want to use a default image sampler instead of just skipping
-        if (modelInfo.Materials[i].ColorImageSamplerIndex == -1) continue;
+        const char* imageName = nullptr;
+        const char* imageSamplerName = nullptr;
+        
+        if (modelInfo.Materials[i].ColorImageIndex >= 0) {
+            imageName = m_ImageNames[modelInfo.Materials[i].ColorImageIndex].c_str();
+        }
+
+        if (modelInfo.Materials[i].ColorImageSamplerIndex >= 0) {
+            imageSamplerName = m_ImageSamplerNames[modelInfo.Materials[i].ColorImageSamplerIndex].c_str();
+        } else {
+            imageSamplerName = axr::engineAssetGetName(axr::EngineAssetEnum::ImageSamplerLinearRepeat);
+        }
 
         if (AXR_FAILED(
             assetCollection.createMaterial(
                 m_MaterialNames[i].c_str(),
                 axr::EngineAssetMaterial_DefaultMaterial(
-                    nullptr,
-                    m_ImageSamplerNames[modelInfo.Materials[i].ColorImageSamplerIndex].c_str()
+                    imageName,
+                    imageSamplerName
                 )
             )
         )) {

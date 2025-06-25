@@ -141,6 +141,46 @@ AxrResult axrEngineAssetCreateModel_Cube(const std::string& modelName, AxrModel&
 //                                Image Engine Assets                                 //
 // ---------------------------------------------------------------------------------- //
 
+/// Check if the given engine asset is an image sampler
+/// @param engineAssetEnum Engine asset to check
+/// @returns True if the given engine asset is an image sampler
+bool axrEngineAssetIsImageSampler(AxrEngineAssetEnum engineAssetEnum);
+/// Get the name for the given image sampler engine asset
+/// @param engineAssetEnum Engine asset to get the name of
+/// @returns The name of the given image sampler engine asset
+const char* axrEngineAssetGetImageSamplerName(AxrEngineAssetEnum engineAssetEnum);
+/// Check if the given name is reserved for an image sampler engine asset
+/// @param name Name to check
+/// @returns True if the given name is reserved for an image sampler engine asset
+bool axrEngineAssetIsImageSamplerNameReserved(const char* name);
+
+/// Create an engine asset image sampler
+/// @param imageSamplerName Image sampler name
+/// @param engineAssetEnum Image sampler engine asset
+/// @param imageSampler Output created image sampler
+/// @returns AXR_SUCCESS if the function succeeded
+AxrResult axrEngineAssetCreateImageSampler(
+    const std::string& imageSamplerName,
+    AxrEngineAssetEnum engineAssetEnum,
+    AxrImageSampler& imageSampler
+);
+
+/// Create the 'NearestRepeat' engine asset image sampler
+/// @param imageSamplerName Image sampler name
+/// @param imageSampler Output created image sampler
+/// @returns AXR_SUCCESS if the function succeeded
+AxrResult axrEngineAssetCreateImageSampler_NearestRepeat(const std::string& imageSamplerName, AxrImageSampler& imageSampler);
+
+/// Create the 'LinearRepeat' engine asset image sampler
+/// @param imageSamplerName Image sampler name
+/// @param imageSampler Output created image sampler
+/// @returns AXR_SUCCESS if the function succeeded
+AxrResult axrEngineAssetCreateImageSampler_LinearRepeat(const std::string& imageSamplerName, AxrImageSampler& imageSampler);
+
+// ---------------------------------------------------------------------------------- //
+//                                Image Engine Assets                                 //
+// ---------------------------------------------------------------------------------- //
+
 /// Check if the given engine asset is an image
 /// @param engineAssetEnum Engine asset to check
 /// @returns True if the given engine asset is an image

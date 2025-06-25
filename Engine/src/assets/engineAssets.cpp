@@ -8,6 +8,7 @@
 #include "shader.hpp"
 #include "material.hpp"
 #include "image.hpp"
+#include "imageSampler.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -53,6 +54,22 @@ const std::unordered_map EngineAssetBufferNames{
 };
 
 // ----------------------------------------- //
+// Image Sampler Engine Assets
+// ----------------------------------------- //
+
+/// Engine asset image sampler names
+const std::unordered_map EngineAssetImageSamplerNames{
+    std::pair(
+        AXR_ENGINE_ASSET_IMAGE_SAMPLER_NEAREST_REPEAT,
+        "AXR:ImageSamplerNearestRepeat"
+    ),
+    std::pair(
+        AXR_ENGINE_ASSET_IMAGE_SAMPLER_LINEAR_REPEAT,
+        "AXR:ImageSamplerLinearRepeat"
+    ),
+};
+
+// ----------------------------------------- //
 // Image Engine Assets
 // ----------------------------------------- //
 
@@ -63,6 +80,7 @@ const std::unordered_map EngineAssetImageNames{
         "AXR:ImageMissingTexture"
     ),
 };
+
 // ---------------------------------------------------------------------------------- //
 //                                External Functions                                  //
 // ---------------------------------------------------------------------------------- //
@@ -70,6 +88,7 @@ const std::unordered_map EngineAssetImageNames{
 bool axrEngineAssetIsNameReserved(const char* name) {
     return axrEngineAssetIsShaderNameReserved(name) ||
         axrEngineAssetIsBufferNameReserved(name) ||
+        axrEngineAssetIsImageSamplerNameReserved(name) ||
         axrEngineAssetIsImageNameReserved(name);
 }
 
@@ -83,6 +102,9 @@ const char* axrEngineAssetGetName(const AxrEngineAssetEnum engineAssetEnum) {
 #endif
     ) {
         return axrEngineAssetGetBufferName(engineAssetEnum);
+    }
+    if (axrEngineAssetIsImageSampler(engineAssetEnum)) {
+        return axrEngineAssetGetImageSamplerName(engineAssetEnum);
     }
     if (axrEngineAssetIsImage(engineAssetEnum)) {
         return axrEngineAssetGetImageName(engineAssetEnum);
@@ -758,6 +780,100 @@ AxrResult axrEngineAssetCreateModel_Cube(const std::string& modelName, AxrModel&
 }
 
 // ----------------------------------------- //
+// Image Sampler Engine Assets
+// ----------------------------------------- //
+
+bool axrEngineAssetIsImageSampler(const AxrEngineAssetEnum engineAssetEnum) {
+    return engineAssetEnum >= AXR_ENGINE_ASSET_IMAGE_SAMPLER_START &&
+        engineAssetEnum <= AXR_ENGINE_ASSET_IMAGE_SAMPLER_END;
+}
+
+const char* axrEngineAssetGetImageSamplerName(const AxrEngineAssetEnum engineAssetEnum) {
+    if (!axrEngineAssetIsImageSampler(engineAssetEnum)) {
+        axrLogErrorLocation("Engine asset is not an image sampler.");
+        return "";
+    }
+
+    const auto foundEngineAssetIt = EngineAssetImageSamplerNames.find(engineAssetEnum);
+    if (foundEngineAssetIt == EngineAssetImageSamplerNames.end()) {
+        axrLogError("Failed to find name for engine asset: {0}.", static_cast<int>(engineAssetEnum));
+        return "";
+    }
+
+    return foundEngineAssetIt->second;
+}
+
+bool axrEngineAssetIsImageSamplerNameReserved(const char* name) {
+    for (const auto& engineAssetName : EngineAssetImageSamplerNames | std::views::values) {
+        if (std::strcmp(engineAssetName, name) == 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+AxrResult axrEngineAssetCreateImageSampler(
+    const std::string& imageSamplerName,
+    const AxrEngineAssetEnum engineAssetEnum,
+    AxrImageSampler& imageSampler
+) {
+    if (!axrEngineAssetIsImageSampler(engineAssetEnum)) {
+        axrLogErrorLocation("Engine asset is not an image sampler.");
+        return AXR_ERROR;
+    }
+
+    switch (engineAssetEnum) {
+        case AXR_ENGINE_ASSET_IMAGE_SAMPLER_NEAREST_REPEAT: {
+            return axrEngineAssetCreateImageSampler_NearestRepeat(imageSamplerName, imageSampler);
+        }
+        case AXR_ENGINE_ASSET_IMAGE_SAMPLER_LINEAR_REPEAT: {
+            return axrEngineAssetCreateImageSampler_LinearRepeat(imageSamplerName, imageSampler);
+        }
+        case AXR_ENGINE_ASSET_UNDEFINED:
+        default: { // NOLINT(clang-diagnostic-covered-switch-default)
+            axrLogErrorLocation("Unknown image sampler engine asset.");
+            return AXR_ERROR;
+        }
+    }
+}
+
+AxrResult axrEngineAssetCreateImageSampler_NearestRepeat(
+    const std::string& imageSamplerName,
+    AxrImageSampler& imageSampler
+) {
+    const AxrImageSamplerConfig imageSamplerConfig{
+        .Name = imageSamplerName.c_str(),
+        .MinFilter = AXR_IMAGE_SAMPLER_FILTER_NEAREST,
+        .MagFilter = AXR_IMAGE_SAMPLER_FILTER_NEAREST,
+        .MipmapFilter = AXR_IMAGE_SAMPLER_FILTER_NEAREST,
+        .WrapU = AXR_IMAGE_SAMPLER_WRAP_REPEAT,
+        .WrapV = AXR_IMAGE_SAMPLER_WRAP_REPEAT,
+    };
+    imageSampler = AxrImageSampler(imageSamplerConfig);
+
+    return AXR_SUCCESS;
+}
+
+AxrResult axrEngineAssetCreateImageSampler_LinearRepeat(
+    const std::string& imageSamplerName,
+    AxrImageSampler& imageSampler
+) {
+    const AxrImageSamplerConfig imageSamplerConfig{
+        .Name = imageSamplerName.c_str(),
+        .MinFilter = AXR_IMAGE_SAMPLER_FILTER_LINEAR,
+        .MagFilter = AXR_IMAGE_SAMPLER_FILTER_LINEAR,
+        .MipmapFilter = AXR_IMAGE_SAMPLER_FILTER_LINEAR,
+        .WrapU = AXR_IMAGE_SAMPLER_WRAP_REPEAT,
+        .WrapV = AXR_IMAGE_SAMPLER_WRAP_REPEAT,
+    };
+    imageSampler = AxrImageSampler(imageSamplerConfig);
+
+    return AXR_SUCCESS;
+}
+
+
+// ----------------------------------------- //
 // Image Engine Assets
 // ----------------------------------------- //
 
@@ -824,11 +940,10 @@ AxrResult axrEngineAssetCreateImage_MissingTexture(const std::string& imageName,
     image = AxrImage(imageConfig);
 
     std::vector<stbi_uc> imageData;
-    constexpr uint32_t width = 16;
-    constexpr uint32_t height = 16;
+    constexpr uint32_t size = 16;
 
-    for (uint32_t h = 0; h < height; ++h) {
-        for (uint32_t w = 0; w < width; ++w) {
+    for (uint32_t h = 0; h < size; ++h) {
+        for (uint32_t w = 0; w < size; ++w) {
             if ((h + w) % 2 == 0) {
                 // Magenta
                 imageData.push_back(255);
@@ -843,7 +958,7 @@ AxrResult axrEngineAssetCreateImage_MissingTexture(const std::string& imageName,
         }
     }
 
-    const AxrResult axrResult = image.setData(width, height, AXR_IMAGE_COLOR_CHANNELS_RGB, imageData.data());
+    const AxrResult axrResult = image.setData(size, size, AXR_IMAGE_COLOR_CHANNELS_RGB, imageData.data());
     if (AXR_FAILED(axrResult)) {
         return axrResult;
     }

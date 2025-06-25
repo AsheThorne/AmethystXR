@@ -18,23 +18,13 @@ axr::Result TestScene::setup() {
         return axr::Result::Error;
     }
 
-    const axr::ImageSamplerConfig imageSamplerConfig(
-        m_ImageSamplerName.c_str(),
-        axr::ImageSamplerFilterEnum::Nearest,
-        axr::ImageSamplerFilterEnum::Nearest,
-        axr::ImageSamplerFilterEnum::Nearest,
-        axr::ImageSamplerWrapEnum::Repeat,
-        axr::ImageSamplerWrapEnum::Repeat
-    );
-    if (AXR_FAILED(m_Scene.getAssetCollection().createImageSampler(imageSamplerConfig))) return axr::Result::Error;
-
-
     if (AXR_FAILED(
         m_Scene.getAssetCollection().createMaterial(
             m_MaterialName.c_str(),
             axr::EngineAssetMaterial_DefaultMaterial(
                 m_ImageName.c_str(),
-                m_ImageSamplerName.c_str())
+                axr::engineAssetGetName(axr::EngineAssetEnum::ImageSamplerNearestRepeat)
+            )
         )
     )) {
         return axr::Result::Error;

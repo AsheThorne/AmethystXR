@@ -683,6 +683,49 @@ AxrResult AxrAssetCollection::createImage(const AxrEngineAssetEnum engineAssetEn
     return AXR_SUCCESS;
 }
 
+AxrResult AxrAssetCollection::createImageSampler(const AxrEngineAssetEnum engineAssetEnum) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!axrEngineAssetIsImageSampler(engineAssetEnum)) {
+        axrLogError("Unable to create image sampler. Engine asset is not an image sampler.");
+        return AXR_ERROR;
+    }
+
+    const std::string& imageSamplerName = axrEngineAssetGetName(engineAssetEnum);
+    if (imageSamplerName.empty()) {
+        axrLogError("Unable to create image sampler. Unknown image sampler engine asset name.");
+        return AXR_ERROR;
+    }
+
+    if (m_ImageSamplers.contains(imageSamplerName)) {
+        axrLogError("Unable to create image sampler. An image sampler named: {0} already exists.", imageSamplerName.c_str());
+        return AXR_ERROR;
+    }
+
+    AxrImageSampler imageSampler;
+    const AxrResult axrResult = axrEngineAssetCreateImageSampler(imageSamplerName, engineAssetEnum, imageSampler);
+    if (AXR_FAILED(axrResult)) {
+        axrLogErrorLocation("Failed to create image sampler engine asset.");
+        return axrResult;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const auto insertResult = m_ImageSamplers.insert(std::pair(imageSamplerName, std::move(imageSampler)));
+    if (!insertResult.second) {
+        axrLogErrorLocation("Failed to insert image sampler.");
+        return AXR_ERROR;
+    }
+
+    OnImageSamplerCreatedCallbackGraphics(&insertResult.first->second);
+
+    return AXR_SUCCESS;
+}
+
 void AxrAssetCollection::cleanup() {
     unloadAssets();
 

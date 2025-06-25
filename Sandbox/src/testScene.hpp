@@ -49,7 +49,6 @@ private:
     std::string m_SceneName = "TestScene";
     std::string m_ModelName = "Cube";
     std::string m_ImageName = "UvTesterImage";
-    std::string m_ImageSamplerName = "ImageSampler";
     std::string m_MaterialName = "MyMaterial";
 
     axr::Application& m_Application;

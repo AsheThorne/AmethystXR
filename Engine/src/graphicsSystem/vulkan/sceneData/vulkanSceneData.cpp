@@ -1631,6 +1631,16 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
                 break;
             }
 
+            const AxrVulkanImageSamplerData* foundImageSamplerData = findImageSamplerData_shared(
+                imageSamplerBuffer->SamplerName
+            );
+
+            if (foundImageSamplerData == nullptr) {
+                axrLogErrorLocation("Failed to find image sampler named: {0}.", imageSamplerBuffer->SamplerName);
+                axrResult = AXR_ERROR;
+                break;
+            }
+
             const AxrVulkanImageData* foundImageData = nullptr;
             // We check if the image name is null because findImageData_shared takes an std::string.
             // Which can't be initialized with null.
@@ -1650,17 +1660,14 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
                     break;
                 }
 
-                // TODO: When we use the 'missing texture', make sure we use these sampler options NEAREST and REPEAT. otherwise it looks weird
-            }
+                // When we use the 'missing texture', try to use the image sampler options NEAREST and REPEAT. otherwise it looks weird
+                const AxrVulkanImageSamplerData* missingTextureImageSamplerData = findImageSamplerData_shared(
+                    axrEngineAssetGetImageSamplerName(AXR_ENGINE_ASSET_IMAGE_SAMPLER_NEAREST_REPEAT)
+                );
 
-            const AxrVulkanImageSamplerData* foundImageSamplerData = findImageSamplerData_shared(
-                imageSamplerBuffer->SamplerName
-            );
-
-            if (foundImageSamplerData == nullptr) {
-                axrLogErrorLocation("Failed to find image sampler named: {0}.", imageSamplerBuffer->SamplerName);
-                axrResult = AXR_ERROR;
-                break;
+                if (missingTextureImageSamplerData != nullptr) {
+                    foundImageSamplerData = missingTextureImageSamplerData;
+                }
             }
 
             descriptorImageInfos.emplace_back(

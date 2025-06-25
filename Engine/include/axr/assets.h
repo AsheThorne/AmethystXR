@@ -28,34 +28,40 @@
 enum AxrEngineAssetEnum {
     AXR_ENGINE_ASSET_UNDEFINED = 0,
 
-    // ---- Shaders ----
+    // ---- Shaders - Max of 64 ----
     AXR_ENGINE_ASSET_SHADER_START = 1,
     AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT = 1,
     AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG = 2,
     AXR_ENGINE_ASSET_SHADER_END = 64,
 
-    // ---- Uniform Buffers ----
+    // ---- Uniform Buffers - Max of 32 ----
     AXR_ENGINE_ASSET_UNIFORM_BUFFER_START = 65,
     AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA = 65,
     AXR_ENGINE_ASSET_UNIFORM_BUFFER_END = 96,
 
-    // ---- Push Constant Buffers ----
+    // ---- Push Constant Buffers - Max of 32 ----
     AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_START = 97,
     AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX = 97,
     AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_END = 128,
 
-    // ---- Models ----
-    AXR_ENGINE_ASSET_MODEL_START = 129,
-    AXR_ENGINE_ASSET_MODEL_TRIANGLE = 129,
-    AXR_ENGINE_ASSET_MODEL_SQUARE = 130,
-    AXR_ENGINE_ASSET_MODEL_CUBE = 131,
-    AXR_ENGINE_ASSET_MODEL_END = 192,
+    // ---- Images - Max of 64 ----
+    AXR_ENGINE_ASSET_IMAGE_START = 129,
+    AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE = 129,
+    AXR_ENGINE_ASSET_IMAGE_UV_TESTER = 130,
+    AXR_ENGINE_ASSET_IMAGE_END = 192,
 
-    // ---- Images ----
-    AXR_ENGINE_ASSET_IMAGE_START = 193,
-    AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE = 193,
-    AXR_ENGINE_ASSET_IMAGE_UV_TESTER = 194,
-    AXR_ENGINE_ASSET_IMAGE_END = 256,
+    // ---- Image Samplers - Max of 8 ----
+    AXR_ENGINE_ASSET_IMAGE_SAMPLER_START = 193,
+    AXR_ENGINE_ASSET_IMAGE_SAMPLER_NEAREST_REPEAT = 193,
+    AXR_ENGINE_ASSET_IMAGE_SAMPLER_LINEAR_REPEAT = 194,
+    AXR_ENGINE_ASSET_IMAGE_SAMPLER_END = 200,
+
+    // ---- Models - Max of 64 ----
+    AXR_ENGINE_ASSET_MODEL_START = 201,
+    AXR_ENGINE_ASSET_MODEL_TRIANGLE = 201,
+    AXR_ENGINE_ASSET_MODEL_SQUARE = 202,
+    AXR_ENGINE_ASSET_MODEL_CUBE = 203,
+    AXR_ENGINE_ASSET_MODEL_END = 264,
 };
 
 // ----------------------------------------- //
@@ -1088,7 +1094,7 @@ extern "C" {
     /// Destroy the given model file info
     /// @param modelFileInfo Model file info
     AXR_API void axrModelFileInfoDestroy(AxrModelFileInfo* modelFileInfo);
-    
+
     /// Get a model's file info
     /// @param path The model's file path
     /// @param modelFileInfo Output model file info
