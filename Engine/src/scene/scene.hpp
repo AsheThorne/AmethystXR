@@ -67,9 +67,13 @@ public:
     // These functions are only to be used internally in the AmethystXr engine.
     // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
 
+    /// Check if the main camera is valid
+    /// @returns True if the main camera is valid
+    [[nodiscard]] bool isMainCameraValid() const;
+    
     /// Get the main scene's main camera
     /// @returns The main camera
-    AxrEntityConst_T getMainCamera() const;
+    [[nodiscard]] AxrEntityConst_T getMainCamera() const;
 
 private:
     // ----------------------------------------- //

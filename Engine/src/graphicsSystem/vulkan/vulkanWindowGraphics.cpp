@@ -221,34 +221,34 @@ AxrResult AxrVulkanWindowGraphics::presentFrame() {
 
 void AxrVulkanWindowGraphics::getRenderingMatrices(glm::mat4& viewMatrix, glm::mat4& projectionMatrix) const {
     const AxrScene_T activeScene = m_LoadedScenes.getActiveScene();
+    if (activeScene == nullptr) {
+        axrLogErrorLocation("No active scene.");
+        return;
+    }
+
+    if (!activeScene->isMainCameraValid()) {
+        axrLogErrorLocation("No main camera.");
+        return;
+    }
+
     const AxrEntityConst_T cameraEntity = activeScene->getMainCamera();
-    if (cameraEntity == entt::null) {
-        axrLogErrorLocation("Main camera missing.");
-        return;
-    }
-
     auto [cameraComponent, cameraTransformComponent] = cameraEntity
-        .try_get<AxrCameraComponent, AxrTransformComponent>();
-
-    if (cameraComponent == nullptr || cameraTransformComponent == nullptr) {
-        axrLogErrorLocation("Main camera missing required components.");
-        return;
-    }
+        .get<AxrCameraComponent, AxrTransformComponent>();
 
     viewMatrix = glm::inverse(
-        glm::translate(glm::mat4(1.0f), cameraTransformComponent->Position) *
-        glm::toMat4(cameraTransformComponent->Orientation)
+        glm::translate(glm::mat4(1.0f), cameraTransformComponent.Position) *
+        glm::toMat4(cameraTransformComponent.Orientation)
     );
 
     const float aspectRatio = static_cast<float>(m_SwapchainExtent.height) / static_cast<float>(m_SwapchainExtent.
         width);
-    const float verticalFovRadians = 2.0f * atan(tan(glm::radians(cameraComponent->Fov) / 2.0f) * aspectRatio);
+    const float verticalFovRadians = 2.0f * atan(tan(glm::radians(cameraComponent.Fov) / 2.0f) * aspectRatio);
 
     projectionMatrix = glm::perspective(
         verticalFovRadians,
         static_cast<float>(m_SwapchainExtent.width) / static_cast<float>(m_SwapchainExtent.height),
-        cameraComponent->NearPlane,
-        cameraComponent->FarPlane
+        cameraComponent.NearPlane,
+        cameraComponent.FarPlane
     );
     projectionMatrix[1][1] *= -1.0f;
 }
