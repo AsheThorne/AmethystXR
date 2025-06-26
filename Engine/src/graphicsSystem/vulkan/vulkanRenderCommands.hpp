@@ -76,7 +76,7 @@ public:
     }
 
     /// Acquire the next image in the swapchain
-    /// @returns AXR_SUCCESS if the function succeeded
+    /// @returns AXR_SUCCESS if the function succeeded. AXR_DONT_RENDER if the window is minimized.
     [[nodiscard]] AxrResult acquireNextSwapchainImage() const {
         return m_RenderTarget.acquireNextSwapchainImage();
     }
@@ -324,7 +324,7 @@ public:
     }
 
     /// Present the current frame
-    /// @returns AXR_SUCCESS if the function succeeded
+    /// @returns AXR_SUCCESS if the function succeeded. AXR_DONT_RENDER if the window is minimized.
     [[nodiscard]] AxrResult presentFrame() const {
         return m_RenderTarget.presentFrame();
     }

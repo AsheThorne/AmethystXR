@@ -133,10 +133,10 @@ public:
     [[nodiscard]] uint32_t getCurrentRenderingFrame() const;
 
     /// Acquire the next swapchain image
-    /// @returns AXR_SUCCESS if the function succeeded
+    /// @returns AXR_SUCCESS if the function succeeded. AXR_DONT_RENDER if the window is minimized.
     [[nodiscard]] AxrResult acquireNextSwapchainImage();
     /// Present the current frame to the window
-    /// @returns AXR_SUCCESS if the function succeeded
+    /// @returns AXR_SUCCESS if the function succeeded. AXR_DONT_RENDER if the window is minimized.
     [[nodiscard]] AxrResult presentFrame();
 
     /// Update the "Scene Data" engine asset uniform buffer for the given scene
@@ -250,7 +250,7 @@ private:
     void resetSetupSwapchain();
 
     /// Recreate the swapchain and it's related data
-    /// @returns AXR_SUCCESS if the function succeeded
+    /// @returns AXR_SUCCESS if the function succeeded. AXR_DONT_RENDER if the window is minimized.
     [[nodiscard]] AxrResult recreateSwapchain();
 
     /// Set the swapchain color and depth formats

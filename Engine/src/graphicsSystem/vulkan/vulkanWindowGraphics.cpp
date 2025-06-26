@@ -132,9 +132,18 @@ uint32_t AxrVulkanWindowGraphics::getCurrentRenderingFrame() const {
 }
 
 AxrResult AxrVulkanWindowGraphics::acquireNextSwapchainImage() {
-    if (m_IsSwapchainOutOfDate && AXR_FAILED(recreateSwapchain())) {
-        axrLogErrorLocation("Failed to recreate swapchain.");
-        return AXR_ERROR;
+    AxrResult axrResult = AXR_SUCCESS;
+
+    if (m_IsSwapchainOutOfDate) {
+        axrResult = recreateSwapchain();
+        if (axrResult == AXR_DONT_RENDER) {
+            return AXR_DONT_RENDER;
+        }
+
+        if (AXR_FAILED(axrResult)) {
+            axrLogErrorLocation("Failed to recreate swapchain.");
+            return AXR_ERROR;
+        }
     }
 
     const vk::Result vkResult = m_Device.acquireNextImageKHR(
@@ -145,17 +154,22 @@ AxrResult AxrVulkanWindowGraphics::acquireNextSwapchainImage() {
         &m_CurrentImageIndex,
         m_Dispatch
     );
-    axrLogVkResult(vkResult, "m_Device.acquireNextImageKHR");
 
     if (vkResult == vk::Result::eErrorOutOfDateKHR || vkResult == vk::Result::eSuboptimalKHR) {
-        if (AXR_FAILED(recreateSwapchain())) {
+        axrResult = recreateSwapchain();
+        if (axrResult == AXR_DONT_RENDER) {
+            return AXR_DONT_RENDER;
+        }
+
+        if (AXR_FAILED(axrResult)) {
             axrLogErrorLocation("Failed to recreate swapchain.");
+            return axrResult;
+        }
+    } else {
+        axrLogVkResult(vkResult, "m_Device.acquireNextImageKHR");
+        if (VK_FAILED(vkResult)) {
             return AXR_ERROR;
         }
-    }
-
-    if (VK_FAILED(vkResult)) {
-        return AXR_ERROR;
     }
 
     return AXR_SUCCESS;
@@ -177,14 +191,19 @@ AxrResult AxrVulkanWindowGraphics::presentFrame() {
         &presentInfo,
         m_Dispatch
     );
-    axrLogVkResult(vkResult, "PresentationQueue.presentKHR");
 
     if (vkResult == vk::Result::eErrorOutOfDateKHR || vkResult == vk::Result::eSuboptimalKHR) {
-        if (AXR_FAILED(recreateSwapchain())) {
+        const AxrResult axrResult = recreateSwapchain();
+        if (axrResult == AXR_DONT_RENDER) {
+            return AXR_DONT_RENDER;
+        }
+
+        if (AXR_FAILED(axrResult)) {
             axrLogErrorLocation("Failed to recreate swapchain.");
-            return AXR_ERROR;
+            return axrResult;
         }
     } else {
+        axrLogVkResult(vkResult, "PresentationQueue.presentKHR");
         if (AXR_FAILED(vkResult)) {
             return AXR_ERROR;
         }
@@ -212,8 +231,8 @@ AxrResult AxrVulkanWindowGraphics::updateSceneDataUniformBuffer(const AxrVulkanS
     // TODO: Use the active camera's properties
     AxrEngineAssetUniformBuffer_SceneData sceneDataEngineAsset{
         .ViewMatrix = glm::lookAt(
-            glm::vec3(0.0f, 1.0f, 0.0f),
-            glm::vec3(1.0f, 1.0f, 0.0f),
+            glm::vec3(0.0f, 1.0f, 2.0f),
+            glm::vec3(0.0f, 0.0f, 0.0f),
             glm::vec3(0.0f, 1.0f, 0.0f)
         ),
         .ProjectionMatrix = glm::perspective(
@@ -634,7 +653,7 @@ AxrResult AxrVulkanWindowGraphics::recreateSwapchain() {
 
     if (width == 0 || height == 0) {
         m_IsSwapchainOutOfDate = true;
-        return AXR_SUCCESS;
+        return AXR_DONT_RENDER;
     }
 
     const vk::Result vkResult = m_Device.waitIdle(m_Dispatch);
@@ -1304,7 +1323,9 @@ AxrResult AxrVulkanWindowGraphics::onWindowOpenStateChangedCallback(const bool i
 }
 
 void AxrVulkanWindowGraphics::onWindowResizedCallback(uint32_t width, uint32_t height) {
-    if (AXR_FAILED(recreateSwapchain())) {
+    const AxrResult axrResult = recreateSwapchain();
+
+    if (axrResult != AXR_DONT_RENDER && AXR_FAILED(axrResult)) {
         axrLogErrorLocation("Failed to recreate swapchain.");
     }
 }

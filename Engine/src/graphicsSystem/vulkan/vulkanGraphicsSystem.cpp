@@ -1201,6 +1201,9 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
     }
 
     axrResult = renderCommands.acquireNextSwapchainImage();
+    if (axrResult == AXR_DONT_RENDER) {
+        return AXR_SUCCESS;
+    }
     if (AXR_FAILED(axrResult)) {
         return axrResult;
     }
@@ -1246,6 +1249,9 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
     }
 
     axrResult = renderCommands.presentFrame();
+    if (axrResult == AXR_DONT_RENDER) {
+        return AXR_SUCCESS;
+    }
     if (AXR_FAILED(axrResult)) {
         return axrResult;
     }

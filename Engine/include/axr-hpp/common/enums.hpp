@@ -15,6 +15,7 @@ namespace axr {
     enum class Result {
         // ---- Failed----
         Error = AXR_ERROR,
+        DontRender = AXR_DONT_RENDER,
 
         // ---- Succeeded ----
         Success = AXR_SUCCESS,
