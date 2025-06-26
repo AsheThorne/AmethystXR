@@ -72,6 +72,10 @@ extern "C" {
     /// @param app The AxrApplication to use
     /// @returns A handle to the global asset collection
     AXR_API AxrAssetCollection_T axrApplicationGetGlobalAssetCollection(AxrApplication_T app);
+    /// Get the delta time from the last time processEvents() was called
+    /// @param app The AxrApplication to use
+    /// @returns The delta time
+    AXR_API float axrApplicationGetDeltaTime(AxrApplication_T app);
 
     /// Create a new scene
     /// @param app The AxrApplication to use

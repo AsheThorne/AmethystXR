@@ -64,6 +64,9 @@ public:
     /// Get the global asset collection
     /// @returns A handle to the global asset collection
     [[nodiscard]] AxrAssetCollection_T getGlobalAssetCollection();
+    /// Get the delta time from the last time processEvents() was called
+    /// @returns The delta time
+    [[nodiscard]] float getDeltaTime() const;
 
     /// Create a new scene
     /// @param sceneName Name of the scene
@@ -95,6 +98,7 @@ private:
     AxrGraphicsSystem m_GraphicsSystem;
     AxrAssetCollection m_GlobalAssetCollection;
     std::unordered_map<std::string, AxrScene> m_Scenes;
+    float m_DeltaTime;
 
     // ----------------------------------------- //
     // Private Functions

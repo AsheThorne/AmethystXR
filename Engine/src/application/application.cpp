@@ -5,7 +5,10 @@
 #include "application.hpp"
 #include "axr/logger.h"
 
-#include <iostream>
+// ----------------------------------------- //
+// C/C++ Headers
+// ----------------------------------------- //
+#include <chrono>
 
 // ----------------------------------------- //
 // External Functions
@@ -81,6 +84,15 @@ AxrAssetCollection_T axrApplicationGetGlobalAssetCollection(const AxrApplication
     return app->getGlobalAssetCollection();
 }
 
+float axrApplicationGetDeltaTime(const AxrApplication_T app) {
+    if (app == nullptr) {
+        axrLogErrorLocation("`app` is null.");
+        return 0;
+    }
+
+    return app->getDeltaTime();
+}
+
 AxrResult axrApplicationCreateScene(const AxrApplication_T app, const char* sceneName) {
     if (app == nullptr) {
         axrLogErrorLocation("`app` is null.");
@@ -140,7 +152,8 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
             .GlobalAssetCollection = &m_GlobalAssetCollection,
             .GraphicsConfig = config.GraphicsSystemConfig,
         }
-    ) {
+    ),
+    m_DeltaTime(0) {
 }
 
 AxrApplication::~AxrApplication() {
@@ -174,6 +187,12 @@ bool AxrApplication::isRunning() const {
 void AxrApplication::processEvents() {
     // TODO: Process OpenXR events too
     m_WindowSystem.processEvents();
+
+    static std::chrono::high_resolution_clock::time_point lastFrameTime = std::chrono::high_resolution_clock::now();
+    const std::chrono::high_resolution_clock::time_point currentFrameTime = std::chrono::high_resolution_clock::now();
+    const std::chrono::duration<float> deltaTime = currentFrameTime - lastFrameTime;
+    m_DeltaTime = deltaTime.count();
+    lastFrameTime = currentFrameTime;
 }
 
 AxrWindowSystem_T AxrApplication::getWindowSystem() {
@@ -186,6 +205,10 @@ AxrGraphicsSystem_T AxrApplication::getGraphicsSystem() {
 
 AxrAssetCollection_T AxrApplication::getGlobalAssetCollection() {
     return &m_GlobalAssetCollection;
+}
+
+float AxrApplication::getDeltaTime() const {
+    return m_DeltaTime;
 }
 
 AxrResult AxrApplication::createScene(const std::string& sceneName) {

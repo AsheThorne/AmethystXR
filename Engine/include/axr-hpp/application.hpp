@@ -134,7 +134,7 @@ namespace axr {
         }
 
         /// Process application events
-        void processEvents() {
+        void processEvents() const {
             axrApplicationProcessEvents(m_Application);
         }
 
@@ -154,6 +154,12 @@ namespace axr {
         /// @returns A handle to the global asset collection
         [[nodiscard]] axr::AssetCollection getGlobalAssetCollection() const {
             return axrApplicationGetGlobalAssetCollection(m_Application);
+        }
+
+        /// Get the delta time from the last time processEvents() was called
+        /// @returns The delta time
+        [[nodiscard]] float getDeltaTime() const {
+            return axrApplicationGetDeltaTime(m_Application);
         }
 
         /// Create a new scene
