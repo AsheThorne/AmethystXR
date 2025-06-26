@@ -101,6 +101,9 @@ public:
     /// @returns True if the window graphics are ready for rendering
     [[nodiscard]] bool isReady() const;
 
+    /// Get the platform type
+    /// @returns the platform type
+    [[nodiscard]] AxrPlatformType getPlatformType() const;
     /// Get the render pass
     /// @returns The render pass
     [[nodiscard]] vk::RenderPass getRenderPass() const;
@@ -139,10 +142,10 @@ public:
     /// @returns AXR_SUCCESS if the function succeeded. AXR_DONT_RENDER if the window is minimized.
     [[nodiscard]] AxrResult presentFrame();
 
-    /// Update the "Scene Data" engine asset uniform buffer for the given scene
-    /// @param sceneData Scene to update uniform buffer on
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult updateSceneDataUniformBuffer(const AxrVulkanSceneData* sceneData) const;
+    /// Get the rendering matrices for the current frame
+    /// @param viewMatrix Output view matrix
+    /// @param projectionMatrix Output projection matrix
+    void getRenderingMatrices(glm::mat4& viewMatrix, glm::mat4& projectionMatrix) const;
 
 private:
     // ----------------------------------------- //

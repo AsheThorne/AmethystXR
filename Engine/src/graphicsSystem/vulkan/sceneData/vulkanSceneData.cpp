@@ -222,20 +222,37 @@ AxrVulkanSceneData::getMaterialsForRendering() const {
     return m_MaterialsForRendering;
 }
 
-AxrResult AxrVulkanSceneData::setWindowUniformBufferData(
+AxrResult AxrVulkanSceneData::setPlatformUniformBufferData(
+    const AxrPlatformType platformType,
     const std::string& bufferName,
     const uint32_t frameIndex,
     const vk::DeviceSize offset,
     const vk::DeviceSize dataSize,
     const void* data
 ) const {
-    const AxrVulkanUniformBufferData* foundUniformBufferData = findWindowUniformBufferData_shared(bufferName);
-    if (foundUniformBufferData == nullptr) {
-        axrLogErrorLocation("Window uniform buffer does not exist.");
-        return AXR_ERROR;
+    const AxrVulkanUniformBufferData* uniformBufferData = nullptr;
+
+    switch (platformType) {
+        case AXR_PLATFORM_TYPE_WINDOW: {
+            uniformBufferData = findWindowUniformBufferData_shared(bufferName);
+            if (uniformBufferData == nullptr) {
+                axrLogErrorLocation("Window uniform buffer does not exist.");
+                return AXR_ERROR;
+            }
+            break;
+        }
+        case AXR_PLATFORM_TYPE_XR_DEVICE: {
+            axrLogErrorLocation("XR uniform buffers don't exist yet.");
+            return AXR_ERROR;
+        }
+        case AXR_PLATFORM_TYPE_UNDEFINED:
+        default:{
+            axrLogErrorLocation("Unknown platform type.");
+            return AXR_ERROR;
+        }
     }
 
-    const AxrResult axrResult = foundUniformBufferData->setData(frameIndex, offset, dataSize, data);
+    const AxrResult axrResult = uniformBufferData->setData(frameIndex, offset, dataSize, data);
     if (AXR_FAILED(axrResult)) {
         axrLogErrorLocation(
             "Failed to set window uniform buffer data for buffer named: {0}. At index: {1}",

@@ -125,14 +125,16 @@ public:
     /// @returns The collection of materials for rendering
     [[nodiscard]] const std::unordered_map<std::string, MaterialForRendering>& getMaterialsForRendering() const;
 
-    /// Set window specific named uniform buffer data
+    /// Set platform specific uniform buffer data
+    /// @param platformType Platform type
     /// @param bufferName Buffer name
     /// @param frameIndex Frame index to use
     /// @param offset Data offset
     /// @param dataSize Data size
     /// @param data Data
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setWindowUniformBufferData(
+    [[nodiscard]] AxrResult setPlatformUniformBufferData(
+        AxrPlatformType platformType,
         const std::string& bufferName,
         uint32_t frameIndex,
         vk::DeviceSize offset,

@@ -91,6 +91,10 @@ bool AxrVulkanWindowGraphics::isReady() const {
     return m_IsReady;
 }
 
+AxrPlatformType AxrVulkanWindowGraphics::getPlatformType() const {
+    return AXR_PLATFORM_TYPE_WINDOW;
+}
+
 vk::RenderPass AxrVulkanWindowGraphics::getRenderPass() const {
     return m_RenderPass;
 }
@@ -214,45 +218,21 @@ AxrResult AxrVulkanWindowGraphics::presentFrame() {
     return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanWindowGraphics::updateSceneDataUniformBuffer(const AxrVulkanSceneData* sceneData) const {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
-
-    if (sceneData == nullptr) {
-        axrLogErrorLocation("Scene data is null.");
-        return AXR_ERROR;
-    }
-
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
-
+void AxrVulkanWindowGraphics::getRenderingMatrices(glm::mat4& viewMatrix, glm::mat4& projectionMatrix) const {
     // TODO: Use the active camera's properties
-    AxrEngineAssetUniformBuffer_SceneData sceneDataEngineAsset{
-        .ViewMatrix = glm::lookAt(
-            glm::vec3(0.0f, 1.0f, 2.0f),
-            glm::vec3(0.0f, 0.0f, 0.0f),
-            glm::vec3(0.0f, 1.0f, 0.0f)
-        ),
-        .ProjectionMatrix = glm::perspective(
-            glm::radians(45.0f),
-            static_cast<float>(m_SwapchainExtent.width) / static_cast<float>(m_SwapchainExtent.height),
-            0.1f,
-            1000.0f
-        )
-    };
-    sceneDataEngineAsset.ProjectionMatrix[1][1] *= -1.0f;
-
-    // TODO: I don't think we should set the whole scene data object in the window graphics class.
-    //  We just need to get the view matrix and projection matrix for the window.
-    return sceneData->setWindowUniformBufferData(
-        axrEngineAssetGetUniformBufferName(AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA),
-        m_CurrentFrame,
-        0,
-        sizeof(sceneDataEngineAsset),
-        &sceneDataEngineAsset
+    viewMatrix = glm::lookAt(
+        glm::vec3(0.0f, 1.0f, 2.0f),
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f)
     );
+
+    projectionMatrix = glm::perspective(
+        glm::radians(45.0f),
+        static_cast<float>(m_SwapchainExtent.width) / static_cast<float>(m_SwapchainExtent.height),
+        0.1f,
+        1000.0f
+    );
+    projectionMatrix[1][1] *= -1.0f;
 }
 
 // ---- Private Functions ----

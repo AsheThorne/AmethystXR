@@ -50,10 +50,22 @@ public:
     /// Update all necessary uniform buffers for the current frame
     /// @param sceneData The active scene
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult updateUniformBuffers(AxrVulkanSceneData* sceneData) const {
+    [[nodiscard]] AxrResult updateUniformBuffers(const AxrVulkanSceneData* sceneData) const {
         AxrResult axrResult = AXR_SUCCESS;
+        const uint32_t currentFrame = m_RenderTarget.getCurrentRenderingFrame();
+        const AxrPlatformType platformType = m_RenderTarget.getPlatformType();
 
-        axrResult = m_RenderTarget.updateSceneDataUniformBuffer(sceneData);
+        AxrEngineAssetUniformBuffer_SceneData sceneDataUniformBuffer{};
+        m_RenderTarget.getRenderingMatrices(sceneDataUniformBuffer.ViewMatrix, sceneDataUniformBuffer.ProjectionMatrix);
+
+        axrResult = sceneData->setPlatformUniformBufferData(
+            platformType,
+            axrEngineAssetGetUniformBufferName(AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA),
+            currentFrame,
+            0,
+            sizeof(sceneDataUniformBuffer),
+            &sceneDataUniformBuffer
+        );
         if (AXR_FAILED(axrResult)) {
             return axrResult;
         }
