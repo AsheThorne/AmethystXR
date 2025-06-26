@@ -30,7 +30,8 @@ AxrVulkanSceneData::AxrVulkanSceneData(const Config& config):
     m_MaxSamplerAnisotropy(config.MaxSamplerAnisotropy),
     m_DispatchHandle(config.DispatchHandle),
     m_IsWindowDataLoaded(false),
-    m_WindowRenderPass(VK_NULL_HANDLE) {
+    m_WindowRenderPass(VK_NULL_HANDLE),
+    m_WindowMsaaSampleCount(vk::SampleCountFlagBits::e1) {
 }
 
 AxrVulkanSceneData::~AxrVulkanSceneData() {
@@ -170,7 +171,10 @@ void AxrVulkanSceneData::unloadScene() {
     }
 }
 
-AxrResult AxrVulkanSceneData::loadWindowData(const vk::RenderPass renderPass) {
+AxrResult AxrVulkanSceneData::loadWindowData(
+    const vk::RenderPass renderPass,
+    const vk::SampleCountFlagBits msaaSampleCount
+) {
     AxrResult axrResult = AXR_SUCCESS;
 
     axrResult = createAllWindowUniformBufferData();
@@ -179,13 +183,14 @@ AxrResult AxrVulkanSceneData::loadWindowData(const vk::RenderPass renderPass) {
         return axrResult;
     }
 
-    axrResult = createAllWindowMaterialData(renderPass);
+    axrResult = createAllWindowMaterialData(renderPass, msaaSampleCount);
     if (AXR_FAILED(axrResult)) {
         unloadWindowData();
         return axrResult;
     }
 
     m_WindowRenderPass = renderPass;
+    m_WindowMsaaSampleCount = msaaSampleCount;
     m_IsWindowDataLoaded = true;
 
     axrResult = writeAllDescriptorSets(AXR_PLATFORM_TYPE_WINDOW);
@@ -209,6 +214,7 @@ void AxrVulkanSceneData::unloadWindowData() {
     destroyAllWindowUniformBufferData();
 
     m_WindowRenderPass = VK_NULL_HANDLE;
+    m_WindowMsaaSampleCount = vk::SampleCountFlagBits::e1;
 }
 
 const std::unordered_map<std::string, AxrVulkanSceneData::MaterialForRendering>&
@@ -1392,11 +1398,14 @@ AxrResult AxrVulkanSceneData::initializeMaterialData(const AxrMaterial& material
     return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanSceneData::createAllWindowMaterialData(const vk::RenderPass renderPass) {
+AxrResult AxrVulkanSceneData::createAllWindowMaterialData(
+    const vk::RenderPass renderPass,
+    const vk::SampleCountFlagBits msaaSampleCount
+) {
     AxrResult axrResult = AXR_SUCCESS;
 
     for (auto& [name, data] : m_MaterialData) {
-        axrResult = data.createWindowData(renderPass);
+        axrResult = data.createWindowData(renderPass, msaaSampleCount);
         if (AXR_FAILED(axrResult)) {
             break;
         }
@@ -1473,7 +1482,7 @@ void AxrVulkanSceneData::onMaterialCreatedCallback(const AxrMaterialConst_T mate
     axrResult = materialData.createData();
 
     if (AXR_SUCCEEDED(axrResult) && isPlatformLoaded(AXR_PLATFORM_TYPE_WINDOW)) {
-        axrResult = materialData.createWindowData(m_WindowRenderPass);
+        axrResult = materialData.createWindowData(m_WindowRenderPass, m_WindowMsaaSampleCount);
     }
 
     if (AXR_FAILED(axrResult)) {

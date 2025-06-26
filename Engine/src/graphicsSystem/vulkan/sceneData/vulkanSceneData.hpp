@@ -115,8 +115,9 @@ public:
 
     /// Load the window specific scene data
     /// @param renderPass Render pass to use
+    /// @param msaaSampleCount Msaa sample count
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult loadWindowData(vk::RenderPass renderPass);
+    [[nodiscard]] AxrResult loadWindowData(vk::RenderPass renderPass, vk::SampleCountFlagBits msaaSampleCount);
     /// Unload the window specific scene data
     void unloadWindowData();
 
@@ -169,6 +170,7 @@ private:
     // ---- Window data ----
     bool m_IsWindowDataLoaded;
     vk::RenderPass m_WindowRenderPass;
+    vk::SampleCountFlagBits m_WindowMsaaSampleCount;
     /// Window specific engine defined uniform buffers
     std::unordered_map<std::string, AxrVulkanUniformBufferData> m_WindowUniformBufferData;
 
@@ -387,8 +389,12 @@ private:
 
     /// Create all window specific material data
     /// @param renderPass Render pass to use
+    /// @param msaaSampleCount Msaa sample count
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createAllWindowMaterialData(vk::RenderPass renderPass);
+    [[nodiscard]] AxrResult createAllWindowMaterialData(
+        vk::RenderPass renderPass,
+        vk::SampleCountFlagBits msaaSampleCount
+    );
     /// Destroy all window specific material data
     void destroyAllWindowMaterialData();
 

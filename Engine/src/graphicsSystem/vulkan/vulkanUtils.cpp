@@ -321,4 +321,97 @@ vk::SamplerAddressMode axrToVkSamplerAddressMode(const AxrImageSamplerWrapEnum s
     }
 }
 
+vk::SampleCountFlagBits axrToVkSampleCount(const AxrMsaaSampleCountEnum sampleCount) {
+    switch (sampleCount) {
+        case AXR_MSAA_SAMPLE_COUNT_1: {
+            return vk::SampleCountFlagBits::e1;
+        }
+        case AXR_MSAA_SAMPLE_COUNT_2: {
+            return vk::SampleCountFlagBits::e2;
+        }
+        case AXR_MSAA_SAMPLE_COUNT_4: {
+            return vk::SampleCountFlagBits::e4;
+        }
+        case AXR_MSAA_SAMPLE_COUNT_8: {
+            return vk::SampleCountFlagBits::e8;
+        }
+        case AXR_MSAA_SAMPLE_COUNT_16: {
+            return vk::SampleCountFlagBits::e16;
+        }
+        case AXR_MSAA_SAMPLE_COUNT_32: {
+            return vk::SampleCountFlagBits::e32;
+        }
+        case AXR_MSAA_SAMPLE_COUNT_64: {
+            return vk::SampleCountFlagBits::e64;
+        }
+        default: {
+            axrLogErrorLocation("Unknown AxrMsaaSampleCountEnum type.");
+            return vk::SampleCountFlagBits::e1;
+        }
+    }
+}
+
+bool axrIsVulkanMsaaEnabled(const vk::SampleCountFlagBits sampleCount) {
+    return sampleCount != vk::SampleCountFlagBits::e1;
+}
+
+vk::SampleCountFlagBits axrGetVulkanSampleCountLimit(
+    const vk::PhysicalDevice physicalDevice,
+    const vk::DispatchLoaderDynamic& dispatch
+) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (physicalDevice == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Physical device is null.");
+        return vk::SampleCountFlagBits::e1;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const vk::PhysicalDeviceProperties properties = physicalDevice.getProperties(dispatch);
+
+    const vk::SampleCountFlags availableSampleCounts = properties.limits.framebufferColorSampleCounts &
+        properties.limits.framebufferDepthSampleCounts;
+
+    if (availableSampleCounts & vk::SampleCountFlagBits::e64) {
+        return vk::SampleCountFlagBits::e64;
+    }
+    if (availableSampleCounts & vk::SampleCountFlagBits::e32) {
+        return vk::SampleCountFlagBits::e32;
+    }
+    if (availableSampleCounts & vk::SampleCountFlagBits::e16) {
+        return vk::SampleCountFlagBits::e16;
+    }
+    if (availableSampleCounts & vk::SampleCountFlagBits::e8) {
+        return vk::SampleCountFlagBits::e8;
+    }
+    if (availableSampleCounts & vk::SampleCountFlagBits::e4) {
+        return vk::SampleCountFlagBits::e4;
+    }
+    if (availableSampleCounts & vk::SampleCountFlagBits::e2) {
+        return vk::SampleCountFlagBits::e2;
+    }
+
+    return vk::SampleCountFlagBits::e1;
+}
+
+vk::SampleCountFlagBits axrGetVulkanSampleCountToUse(
+    const vk::PhysicalDevice physicalDevice,
+    const AxrMsaaSampleCountEnum sampleCount,
+    const vk::DispatchLoaderDynamic& dispatch
+) {
+    const vk::SampleCountFlagBits maxSupportedSampleCount = axrGetVulkanSampleCountLimit(physicalDevice, dispatch);
+    const vk::SampleCountFlagBits desiredSampleCount = axrToVkSampleCount(sampleCount);
+
+    if (desiredSampleCount > maxSupportedSampleCount) {
+        return maxSupportedSampleCount;
+    }
+
+    return desiredSampleCount;
+}
+
 #endif

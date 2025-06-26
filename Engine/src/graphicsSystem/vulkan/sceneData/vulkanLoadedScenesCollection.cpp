@@ -20,6 +20,7 @@ AxrVulkanLoadedScenesCollection::AxrVulkanLoadedScenesCollection():
     m_Dispatch(nullptr),
     m_IsSetup(false),
     m_WindowRenderPass(VK_NULL_HANDLE),
+    m_WindowMsaaSampleCount(vk::SampleCountFlagBits::e1),
     m_ActiveScene(nullptr) {
 }
 
@@ -185,7 +186,7 @@ AxrResult AxrVulkanLoadedScenesCollection::loadGlobalSceneData(const AxrAssetCol
     }
 
     if (isWindowReady()) {
-        axrResult = sceneData->loadWindowData(m_WindowRenderPass);
+        axrResult = sceneData->loadWindowData(m_WindowRenderPass, m_WindowMsaaSampleCount);
         if (AXR_FAILED(axrResult)) {
             unloadScene(sceneData->getSceneName());
             return axrResult;
@@ -238,7 +239,7 @@ AxrResult AxrVulkanLoadedScenesCollection::loadScene(
     }
 
     if (isWindowReady()) {
-        axrResult = sceneData->loadWindowData(m_WindowRenderPass);
+        axrResult = sceneData->loadWindowData(m_WindowRenderPass, m_WindowMsaaSampleCount);
         if (AXR_FAILED(axrResult)) {
             unloadScene(sceneData->getSceneName());
             return axrResult;
@@ -302,7 +303,10 @@ AxrVulkanSceneData* AxrVulkanLoadedScenesCollection::getActiveScene() const {
     return m_ActiveScene;
 }
 
-AxrResult AxrVulkanLoadedScenesCollection::setupWindowData(const vk::RenderPass renderPass) {
+AxrResult AxrVulkanLoadedScenesCollection::setupWindowData(
+    const vk::RenderPass renderPass,
+    const vk::SampleCountFlagBits msaaSampleCount
+) {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -327,6 +331,7 @@ AxrResult AxrVulkanLoadedScenesCollection::setupWindowData(const vk::RenderPass 
     // ----------------------------------------- //
 
     m_WindowRenderPass = renderPass;
+    m_WindowMsaaSampleCount = msaaSampleCount;
     // If anything new gets added here, make sure it also gets added to the isWindowReady() function
 
     return loadAllWindowSceneData();
@@ -334,6 +339,7 @@ AxrResult AxrVulkanLoadedScenesCollection::setupWindowData(const vk::RenderPass 
 
 void AxrVulkanLoadedScenesCollection::resetSetupWindowData() {
     m_WindowRenderPass = VK_NULL_HANDLE;
+    m_WindowMsaaSampleCount = vk::SampleCountFlagBits::e1;
 
     unloadAllWindowSceneData();
 }
@@ -405,7 +411,7 @@ AxrResult AxrVulkanLoadedScenesCollection::loadAllWindowSceneData() const {
     AxrResult axrResult = AXR_SUCCESS;
 
     for (AxrVulkanSceneData* scene : m_LoadedScenes) {
-        axrResult = scene->loadWindowData(m_WindowRenderPass);
+        axrResult = scene->loadWindowData(m_WindowRenderPass, m_WindowMsaaSampleCount);
         if (AXR_FAILED(axrResult)) {
             break;
         }

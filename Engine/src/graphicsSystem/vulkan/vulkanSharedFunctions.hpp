@@ -27,6 +27,7 @@
 /// @param colorFormat Color format to use
 /// @param depthStencilFormat Depth stencil format to use
 /// @param finalImageLayout Final image layout
+/// @param msaaSampleCount Msaa sample count
 /// @param renderPass Output created render pass
 /// @param dispatch Dispatch to use
 /// @returns AXR_SUCCESS if the function succeeded
@@ -35,6 +36,7 @@
     vk::Format colorFormat,
     vk::Format depthStencilFormat,
     vk::ImageLayout finalImageLayout,
+    vk::SampleCountFlagBits msaaSampleCount,
     vk::RenderPass& renderPass,
     const vk::DispatchLoaderDynamic& dispatch
 );
@@ -54,8 +56,10 @@ void axrDestroyRenderPass(
 /// @param device Device to use
 /// @param renderPass Render pass to use
 /// @param swapchainExtent Swapchain extent
+/// @param msaaSampleCount Msaa sample count
 /// @param swapchainColorImageViews Swapchain color image views
 /// @param swapchainDepthImageViews Swapchain depth image views
+/// @param swapchainMsaaImageViews Swapchain msaa image views
 /// @param framebuffers Output created framebuffers
 /// @param dispatch Dispatch to use
 /// @returns AXR_SUCCESS if the function succeeded
@@ -63,8 +67,10 @@ void axrDestroyRenderPass(
     const vk::Device& device,
     const vk::RenderPass& renderPass,
     const vk::Extent2D& swapchainExtent,
+    vk::SampleCountFlagBits msaaSampleCount,
     const std::vector<vk::ImageView>& swapchainColorImageViews,
     const std::vector<vk::ImageView>& swapchainDepthImageViews,
+    const std::vector<vk::ImageView>& swapchainMsaaImageViews,
     std::vector<vk::Framebuffer>& framebuffers,
     const vk::DispatchLoaderDynamic& dispatch
 );
@@ -82,8 +88,10 @@ void axrDestroyFramebuffers(
 /// @param device Device to use
 /// @param renderPass Render pass to use
 /// @param swapchainExtent Swapchain extent
+/// @param msaaSampleCount Msaa sample count
 /// @param swapchainColorImageView Swapchain color image view
 /// @param swapchainDepthImageView Swapchain depth image view
+/// @param swapchainMsaaImageView Swapchain msaa image view
 /// @param framebuffer Output created framebuffer
 /// @param dispatch Dispatch to use
 /// @returns AXR_SUCCESS if the function succeeded
@@ -91,8 +99,10 @@ void axrDestroyFramebuffers(
     const vk::Device& device,
     const vk::RenderPass& renderPass,
     const vk::Extent2D& swapchainExtent,
+    vk::SampleCountFlagBits msaaSampleCount,
     const vk::ImageView& swapchainColorImageView,
     const vk::ImageView& swapchainDepthImageView,
+    const vk::ImageView* swapchainMsaaImageView,
     vk::Framebuffer& framebuffer,
     const vk::DispatchLoaderDynamic& dispatch
 );

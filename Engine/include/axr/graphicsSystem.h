@@ -32,9 +32,25 @@ enum AxrGraphicsApiEnum {
     AXR_GRAPHICS_API_VULKAN = 1,
 };
 
+/// Multisample Anti-Aliasing sample count enum
+enum AxrMsaaSampleCountEnum {
+    AXR_MSAA_SAMPLE_COUNT_1 = 1,
+    AXR_MSAA_SAMPLE_COUNT_2 = 2,
+    AXR_MSAA_SAMPLE_COUNT_4 = 4,
+    AXR_MSAA_SAMPLE_COUNT_8 = 8,
+    AXR_MSAA_SAMPLE_COUNT_16 = 16,
+    AXR_MSAA_SAMPLE_COUNT_32 = 32,
+    AXR_MSAA_SAMPLE_COUNT_64 = 64,
+};
+
 // ----------------------------------------- //
 // Structs
 // ----------------------------------------- //
+
+/// Config for the window graphics
+struct AxrGraphicsWindowConfig {
+    AxrMsaaSampleCountEnum MaxMsaaSampleCount;
+};
 
 /// Config for the graphics system
 struct AxrGraphicsSystemConfig {
@@ -42,6 +58,7 @@ struct AxrGraphicsSystemConfig {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     AxrVulkanApiConfig_T VulkanConfig;
 #endif
+    const AxrGraphicsWindowConfig* GraphicsWindowConfig;
     glm::vec4 ClearColor;
     AxrSamplerAnisotropyQualityEnum SamplerAnisotropyQuality;
 };

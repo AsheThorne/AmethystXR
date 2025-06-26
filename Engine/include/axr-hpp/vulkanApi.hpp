@@ -162,11 +162,11 @@ namespace axr {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
+        const axr::VulkanWindowConfig* WindowConfig;
         uint32_t ApiLayerCount;
         AxrVulkanApiLayer_T* ApiLayers;
         uint32_t ExtensionCount;
         AxrVulkanExtension_T* Extensions;
-        axr::VulkanWindowConfig* WindowConfig;
 
         // ----------------------------------------- //
         // Special Functions
@@ -176,24 +176,24 @@ namespace axr {
 
         /// Default Constructor
         VulkanApiConfig():
+            WindowConfig(nullptr),
             ApiLayerCount(0),
             // equal to the same number of available options in VulkanApiLayerTypeEnum
             ApiLayers(new AxrVulkanApiLayer_T[static_cast<uint32_t>(VulkanApiLayerTypeEnum::End) - 1]{}),
             ExtensionCount(0),
             // equal to the same number of available options in VulkanExtensionTypeEnum
-            Extensions(new AxrVulkanExtension_T[static_cast<uint32_t>(VulkanExtensionTypeEnum::End) - 1]{}),
-            WindowConfig(nullptr) {
+            Extensions(new AxrVulkanExtension_T[static_cast<uint32_t>(VulkanExtensionTypeEnum::End) - 1]{}) {
         }
 
         /// Constructor
-        VulkanApiConfig(axr::VulkanWindowConfig* windowConfig):
+        VulkanApiConfig(const axr::VulkanWindowConfig* windowConfig):
+            WindowConfig(windowConfig),
             ApiLayerCount(0),
             // equal to the same number of available options in VulkanApiLayerTypeEnum
             ApiLayers(new AxrVulkanApiLayer_T[static_cast<uint32_t>(VulkanApiLayerTypeEnum::End) - 1]{}),
             ExtensionCount(0),
             // equal to the same number of available options in VulkanExtensionTypeEnum
-            Extensions(new AxrVulkanExtension_T[static_cast<uint32_t>(VulkanExtensionTypeEnum::End) - 1]{}),
-            WindowConfig(windowConfig) {
+            Extensions(new AxrVulkanExtension_T[static_cast<uint32_t>(VulkanExtensionTypeEnum::End) - 1]{}) {
         }
 
         /// Copy Constructor

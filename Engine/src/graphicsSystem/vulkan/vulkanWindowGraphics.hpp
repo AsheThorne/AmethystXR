@@ -30,6 +30,7 @@ public:
         AxrVulkanPresentationModeEnum PresentationMode;
         uint32_t MaxFramesInFlight;
         glm::vec4 ClearColor;
+        AxrMsaaSampleCountEnum MaxMsaaSampleCount;
     };
 
     /// AxrVulkanWindowGraphics Setup Config
@@ -155,6 +156,7 @@ private:
     AxrVulkanPresentationModeEnum m_PreferredPresentationMode;
     uint32_t m_MaxFramesInFlight;
     glm::vec4 m_ClearColor;
+    AxrMsaaSampleCountEnum m_MaxMsaaSampleCount;
 
     // ---- Setup Config ----
     vk::Instance m_Instance;
@@ -178,6 +180,7 @@ private:
     std::vector<vk::Image> m_SwapchainColorImages;
     std::vector<vk::ImageView> m_SwapchainColorImageViews;
     std::vector<AxrVulkanImage> m_SwapchainDepthImages;
+    std::vector<AxrVulkanImage> m_SwapchainMsaaImages;
     std::vector<vk::Framebuffer> m_SwapchainFramebuffers;
     /// One command buffer per frame in flight
     std::vector<vk::CommandBuffer> m_RenderingCommandBuffers;
@@ -191,6 +194,7 @@ private:
     uint32_t m_CurrentImageIndex;
     uint32_t m_CurrentFrame;
     bool m_IsSwapchainOutOfDate;
+    vk::SampleCountFlagBits m_MsaaSampleCount;
 
     // ----------------------------------------- //
     // Private Functions
@@ -319,11 +323,27 @@ private:
 
     // ---- Depth Buffer ----
 
-    /// Create the depth buffer resources
+    /// Create the depth buffer images
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createDepthBuffer();
-    /// Destroy the depth buffer resources
-    void destroyDepthBuffer();
+    [[nodiscard]] AxrResult createDepthBufferImages();
+    /// Destroy the depth buffer images
+    void destroyDepthBufferImages();
+
+    // ---- Msaa ----
+
+    /// Set the msaa sample count
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setMsaaSampleCount();
+    /// Reset the msaa sample count
+    void resetMsaaSampleCount();
+
+    /// Create the msaa images
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createMsaaImages();
+    /// Destroy the msaa images
+    void destroyMsaaImages();
+
+    // ---- Callbacks ----
 
     /// 'On window open state changed' callback function
     /// @param isWindowOpen If true, the window is open. If false, the window is closed.

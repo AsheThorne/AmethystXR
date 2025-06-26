@@ -183,7 +183,8 @@ void AxrVulkanMaterialData::destroyData() {
 }
 
 AxrResult AxrVulkanMaterialData::createWindowData(
-    const vk::RenderPass renderPass
+    const vk::RenderPass renderPass,
+    const vk::SampleCountFlagBits msaaSampleCount
 ) {
     // ----------------------------------------- //
     // Validation
@@ -217,7 +218,7 @@ AxrResult AxrVulkanMaterialData::createWindowData(
         return axrResult;
     }
 
-    axrResult = createPipeline(renderPass, m_WindowPipeline);
+    axrResult = createPipeline(renderPass, msaaSampleCount, m_WindowPipeline);
     if (AXR_FAILED(axrResult)) {
         destroyWindowData();
         return axrResult;
@@ -419,6 +420,7 @@ void AxrVulkanMaterialData::resetDescriptorSets(
 
 AxrResult AxrVulkanMaterialData::createPipeline(
     const vk::RenderPass renderPass,
+    const vk::SampleCountFlagBits msaaSampleCount,
     vk::Pipeline& pipeline
 ) const {
     // ----------------------------------------- //
@@ -582,10 +584,9 @@ AxrResult AxrVulkanMaterialData::createPipeline(
 
     // ---- Multisample State ----
 
-    // TODO: Implement multisampling
-    constexpr vk::PipelineMultisampleStateCreateInfo multisampleStateCreateInfo(
+    const vk::PipelineMultisampleStateCreateInfo multisampleStateCreateInfo(
         {},
-        vk::SampleCountFlagBits::e1,
+        msaaSampleCount,
         vk::False,
         1.0f,
         nullptr,

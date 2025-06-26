@@ -40,14 +40,25 @@ public:
     // ----------------------------------------- //
 
     /// Vulkan Graphics System Config
+
+    struct WindowConfig {
+        AxrVulkanPresentationModeEnum PresentationMode;
+        AxrMsaaSampleCountEnum MaxMsaaSampleCount;
+    };
+
+    /// Vulkan Graphics System Config
     struct Config {
         const char* ApplicationName;
         uint32_t ApplicationVersion;
         AxrWindowSystem_T WindowSystem;
         AxrAssetCollection_T GlobalAssetCollection;
-        AxrVulkanApiConfig_T VulkanConfig;
+        WindowConfig* WindowConfig;
         glm::vec4 ClearColor;
         AxrSamplerAnisotropyQualityEnum SamplerAnisotropyQuality;
+        uint32_t ApiLayerCount;
+        AxrVulkanApiLayer_T* ApiLayers;
+        uint32_t ExtensionCount;
+        AxrVulkanExtension_T* Extensions;
     };
 
     // ----------------------------------------- //

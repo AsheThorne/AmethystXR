@@ -27,17 +27,41 @@ AxrGraphicsSystem::AxrGraphicsSystem(const Config& config):
     m_GraphicsApi(config.GraphicsConfig.GraphicsApi) {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     if (config.GraphicsConfig.GraphicsApi == AXR_GRAPHICS_API_VULKAN) {
-        m_VulkanGraphicsSystem = new AxrVulkanGraphicsSystem(
-            AxrVulkanGraphicsSystem::Config{
-                .ApplicationName = config.ApplicationName,
-                .ApplicationVersion = config.ApplicationVersion,
-                .WindowSystem = config.WindowSystem,
-                .GlobalAssetCollection = config.GlobalAssetCollection,
-                .VulkanConfig = config.GraphicsConfig.VulkanConfig,
-                .ClearColor = config.GraphicsConfig.ClearColor,
-                .SamplerAnisotropyQuality = config.GraphicsConfig.SamplerAnisotropyQuality
+        if (config.GraphicsConfig.VulkanConfig != nullptr) {
+            AxrVulkanGraphicsSystem::WindowConfig windowConfig{};
+            bool useWindowConfig = false;
+
+            if (config.WindowSystem != nullptr) {
+                if (config.GraphicsConfig.VulkanConfig->WindowConfig != nullptr &&
+                    config.GraphicsConfig.GraphicsWindowConfig != nullptr) {
+                    windowConfig = AxrVulkanGraphicsSystem::WindowConfig{
+                        .PresentationMode = config.GraphicsConfig.VulkanConfig->WindowConfig->PresentationMode,
+                        .MaxMsaaSampleCount = config.GraphicsConfig.GraphicsWindowConfig->MaxMsaaSampleCount,
+                    };
+                    useWindowConfig = true;
+                } else {
+                    axrLogErrorLocation("Failed to set window graphics config. Missing window graphic configs.");
+                }
             }
-        );
+
+            m_VulkanGraphicsSystem = new AxrVulkanGraphicsSystem(
+                AxrVulkanGraphicsSystem::Config{
+                    .ApplicationName = config.ApplicationName,
+                    .ApplicationVersion = config.ApplicationVersion,
+                    .WindowSystem = config.WindowSystem,
+                    .GlobalAssetCollection = config.GlobalAssetCollection,
+                    .WindowConfig = useWindowConfig ? &windowConfig : nullptr,
+                    .ClearColor = config.GraphicsConfig.ClearColor,
+                    .SamplerAnisotropyQuality = config.GraphicsConfig.SamplerAnisotropyQuality,
+                    .ApiLayerCount = config.GraphicsConfig.VulkanConfig->ApiLayerCount,
+                    .ApiLayers = config.GraphicsConfig.VulkanConfig->ApiLayers,
+                    .ExtensionCount = config.GraphicsConfig.VulkanConfig->ExtensionCount,
+                    .Extensions = config.GraphicsConfig.VulkanConfig->Extensions,
+                }
+            );
+        } else {
+            axrLogErrorLocation("Vulkan config is null.");
+        }
     }
 #endif
 }

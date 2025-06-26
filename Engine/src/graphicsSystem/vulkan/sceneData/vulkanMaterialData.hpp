@@ -109,9 +109,11 @@ public:
 
     /// Create the window specific material data
     /// @param renderPass Render pass to use
+    /// @param msaaSampleCount Msaa sample count
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult createWindowData(
-        vk::RenderPass renderPass
+        vk::RenderPass renderPass,
+        vk::SampleCountFlagBits msaaSampleCount
     );
     /// Destroy the window specific material data
     void destroyWindowData();
@@ -184,10 +186,12 @@ private:
 
     /// Create a pipeline
     /// @param renderPass Render pass to use
+    /// @param msaaSampleCount Msaa sample count
     /// @param pipeline Output created pipeline
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult createPipeline(
         vk::RenderPass renderPass,
+        vk::SampleCountFlagBits msaaSampleCount,
         vk::Pipeline& pipeline
     ) const;
     /// Destroy the given pipeline

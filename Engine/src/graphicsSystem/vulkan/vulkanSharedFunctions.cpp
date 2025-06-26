@@ -13,6 +13,7 @@ AxrResult axrCreateRenderPass(
     const vk::Format colorFormat,
     const vk::Format depthStencilFormat,
     const vk::ImageLayout finalImageLayout,
+    const vk::SampleCountFlagBits msaaSampleCount,
     vk::RenderPass& renderPass,
     const vk::DispatchLoaderDynamic& dispatch
 ) {
@@ -34,22 +35,27 @@ AxrResult axrCreateRenderPass(
     // Process
     // ----------------------------------------- //
 
+    vk::ImageLayout colorAttachmentImageLayout = finalImageLayout;
+    if (axrIsVulkanMsaaEnabled(msaaSampleCount)) {
+        colorAttachmentImageLayout = vk::ImageLayout::eColorAttachmentOptimal;
+    }
+
     const vk::AttachmentDescription colorAttachment(
         {},
         colorFormat,
-        vk::SampleCountFlagBits::e1,
+        msaaSampleCount,
         vk::AttachmentLoadOp::eClear,
         vk::AttachmentStoreOp::eStore,
         vk::AttachmentLoadOp::eDontCare,
         vk::AttachmentStoreOp::eDontCare,
         vk::ImageLayout::eUndefined,
-        finalImageLayout
+        colorAttachmentImageLayout
     );
 
     const vk::AttachmentDescription depthStencilAttachment(
         {},
         depthStencilFormat,
-        vk::SampleCountFlagBits::e1,
+        msaaSampleCount,
         vk::AttachmentLoadOp::eClear,
         vk::AttachmentStoreOp::eDontCare,
         vk::AttachmentLoadOp::eDontCare,
@@ -58,10 +64,26 @@ AxrResult axrCreateRenderPass(
         vk::ImageLayout::eDepthStencilAttachmentOptimal
     );
 
-    const std::array attachments{
+    const vk::AttachmentDescription colorResolveAttachment(
+        {},
+        colorFormat,
+        vk::SampleCountFlagBits::e1,
+        vk::AttachmentLoadOp::eDontCare,
+        vk::AttachmentStoreOp::eStore,
+        vk::AttachmentLoadOp::eDontCare,
+        vk::AttachmentStoreOp::eDontCare,
+        vk::ImageLayout::eUndefined,
+        finalImageLayout
+    );
+
+    std::vector attachments{
         colorAttachment,
         depthStencilAttachment,
     };
+
+    if (axrIsVulkanMsaaEnabled(msaaSampleCount)) {
+        attachments.push_back(colorResolveAttachment);
+    }
 
     constexpr vk::AttachmentReference colorAttachmentRef(
         0,
@@ -73,7 +95,12 @@ AxrResult axrCreateRenderPass(
         vk::ImageLayout::eDepthStencilAttachmentOptimal
     );
 
-    const vk::SubpassDescription subpass(
+    constexpr vk::AttachmentReference colorResolveAttachmentRef(
+        2,
+        vk::ImageLayout::eColorAttachmentOptimal
+    );
+
+    vk::SubpassDescription subpass(
         {},
         vk::PipelineBindPoint::eGraphics,
         0,
@@ -86,7 +113,11 @@ AxrResult axrCreateRenderPass(
         nullptr
     );
 
-    constexpr vk::SubpassDependency dependency(
+    if (axrIsVulkanMsaaEnabled(msaaSampleCount)) {
+        subpass.pResolveAttachments = &colorResolveAttachmentRef;
+    }
+
+    vk::SubpassDependency dependency(
         vk::SubpassExternal,
         0,
         vk::PipelineStageFlagBits::eColorAttachmentOutput |
@@ -97,6 +128,11 @@ AxrResult axrCreateRenderPass(
         vk::AccessFlagBits::eColorAttachmentWrite |
         vk::AccessFlagBits::eDepthStencilAttachmentWrite
     );
+
+    if (axrIsVulkanMsaaEnabled(msaaSampleCount)) {
+        dependency.srcAccessMask |= vk::AccessFlagBits::eColorAttachmentWrite |
+            vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+    }
 
     const vk::RenderPassCreateInfo renderPassCreateInfo(
         {},
@@ -137,8 +173,10 @@ void axrDestroyRenderPass(
     const vk::Device& device,
     const vk::RenderPass& renderPass,
     const vk::Extent2D& swapchainExtent,
+    const vk::SampleCountFlagBits msaaSampleCount,
     const std::vector<vk::ImageView>& swapchainColorImageViews,
     const std::vector<vk::ImageView>& swapchainDepthImageViews,
+    const std::vector<vk::ImageView>& swapchainMsaaImageViews,
     std::vector<vk::Framebuffer>& framebuffers,
     const vk::DispatchLoaderDynamic& dispatch
 ) {
@@ -161,6 +199,13 @@ void axrDestroyRenderPass(
         return AXR_ERROR;
     }
 
+    if (axrIsVulkanMsaaEnabled(msaaSampleCount)) {
+        if (swapchainMsaaImageViews.empty()) {
+            axrLogErrorLocation("Swapchain msaa image views don't exist.");
+            return AXR_ERROR;
+        }
+    }
+
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //
@@ -173,8 +218,10 @@ void axrDestroyRenderPass(
             device,
             renderPass,
             swapchainExtent,
+            msaaSampleCount,
             swapchainColorImageViews[i],
             swapchainDepthImageViews[i],
+            axrIsVulkanMsaaEnabled(msaaSampleCount) ? &swapchainMsaaImageViews[i] : nullptr,
             framebuffers[i],
             dispatch
         );
@@ -207,8 +254,10 @@ AxrResult axrCreateFramebuffer(
     const vk::Device& device,
     const vk::RenderPass& renderPass,
     const vk::Extent2D& swapchainExtent,
+    const vk::SampleCountFlagBits msaaSampleCount,
     const vk::ImageView& swapchainColorImageView,
     const vk::ImageView& swapchainDepthImageView,
+    const vk::ImageView* swapchainMsaaImageView,
     vk::Framebuffer& framebuffer,
     const vk::DispatchLoaderDynamic& dispatch
 ) {
@@ -231,14 +280,29 @@ AxrResult axrCreateFramebuffer(
         return AXR_ERROR;
     }
 
+    if (axrIsVulkanMsaaEnabled(msaaSampleCount) && swapchainMsaaImageView == nullptr) {
+        axrLogErrorLocation("Swapchain msaa image view doesn't exist.");
+        return AXR_ERROR;
+    }
+
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //
 
-    const std::array attachments{
-        swapchainColorImageView,
-        swapchainDepthImageView
-    };
+    std::vector<vk::ImageView> attachments;
+
+    if (axrIsVulkanMsaaEnabled(msaaSampleCount)) {
+        attachments = std::vector{
+            *swapchainMsaaImageView,
+            swapchainDepthImageView,
+            swapchainColorImageView
+        };
+    } else {
+        attachments = std::vector{
+            swapchainColorImageView,
+            swapchainDepthImageView
+        };
+    }
 
     const vk::FramebufferCreateInfo framebufferCreateInfo(
         {},

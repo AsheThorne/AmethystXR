@@ -45,33 +45,29 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     m_GraphicsCommandPool(VK_NULL_HANDLE),
     m_TransferCommandPool(VK_NULL_HANDLE),
     m_MaxFramesInFlight(2) {
-    if (config.VulkanConfig == nullptr) {
-        axrLogErrorLocation("Vulkan config is null.");
-        return;
-    }
-
     m_Dispatch.init();
 
-    m_ApiLayers.add(config.VulkanConfig->ApiLayerCount, config.VulkanConfig->ApiLayers);
-    m_Extensions.add(config.VulkanConfig->ExtensionCount, config.VulkanConfig->Extensions);
+    m_ApiLayers.add(config.ApiLayerCount, config.ApiLayers);
+    m_Extensions.add(config.ExtensionCount, config.Extensions);
 
     addRequiredInstanceExtensions();
     addRequiredDeviceExtensions();
 
     if (config.WindowSystem != nullptr) {
-        if (config.VulkanConfig->WindowConfig != nullptr) {
+        if (config.WindowConfig != nullptr) {
             m_WindowGraphics = new AxrVulkanWindowGraphics(
                 {
                     .WindowSystem = *config.WindowSystem,
                     .Dispatch = m_Dispatch,
                     .LoadedScenes = m_LoadedScenes,
-                    .PresentationMode = config.VulkanConfig->WindowConfig->PresentationMode,
+                    .PresentationMode = config.WindowConfig->PresentationMode,
                     .MaxFramesInFlight = m_MaxFramesInFlight,
-                    .ClearColor = config.ClearColor
+                    .ClearColor = config.ClearColor,
+                    .MaxMsaaSampleCount = config.WindowConfig->MaxMsaaSampleCount,
                 }
             );
         } else {
-            axrLogErrorLocation("Vulkan window config is null.");
+            axrLogErrorLocation("Window config is null.");
         }
     }
 }
@@ -851,7 +847,9 @@ bool AxrVulkanGraphicsSystem::areApiLayersSupportedForPhysicalDevice(const vk::P
     return true;
 }
 
-float AxrVulkanGraphicsSystem::getMaxSamplerAnisotropyValue(const AxrSamplerAnisotropyQualityEnum anisotropyQuality) const {
+float AxrVulkanGraphicsSystem::getMaxSamplerAnisotropyValue(
+    const AxrSamplerAnisotropyQualityEnum anisotropyQuality
+) const {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //

@@ -28,9 +28,66 @@ namespace axr {
         Vulkan = AXR_GRAPHICS_API_VULKAN,
     };
 
+    /// Multisample Anti-Aliasing sample count enum
+    enum class MsaaSampleCountEnum {
+        SampleCount1 = AXR_MSAA_SAMPLE_COUNT_1,
+        SampleCount2 = AXR_MSAA_SAMPLE_COUNT_2,
+        SampleCount4 = AXR_MSAA_SAMPLE_COUNT_4,
+        SampleCount8 = AXR_MSAA_SAMPLE_COUNT_8,
+        SampleCount16 = AXR_MSAA_SAMPLE_COUNT_16,
+        SampleCount32 = AXR_MSAA_SAMPLE_COUNT_32,
+        SampleCount64 = AXR_MSAA_SAMPLE_COUNT_64,
+    };
+
     // ----------------------------------------- //
     // Structs
     // ----------------------------------------- //
+
+    /// Config for the window graphics
+    struct GraphicsWindowConfig {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        axr::MsaaSampleCountEnum MaxMsaaSampleCount;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        GraphicsWindowConfig() :
+            MaxMsaaSampleCount(axr::MsaaSampleCountEnum::SampleCount1) {
+        }
+
+        /// Constructor
+        /// @param maxMsaaSampleCount Max msaa sample count to use
+        explicit GraphicsWindowConfig(const axr::MsaaSampleCountEnum maxMsaaSampleCount) :
+            MaxMsaaSampleCount(maxMsaaSampleCount) {
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the GraphicsSystemConfig as an GraphicsWindowConfig
+        /// @returns This as an GraphicsWindowConfig
+        const GraphicsWindowConfig* toRaw() const {
+            return reinterpret_cast<const GraphicsWindowConfig*>(this);
+        }
+
+        /// Get a handle to the GraphicsSystemConfig as an GraphicsWindowConfig
+        /// @returns This as an GraphicsWindowConfig
+        GraphicsWindowConfig* toRaw() {
+            return reinterpret_cast<GraphicsWindowConfig*>(this);
+        }
+    };
+
+    static_assert(
+        sizeof(AxrGraphicsWindowConfig) == sizeof(axr::GraphicsWindowConfig),
+        "Original type and wrapper have different size!"
+    );
 
     /// Config for the graphics system
     struct GraphicsSystemConfig {
@@ -41,6 +98,7 @@ namespace axr {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
         axr::VulkanApiConfig* VulkanApiConfig = nullptr;
 #endif
+        const axr::GraphicsWindowConfig* WindowConfig;
         glm::vec4 ClearColor;
         axr::SamplerAnisotropyQualityEnum SamplerAnisotropyQuality;
 
@@ -53,6 +111,7 @@ namespace axr {
         /// Default Constructor
         GraphicsSystemConfig() :
             GraphicsApi(axr::GraphicsApiEnum::Undefined),
+            WindowConfig(nullptr),
             ClearColor({1.0f}),
             SamplerAnisotropyQuality(axr::SamplerAnisotropyQualityEnum::None) {
         }
@@ -60,14 +119,17 @@ namespace axr {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
         /// Vulkan Graphics Constructor
         /// @param vulkanApiConfig The vulkan api config
+        /// @param windowConfig The window graphics config
         /// @param clearColor The clear color
         /// @param samplerAnisotropyQuality The sampler anisotropy quality
         GraphicsSystemConfig(
             axr::VulkanApiConfig* vulkanApiConfig,
+            const axr::GraphicsWindowConfig* windowConfig,
             const glm::vec4 clearColor,
             const axr::SamplerAnisotropyQualityEnum samplerAnisotropyQuality
         ) : GraphicsApi(axr::GraphicsApiEnum::Vulkan),
             VulkanApiConfig(vulkanApiConfig),
+            WindowConfig(windowConfig),
             ClearColor(clearColor),
             SamplerAnisotropyQuality(samplerAnisotropyQuality) {
         }

@@ -10,6 +10,7 @@
 #include "axr/vulkanApi.h"
 #include "axr/common/enums.h"
 #include "axr/assets.h"
+#include "axr/graphicsSystem.h"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -144,8 +145,40 @@ const char* axrGetExtensionName(AxrVulkanExtensionTypeEnum extensionType);
 [[nodiscard]] vk::SamplerMipmapMode axrToVkSamplerMipmapMode(AxrImageSamplerFilterEnum samplerFilter);
 
 /// Convert an AxrImageSamplerWrapEnum to a vk::SamplerAddressMode
-/// @param samplerWrap Image sampler wrapper to convert
-/// @returns The converted image sampler wrapper
+/// @param samplerWrap Image sampler wrap to convert
+/// @returns The converted image sampler wrap
 [[nodiscard]] vk::SamplerAddressMode axrToVkSamplerAddressMode(AxrImageSamplerWrapEnum samplerWrap);
+
+// ---- Msaa ----
+
+/// Convert an AxrMsaaSampleCountEnum to a vk::SampleCountFlagBits
+/// @param sampleCount Sample count to convert
+/// @returns The converted sample count
+[[nodiscard]] vk::SampleCountFlagBits axrToVkSampleCount(AxrMsaaSampleCountEnum sampleCount);
+
+/// Check if msaa is enabled
+/// @param sampleCount Msaa sample count
+/// @returns True if msaa is enabled
+[[nodiscard]] bool axrIsVulkanMsaaEnabled(vk::SampleCountFlagBits sampleCount);
+
+/// Get the highest sample count that we can support
+/// @param physicalDevice Physical device to use
+/// @param dispatch Dispatch to use
+/// @returns The highest sample count that we can support
+[[nodiscard]] vk::SampleCountFlagBits axrGetVulkanSampleCountLimit(
+    vk::PhysicalDevice physicalDevice,
+    const vk::DispatchLoaderDynamic& dispatch
+);
+
+/// Get the vk::SampleCountFlagBit to use based on our desired sample count.
+/// If `sampleCount` isn't supported, it chooses the highest available sample count.
+/// @param physicalDevice Physical device to use
+/// @param sampleCount Desired sample count
+/// @param dispatch Dispatch to use
+[[nodiscard]] vk::SampleCountFlagBits axrGetVulkanSampleCountToUse(
+    vk::PhysicalDevice physicalDevice,
+    AxrMsaaSampleCountEnum sampleCount,
+    const vk::DispatchLoaderDynamic& dispatch
+);
 
 #endif

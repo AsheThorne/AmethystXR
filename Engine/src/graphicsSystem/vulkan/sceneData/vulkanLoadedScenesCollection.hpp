@@ -76,7 +76,7 @@ public:
 
     /// Get the global scene data
     /// @returns The global scene data. Or nullptr if it doesn't exist
-    [[nodiscard]] AxrVulkanSceneData* getGlobalSceneData() const; 
+    [[nodiscard]] AxrVulkanSceneData* getGlobalSceneData() const;
 
     /// Load the global scene
     /// @param assetCollection Asset collection to use
@@ -116,8 +116,9 @@ public:
 
     /// Set up the window data for all scenes and load all window specific scene data
     /// @param renderPass Render pass to use
+    /// @param msaaSampleCount Msaa sample count
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setupWindowData(vk::RenderPass renderPass);
+    [[nodiscard]] AxrResult setupWindowData(vk::RenderPass renderPass, vk::SampleCountFlagBits msaaSampleCount);
     /// Reset the setupWindowData() function
     void resetSetupWindowData();
 
@@ -142,6 +143,7 @@ private:
 
     // ---- Setup Window Config ----
     vk::RenderPass m_WindowRenderPass;
+    vk::SampleCountFlagBits m_WindowMsaaSampleCount;
 
     AxrVulkanSceneData* m_ActiveScene;
     std::vector<AxrVulkanSceneData*> m_LoadedScenes;
