@@ -35,7 +35,6 @@ struct AxrTransformComponent {
 /// Entity model component
 struct AxrModelComponent {
     const char* ModelName;
-
     uint32_t MeshCount;
 
     struct Mesh {
@@ -51,9 +50,25 @@ struct AxrModelComponent {
 #endif
 };
 
+/// Entity camera component
+struct AxrCameraComponent {
+    float Fov;
+    float NearPlane;
+    float FarPlane;
+};
+
 // ---------------------------------------------------------------------------------- //
 //                                      Scene                                         //
 // ---------------------------------------------------------------------------------- //
+
+// ----------------------------------------- //
+// Types
+// ----------------------------------------- //
+
+/// Entity handle
+typedef entt::handle AxrEntity_T;
+/// Const Entity handle
+typedef entt::const_handle AxrEntityConst_T;
 
 // ----------------------------------------- //
 // Forward Declared Handles
@@ -85,4 +100,9 @@ extern "C" {
     /// @param scene The scene to use
     /// @returns The entity id
     AXR_API entt::entity axrSceneCreateEntity(AxrScene_T scene);
+
+    /// Set the scene's main camera
+    /// @param scene The scene to use
+    /// @param entity Entity with a camera component
+    AXR_API void axrSceneSetMainCamera(AxrScene_T scene, AxrEntityConst_T entity);
 }

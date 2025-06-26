@@ -146,6 +146,26 @@ axr::Result SponzaScene::setup() {
         }
     );
 
+    m_CameraEntity = m_Scene.createEntity();
+
+    m_CameraEntity.emplace<AxrTransformComponent>(
+        AxrTransformComponent{
+            .Position = glm::vec3(0.0f, 1.0f, -0.5f),
+            .Scale = glm::vec3(1.0f, 1.0f, 1.0f),
+            .Orientation = glm::quat(glm::vec3(0.0f, glm::radians(90.0f), 0.0f)),
+        }
+    );
+
+    m_CameraEntity.emplace<AxrCameraComponent>(
+        AxrCameraComponent{
+            .Fov = 90.0f,
+            .NearPlane = 0.1f,
+            .FarPlane = 1000.0f,
+        }
+    );
+
+    m_Scene.setMainCamera(m_CameraEntity);
+
     return axr::Result::Success;
 }
 

@@ -85,15 +85,9 @@ public:
         AxrAssetCollection_T assetCollection
     );
     /// Load a new scene
-    /// @param sceneName Name of the scene
-    /// @param assetCollection Asset collection to use
-    /// @param ecsRegistryHandle ECS registry to use
+    /// @param scene Scene
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult loadScene(
-        const std::string& sceneName,
-        AxrAssetCollection_T assetCollection,
-        entt::registry* ecsRegistryHandle
-    );
+    [[nodiscard]] AxrResult loadScene(AxrScene_T scene);
     /// Unload the named scene
     /// @param sceneName Name of the scene 
     void unloadScene(const std::string& sceneName);
@@ -110,9 +104,12 @@ public:
     /// @param sceneName Scene name
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setActiveScene(const std::string& sceneName);
-    /// Get the active scene
+    /// Get the active scene data
     /// @returns A handle to the active scene data or nullptr if an active scene isn't set
-    [[nodiscard]] AxrVulkanSceneData* getActiveScene() const;
+    [[nodiscard]] AxrVulkanSceneData* getActiveSceneData() const;
+    /// Get the active scene
+    /// @returns A handle to the active scene or nullptr if an active scene isn't set
+    [[nodiscard]] AxrScene_T getActiveScene() const;
 
     /// Set up the window data for all scenes and load all window specific scene data
     /// @param renderPass Render pass to use
@@ -145,8 +142,8 @@ private:
     vk::RenderPass m_WindowRenderPass;
     vk::SampleCountFlagBits m_WindowMsaaSampleCount;
 
-    AxrVulkanSceneData* m_ActiveScene;
-    std::vector<AxrVulkanSceneData*> m_LoadedScenes;
+    std::pair<AxrScene_T, AxrVulkanSceneData*> m_ActiveScene;
+    std::vector<std::pair<AxrScene_T, AxrVulkanSceneData*>> m_LoadedScenes;
 
     // ----------------------------------------- //
     // Private Functions
@@ -155,7 +152,9 @@ private:
     /// Find the named loaded scene data iterator
     /// @param sceneName Scene name
     /// @returns The named loaded scene data iterator. Or m_LoadedScenes.end() if it wasn't found
-    [[nodiscard]] std::vector<AxrVulkanSceneData*>::iterator findLoadedSceneIterator(const std::string& sceneName);
+    [[nodiscard]] std::vector<std::pair<AxrScene_T, AxrVulkanSceneData*>>::iterator findLoadedSceneIterator(
+        const std::string& sceneName
+    );
 
     /// Create vulkan scene data
     /// @param sceneName Name of the scene

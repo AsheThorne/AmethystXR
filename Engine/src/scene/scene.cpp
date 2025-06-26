@@ -44,6 +44,15 @@ entt::entity axrSceneCreateEntity(const AxrScene_T scene) {
     return scene->createEntity();
 }
 
+void axrSceneSetMainCamera(const AxrScene_T scene, const AxrEntityConst_T entity) {
+    if (scene == nullptr) {
+        axrLogErrorLocation("`scene` is null");
+        return;
+    }
+
+    return scene->setMainCamera(entity);
+}
+
 // ----------------------------------------- //
 // Internal Functions
 // ----------------------------------------- //
@@ -102,6 +111,25 @@ entt::registry* AxrScene::getEcsRegistry() {
 
 entt::entity AxrScene::createEntity() {
     return m_Registry.create();
+}
+
+void AxrScene::setMainCamera(const AxrEntityConst_T entity) {
+    auto [cameraComponent, transformComponent] = entity.try_get<AxrCameraComponent, AxrTransformComponent>();
+    if (cameraComponent == nullptr) {
+        axrLogErrorLocation("Entity doesn't have a camera component.");
+        return;
+    }
+
+    if (transformComponent == nullptr) {
+        axrLogErrorLocation("Entity doesn't have a transform component.");
+        return;
+    }
+
+    m_MainCamera = entity;
+}
+
+AxrEntityConst_T AxrScene::getMainCamera() const {
+    return m_MainCamera;
 }
 
 // ---- Private Functions ----

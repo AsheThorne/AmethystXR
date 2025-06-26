@@ -4,6 +4,8 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "vulkanLoadedScenesCollection.hpp"
+
+#include "../../../scene/scene.hpp"
 #include "axr/logger.h"
 
 // ---- Special Functions ----
@@ -21,7 +23,7 @@ AxrVulkanLoadedScenesCollection::AxrVulkanLoadedScenesCollection():
     m_IsSetup(false),
     m_WindowRenderPass(VK_NULL_HANDLE),
     m_WindowMsaaSampleCount(vk::SampleCountFlagBits::e1),
-    m_ActiveScene(nullptr) {
+    m_ActiveScene(std::pair(nullptr, nullptr)) {
 }
 
 AxrVulkanLoadedScenesCollection::~AxrVulkanLoadedScenesCollection() {
@@ -151,7 +153,7 @@ AxrVulkanSceneData* AxrVulkanLoadedScenesCollection::getGlobalSceneData() const 
     }
 
     // The global scene data should always be the first loaded scene
-    return m_LoadedScenes[0];
+    return m_LoadedScenes[0].second;
 }
 
 AxrResult AxrVulkanLoadedScenesCollection::loadGlobalSceneData(const AxrAssetCollection_T assetCollection) {
@@ -177,7 +179,7 @@ AxrResult AxrVulkanLoadedScenesCollection::loadGlobalSceneData(const AxrAssetCol
         nullptr,
         globalSceneData
     );
-    m_LoadedScenes.push_back(sceneData);
+    m_LoadedScenes.push_back(std::pair(nullptr, sceneData));
 
     axrResult = sceneData->loadScene();
     if (AXR_FAILED(axrResult)) {
@@ -196,14 +198,19 @@ AxrResult AxrVulkanLoadedScenesCollection::loadGlobalSceneData(const AxrAssetCol
     return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanLoadedScenesCollection::loadScene(
-    const std::string& sceneName,
-    const AxrAssetCollection_T assetCollection,
-    entt::registry* ecsRegistryHandle
-) {
+AxrResult AxrVulkanLoadedScenesCollection::loadScene(const AxrScene_T scene) {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
+
+    if (scene == nullptr) {
+        axrLogErrorLocation("Scene is null.");
+        return AXR_ERROR;
+    }
+
+    const std::string& sceneName = scene->getName();
+    const AxrAssetCollection_T assetCollection = scene->getAssetCollection();
+    entt::registry* ecsRegistryHandle = scene->getEcsRegistry();
 
     AxrVulkanSceneData* globalSceneData = getGlobalSceneData();
     if (globalSceneData == nullptr) {
@@ -211,8 +218,8 @@ AxrResult AxrVulkanLoadedScenesCollection::loadScene(
         return AXR_ERROR;
     }
 
-    for (const AxrVulkanSceneData* loadedScene : m_LoadedScenes) {
-        if (loadedScene->getSceneName() == sceneName) {
+    for (const AxrVulkanSceneData* sceneData : m_LoadedScenes | std::views::values) {
+        if (sceneData->getSceneName() == sceneName) {
             axrLogErrorLocation("Scene named \"{0}\" has already been loaded", sceneName.c_str());
             return AXR_ERROR;
         }
@@ -230,7 +237,7 @@ AxrResult AxrVulkanLoadedScenesCollection::loadScene(
         ecsRegistryHandle,
         globalSceneData
     );
-    m_LoadedScenes.push_back(sceneData);
+    m_LoadedScenes.push_back(std::pair(scene, sceneData));
 
     axrResult = sceneData->loadScene();
     if (AXR_FAILED(axrResult)) {
@@ -250,8 +257,9 @@ AxrResult AxrVulkanLoadedScenesCollection::loadScene(
 }
 
 void AxrVulkanLoadedScenesCollection::unloadScene(const std::string& sceneName) {
-    if (m_ActiveScene != nullptr && m_ActiveScene->getSceneName() == sceneName) {
-        m_ActiveScene = nullptr;
+    if (m_ActiveScene.second != nullptr && m_ActiveScene.second->getSceneName() == sceneName) {
+        m_ActiveScene.first = nullptr;
+        m_ActiveScene.second = nullptr;
     }
 
     const auto foundScene = findLoadedSceneIterator(sceneName);
@@ -260,22 +268,23 @@ void AxrVulkanLoadedScenesCollection::unloadScene(const std::string& sceneName) 
         return;
     }
 
-    (*foundScene)->unloadWindowData();
-    (*foundScene)->unloadScene();
-    destroySceneData(*foundScene);
+    foundScene->second->unloadWindowData();
+    foundScene->second->unloadScene();
+    destroySceneData(foundScene->second);
 
     m_LoadedScenes.erase(foundScene);
 }
 
 void AxrVulkanLoadedScenesCollection::clear() {
-    for (AxrVulkanSceneData*& scene : m_LoadedScenes) {
-        scene->unloadWindowData();
-        scene->unloadScene();
-        destroySceneData(scene);
+    for (AxrVulkanSceneData* sceneData : m_LoadedScenes | std::views::values) {
+        sceneData->unloadWindowData();
+        sceneData->unloadScene();
+        destroySceneData(sceneData);
     }
 
     m_LoadedScenes.clear();
-    m_ActiveScene = nullptr;
+    m_ActiveScene.first = nullptr;
+    m_ActiveScene.second = nullptr;
 }
 
 AxrVulkanSceneData* AxrVulkanLoadedScenesCollection::findLoadedScene(const std::string& sceneName) {
@@ -284,23 +293,25 @@ AxrVulkanSceneData* AxrVulkanLoadedScenesCollection::findLoadedScene(const std::
         return nullptr;
     }
 
-    return *foundScene;
+    return foundScene->second;
 }
 
 AxrResult AxrVulkanLoadedScenesCollection::setActiveScene(const std::string& sceneName) {
-    AxrVulkanSceneData* foundScene = findLoadedScene(sceneName);
-    if (foundScene == nullptr) {
-        axrLogErrorLocation("Failed to find loaded scene named: {0}.", sceneName.c_str());
+    const auto foundScene = findLoadedSceneIterator(sceneName);
+    if (foundScene == m_LoadedScenes.end()) {
         return AXR_ERROR;
     }
 
-    m_ActiveScene = foundScene;
-
+    m_ActiveScene = *foundScene;
     return AXR_SUCCESS;
 }
 
-AxrVulkanSceneData* AxrVulkanLoadedScenesCollection::getActiveScene() const {
-    return m_ActiveScene;
+AxrVulkanSceneData* AxrVulkanLoadedScenesCollection::getActiveSceneData() const {
+    return m_ActiveScene.second;
+}
+
+AxrScene_T AxrVulkanLoadedScenesCollection::getActiveScene() const {
+    return m_ActiveScene.first;
 }
 
 AxrResult AxrVulkanLoadedScenesCollection::setupWindowData(
@@ -346,11 +357,12 @@ void AxrVulkanLoadedScenesCollection::resetSetupWindowData() {
 
 // ---- Private Functions ----
 
-std::vector<AxrVulkanSceneData*>::iterator AxrVulkanLoadedScenesCollection::findLoadedSceneIterator(
+std::vector<std::pair<AxrScene_T, AxrVulkanSceneData*>>::iterator
+AxrVulkanLoadedScenesCollection::findLoadedSceneIterator(
     const std::string& sceneName
 ) {
     for (auto i = m_LoadedScenes.begin(); i != m_LoadedScenes.end(); ++i) {
-        if ((*i)->getSceneName() == sceneName) {
+        if (i->second->getSceneName() == sceneName) {
             return i;
         }
     }
@@ -410,7 +422,7 @@ AxrResult AxrVulkanLoadedScenesCollection::loadAllWindowSceneData() const {
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    for (AxrVulkanSceneData* scene : m_LoadedScenes) {
+    for (AxrVulkanSceneData* scene : m_LoadedScenes | std::views::values) {
         axrResult = scene->loadWindowData(m_WindowRenderPass, m_WindowMsaaSampleCount);
         if (AXR_FAILED(axrResult)) {
             break;
@@ -426,7 +438,7 @@ AxrResult AxrVulkanLoadedScenesCollection::loadAllWindowSceneData() const {
 }
 
 void AxrVulkanLoadedScenesCollection::unloadAllWindowSceneData() const {
-    for (AxrVulkanSceneData* scene : m_LoadedScenes) {
+    for (AxrVulkanSceneData* scene : m_LoadedScenes | std::views::values) {
         scene->unloadWindowData();
     }
 }

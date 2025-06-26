@@ -59,6 +59,18 @@ public:
     /// @returns The entity id
     [[nodiscard]] entt::entity createEntity();
 
+    /// Set the scene's main camera
+    /// @param entity Entity with a camera component
+    void setMainCamera(AxrEntityConst_T entity);
+
+    // ---- For Internal Use ----
+    // These functions are only to be used internally in the AmethystXr engine.
+    // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
+
+    /// Get the main scene's main camera
+    /// @returns The main camera
+    AxrEntityConst_T getMainCamera() const;
+
 private:
     // ----------------------------------------- //
     // Private Variables
@@ -66,6 +78,7 @@ private:
     std::string m_Name;
     AxrAssetCollection m_AssetCollection;
     entt::registry m_Registry;
+    AxrEntityConst_T m_MainCamera;
 
     // ----------------------------------------- //
     // Private Functions

@@ -166,11 +166,7 @@ AxrResult AxrVulkanGraphicsSystem::loadScene(const AxrScene_T scene) {
     // Process
     // ----------------------------------------- //
 
-    const AxrResult axrResult = m_LoadedScenes.loadScene(
-        scene->getName(),
-        scene->getAssetCollection(),
-        scene->getEcsRegistry()
-    );
+    const AxrResult axrResult = m_LoadedScenes.loadScene(scene);
     if (AXR_FAILED(axrResult)) {
         resetSetupSceneData();
         return axrResult;
@@ -1182,7 +1178,7 @@ template <typename RenderTarget>
 AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
     const AxrVulkanRenderCommands<RenderTarget>& renderCommands
 ) const {
-    AxrVulkanSceneData* sceneData = m_LoadedScenes.getActiveScene();
+    AxrVulkanSceneData* sceneData = m_LoadedScenes.getActiveSceneData();
     if (sceneData == nullptr) {
         // Nothing to render
         return AXR_SUCCESS;

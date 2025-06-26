@@ -15,9 +15,9 @@ namespace axr {
     // ----------------------------------------- //
 
     /// Entity handle
-    using Entity_T = entt::handle;
+    using Entity_T = AxrEntity_T;
     /// Const Entity handle
-    using EntityConst_T = entt::const_handle;
+    using EntityConst_T = AxrEntityConst_T;
 
     // ---------------------------------------------------------------------------------- //
     //                                     Scene                                          //
@@ -64,6 +64,12 @@ namespace axr {
         /// @returns A handle to the created entity
         axr::Entity_T createEntity() const {
             return {*getEcsRegistry(), axrSceneCreateEntity(m_Scene)};
+        }
+
+        /// Set the scene's main camera
+        /// @param entity Entity with a camera component
+        void setMainCamera(const axr::EntityConst_T entity) const {
+            axrSceneSetMainCamera(m_Scene, entity);
         }
 
     private:

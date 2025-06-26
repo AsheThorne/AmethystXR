@@ -54,6 +54,7 @@ private:
 
     axr::Scene m_Scene;
     axr::Entity_T m_Entity;
+    axr::Entity_T m_CameraEntity;
     std::vector<std::string> m_ImageSamplerNames;
     std::vector<std::string> m_ImageNames;
     std::vector<std::string> m_MaterialNames;

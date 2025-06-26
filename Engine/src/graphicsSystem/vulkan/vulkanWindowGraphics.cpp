@@ -10,6 +10,7 @@
 #include "vulkanSharedFunctions.hpp"
 #include "vulkanImage.hpp"
 #include "../../assets/engineAssets.hpp"
+#include "../../scene/scene.hpp"
 
 // ---- Special Functions ----
 
@@ -219,18 +220,35 @@ AxrResult AxrVulkanWindowGraphics::presentFrame() {
 }
 
 void AxrVulkanWindowGraphics::getRenderingMatrices(glm::mat4& viewMatrix, glm::mat4& projectionMatrix) const {
-    // TODO: Use the active camera's properties
-    viewMatrix = glm::lookAt(
-        glm::vec3(0.0f, 1.0f, 2.0f),
-        glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(0.0f, 1.0f, 0.0f)
+    const AxrScene_T activeScene = m_LoadedScenes.getActiveScene();
+    const AxrEntityConst_T cameraEntity = activeScene->getMainCamera();
+    if (cameraEntity == entt::null) {
+        axrLogErrorLocation("Main camera missing.");
+        return;
+    }
+
+    auto [cameraComponent, cameraTransformComponent] = cameraEntity
+        .try_get<AxrCameraComponent, AxrTransformComponent>();
+
+    if (cameraComponent == nullptr || cameraTransformComponent == nullptr) {
+        axrLogErrorLocation("Main camera missing required components.");
+        return;
+    }
+
+    viewMatrix = glm::inverse(
+        glm::translate(glm::mat4(1.0f), cameraTransformComponent->Position) *
+        glm::toMat4(cameraTransformComponent->Orientation)
     );
 
+    const float aspectRatio = static_cast<float>(m_SwapchainExtent.height) / static_cast<float>(m_SwapchainExtent.
+        width);
+    const float verticalFovRadians = 2.0f * atan(tan(glm::radians(cameraComponent->Fov) / 2.0f) * aspectRatio);
+
     projectionMatrix = glm::perspective(
-        glm::radians(45.0f),
+        verticalFovRadians,
         static_cast<float>(m_SwapchainExtent.width) / static_cast<float>(m_SwapchainExtent.height),
-        0.1f,
-        1000.0f
+        cameraComponent->NearPlane,
+        cameraComponent->FarPlane
     );
     projectionMatrix[1][1] *= -1.0f;
 }
