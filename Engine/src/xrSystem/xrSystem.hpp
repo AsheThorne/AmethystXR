@@ -32,6 +32,11 @@ public:
         AxrXrExtension_T* Extensions;
     };
 
+    // Xr view data
+    struct View {
+        XrViewConfigurationView ViewConfigurationView;
+    };
+
     // ----------------------------------------- //
     // Special Functions
     // ----------------------------------------- //
@@ -106,6 +111,9 @@ private:
     XrInstance m_Instance;
     XrDebugUtilsMessengerEXT m_DebugUtilsMessenger;
     XrSystemId m_SystemId;
+    std::vector<XrViewConfigurationType> m_AvailableViewConfigurationTypes;
+    XrViewConfigurationType m_ViewConfigurationType;
+    std::vector<View> m_Views;
 
     // ----------------------------------------- //
     // Private Functions
@@ -179,12 +187,23 @@ private:
 
     /// Set the system ID
     /// @returns AXR_SUCCESS if the function succeeded
-    AxrResult setSystemId();
+    [[nodiscard]] AxrResult setSystemId();
     /// Reset setSystemId()
     void resetSystemId();
 
     /// Log the system details
     void logSystemDetails() const;
+
+    // ---- View Configuration ----
+
+    /// Set the view configuration
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setViewConfiguration();
+    /// Reset setViewConfiguration()
+    void destroyViewConfiguration();
+
+    /// Get view configuration type
+    [[nodiscard]] AxrResult getViewConfigurationType(XrViewConfigurationType& viewConfigurationType) const;
 
     // ----------------------------------------- //
     // Private Static Functions

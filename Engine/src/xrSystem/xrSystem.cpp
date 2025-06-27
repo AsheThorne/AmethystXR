@@ -52,7 +52,14 @@ AxrXrSystem::AxrXrSystem(const Config& config):
     m_StageReferenceSpace(config.StageReferenceSpace),
     m_Instance(XR_NULL_HANDLE),
     m_DebugUtilsMessenger(XR_NULL_HANDLE),
-    m_SystemId(XR_NULL_SYSTEM_ID) {
+    m_SystemId(XR_NULL_SYSTEM_ID),
+    m_AvailableViewConfigurationTypes(
+        {
+            XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
+            XR_VIEW_CONFIGURATION_TYPE_PRIMARY_MONO,
+        }
+    ),
+    m_ViewConfigurationType(XR_VIEW_CONFIGURATION_TYPE_MAX_ENUM) {
     m_ApiLayers.add(config.ApiLayerCount, config.ApiLayers);
     m_Extensions.add(config.ExtensionCount, config.Extensions);
 
@@ -101,6 +108,12 @@ AxrResult AxrXrSystem::setup() {
     }
 
     logSystemDetails();
+
+    axrResult = setViewConfiguration();
+    if (AXR_FAILED(axrResult)) {
+        resetSetup();
+        return axrResult;
+    }
 
     return AXR_SUCCESS;
 }
@@ -566,6 +579,142 @@ void AxrXrSystem::logSystemDetails() const {
         systemProperties.graphicsProperties.maxSwapchainImageWidth,
         systemProperties.graphicsProperties.maxSwapchainImageHeight
     );
+}
+
+AxrResult AxrXrSystem::setViewConfiguration() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!m_Views.empty()) {
+        axrLogErrorLocation("Views already exists.");
+        return AXR_ERROR;
+    }
+
+    if (m_Instance == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Instance is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_SystemId == XR_NULL_SYSTEM_ID) {
+        axrLogErrorLocation("System ID is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = getViewConfigurationType(m_ViewConfigurationType);
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
+
+    uint32_t viewConfigurationViewCount = 0;
+    XrResult xrResult = xrEnumerateViewConfigurationViews(
+        m_Instance,
+        m_SystemId,
+        m_ViewConfigurationType,
+        0,
+        &viewConfigurationViewCount,
+        nullptr
+    );
+    axrLogXrResult(xrResult, "xrEnumerateViewConfigurationViews");
+    if (XR_FAILED(xrResult)) {
+        return AXR_ERROR;
+    }
+
+    std::vector<XrViewConfigurationView> viewConfigurationViews(
+        viewConfigurationViewCount,
+        {
+            .type = XR_TYPE_VIEW_CONFIGURATION_VIEW
+        }
+    );
+
+    xrResult = xrEnumerateViewConfigurationViews(
+        m_Instance,
+        m_SystemId,
+        m_ViewConfigurationType,
+        viewConfigurationViewCount,
+        &viewConfigurationViewCount,
+        viewConfigurationViews.data()
+    );
+    axrLogXrResult(xrResult, "xrEnumerateViewConfigurationViews");
+    if (XR_FAILED(xrResult)) {
+        return AXR_ERROR;
+    }
+
+    m_Views = std::vector<View>(viewConfigurationViews.size());
+    for (size_t i = 0; i < viewConfigurationViews.size(); ++i) {
+        m_Views[i].ViewConfigurationView = viewConfigurationViews[i];
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrXrSystem::destroyViewConfiguration() {
+    m_Views.clear();
+    m_ViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_MAX_ENUM;
+}
+
+AxrResult AxrXrSystem::getViewConfigurationType(XrViewConfigurationType& viewConfigurationType) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Instance == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Instance is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_SystemId == XR_NULL_SYSTEM_ID) {
+        axrLogErrorLocation("SystemId is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    uint32_t viewConfigurationCount = 0;
+    XrResult xrResult = xrEnumerateViewConfigurations(
+        m_Instance,
+        m_SystemId,
+        0,
+        &viewConfigurationCount,
+        nullptr
+    );
+    axrLogXrResult(xrResult, "xrEnumerateViewConfigurations");
+    if (XR_FAILED(xrResult)) {
+        return AXR_ERROR;
+    }
+
+    std::vector<XrViewConfigurationType> viewConfigurations(viewConfigurationCount);
+    xrResult = xrEnumerateViewConfigurations(
+        m_Instance,
+        m_SystemId,
+        viewConfigurationCount,
+        &viewConfigurationCount,
+        viewConfigurations.data()
+    );
+    axrLogXrResult(xrResult, "xrEnumerateViewConfigurations");
+    if (XR_FAILED(xrResult)) {
+        return AXR_ERROR;
+    }
+
+    for (XrViewConfigurationType viewConfiguration : viewConfigurations) {
+        if (std::ranges::find(
+            m_AvailableViewConfigurationTypes,
+            viewConfiguration
+        ) != m_AvailableViewConfigurationTypes.end()) {
+            viewConfigurationType = viewConfiguration;
+            return AXR_SUCCESS;
+        }
+    }
+
+    axrLogErrorLocation("Failed to find a supported view configuration type.");
+    return AXR_ERROR;
 }
 
 XrBool32 AxrXrSystem::debugUtilsCallback(
