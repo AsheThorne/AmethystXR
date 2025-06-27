@@ -20,7 +20,7 @@ void axrLogVkResult(
         axrLogErrorLocation(
             {"{0} failed with a result of {1}.", location},
             functionName,
-            to_string(result).c_str()
+            vk::to_string(result).c_str()
         );
     }
 }
@@ -46,7 +46,7 @@ vk::PresentModeKHR axrToVkPresentMode(const AxrVulkanPresentationModeEnum presen
     }
 }
 
-const char* axrGetApiLayerName(const AxrVulkanApiLayerTypeEnum apiLayerType) {
+const char* axrGetVulkanApiLayerName(const AxrVulkanApiLayerTypeEnum apiLayerType) {
     switch (apiLayerType) {
         case AXR_VULKAN_API_LAYER_TYPE_CORE_VALIDATION: {
             return "VK_LAYER_KHRONOS_validation";
@@ -60,7 +60,7 @@ const char* axrGetApiLayerName(const AxrVulkanApiLayerTypeEnum apiLayerType) {
     }
 }
 
-const char* axrGetExtensionName(const AxrVulkanExtensionTypeEnum extensionType) {
+const char* axrGetVulkanExtensionName(const AxrVulkanExtensionTypeEnum extensionType) {
     switch (extensionType) {
         case AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS: {
             return VK_EXT_DEBUG_UTILS_EXTENSION_NAME;

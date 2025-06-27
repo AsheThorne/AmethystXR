@@ -167,6 +167,13 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
         m_XrSystem = std::make_unique<AxrXrSystem>(
             AxrXrSystem::Config{
                 .ApplicationName = config.ApplicationName,
+                .ApplicationVersion = config.ApplicationVersion,
+                .GraphicsApi =  config.GraphicsSystemConfig.GraphicsApi,
+                .StageReferenceSpace = config.XrSystemConfig->StageReferenceSpace,
+                .ApiLayerCount = config.XrSystemConfig->ApiLayerCount,
+                .ApiLayers = config.XrSystemConfig->ApiLayers,
+                .ExtensionCount = config.XrSystemConfig->ExtensionCount,
+                .Extensions = config.XrSystemConfig->Extensions
             }
         );
     }
@@ -175,6 +182,9 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
 AxrApplication::~AxrApplication() {
     m_GraphicsSystem.cleanup();
     m_WindowSystem.cleanup();
+    if (m_XrSystem != nullptr) {
+        m_XrSystem->resetSetup();
+    }
     m_GlobalAssetCollection.cleanup();
 }
 
@@ -189,6 +199,11 @@ AxrResult AxrApplication::setup() {
     axrResult = m_WindowSystem.setup();
     if (AXR_FAILED(axrResult)) return axrResult;
 
+    if (m_XrSystem != nullptr) {
+        axrResult = m_XrSystem->setup();
+        if (AXR_FAILED(axrResult)) return axrResult;
+    }
+
     axrResult = m_GraphicsSystem.setup();
     if (AXR_FAILED(axrResult)) return axrResult;
 
@@ -196,13 +211,19 @@ AxrResult AxrApplication::setup() {
 }
 
 bool AxrApplication::isRunning() const {
-    // TODO: Check if the OpenXR session is running too
+    if (m_XrSystem != nullptr) {
+        return m_XrSystem->isXrSessionRunning();
+    }
+
     return m_WindowSystem.isWindowOpen();
 }
 
 void AxrApplication::processEvents() {
-    // TODO: Process OpenXR events too
     m_WindowSystem.processEvents();
+
+    if (m_XrSystem != nullptr) {
+        m_XrSystem->processEvents();
+    }
 
     static std::chrono::high_resolution_clock::time_point lastFrameTime = std::chrono::high_resolution_clock::now();
     const std::chrono::high_resolution_clock::time_point currentFrameTime = std::chrono::high_resolution_clock::now();

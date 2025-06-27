@@ -14,7 +14,7 @@
 #include "axr/assets.h"
 #include "vulkanQueueFamilies.hpp"
 #include "vulkanWindowGraphics.hpp"
-#include "vulkanExtensionCollection.hpp"
+#include "../../extensionCollection.hpp"
 #include "sceneData/vulkanLoadedScenesCollection.hpp"
 #include "vulkanRenderCommands.hpp"
 
@@ -121,8 +121,8 @@ private:
     std::string m_ApplicationName;
     uint32_t m_ApplicationVersion;
     AxrAssetCollection_T m_GlobalAssetCollection;
-    AxrVulkanExtensionCollection<AxrVulkanApiLayer_T, AxrVulkanApiLayerTypeEnum> m_ApiLayers;
-    AxrVulkanExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum> m_Extensions;
+    AxrExtensionCollection<AxrVulkanApiLayer_T, AxrVulkanApiLayerTypeEnum> m_ApiLayers;
+    AxrExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum> m_Extensions;
     AxrSamplerAnisotropyQualityEnum m_SamplerAnisotropyQuality;
 
     /// Ordered from most desired to the least desired
@@ -204,7 +204,7 @@ private:
 
     /// Create the debug utils messenger create info
     /// @retrns The debug utils messenger create info
-    [[nodiscard]] vk::DebugUtilsMessengerCreateInfoEXT createDebugUtilsCreateInto() const;
+    [[nodiscard]] vk::DebugUtilsMessengerCreateInfoEXT createDebugUtilsCreateInfo() const;
 
     /// Create the debug utils messenger
     /// @returns AXR_SUCCESS if the function succeeded

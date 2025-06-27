@@ -255,7 +255,7 @@ AxrVulkanGraphicsSystem::InstanceChain_T AxrVulkanGraphicsSystem::createInstance
 ) const {
     InstanceChain_T chain{
         instanceCreateInfo,
-        createDebugUtilsCreateInto()
+        createDebugUtilsCreateInfo()
     };
 
     if (!m_Extensions.exists(AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS)) {
@@ -381,8 +381,8 @@ void AxrVulkanGraphicsSystem::removeUnsupportedApiLayers() {
             continue;
         }
 
-        if (!axrContainsString(axrGetApiLayerName((*it)->Type), supportedApiLayers)) {
-            axrLogWarning("Unsupported api layer: {0}", axrGetApiLayerName((*it)->Type));
+        if (!axrContainsString(axrGetVulkanApiLayerName((*it)->Type), supportedApiLayers)) {
+            axrLogWarning("Unsupported api layer: {0}", axrGetVulkanApiLayerName((*it)->Type));
 
             delete *it;
             it = m_ApiLayers.erase(it);
@@ -415,8 +415,8 @@ void AxrVulkanGraphicsSystem::removeUnsupportedInstanceExtensions() {
             continue;
         }
 
-        if (!axrContainsString(axrGetExtensionName((*it)->Type), supportedExtensions)) {
-            axrLogWarning("Unsupported instance extension: {0}", axrGetExtensionName((*it)->Type));
+        if (!axrContainsString(axrGetVulkanExtensionName((*it)->Type), supportedExtensions)) {
+            axrLogWarning("Unsupported instance extension: {0}", axrGetVulkanExtensionName((*it)->Type));
 
             delete *it;
             it = m_Extensions.erase(it);
@@ -453,8 +453,8 @@ void AxrVulkanGraphicsSystem::removeUnsupportedDeviceExtensions() {
             continue;
         }
 
-        if (!axrContainsString(axrGetExtensionName((*it)->Type), supportedExtensions)) {
-            axrLogWarning("Unsupported device extension: {0}", axrGetExtensionName((*it)->Type));
+        if (!axrContainsString(axrGetVulkanExtensionName((*it)->Type), supportedExtensions)) {
+            axrLogWarning("Unsupported device extension: {0}", axrGetVulkanExtensionName((*it)->Type));
 
             delete *it;
             it = m_Extensions.erase(it);
@@ -470,7 +470,7 @@ std::vector<const char*> AxrVulkanGraphicsSystem::getAllApiLayerNames() const {
     for (const AxrVulkanApiLayerConst_T apiLayer : m_ApiLayers) {
         if (apiLayer == nullptr) continue;
 
-        apiLayerNames.push_back(axrGetApiLayerName(apiLayer->Type));
+        apiLayerNames.push_back(axrGetVulkanApiLayerName(apiLayer->Type));
     }
 
     return apiLayerNames;
@@ -482,7 +482,7 @@ std::vector<const char*> AxrVulkanGraphicsSystem::getAllInstanceExtensionNames()
     for (AxrVulkanExtensionConst_T extension : m_Extensions) {
         if (extension == nullptr || extension->Level != AXR_VULKAN_EXTENSION_LEVEL_INSTANCE) continue;
 
-        extensionNames.push_back(axrGetExtensionName(extension->Type));
+        extensionNames.push_back(axrGetVulkanExtensionName(extension->Type));
     }
 
     return extensionNames;
@@ -494,7 +494,7 @@ std::vector<const char*> AxrVulkanGraphicsSystem::getAllDeviceExtensionNames() c
     for (AxrVulkanExtensionConst_T extension : m_Extensions) {
         if (extension == nullptr || extension->Level != AXR_VULKAN_EXTENSION_LEVEL_DEVICE) continue;
 
-        extensionNames.push_back(axrGetExtensionName(extension->Type));
+        extensionNames.push_back(axrGetVulkanExtensionName(extension->Type));
     }
 
     return extensionNames;
@@ -516,7 +516,7 @@ void AxrVulkanGraphicsSystem::addRequiredDeviceExtensions() {
     // TODO: Add required device extensions for OpenXR
 }
 
-vk::DebugUtilsMessengerCreateInfoEXT AxrVulkanGraphicsSystem::createDebugUtilsCreateInto() const {
+vk::DebugUtilsMessengerCreateInfoEXT AxrVulkanGraphicsSystem::createDebugUtilsCreateInfo() const {
     auto debugUtilsExtension = reinterpret_cast<AxrVulkanExtensionDebugUtils*>(
         m_Extensions.get(AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS)
     );
@@ -557,7 +557,7 @@ AxrResult AxrVulkanGraphicsSystem::createDebugUtils() {
     // Process
     // ----------------------------------------- //
 
-    const vk::DebugUtilsMessengerCreateInfoEXT debugUtilsCreateInfo = createDebugUtilsCreateInto();
+    const vk::DebugUtilsMessengerCreateInfoEXT debugUtilsCreateInfo = createDebugUtilsCreateInfo();
     const vk::Result vkResult = m_Instance.createDebugUtilsMessengerEXT(
         &debugUtilsCreateInfo,
         nullptr,
@@ -768,7 +768,7 @@ uint32_t AxrVulkanGraphicsSystem::scorePhysicalDeviceExtensions(const vk::Physic
 
     for (const AxrVulkanExtensionConst_T extension : deviceExtensions) {
         // TODO: Some extensions may be required and this function should fail if it doesn't have it.
-        if (axrContainsString(axrGetExtensionName(extension->Type), supportedExtensions)) {
+        if (axrContainsString(axrGetVulkanExtensionName(extension->Type), supportedExtensions)) {
             score += extensionWeightedScore;
         }
     }
@@ -834,7 +834,7 @@ bool AxrVulkanGraphicsSystem::areApiLayersSupportedForPhysicalDevice(const vk::P
     const std::vector<std::string> supportedApiLayers = getSupportedDeviceApiLayers(physicalDevice);
 
     for (const AxrVulkanApiLayerConst_T apiLayer : m_ApiLayers) {
-        if (!axrContainsString(axrGetApiLayerName(apiLayer->Type), supportedApiLayers)) {
+        if (!axrContainsString(axrGetVulkanApiLayerName(apiLayer->Type), supportedApiLayers)) {
             // Api layer isn't supported
             return false;
         }

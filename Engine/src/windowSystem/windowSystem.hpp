@@ -93,6 +93,7 @@ public:
     /// Set up the window system
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setup();
+    // TODO: Rename to resetSetup()
     /// Clean up this class
     void cleanup();
 

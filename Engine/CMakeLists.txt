@@ -70,6 +70,7 @@ set(AXR_HEADER_FILES
     # ---- Root ----
     ${AXR_SRC_DIR}/common.hpp
     ${AXR_SRC_DIR}/utils.hpp
+    ${AXR_SRC_DIR}/extensionCollection.hpp
     # ---- AXR Application ----
     ${AXR_SRC_DIR}/application/application.hpp
     # ---- Window System ----
@@ -84,7 +85,6 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanSharedFunctions.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanQueueFamilies.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanWindowGraphics.hpp
-    ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanExtensionCollection.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanSurfaceDetails.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanBuffer.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanRenderCommands.hpp
@@ -118,6 +118,7 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/scene/sceneUtils.hpp
     # ---- Xr System ----
     ${AXR_SRC_DIR}/xrSystem/xrSystem.hpp
+    ${AXR_SRC_DIR}/xrSystem/xrUtils.hpp
 )
 
 # ---------------------------------------------
@@ -175,6 +176,7 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/scene/sceneUtils.cpp
     # ---- Xr System ----
     ${AXR_SRC_DIR}/xrSystem/xrSystem.cpp
+    ${AXR_SRC_DIR}/xrSystem/xrUtils.cpp
 )
 
 # ---------------------------------------------

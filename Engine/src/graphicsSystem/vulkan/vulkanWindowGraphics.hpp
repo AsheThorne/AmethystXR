@@ -5,7 +5,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/windowSystem.h"
-#include "vulkanExtensionCollection.hpp"
+#include "../../extensionCollection.hpp"
 #include "vulkanQueueFamilies.hpp"
 #include "sceneData/vulkanLoadedScenesCollection.hpp"
 #include "vulkanSurfaceDetails.hpp"
@@ -82,12 +82,12 @@ public:
     /// Add the instance extensions required for window graphics to the given extension collection
     /// @param extensions The extension collection to add to
     void addRequiredInstanceExtensions(
-        AxrVulkanExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum>& extensions
+        AxrExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum>& extensions
     ) const;
     /// Add the device extensions required for window graphics to the given extension collection
     /// @param extensions The extension collection to add to
     void addRequiredDeviceExtensions(
-        AxrVulkanExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum>& extensions
+        AxrExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum>& extensions
     ) const;
 
     /// Set up vulkan window graphics

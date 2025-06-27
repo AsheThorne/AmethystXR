@@ -48,7 +48,7 @@ AxrVulkanWindowGraphics::~AxrVulkanWindowGraphics() {
 // ---- Public Functions ----
 
 void AxrVulkanWindowGraphics::addRequiredInstanceExtensions(
-    AxrVulkanExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum>& extensions
+    AxrExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum>& extensions
 ) const {
     auto surfaceExtension = AxrVulkanExtensionSurface{};
     extensions.add(reinterpret_cast<AxrVulkanExtension_T>(&surfaceExtension));
@@ -60,7 +60,7 @@ void AxrVulkanWindowGraphics::addRequiredInstanceExtensions(
 }
 
 void AxrVulkanWindowGraphics::addRequiredDeviceExtensions(
-    AxrVulkanExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum>& extensions
+    AxrExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum>& extensions
 ) const {
     auto swapchainExtension = AxrVulkanExtensionSwapchain{};
     extensions.add(reinterpret_cast<AxrVulkanExtension_T>(&swapchainExtension));
