@@ -31,6 +31,9 @@
 # ``OpenXR::openxr_loader``
 #  Link against to get the loader and headers. (Deprecated alias is ``OpenXR::Loader``)
 #
+# ``OpenXR::openxr_loader_debug``
+#  Link against to get the loader (for debug use) and headers.
+#
 # ``OpenXR::headers``
 #  Link against to get only the headers. (Deprecated alias is ``OpenXR::Headers``)
 #
@@ -133,6 +136,12 @@ find_library(
     PATHS ${_oxr_loader_search_dirs}
     PATH_SUFFIXES ${_oxr_lib_path_suffixes})
 
+find_library(
+    OPENXR_loader_debug_LIBRARY
+    NAMES openxr_loaderd
+    PATHS ${_oxr_loader_search_dirs}
+    PATH_SUFFIXES ${_oxr_lib_path_suffixes})
+
 find_path(
     OPENXR_SPECSCRIPTS_DIR
     NAMES reg.py
@@ -216,6 +225,19 @@ foreach(_comp IN LISTS OpenXR_FIND_COMPONENTS)
                 mark_as_advanced(OPENXR_loader_LIBRARY)
             else()
                 set(OpenXR_loader_FOUND FALSE)
+            endif()
+        endif()
+        if(TARGET OpenXR::openxr_loader_debug)
+            set(OpenXR_loader_debug_FOUND TRUE)
+            mark_as_advanced(OPENXR_loader_debug_LIBRARY)
+            set(OPENXR_loader_debug_LIBRARY OpenXR::openxr_loader_debug)
+        else()
+            list(APPEND _oxr_component_required_vars OPENXR_loader_debug_LIBRARY)
+            if(EXISTS "${OPENXR_loader_debug_LIBRARY}")
+                set(OpenXR_loader_debug_FOUND TRUE)
+                mark_as_advanced(OPENXR_loader_debug_LIBRARY)
+            else()
+                set(OpenXR_loader_debug_FOUND FALSE)
             endif()
         endif()
 
@@ -335,6 +357,27 @@ if(OpenXR_loader_FOUND
         PROPERTIES IMPORTED_LINK_INTERFACE_LANGUAGES "C" IMPORTED_LOCATION
                    "${OPENXR_loader_LIBRARY}" INTERFACE_LINK_LIBRARIES
                    "${_oxr_loader_interface_libs}")
+
+endif()
+if(OpenXR_loader_debug_FOUND
+    AND OpenXR_headers_FOUND
+    AND NOT TARGET OpenXR::openxr_loader_debug)
+    set(_oxr_loader_debug_interface_libs OpenXR::headers)
+    # include dl library for statically-linked loader
+    get_filename_component(_oxr_loader_debug_ext ${OPENXR_loader_debug_LIBRARY} EXT)
+    if(_oxr_loader_debug_ext STREQUAL CMAKE_STATIC_LIBRARY_SUFFIX)
+        set(_oxr_loader_debug_lib_type STATIC)
+        list(APPEND _oxr_loader_debug_interface_libs ${CMAKE_DL_LIBS})
+    else()
+        set(_oxr_loader_debug_lib_type SHARED)
+    endif()
+
+    add_library(OpenXR::openxr_loader_debug UNKNOWN IMPORTED)
+    set_target_properties(
+        OpenXR::openxr_loader_debug
+        PROPERTIES IMPORTED_LINK_INTERFACE_LANGUAGES "C" IMPORTED_LOCATION
+        "${OPENXR_loader_debug_LIBRARY}" INTERFACE_LINK_LIBRARIES
+        "${_oxr_loader_debug_interface_libs}")
 
 endif()
 

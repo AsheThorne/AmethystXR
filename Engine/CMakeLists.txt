@@ -207,7 +207,8 @@ set_target_properties(AXR_Engine PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(AXR_Engine
     PRIVATE axr_compiler_flags
     Vulkan::Vulkan
-    OpenXR::openxr_loader
+    optimized OpenXR::openxr_loader
+    debug OpenXR::openxr_loader_debug
 )
 
 # ---------------------------------------------

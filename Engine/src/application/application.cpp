@@ -211,11 +211,13 @@ AxrResult AxrApplication::setup() {
 }
 
 bool AxrApplication::isRunning() const {
+    bool isXrSessionRunning = false;
+    
     if (m_XrSystem != nullptr) {
-        return m_XrSystem->isXrSessionRunning();
+        isXrSessionRunning = m_XrSystem->isXrSessionRunning();
     }
 
-    return m_WindowSystem.isWindowOpen();
+    return m_WindowSystem.isWindowOpen() || isXrSessionRunning;
 }
 
 void AxrApplication::processEvents() {

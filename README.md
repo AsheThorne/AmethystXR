@@ -1,4 +1,5 @@
 # AmethystXR
+
 An OpenXR focused game engine written in c++
 
 ## Project Setup
@@ -13,7 +14,16 @@ cd build
 cmake -G "Visual Studio 17" -A x64 ../
 ```
 
-Open OpenXR.sln and build the solution in release mode.
+Open OpenXR.sln and build the solution in release and debug mode.
+
+#### AmethystXR OpenXR Api Layers
+
+To enable core validation api layers, add
+`XR_API_LAYER_PATH=<INSERT_PROJECT_PATH_HERE>\AmethystXR\external\OpenXR-SDK-Source\build\src\api_layers` to
+your project environment variables.
+
+For Sandbox in Rider:
+Right-click the Sandbox project -> More Run/Debug -> Modify Run Configuration... -> Find Environment Variables field.
 
 ### Build AmethystXR
 
