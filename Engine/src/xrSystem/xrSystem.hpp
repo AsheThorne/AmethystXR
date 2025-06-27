@@ -105,6 +105,7 @@ private:
     // ---- Data ----
     XrInstance m_Instance;
     XrDebugUtilsMessengerEXT m_DebugUtilsMessenger;
+    XrSystemId m_SystemId;
 
     // ----------------------------------------- //
     // Private Functions
@@ -176,6 +177,14 @@ private:
     [[nodiscard]] AxrResult createDebugUtils();
     /// Destroy the debug utils
     void destroyDebugUtils();
+
+    // ---- System ----
+
+    /// Set the system ID
+    /// @returns AXR_SUCCESS if the function succeeded
+    AxrResult setSystemId();
+    /// Reset setSystemId()
+    void resetSystemId();
 
     // ----------------------------------------- //
     // Private Static Functions

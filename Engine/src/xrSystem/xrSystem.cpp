@@ -51,7 +51,8 @@ AxrXrSystem::AxrXrSystem(const Config& config):
     m_GraphicsApi(config.GraphicsApi),
     m_StageReferenceSpace(config.StageReferenceSpace),
     m_Instance(XR_NULL_HANDLE),
-    m_DebugUtilsMessenger(XR_NULL_HANDLE) {
+    m_DebugUtilsMessenger(XR_NULL_HANDLE),
+    m_SystemId(XR_NULL_SYSTEM_ID) {
     m_ApiLayers.add(config.ApiLayerCount, config.ApiLayers);
     m_Extensions.add(config.ExtensionCount, config.Extensions);
 
@@ -95,10 +96,17 @@ AxrResult AxrXrSystem::setup() {
 
     logInstanceProperties();
 
+    axrResult = setSystemId();
+    if (AXR_FAILED(axrResult)) {
+        resetSetup();
+        return axrResult;
+    }
+
     return AXR_SUCCESS;
 }
 
 void AxrXrSystem::resetSetup() {
+    resetSystemId();
     destroyDebugUtils();
     destroyInstance();
 }
@@ -501,6 +509,44 @@ void AxrXrSystem::destroyDebugUtils() {
     axrLogXrResult(result, "xrDestroyDebugUtilsMessengerEXT");
 
     m_DebugUtilsMessenger = XR_NULL_HANDLE;
+}
+
+AxrResult AxrXrSystem::setSystemId() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Instance == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Instance is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_SystemId != XR_NULL_SYSTEM_ID) {
+        axrLogErrorLocation("System ID already exists.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    constexpr XrSystemGetInfo systemGetInfo{
+        .type = XR_TYPE_SYSTEM_GET_INFO,
+        .next = nullptr,
+        .formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY,
+    };
+
+    const XrResult xrResult = xrGetSystem(m_Instance, &systemGetInfo, &m_SystemId);
+    axrLogXrResult(xrResult, "xrGetSystem");
+    if (XR_FAILED(xrResult)) {
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrXrSystem::resetSystemId() {
+    m_SystemId = XR_NULL_SYSTEM_ID;
 }
 
 XrBool32 AxrXrSystem::debugUtilsCallback(
