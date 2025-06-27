@@ -104,6 +104,7 @@ private:
 
     // ---- Data ----
     XrInstance m_Instance;
+    XrDebugUtilsMessengerEXT m_DebugUtilsMessenger;
 
     // ----------------------------------------- //
     // Private Functions
@@ -131,7 +132,7 @@ private:
     /// @param chain The head of the chain
     /// @param structure The structure to add to the chain
     /// @param structureSize The size of the structure
-    XrBaseOutStructure* appendNextChain(
+    [[nodiscard]] XrBaseOutStructure* appendNextChain(
         XrBaseOutStructure* chain,
         const XrBaseInStructure* structure,
         size_t structureSize
@@ -166,6 +167,12 @@ private:
     /// Create the debug utils messenger create info
     /// @retrns The debug utils messenger create info
     [[nodiscard]] XrDebugUtilsMessengerCreateInfoEXT createDebugUtilsCreateInfo() const;
+
+    /// Create the debug utils
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createDebugUtils();
+    /// Destroy the debug utils
+    void destroyDebugUtils();
 
     // ----------------------------------------- //
     // Private Static Functions

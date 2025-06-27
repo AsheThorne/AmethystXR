@@ -3,9 +3,10 @@
 // ----------------------------------------- //
 #include "xrSystem.hpp"
 #include "axr/logger.h"
-#include "../common.hpp"
 #include "xrUtils.hpp"
+#include "../common.hpp"
 #include "../utils.hpp"
+#include "xrExtensionFunctions.hpp"
 
 // ----------------------------------------- //
 // External Functions
@@ -49,7 +50,8 @@ AxrXrSystem::AxrXrSystem(const Config& config):
     m_ApplicationVersion(0),
     m_GraphicsApi(config.GraphicsApi),
     m_StageReferenceSpace(config.StageReferenceSpace),
-    m_Instance(XR_NULL_HANDLE) {
+    m_Instance(XR_NULL_HANDLE),
+    m_DebugUtilsMessenger(XR_NULL_HANDLE) {
     m_ApiLayers.add(config.ApiLayerCount, config.ApiLayers);
     m_Extensions.add(config.ExtensionCount, config.Extensions);
 
@@ -85,10 +87,17 @@ AxrResult AxrXrSystem::setup() {
         return axrResult;
     }
 
+    axrResult = createDebugUtils();
+    if (AXR_FAILED(axrResult)) {
+        resetSetup();
+        return axrResult;
+    }
+
     return AXR_SUCCESS;
 }
 
 void AxrXrSystem::resetSetup() {
+    destroyDebugUtils();
     destroyInstance();
 }
 
@@ -409,6 +418,55 @@ XrDebugUtilsMessengerCreateInfoEXT AxrXrSystem::createDebugUtilsCreateInfo() con
         .messageTypes = debugUtilsExtension->TypeFlags,
         .userCallback = debugUtilsCallback,
     };
+}
+
+AxrResult AxrXrSystem::createDebugUtils() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!m_Extensions.exists(AXR_XR_EXTENSION_TYPE_DEBUG_UTILS)) {
+        return AXR_SUCCESS;
+    }
+
+    if (m_DebugUtilsMessenger != XR_NULL_HANDLE) {
+        axrLogErrorLocation("Debug Utils already exist.");
+        return AXR_ERROR;
+    }
+
+    if (m_Instance == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Instance is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const XrDebugUtilsMessengerCreateInfoEXT debugUtilsCreateInfo = createDebugUtilsCreateInfo();
+
+    // Create debug utils messenger
+    const XrResult xrResult = xrCreateDebugUtilsMessengerEXT(
+        m_Instance,
+        &debugUtilsCreateInfo,
+        &m_DebugUtilsMessenger
+    );
+
+    axrLogXrResult(xrResult, "xrCreateDebugUtilsMessengerEXT");
+    if (XR_FAILED(xrResult)) {
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrXrSystem::destroyDebugUtils() {
+    if (m_DebugUtilsMessenger == XR_NULL_HANDLE) return;
+
+    const XrResult result = xrDestroyDebugUtilsMessengerEXT(m_Instance, m_DebugUtilsMessenger);
+    axrLogXrResult(result, "xrDestroyDebugUtilsMessengerEXT");
+
+    m_DebugUtilsMessenger = XR_NULL_HANDLE;
 }
 
 XrBool32 AxrXrSystem::debugUtilsCallback(

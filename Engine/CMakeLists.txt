@@ -119,6 +119,7 @@ set(AXR_HEADER_FILES
     # ---- Xr System ----
     ${AXR_SRC_DIR}/xrSystem/xrSystem.hpp
     ${AXR_SRC_DIR}/xrSystem/xrUtils.hpp
+    ${AXR_SRC_DIR}/xrSystem/xrExtensionFunctions.hpp
 )
 
 # ---------------------------------------------
@@ -177,6 +178,7 @@ set(AXR_CPP_FILES
     # ---- Xr System ----
     ${AXR_SRC_DIR}/xrSystem/xrSystem.cpp
     ${AXR_SRC_DIR}/xrSystem/xrUtils.cpp
+    ${AXR_SRC_DIR}/xrSystem/xrExtensionFunctions.cpp
 )
 
 # ---------------------------------------------
