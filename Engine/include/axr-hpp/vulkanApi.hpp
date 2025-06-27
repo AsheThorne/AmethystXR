@@ -51,10 +51,10 @@ namespace axr {
 
     // Vulkan Extension Debug Utils Severity Flag Bits. See: VkDebugUtilsMessageSeverityFlagBitsEXT
     enum class VulkanDebugUtilsSeverityFlagBits : AxrVulkanDebugUtilsSeverityFlags_T {
-        Verbose = AXR_VULKAN_EXTENSION_DEBUG_UTILS_SEVERITY_VERBOSE_BIT,
-        Info = AXR_VULKAN_EXTENSION_DEBUG_UTILS_SEVERITY_INFO_BIT,
-        Warning = AXR_VULKAN_EXTENSION_DEBUG_UTILS_SEVERITY_WARNING_BIT,
-        Error = AXR_VULKAN_EXTENSION_DEBUG_UTILS_SEVERITY_ERROR_BIT,
+        VerboseBit = AXR_VULKAN_EXTENSION_DEBUG_UTILS_SEVERITY_VERBOSE_BIT,
+        InfoBit = AXR_VULKAN_EXTENSION_DEBUG_UTILS_SEVERITY_INFO_BIT,
+        WarningBit = AXR_VULKAN_EXTENSION_DEBUG_UTILS_SEVERITY_WARNING_BIT,
+        ErrorBit = AXR_VULKAN_EXTENSION_DEBUG_UTILS_SEVERITY_ERROR_BIT,
     };
 
     /// Vulkan Extension Debug Utils Severity Flags Type
@@ -62,10 +62,10 @@ namespace axr {
 
     // Vulkan Extension Debug Utils Type Flag Bits. See: VkDebugUtilsMessageTypeFlagBitsEXT
     enum class VulkanDebugUtilsTypeFlagBits : AxrVulkanDebugUtilsTypeFlags_T {
-        General = AXR_VULKAN_EXTENSION_DEBUG_UTILS_TYPE_GENERAL_BIT,
-        Validation = AXR_VULKAN_EXTENSION_DEBUG_UTILS_TYPE_VALIDATION_BIT,
-        Performance = AXR_VULKAN_EXTENSION_DEBUG_UTILS_TYPE_PERFORMANCE_BIT,
-        DeviceAddressBinding = AXR_VULKAN_EXTENSION_DEBUG_UTILS_TYPE_DEVICE_ADDRESS_BINDING_BIT,
+        GeneralBit = AXR_VULKAN_EXTENSION_DEBUG_UTILS_TYPE_GENERAL_BIT,
+        ValidationBit = AXR_VULKAN_EXTENSION_DEBUG_UTILS_TYPE_VALIDATION_BIT,
+        PerformanceBit = AXR_VULKAN_EXTENSION_DEBUG_UTILS_TYPE_PERFORMANCE_BIT,
+        DeviceAddressBindingBit = AXR_VULKAN_EXTENSION_DEBUG_UTILS_TYPE_DEVICE_ADDRESS_BINDING_BIT,
     };
 
     /// Vulkan Extension Debug Utils Type Flags Type
@@ -79,16 +79,16 @@ namespace axr {
     struct FlagTraits<axr::VulkanDebugUtilsSeverityFlagBits> {
         static constexpr bool isBitmask = true;
         static constexpr VulkanDebugUtilsSeverityFlags_T allFlags =
-            VulkanDebugUtilsSeverityFlagBits::Verbose | VulkanDebugUtilsSeverityFlagBits::Info |
-            VulkanDebugUtilsSeverityFlagBits::Warning | VulkanDebugUtilsSeverityFlagBits::Error;
+            VulkanDebugUtilsSeverityFlagBits::VerboseBit | VulkanDebugUtilsSeverityFlagBits::InfoBit |
+            VulkanDebugUtilsSeverityFlagBits::WarningBit | VulkanDebugUtilsSeverityFlagBits::ErrorBit;
     };
 
     template <>
     struct FlagTraits<axr::VulkanDebugUtilsTypeFlagBits> {
         static constexpr bool isBitmask = true;
         static constexpr VulkanDebugUtilsTypeFlags_T allFlags =
-            VulkanDebugUtilsTypeFlagBits::General | VulkanDebugUtilsTypeFlagBits::Validation |
-            VulkanDebugUtilsTypeFlagBits::Performance | VulkanDebugUtilsTypeFlagBits::DeviceAddressBinding;
+            VulkanDebugUtilsTypeFlagBits::GeneralBit | VulkanDebugUtilsTypeFlagBits::ValidationBit |
+            VulkanDebugUtilsTypeFlagBits::PerformanceBit | VulkanDebugUtilsTypeFlagBits::DeviceAddressBindingBit;
     };
 
     // ---------------------------------------------------------------------------------- //

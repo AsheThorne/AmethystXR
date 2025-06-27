@@ -1,11 +1,6 @@
 #pragma once
 
 // ----------------------------------------- //
-// C Headers
-// ----------------------------------------- //
-#include <cstdint>
-
-// ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/common/defines.h"
@@ -14,6 +9,7 @@
 #include "axr/graphicsSystem.h"
 #include "axr/assets.h"
 #include "axr/scene.h"
+#include "axr/xrSystem.h"
 
 // ----------------------------------------- //
 // Structs
@@ -23,8 +19,9 @@
 struct AxrApplicationConfig {
     const char* ApplicationName;
     uint32_t ApplicationVersion;
-    AxrWindowSystemConfig WindowSystemConfig;
     AxrGraphicsSystemConfig GraphicsSystemConfig;
+    AxrWindowSystemConfig WindowSystemConfig;
+    const AxrXrSystemConfig* XrSystemConfig;
 };
 
 // ----------------------------------------- //

@@ -11,15 +11,6 @@
 #include "axr/common.h"
 
 // ----------------------------------------- //
-// Forward Declared Handles
-// ----------------------------------------- //
-
-/// AxrWindowSystem Handle
-typedef class AxrWindowSystem* AxrWindowSystem_T;
-/// const AxrWindowSystem Handle
-typedef const AxrWindowSystem* AxrWindowSystemConst_T;
-
-// ----------------------------------------- //
 // Structs
 // ----------------------------------------- //
 
@@ -28,6 +19,15 @@ struct AxrWindowSystemConfig {
     uint32_t Width;
     uint32_t Height;
 };
+
+// ----------------------------------------- //
+// Forward Declared Handles
+// ----------------------------------------- //
+
+/// AxrWindowSystem Handle
+typedef class AxrWindowSystem* AxrWindowSystem_T;
+/// const AxrWindowSystem Handle
+typedef const AxrWindowSystem* AxrWindowSystemConst_T;
 
 // ----------------------------------------- //
 // External Function Definitions

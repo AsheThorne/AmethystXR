@@ -24,14 +24,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 #ifndef NDEBUG
     vulkanApiConfig.addApiLayerCoreValidation();
     vulkanApiConfig.addExtensionDebugUtils(
-        // axr::VulkanDebugUtilsSeverityFlagBits::Verbose |
-        // axr::VulkanDebugUtilsSeverityFlagBits::Info |
-        axr::VulkanDebugUtilsSeverityFlagBits::Warning |
-        axr::VulkanDebugUtilsSeverityFlagBits::Error,
-        axr::VulkanDebugUtilsTypeFlagBits::General |
-        axr::VulkanDebugUtilsTypeFlagBits::Validation |
-        axr::VulkanDebugUtilsTypeFlagBits::Performance |
-        axr::VulkanDebugUtilsTypeFlagBits::DeviceAddressBinding
+        // axr::VulkanDebugUtilsSeverityFlagBits::VerboseBit |
+        // axr::VulkanDebugUtilsSeverityFlagBits::InfoBit |
+        axr::VulkanDebugUtilsSeverityFlagBits::WarningBit |
+        axr::VulkanDebugUtilsSeverityFlagBits::ErrorBit,
+        axr::VulkanDebugUtilsTypeFlagBits::GeneralBit |
+        axr::VulkanDebugUtilsTypeFlagBits::ValidationBit |
+        axr::VulkanDebugUtilsTypeFlagBits::PerformanceBit |
+        axr::VulkanDebugUtilsTypeFlagBits::DeviceAddressBindingBit
     );
 #endif
 
@@ -50,11 +50,28 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         600
     );
 
+    axr::XrSystemConfig xrSystemConfig(axr::XrReferenceSpaceEnum::Stage);
+
+#ifndef NDEBUG
+    xrSystemConfig.addApiLayerCoreValidation();
+    xrSystemConfig.addExtensionDebugUtils(
+        // axr::XrDebugUtilsSeverityFlagBits::VerboseBit |
+        // axr::XrDebugUtilsSeverityFlagBits::InfoBit |
+        axr::XrDebugUtilsSeverityFlagBits::WarningBit |
+        axr::XrDebugUtilsSeverityFlagBits::ErrorBit,
+        axr::XrDebugUtilsTypeFlagBits::GeneralBit |
+        axr::XrDebugUtilsTypeFlagBits::ValidationBit |
+        axr::XrDebugUtilsTypeFlagBits::PerformanceBit |
+        axr::XrDebugUtilsTypeFlagBits::ConformanceBit
+    );
+#endif
+
     const auto appConfig = axr::ApplicationConfig(
         applicationName.c_str(),
         AXR_MAKE_VERSION(1, 0, 0),
+        graphicsSystemConfig,
         windowSystemConfig,
-        graphicsSystemConfig
+        &xrSystemConfig
     );
 
     auto app = axr::Application(appConfig);

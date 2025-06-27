@@ -33,6 +33,7 @@ set(AXR_PUBLIC_HEADER_FILES
     ${AXR_INCLUDE_DIR}/axr/vulkanApi.h
     ${AXR_INCLUDE_DIR}/axr/assets.h
     ${AXR_INCLUDE_DIR}/axr/scene.h
+    ${AXR_INCLUDE_DIR}/axr/xrSystem.h
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr/common/defines.h.in
     ${AXR_INCLUDE_DIR}/axr/common/defines.h
@@ -56,6 +57,7 @@ set(AXR_PUBLIC_HEADER_HPP_FILES
     ${AXR_INCLUDE_DIR}/axr-hpp/flags.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/assets.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/scene.hpp
+    ${AXR_INCLUDE_DIR}/axr-hpp/xrSystem.hpp
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr-hpp/common/defines.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/common/enums.hpp
