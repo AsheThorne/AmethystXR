@@ -116,6 +116,8 @@ set(AXR_HEADER_FILES
     # ---- Scene ----
     ${AXR_SRC_DIR}/scene/scene.hpp
     ${AXR_SRC_DIR}/scene/sceneUtils.hpp
+    # ---- Xr System ----
+    ${AXR_SRC_DIR}/xrSystem/xrSystem.hpp
 )
 
 # ---------------------------------------------
@@ -171,6 +173,8 @@ set(AXR_CPP_FILES
     # ---- Scene ----
     ${AXR_SRC_DIR}/scene/scene.cpp
     ${AXR_SRC_DIR}/scene/sceneUtils.cpp
+    # ---- Xr System ----
+    ${AXR_SRC_DIR}/xrSystem/xrSystem.cpp
 )
 
 # ---------------------------------------------

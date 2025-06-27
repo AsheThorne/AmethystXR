@@ -150,6 +150,12 @@ namespace axr {
             return axrApplicationGetWindowSystem(m_Application);
         }
 
+        /// Get the xr system
+        /// @returns A handle to the xr system
+        [[nodiscard]] axr::XrSystem getXrSystem() const {
+            return axrApplicationGetXrSystem(m_Application);
+        }
+
         /// Get the graphics system
         /// @returns A handle to the graphics system
         [[nodiscard]] axr::GraphicsSystem getGraphicsSystem() const {

@@ -90,6 +90,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     axr::WindowSystem windowSystem = app.getWindowSystem();
     if (AXR_FAILED(windowSystem.openWindow())) return -1;
 
+    axr::XrSystem xrSystem = app.getXrSystem();
+    if (AXR_FAILED(xrSystem.startXrSession())) return -1;
+
     const axr::GraphicsSystem graphicsSystem = app.getGraphicsSystem();
 
     while (app.isRunning()) {

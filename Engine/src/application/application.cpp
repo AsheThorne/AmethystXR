@@ -66,6 +66,15 @@ AxrWindowSystem_T axrApplicationGetWindowSystem(const AxrApplication_T app) {
     return app->getWindowSystem();
 }
 
+AxrXrSystem_T axrApplicationGetXrSystem(const AxrApplication_T app) {
+    if (app == nullptr) {
+        axrLogErrorLocation("`app` is null.");
+        return nullptr;
+    }
+
+    return app->getXrSystem();
+}
+
 AxrGraphicsSystem_T axrApplicationGetGraphicsSystem(const AxrApplication_T app) {
     if (app == nullptr) {
         axrLogErrorLocation("`app` is null.");
@@ -138,12 +147,6 @@ AxrResult axrApplicationSetActiveScene(const AxrApplication_T app, const char* s
 AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
     m_ApplicationName(config.ApplicationName),
     m_ApplicationVersion(config.ApplicationVersion),
-    m_WindowSystem(
-        AxrWindowSystem::Config{
-            .ApplicationName = config.ApplicationName,
-            .WindowConfig = config.WindowSystemConfig
-        }
-    ),
     m_GraphicsSystem(
         AxrGraphicsSystem::Config{
             .ApplicationName = config.ApplicationName,
@@ -153,7 +156,20 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
             .GraphicsConfig = config.GraphicsSystemConfig,
         }
     ),
+    m_WindowSystem(
+        AxrWindowSystem::Config{
+            .ApplicationName = config.ApplicationName,
+            .WindowConfig = config.WindowSystemConfig
+        }
+    ),
     m_DeltaTime(0) {
+    if (config.XrSystemConfig != nullptr) {
+        m_XrSystem = std::make_unique<AxrXrSystem>(
+            AxrXrSystem::Config{
+                .ApplicationName = config.ApplicationName,
+            }
+        );
+    }
 }
 
 AxrApplication::~AxrApplication() {
@@ -197,6 +213,10 @@ void AxrApplication::processEvents() {
 
 AxrWindowSystem_T AxrApplication::getWindowSystem() {
     return &m_WindowSystem;
+}
+
+AxrXrSystem_T AxrApplication::getXrSystem() {
+    return m_XrSystem.get();
 }
 
 AxrGraphicsSystem_T AxrApplication::getGraphicsSystem() {
