@@ -111,9 +111,11 @@ private:
     XrInstance m_Instance;
     XrDebugUtilsMessengerEXT m_DebugUtilsMessenger;
     XrSystemId m_SystemId;
-    std::vector<XrViewConfigurationType> m_AvailableViewConfigurationTypes;
+    std::vector<XrViewConfigurationType> m_SupportedViewConfigurationTypes;
     XrViewConfigurationType m_ViewConfigurationType;
     std::vector<View> m_Views;
+    std::vector<XrEnvironmentBlendMode> m_SupportedEnvironmentBlendModes;
+    XrEnvironmentBlendMode m_EnvironmentBlendMode;
 
     // ----------------------------------------- //
     // Private Functions
@@ -204,6 +206,14 @@ private:
 
     /// Get view configuration type
     [[nodiscard]] AxrResult getViewConfigurationType(XrViewConfigurationType& viewConfigurationType) const;
+
+    // ---- Environment ----
+
+    /// Set the environment blend mode
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setEnvironmentBlendMode();
+    /// reset setEnvironmentBlendMode()
+    void resetEnvironmentBlendMode();
 
     // ----------------------------------------- //
     // Private Static Functions

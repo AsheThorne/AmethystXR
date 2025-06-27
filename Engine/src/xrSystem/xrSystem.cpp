@@ -53,13 +53,20 @@ AxrXrSystem::AxrXrSystem(const Config& config):
     m_Instance(XR_NULL_HANDLE),
     m_DebugUtilsMessenger(XR_NULL_HANDLE),
     m_SystemId(XR_NULL_SYSTEM_ID),
-    m_AvailableViewConfigurationTypes(
+    m_SupportedViewConfigurationTypes(
         {
             XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
             XR_VIEW_CONFIGURATION_TYPE_PRIMARY_MONO,
         }
     ),
-    m_ViewConfigurationType(XR_VIEW_CONFIGURATION_TYPE_MAX_ENUM) {
+    m_ViewConfigurationType(XR_VIEW_CONFIGURATION_TYPE_MAX_ENUM),
+    m_SupportedEnvironmentBlendModes(
+        {
+            XR_ENVIRONMENT_BLEND_MODE_OPAQUE,
+            XR_ENVIRONMENT_BLEND_MODE_ADDITIVE,
+        }
+    ),
+    m_EnvironmentBlendMode(XR_ENVIRONMENT_BLEND_MODE_MAX_ENUM) {
     m_ApiLayers.add(config.ApiLayerCount, config.ApiLayers);
     m_Extensions.add(config.ExtensionCount, config.Extensions);
 
@@ -115,10 +122,17 @@ AxrResult AxrXrSystem::setup() {
         return axrResult;
     }
 
+    axrResult = setEnvironmentBlendMode();
+    if (AXR_FAILED(axrResult)) {
+        resetSetup();
+        return axrResult;
+    }
+
     return AXR_SUCCESS;
 }
 
 void AxrXrSystem::resetSetup() {
+    resetEnvironmentBlendMode();
     resetViewConfiguration();
     resetSystemId();
     destroyDebugUtils();
@@ -704,18 +718,92 @@ AxrResult AxrXrSystem::getViewConfigurationType(XrViewConfigurationType& viewCon
         return AXR_ERROR;
     }
 
-    for (XrViewConfigurationType viewConfiguration : viewConfigurations) {
-        if (std::ranges::find(
-            m_AvailableViewConfigurationTypes,
-            viewConfiguration
-        ) != m_AvailableViewConfigurationTypes.end()) {
-            viewConfigurationType = viewConfiguration;
-            return AXR_SUCCESS;
-        }
+    auto foundViewConfiguration = std::find_first_of(
+        viewConfigurations.begin(),
+        viewConfigurations.end(),
+        m_SupportedViewConfigurationTypes.begin(),
+        m_SupportedViewConfigurationTypes.end()
+    );
+
+    if (foundViewConfiguration != viewConfigurations.end()) {
+        viewConfigurationType = *foundViewConfiguration;
+        return AXR_SUCCESS;
     }
 
     axrLogErrorLocation("Failed to find a supported view configuration type.");
     return AXR_ERROR;
+}
+
+AxrResult AxrXrSystem::setEnvironmentBlendMode() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_EnvironmentBlendMode != XR_ENVIRONMENT_BLEND_MODE_MAX_ENUM) {
+        axrLogErrorLocation("Environment blend mode already exists.");
+        return AXR_ERROR;
+    }
+
+    if (m_Instance == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Instance is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_SystemId == XR_NULL_SYSTEM_ID) {
+        axrLogErrorLocation("SystemId is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    uint32_t environmentBlendModesCount;
+    XrResult xrResult = xrEnumerateEnvironmentBlendModes(
+        m_Instance,
+        m_SystemId,
+        m_ViewConfigurationType,
+        0,
+        &environmentBlendModesCount,
+        nullptr
+    );
+    axrLogXrResult(xrResult, "xrEnumerateEnvironmentBlendModes");
+    if (XR_FAILED(xrResult)) {
+        return AXR_ERROR;
+    }
+
+    std::vector<XrEnvironmentBlendMode> environmentBlendModes(environmentBlendModesCount);
+    xrResult = xrEnumerateEnvironmentBlendModes(
+        m_Instance,
+        m_SystemId,
+        m_ViewConfigurationType,
+        environmentBlendModesCount,
+        &environmentBlendModesCount,
+        environmentBlendModes.data()
+    );
+    axrLogXrResult(xrResult, "xrEnumerateEnvironmentBlendModes");
+    if (XR_FAILED(xrResult)) {
+        return AXR_ERROR;
+    }
+
+    const auto foundEnvironmentBlendMode = std::find_first_of(
+        environmentBlendModes.begin(),
+        environmentBlendModes.end(),
+        m_SupportedEnvironmentBlendModes.begin(),
+        m_SupportedEnvironmentBlendModes.end()
+    );
+
+    if (foundEnvironmentBlendMode != environmentBlendModes.end()) {
+        m_EnvironmentBlendMode = *foundEnvironmentBlendMode;
+        return AXR_SUCCESS;
+    }
+
+    axrLogErrorLocation("Failed to find a supported environment blend mode.");
+    return AXR_ERROR;
+}
+
+void AxrXrSystem::resetEnvironmentBlendMode() {
+    m_EnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_MAX_ENUM;
 }
 
 XrBool32 AxrXrSystem::debugUtilsCallback(
