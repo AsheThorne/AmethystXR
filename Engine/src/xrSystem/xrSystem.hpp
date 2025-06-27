@@ -200,7 +200,7 @@ private:
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setViewConfiguration();
     /// Reset setViewConfiguration()
-    void destroyViewConfiguration();
+    void resetViewConfiguration();
 
     /// Get view configuration type
     [[nodiscard]] AxrResult getViewConfigurationType(XrViewConfigurationType& viewConfigurationType) const;

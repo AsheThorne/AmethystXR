@@ -119,6 +119,7 @@ AxrResult AxrXrSystem::setup() {
 }
 
 void AxrXrSystem::resetSetup() {
+    resetViewConfiguration();
     resetSystemId();
     destroyDebugUtils();
     destroyInstance();
@@ -653,7 +654,7 @@ AxrResult AxrXrSystem::setViewConfiguration() {
     return AXR_SUCCESS;
 }
 
-void AxrXrSystem::destroyViewConfiguration() {
+void AxrXrSystem::resetViewConfiguration() {
     m_Views.clear();
     m_ViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_MAX_ENUM;
 }
