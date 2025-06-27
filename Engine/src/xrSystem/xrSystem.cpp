@@ -94,13 +94,13 @@ AxrResult AxrXrSystem::setup() {
         return axrResult;
     }
 
-    logInstanceProperties();
-
     axrResult = setSystemId();
     if (AXR_FAILED(axrResult)) {
         resetSetup();
         return axrResult;
     }
+
+    logSystemDetails();
 
     return AXR_SUCCESS;
 }
@@ -190,38 +190,6 @@ XrBaseOutStructure* AxrXrSystem::createInstanceChain() const {
     }
 
     return chain;
-}
-
-void AxrXrSystem::logInstanceProperties() const {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
-
-    if (m_Instance == XR_NULL_HANDLE) {
-        axrLogErrorLocation("Instance is null.");
-        return;
-    }
-
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
-
-    XrInstanceProperties instanceProperties{
-        .type = XR_TYPE_INSTANCE_PROPERTIES,
-    };
-
-    const XrResult xrResult = xrGetInstanceProperties(m_Instance, &instanceProperties);
-    axrLogXrResult(xrResult, "xrGetInstanceProperties");
-
-    if (XR_SUCCEEDED(xrResult)) {
-        axrLogInfo(
-            "OpenXR Runtime: {0} - {1}.{2}.{3}",
-            instanceProperties.runtimeName,
-            XR_VERSION_MAJOR(instanceProperties.runtimeVersion),
-            XR_VERSION_MINOR(instanceProperties.runtimeVersion),
-            XR_VERSION_PATCH(instanceProperties.runtimeVersion)
-        );
-    }
 }
 
 void AxrXrSystem::destroyChain(XrBaseOutStructure* chain) {
@@ -547,6 +515,57 @@ AxrResult AxrXrSystem::setSystemId() {
 
 void AxrXrSystem::resetSystemId() {
     m_SystemId = XR_NULL_SYSTEM_ID;
+}
+
+void AxrXrSystem::logSystemDetails() const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Instance == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Instance is null.");
+        return;
+    }
+
+    if (m_SystemId == XR_NULL_SYSTEM_ID) {
+        axrLogErrorLocation("System ID is null.");
+        return;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    XrInstanceProperties instanceProperties{
+        .type = XR_TYPE_INSTANCE_PROPERTIES,
+    };
+
+    XrResult xrResult = xrGetInstanceProperties(m_Instance, &instanceProperties);
+    axrLogXrResult(xrResult, "xrGetInstanceProperties");
+    if (XR_FAILED(xrResult)) {
+        return;
+    }
+
+    XrSystemProperties systemProperties{
+        .type = XR_TYPE_SYSTEM_PROPERTIES,
+    };
+
+    xrResult = xrGetSystemProperties(m_Instance, m_SystemId, &systemProperties);
+    axrLogXrResult(xrResult, "xrGetSystemProperties");
+    if (XR_FAILED(xrResult)) {
+        return;
+    }
+
+    axrLogInfo(
+        "OpenXR Runtime: {0} - {1}.{2}.{3} | System name: {4} | Resolution: {5}:{6}",
+        instanceProperties.runtimeName,
+        XR_VERSION_MAJOR(instanceProperties.runtimeVersion),
+        XR_VERSION_MINOR(instanceProperties.runtimeVersion),
+        XR_VERSION_PATCH(instanceProperties.runtimeVersion),
+        systemProperties.systemName,
+        systemProperties.graphicsProperties.maxSwapchainImageWidth,
+        systemProperties.graphicsProperties.maxSwapchainImageHeight
+    );
 }
 
 XrBool32 AxrXrSystem::debugUtilsCallback(
