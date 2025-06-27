@@ -93,6 +93,8 @@ AxrResult AxrXrSystem::setup() {
         return axrResult;
     }
 
+    logInstanceProperties();
+
     return AXR_SUCCESS;
 }
 
@@ -180,6 +182,38 @@ XrBaseOutStructure* AxrXrSystem::createInstanceChain() const {
     }
 
     return chain;
+}
+
+void AxrXrSystem::logInstanceProperties() const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Instance == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Instance is null.");
+        return;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    XrInstanceProperties instanceProperties{
+        .type = XR_TYPE_INSTANCE_PROPERTIES,
+    };
+
+    const XrResult xrResult = xrGetInstanceProperties(m_Instance, &instanceProperties);
+    axrLogXrResult(xrResult, "xrGetInstanceProperties");
+
+    if (XR_SUCCEEDED(xrResult)) {
+        axrLogInfo(
+            "OpenXR Runtime: {0} - {1}.{2}.{3}",
+            instanceProperties.runtimeName,
+            XR_VERSION_MAJOR(instanceProperties.runtimeVersion),
+            XR_VERSION_MINOR(instanceProperties.runtimeVersion),
+            XR_VERSION_PATCH(instanceProperties.runtimeVersion)
+        );
+    }
 }
 
 void AxrXrSystem::destroyChain(XrBaseOutStructure* chain) {

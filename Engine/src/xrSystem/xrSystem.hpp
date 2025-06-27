@@ -122,6 +122,9 @@ private:
     /// @returns The instance structure chain
     [[nodiscard]] XrBaseOutStructure* createInstanceChain() const;
 
+    /// Log the instance properties
+    void logInstanceProperties() const;
+
     // ---- .Next Chain ----
 
     /// Destroy the given chain
