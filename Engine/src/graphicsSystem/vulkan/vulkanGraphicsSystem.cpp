@@ -244,20 +244,19 @@ AxrResult AxrVulkanGraphicsSystem::createInstance() {
     );
     instanceCreateInfo = createInstanceChain(instanceCreateInfo).get<vk::InstanceCreateInfo>();
 
-    vk::Result vkResult;
     if (m_XrGraphics != nullptr) {
-        vkResult = m_XrGraphics->createVulkanInstance(&instanceCreateInfo, &m_Instance);
+        const AxrResult axrResult = m_XrGraphics->createVulkanInstance(&instanceCreateInfo, &m_Instance);
+        if (AXR_FAILED(axrResult)) return axrResult;
     } else {
-        vkResult = vk::createInstance(
+        const vk::Result vkResult = vk::createInstance(
             &instanceCreateInfo,
             nullptr,
             &m_Instance,
             m_Dispatch
         );
+        axrLogVkResult(vkResult, "vk::createInstance");
+        if (VK_FAILED(vkResult)) return AXR_ERROR;
     }
-
-    axrLogVkResult(vkResult, "vk::createInstance");
-    if (VK_FAILED(vkResult)) return AXR_ERROR;
 
     m_Dispatch.init(m_Instance);
 
@@ -611,9 +610,10 @@ AxrResult AxrVulkanGraphicsSystem::setupPhysicalDevice() {
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //
+    AxrResult axrResult = AXR_SUCCESS;
 
-    m_PhysicalDevice = pickPhysicalDevice();
-    if (m_PhysicalDevice == VK_NULL_HANDLE) {
+    axrResult = pickPhysicalDevice(m_PhysicalDevice);
+    if (AXR_FAILED(axrResult)) {
         axrLogErrorLocation("Failed to pick Physical device.");
         return AXR_ERROR;
     }
@@ -623,7 +623,7 @@ AxrResult AxrVulkanGraphicsSystem::setupPhysicalDevice() {
         axrLogWarning("Not all api layers are supported for the chosen physical device.");
     }
 
-    const AxrResult axrResult = m_QueueFamilies.setQueueFamilyIndices(
+    axrResult = m_QueueFamilies.setQueueFamilyIndices(
         m_PhysicalDevice,
         m_Dispatch
     );
@@ -642,44 +642,47 @@ void AxrVulkanGraphicsSystem::resetPhysicalDevice() {
     m_PhysicalDevice = VK_NULL_HANDLE;
 }
 
-vk::PhysicalDevice AxrVulkanGraphicsSystem::pickPhysicalDevice() const {
+AxrResult AxrVulkanGraphicsSystem::pickPhysicalDevice(vk::PhysicalDevice& physicalDevice) const {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
 
     if (m_Instance == VK_NULL_HANDLE) {
         axrLogErrorLocation("Instance is null.");
-        return VK_NULL_HANDLE;
+        return AXR_ERROR;
     }
 
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //
 
-    // TODO: OpenXR chooses the physical device if that's set up.
+    if (m_XrGraphics != nullptr) {
+        return m_XrGraphics->getVulkanPhysicalDevice(m_Instance, &physicalDevice);
+    }
 
     const auto physicalDevices = m_Instance.enumeratePhysicalDevices(m_Dispatch);
     axrLogVkResult(physicalDevices.result, "m_Instance.enumeratePhysicalDevices");
-    if (VK_FAILED(physicalDevices.result)) return VK_NULL_HANDLE;
+    if (VK_FAILED(physicalDevices.result)) return AXR_ERROR;
 
     vk::PhysicalDevice chosenPhysicalDevice = VK_NULL_HANDLE;
     uint32_t chosenPhysicalDeviceScore = 0;
 
-    for (const vk::PhysicalDevice& physicalDevice : physicalDevices.value) {
-        const uint32_t currentScore = scorePhysicalDeviceSuitability(physicalDevice);
+    for (const vk::PhysicalDevice& device : physicalDevices.value) {
+        const uint32_t currentScore = scorePhysicalDeviceSuitability(device);
 
         if (currentScore > chosenPhysicalDeviceScore) {
             chosenPhysicalDeviceScore = currentScore;
-            chosenPhysicalDevice = physicalDevice;
+            chosenPhysicalDevice = device;
         }
     }
 
     if (chosenPhysicalDevice == VK_NULL_HANDLE) {
         axrLogError("Failed to find a suitable physical device.");
-        return VK_NULL_HANDLE;
+        return AXR_ERROR;
     }
 
-    return chosenPhysicalDevice;
+    physicalDevice = chosenPhysicalDevice;
+    return AXR_SUCCESS;
 }
 
 uint32_t AxrVulkanGraphicsSystem::scorePhysicalDeviceSuitability(const vk::PhysicalDevice& physicalDevice) const {

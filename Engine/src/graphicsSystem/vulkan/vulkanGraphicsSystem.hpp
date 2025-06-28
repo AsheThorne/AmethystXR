@@ -225,8 +225,9 @@ private:
 
     /// Decide on which physical device we'd like to use.
     /// If OpenXR is being used though, we need to use the one it selects for us
-    /// @returns The physical device we should use
-    [[nodiscard]] vk::PhysicalDevice pickPhysicalDevice() const;
+    /// @param physicalDevice Output physical device we should use
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult pickPhysicalDevice(vk::PhysicalDevice& physicalDevice) const;
 
     /// Score the given physical device. The higher the number, the better.
     /// 0 Means it is not suitable to use.

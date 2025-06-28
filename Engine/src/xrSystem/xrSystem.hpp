@@ -116,6 +116,12 @@ public:
         const VkInstanceCreateInfo* createInfo,
         VkInstance* vkInstance
     ) const;
+
+    /// Get the vulkan physical device to use
+    /// @param vkInstance The vkInstance to use
+    /// @param vkInstance The Output VkPhysicalDevice
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult getVulkanPhysicalDevice(VkInstance vkInstance, VkPhysicalDevice* vkPhysicalDevice) const;
 #endif
 
 private:

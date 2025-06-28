@@ -17,13 +17,22 @@ AxrVulkanXrGraphics::~AxrVulkanXrGraphics() {
 // ---- Public Functions ----
 
 vk::Result AxrVulkanXrGraphics::createVulkanInstance(
+AxrResult AxrVulkanXrGraphics::createVulkanInstance(
     const vk::InstanceCreateInfo* vkInstanceCreateInfo,
     vk::Instance* vkInstance
 ) const {
-    return static_cast<vk::Result>(m_XrSystem.createVulkanInstance(
+    return m_XrSystem.createVulkanInstance(
         vkGetInstanceProcAddr,
         reinterpret_cast<const VkInstanceCreateInfo*>(vkInstanceCreateInfo),
         reinterpret_cast<VkInstance*>(vkInstance)
-    ));
+    );
 }
+
+AxrResult AxrVulkanXrGraphics::getVulkanPhysicalDevice(
+    const vk::Instance vkInstance,
+    vk::PhysicalDevice* vkPhysicalDevice
+) const {
+    return m_XrSystem.getVulkanPhysicalDevice(vkInstance, reinterpret_cast<VkPhysicalDevice*>(vkPhysicalDevice));
+}
+
 #endif

@@ -229,6 +229,46 @@ AxrResult AxrXrSystem::createVulkanInstance(
 
     return AXR_SUCCESS;
 }
+
+AxrResult AxrXrSystem::getVulkanPhysicalDevice(const VkInstance vkInstance, VkPhysicalDevice* vkPhysicalDevice) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Instance == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Instance is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_SystemId == XR_NULL_SYSTEM_ID) {
+        axrLogErrorLocation("System ID is null.");
+        return AXR_ERROR;
+    }
+
+    if (vkInstance == VK_NULL_HANDLE) {
+        axrLogErrorLocation("vkInstance is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const XrVulkanGraphicsDeviceGetInfoKHR graphicsDeviceGetInfo{
+        .type = XR_TYPE_VULKAN_GRAPHICS_DEVICE_GET_INFO_KHR,
+        .next = nullptr,
+        .systemId = m_SystemId,
+        .vulkanInstance = vkInstance,
+    };
+
+    const XrResult xrResult = xrGetVulkanGraphicsDevice2KHR(m_Instance, &graphicsDeviceGetInfo, vkPhysicalDevice);
+    axrLogXrResult(xrResult, "xrGetVulkanGraphicsDevice2KHR");
+    if (XR_FAILED(xrResult)) {
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
 #endif
 
 // ---- Private Functions ----

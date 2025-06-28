@@ -60,4 +60,15 @@ XrResult XRAPI_PTR xrCreateVulkanInstanceKHR(
     VkInstance* vulkanInstance,
     VkResult* vulkanResult
 );
+
+/// Retrieve the Vulkan physical device associated with an OpenXR instance and system
+/// @param instance XrInstance handle previously created with xrCreateInstance
+/// @param getInfo Extensible input struct of type XrVulkanGraphicsDeviceGetInfoKHR
+/// @param vulkanPhysicalDevice A pointer to a VkPhysicalDevice value to populate
+/// @returns XR_SUCCESS If the operation was successful
+XrResult XRAPI_PTR xrGetVulkanGraphicsDevice2KHR(
+    XrInstance instance,
+    const XrVulkanGraphicsDeviceGetInfoKHR* getInfo,
+    VkPhysicalDevice* vulkanPhysicalDevice
+);
 #endif

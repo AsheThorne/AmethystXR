@@ -60,11 +60,17 @@ public:
     /// Create the vulkan instance to use.
     /// @param vkInstanceCreateInfo The VkInstanceCreateInfo
     /// @param vkInstance Output created vkInstance
-    /// @returns The vkCreateInstance result
-    [[nodiscard]] vk::Result createVulkanInstance(
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createVulkanInstance(
         const vk::InstanceCreateInfo* vkInstanceCreateInfo,
         vk::Instance* vkInstance
     ) const;
+
+    /// Get the vulkan physical device to use
+    /// @param vkInstance The vkInstance to use
+    /// @param vkPhysicalDevice The Output VkPhysicalDevice
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult getVulkanPhysicalDevice(vk::Instance vkInstance, vk::PhysicalDevice* vkPhysicalDevice) const;
 
 private:
     // ----------------------------------------- //
