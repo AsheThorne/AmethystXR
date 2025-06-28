@@ -24,6 +24,7 @@ public:
         const char* ApplicationName;
         uint32_t ApplicationVersion;
         AxrWindowSystem_T WindowSystem;
+        AxrXrSystem_T XrSystem;
         AxrAssetCollection_T GlobalAssetCollection;
         AxrGraphicsSystemConfig GraphicsConfig;
     };

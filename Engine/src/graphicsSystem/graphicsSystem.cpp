@@ -49,6 +49,7 @@ AxrGraphicsSystem::AxrGraphicsSystem(const Config& config):
                     .ApplicationName = config.ApplicationName,
                     .ApplicationVersion = config.ApplicationVersion,
                     .WindowSystem = config.WindowSystem,
+                    .XrSystem = config.XrSystem,
                     .GlobalAssetCollection = config.GlobalAssetCollection,
                     .WindowConfig = useWindowConfig ? &windowConfig : nullptr,
                     .ClearColor = config.GraphicsConfig.ClearColor,

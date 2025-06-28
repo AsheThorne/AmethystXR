@@ -56,7 +56,7 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     if (config.WindowSystem != nullptr) {
         if (config.WindowConfig != nullptr) {
             m_WindowGraphics = new AxrVulkanWindowGraphics(
-                {
+                AxrVulkanWindowGraphics::Config{
                     .WindowSystem = *config.WindowSystem,
                     .Dispatch = m_Dispatch,
                     .LoadedScenes = m_LoadedScenes,
@@ -70,6 +70,14 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
             axrLogErrorLocation("Window config is null.");
         }
     }
+
+    if (config.XrSystem != nullptr) {
+        m_XrGraphics = new AxrVulkanXrGraphics(
+            AxrVulkanXrGraphics::Config{
+                .XrSystem = *config.XrSystem,
+            }
+        );
+    }
 }
 
 AxrVulkanGraphicsSystem::~AxrVulkanGraphicsSystem() {
@@ -79,6 +87,12 @@ AxrVulkanGraphicsSystem::~AxrVulkanGraphicsSystem() {
         delete m_WindowGraphics;
         m_WindowGraphics = nullptr;
     }
+
+    if (m_XrGraphics != nullptr) {
+        delete m_XrGraphics;
+        m_XrGraphics = nullptr;
+    }
+
     m_Extensions.clear();
     m_ApiLayers.clear();
 }

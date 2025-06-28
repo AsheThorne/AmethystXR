@@ -152,6 +152,7 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
             .ApplicationName = config.ApplicationName,
             .ApplicationVersion = config.ApplicationVersion,
             .WindowSystem = &m_WindowSystem,
+            .XrSystem = &m_XrSystem,
             .GlobalAssetCollection = &m_GlobalAssetCollection,
             .GraphicsConfig = config.GraphicsSystemConfig,
         }
@@ -162,29 +163,28 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
             .WindowConfig = config.WindowSystemConfig
         }
     ),
-    m_DeltaTime(0) {
-    if (config.XrSystemConfig != nullptr) {
-        m_XrSystem = std::make_unique<AxrXrSystem>(
-            AxrXrSystem::Config{
+    m_XrSystem(
+        config.XrSystemConfig == nullptr
+            ? AxrXrSystem::Config{}
+            : AxrXrSystem::Config{
                 .ApplicationName = config.ApplicationName,
                 .ApplicationVersion = config.ApplicationVersion,
-                .GraphicsApi =  config.GraphicsSystemConfig.GraphicsApi,
+                .GraphicsApi = config.GraphicsSystemConfig.GraphicsApi,
                 .StageReferenceSpace = config.XrSystemConfig->StageReferenceSpace,
                 .ApiLayerCount = config.XrSystemConfig->ApiLayerCount,
                 .ApiLayers = config.XrSystemConfig->ApiLayers,
                 .ExtensionCount = config.XrSystemConfig->ExtensionCount,
                 .Extensions = config.XrSystemConfig->Extensions
             }
-        );
-    }
+    ),
+    m_DeltaTime(0) {
 }
 
 AxrApplication::~AxrApplication() {
     m_GraphicsSystem.cleanup();
     m_WindowSystem.cleanup();
-    if (m_XrSystem != nullptr) {
-        m_XrSystem->resetSetup();
-    }
+    // TODO: Check that we actually have a valid Xr system first. m_XrSystem.isValid(), which checks that the config is valid
+    m_XrSystem.resetSetup();
     m_GlobalAssetCollection.cleanup();
 }
 
@@ -199,10 +199,9 @@ AxrResult AxrApplication::setup() {
     axrResult = m_WindowSystem.setup();
     if (AXR_FAILED(axrResult)) return axrResult;
 
-    if (m_XrSystem != nullptr) {
-        axrResult = m_XrSystem->setup();
-        if (AXR_FAILED(axrResult)) return axrResult;
-    }
+    // TODO: Check that we actually have a valid Xr system first. m_XrSystem.isValid(), which checks that the config is valid
+    axrResult = m_XrSystem.setup();
+    if (AXR_FAILED(axrResult)) return axrResult;
 
     axrResult = m_GraphicsSystem.setup();
     if (AXR_FAILED(axrResult)) return axrResult;
@@ -211,21 +210,14 @@ AxrResult AxrApplication::setup() {
 }
 
 bool AxrApplication::isRunning() const {
-    bool isXrSessionRunning = false;
-    
-    if (m_XrSystem != nullptr) {
-        isXrSessionRunning = m_XrSystem->isXrSessionRunning();
-    }
-
-    return m_WindowSystem.isWindowOpen() || isXrSessionRunning;
+    // TODO: Check that we actually have a valid Xr system first. m_XrSystem.isValid(), which checks that the config is valid
+    return m_WindowSystem.isWindowOpen() || m_XrSystem.isXrSessionRunning();
 }
 
 void AxrApplication::processEvents() {
     m_WindowSystem.processEvents();
-
-    if (m_XrSystem != nullptr) {
-        m_XrSystem->processEvents();
-    }
+    // TODO: Check that we actually have a valid Xr system first. m_XrSystem.isValid(), which checks that the config is valid
+    m_XrSystem.processEvents();
 
     static std::chrono::high_resolution_clock::time_point lastFrameTime = std::chrono::high_resolution_clock::now();
     const std::chrono::high_resolution_clock::time_point currentFrameTime = std::chrono::high_resolution_clock::now();
@@ -239,7 +231,8 @@ AxrWindowSystem_T AxrApplication::getWindowSystem() {
 }
 
 AxrXrSystem_T AxrApplication::getXrSystem() {
-    return m_XrSystem.get();
+    // TODO: Make sure m_XrSystem.isValid() is an external function so the application can check it before it uses it
+    return &m_XrSystem;
 }
 
 AxrGraphicsSystem_T AxrApplication::getGraphicsSystem() {

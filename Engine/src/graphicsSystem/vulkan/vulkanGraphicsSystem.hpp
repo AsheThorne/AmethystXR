@@ -14,6 +14,7 @@
 #include "axr/assets.h"
 #include "vulkanQueueFamilies.hpp"
 #include "vulkanWindowGraphics.hpp"
+#include "vulkanXrGraphics.hpp"
 #include "../../extensionCollection.hpp"
 #include "sceneData/vulkanLoadedScenesCollection.hpp"
 #include "vulkanRenderCommands.hpp"
@@ -51,6 +52,7 @@ public:
         const char* ApplicationName;
         uint32_t ApplicationVersion;
         AxrWindowSystem_T WindowSystem;
+        AxrXrSystem_T XrSystem;
         AxrAssetCollection_T GlobalAssetCollection;
         WindowConfig* WindowConfig;
         glm::vec4 ClearColor;
@@ -142,6 +144,7 @@ private:
 
     AxrVulkanLoadedScenesCollection m_LoadedScenes;
     AxrVulkanWindowGraphics* m_WindowGraphics;
+    AxrVulkanXrGraphics* m_XrGraphics;
 
     // ----------------------------------------- //
     // Private Functions

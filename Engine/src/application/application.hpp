@@ -100,7 +100,7 @@ private:
 
     AxrGraphicsSystem m_GraphicsSystem;
     AxrWindowSystem m_WindowSystem;
-    std::unique_ptr<AxrXrSystem> m_XrSystem;
+    AxrXrSystem m_XrSystem;
     AxrAssetCollection m_GlobalAssetCollection;
     std::unordered_map<std::string, AxrScene> m_Scenes;
     float m_DeltaTime;
