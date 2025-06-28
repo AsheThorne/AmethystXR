@@ -245,7 +245,7 @@ AxrResult AxrVulkanGraphicsSystem::createInstance() {
     instanceCreateInfo = createInstanceChain(instanceCreateInfo).get<vk::InstanceCreateInfo>();
 
     if (m_XrGraphics != nullptr) {
-        const AxrResult axrResult = m_XrGraphics->createVulkanInstance(&instanceCreateInfo, &m_Instance);
+        const AxrResult axrResult = m_XrGraphics->createVulkanInstance(instanceCreateInfo, m_Instance);
         if (AXR_FAILED(axrResult)) return axrResult;
     } else {
         const vk::Result vkResult = vk::createInstance(
@@ -657,7 +657,7 @@ AxrResult AxrVulkanGraphicsSystem::pickPhysicalDevice(vk::PhysicalDevice& physic
     // ----------------------------------------- //
 
     if (m_XrGraphics != nullptr) {
-        return m_XrGraphics->getVulkanPhysicalDevice(m_Instance, &physicalDevice);
+        return m_XrGraphics->getVulkanPhysicalDevice(m_Instance, physicalDevice);
     }
 
     const auto physicalDevices = m_Instance.enumeratePhysicalDevices(m_Dispatch);
@@ -976,15 +976,23 @@ AxrResult AxrVulkanGraphicsSystem::createLogicalDevice() {
         deviceExtensions.data(),
         &deviceFeatures
     );
+    deviceCreateInfo = createDeviceChain(deviceCreateInfo).get<vk::DeviceCreateInfo>();
 
-    const vk::Result vkResult = m_PhysicalDevice.createDevice(
-        &createDeviceChain(deviceCreateInfo).get<vk::DeviceCreateInfo>(),
-        nullptr,
-        &m_Device,
-        m_Dispatch
-    );
-    axrLogVkResult(vkResult, "m_PhysicalDevice.createDevice");
-    if (VK_FAILED(vkResult)) return AXR_ERROR;
+    if (m_XrGraphics != nullptr) {
+        const AxrResult axrResult = m_XrGraphics->createVulkanDevice(m_PhysicalDevice, deviceCreateInfo, m_Device);
+        if (AXR_FAILED(axrResult)) {
+            return AXR_ERROR;
+        }
+    } else {
+        const vk::Result vkResult = m_PhysicalDevice.createDevice(
+            &deviceCreateInfo,
+            nullptr,
+            &m_Device,
+            m_Dispatch
+        );
+        axrLogVkResult(vkResult, "m_PhysicalDevice.createDevice");
+        if (VK_FAILED(vkResult)) return AXR_ERROR;
+    }
 
     const AxrResult axrResult = m_QueueFamilies.setQueueFamilyQueues(m_Device, m_Dispatch);
     if (AXR_FAILED(axrResult)) {

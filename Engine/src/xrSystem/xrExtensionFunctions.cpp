@@ -106,4 +106,25 @@ XrResult XRAPI_PTR xrGetVulkanGraphicsDevice2KHR(
 
     return function(instance, getInfo, vulkanPhysicalDevice);
 }
+
+XrResult XRAPI_PTR xrCreateVulkanDeviceKHR(
+    const XrInstance instance,
+    const XrVulkanDeviceCreateInfoKHR* createInfo,
+    VkDevice* vulkanDevice,
+    VkResult* vulkanResult
+) {
+    PFN_xrCreateVulkanDeviceKHR function = nullptr;
+    const XrResult xrResult = xrGetInstanceProcAddr(
+        instance,
+        "xrCreateVulkanDeviceKHR",
+        reinterpret_cast<PFN_xrVoidFunction*>(&function)
+    );
+
+    if (XR_FAILED(xrResult)) {
+        axrLogErrorLocation("Failed to get xrCreateVulkanDeviceKHR proc address.");
+        return xrResult;
+    }
+
+    return function(instance, createInfo, vulkanDevice, vulkanResult);
+}
 #endif

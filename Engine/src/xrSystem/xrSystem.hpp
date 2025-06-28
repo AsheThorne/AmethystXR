@@ -113,15 +113,29 @@ public:
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult createVulkanInstance(
         PFN_vkGetInstanceProcAddr pfnGetInstanceProcAddr,
-        const VkInstanceCreateInfo* createInfo,
-        VkInstance* vkInstance
+        const VkInstanceCreateInfo& createInfo,
+        VkInstance& vkInstance
     ) const;
 
     /// Get the vulkan physical device to use
     /// @param vkInstance The vkInstance to use
-    /// @param vkInstance The Output VkPhysicalDevice
+    /// @param vkPhysicalDevice The Output VkPhysicalDevice
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult getVulkanPhysicalDevice(VkInstance vkInstance, VkPhysicalDevice* vkPhysicalDevice) const;
+    [[nodiscard]] AxrResult getVulkanPhysicalDevice(VkInstance vkInstance, VkPhysicalDevice& vkPhysicalDevice) const;
+
+    /// Create the vulkan device to use
+    /// @param pfnGetInstanceProcAddr A function pointer to vkGetInstanceProcAddr or a compatible entry point
+    /// @param vkPhysicalDevice VkPhysicalDevice to use
+    /// @param createInfo The VkDeviceCreateInfo
+    /// @param vkDevice Output created vkDevice
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createVulkanDevice(
+        PFN_vkGetInstanceProcAddr pfnGetInstanceProcAddr,
+        VkPhysicalDevice vkPhysicalDevice,
+        const VkDeviceCreateInfo& createInfo,
+        VkDevice& vkDevice
+    ) const;
 #endif
 
 private:

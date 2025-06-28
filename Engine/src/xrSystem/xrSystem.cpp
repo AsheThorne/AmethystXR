@@ -149,8 +149,8 @@ void AxrXrSystem::processEvents() {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 AxrResult AxrXrSystem::createVulkanInstance(
     const PFN_vkGetInstanceProcAddr pfnGetInstanceProcAddr,
-    const VkInstanceCreateInfo* createInfo,
-    VkInstance* vkInstance
+    const VkInstanceCreateInfo& createInfo,
+    VkInstance& vkInstance
 ) const {
     // ----------------------------------------- //
     // Validation
@@ -166,12 +166,7 @@ AxrResult AxrXrSystem::createVulkanInstance(
         return AXR_ERROR;
     }
 
-    if (createInfo == nullptr) {
-        axrLogErrorLocation("VkInstanceCreateInfo is null.");
-        return AXR_ERROR;
-    }
-
-    if (createInfo->pApplicationInfo == nullptr) {
+    if (createInfo.pApplicationInfo == nullptr) {
         axrLogErrorLocation("VkInstanceCreateInfo.pApplicationInfo is null.");
         return AXR_ERROR;
     }
@@ -182,7 +177,7 @@ AxrResult AxrXrSystem::createVulkanInstance(
 
     uint32_t vulkanApiVersion;
     const AxrResult axrResult = chooseVulkanApiVersion(
-        createInfo->pApplicationInfo->apiVersion,
+        createInfo.pApplicationInfo->apiVersion,
         vulkanApiVersion
     );
     if (AXR_FAILED(axrResult)) {
@@ -190,24 +185,24 @@ AxrResult AxrXrSystem::createVulkanInstance(
     }
 
     const VkApplicationInfo appInfo{
-        .sType = createInfo->pApplicationInfo->sType,
-        .pNext = createInfo->pApplicationInfo->pNext,
-        .pApplicationName = createInfo->pApplicationInfo->pApplicationName,
-        .applicationVersion = createInfo->pApplicationInfo->applicationVersion,
-        .pEngineName = createInfo->pApplicationInfo->pEngineName,
-        .engineVersion = createInfo->pApplicationInfo->engineVersion,
+        .sType = createInfo.pApplicationInfo->sType,
+        .pNext = createInfo.pApplicationInfo->pNext,
+        .pApplicationName = createInfo.pApplicationInfo->pApplicationName,
+        .applicationVersion = createInfo.pApplicationInfo->applicationVersion,
+        .pEngineName = createInfo.pApplicationInfo->pEngineName,
+        .engineVersion = createInfo.pApplicationInfo->engineVersion,
         .apiVersion = vulkanApiVersion,
     };
 
     const VkInstanceCreateInfo vkInstanceCreateInfo{
-        .sType = createInfo->sType,
-        .pNext = createInfo->pNext,
-        .flags = createInfo->flags,
+        .sType = createInfo.sType,
+        .pNext = createInfo.pNext,
+        .flags = createInfo.flags,
         .pApplicationInfo = &appInfo,
-        .enabledLayerCount = createInfo->enabledLayerCount,
-        .ppEnabledLayerNames = createInfo->ppEnabledLayerNames,
-        .enabledExtensionCount = createInfo->enabledExtensionCount,
-        .ppEnabledExtensionNames = createInfo->ppEnabledExtensionNames,
+        .enabledLayerCount = createInfo.enabledLayerCount,
+        .ppEnabledLayerNames = createInfo.ppEnabledLayerNames,
+        .enabledExtensionCount = createInfo.enabledExtensionCount,
+        .ppEnabledExtensionNames = createInfo.ppEnabledExtensionNames,
     };
 
     const XrVulkanInstanceCreateInfoKHR xrVulkanInstanceCreateInfo{
@@ -221,7 +216,7 @@ AxrResult AxrXrSystem::createVulkanInstance(
     };
 
     VkResult vkResult = VK_ERROR_UNKNOWN;
-    const XrResult xrResult = xrCreateVulkanInstanceKHR(m_Instance, &xrVulkanInstanceCreateInfo, vkInstance, &vkResult);
+    const XrResult xrResult = xrCreateVulkanInstanceKHR(m_Instance, &xrVulkanInstanceCreateInfo, &vkInstance, &vkResult);
     axrLogXrResult(xrResult, "xrCreateVulkanInstanceKHR");
     if (XR_FAILED(xrResult) || VK_FAILED(vkResult)) {
         return AXR_ERROR;
@@ -230,7 +225,7 @@ AxrResult AxrXrSystem::createVulkanInstance(
     return AXR_SUCCESS;
 }
 
-AxrResult AxrXrSystem::getVulkanPhysicalDevice(const VkInstance vkInstance, VkPhysicalDevice* vkPhysicalDevice) const {
+AxrResult AxrXrSystem::getVulkanPhysicalDevice(const VkInstance vkInstance, VkPhysicalDevice& vkPhysicalDevice) const {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -261,9 +256,54 @@ AxrResult AxrXrSystem::getVulkanPhysicalDevice(const VkInstance vkInstance, VkPh
         .vulkanInstance = vkInstance,
     };
 
-    const XrResult xrResult = xrGetVulkanGraphicsDevice2KHR(m_Instance, &graphicsDeviceGetInfo, vkPhysicalDevice);
+    const XrResult xrResult = xrGetVulkanGraphicsDevice2KHR(m_Instance, &graphicsDeviceGetInfo, &vkPhysicalDevice);
     axrLogXrResult(xrResult, "xrGetVulkanGraphicsDevice2KHR");
     if (XR_FAILED(xrResult)) {
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrXrSystem::createVulkanDevice(
+    const PFN_vkGetInstanceProcAddr pfnGetInstanceProcAddr,
+    const VkPhysicalDevice vkPhysicalDevice,
+    const VkDeviceCreateInfo& createInfo,
+    VkDevice& vkDevice
+) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Instance == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Instance is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_SystemId == XR_NULL_SYSTEM_ID) {
+        axrLogErrorLocation("System ID is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const XrVulkanDeviceCreateInfoKHR xrVulkanDeviceCreateInfo{
+        .type = XR_TYPE_VULKAN_DEVICE_CREATE_INFO_KHR,
+        .next = nullptr,
+        .systemId = m_SystemId,
+        .createFlags = {},
+        .pfnGetInstanceProcAddr = pfnGetInstanceProcAddr,
+        .vulkanPhysicalDevice = vkPhysicalDevice,
+        .vulkanCreateInfo = &createInfo,
+        .vulkanAllocator = nullptr,
+    };
+
+    VkResult vkResult = VK_ERROR_UNKNOWN;
+    const XrResult xrResult = xrCreateVulkanDeviceKHR(m_Instance, &xrVulkanDeviceCreateInfo, &vkDevice, &vkResult);
+    axrLogXrResult(xrResult, "xrCreateVulkanDeviceKHR");
+    if (XR_FAILED(xrResult) || VK_FAILED(vkResult)) {
         return AXR_ERROR;
     }
 

@@ -49,10 +49,10 @@ XrResult XRAPI_PTR xrGetVulkanGraphicsRequirements2KHR(
 );
 
 /// Create an OpenXR compatible VkInstance
-/// @param instance is an XrInstance handle previously created with xrCreateInstance
-/// @param createInfo extensible input struct of type XrVulkanInstanceCreateInfoKHR
-/// @param vulkanInstance points to a VkInstance handle to populate with the new Vulkan instance
-/// @param vulkanResult points to a VkResult to populate with the result of the vkCreateInstance operation as returned by XrVulkanInstanceCreateInfoKHR::pfnGetInstanceProcAddr
+/// @param instance An XrInstance handle previously created with xrCreateInstance
+/// @param createInfo Extensible input struct of type XrVulkanInstanceCreateInfoKHR
+/// @param vulkanInstance A VkInstance handle to populate with the new Vulkan instance
+/// @param vulkanResult A VkResult to populate with the result of the vkCreateInstance operation as returned by XrVulkanInstanceCreateInfoKHR::pfnGetInstanceProcAddr
 /// @returns XR_SUCCESS If the operation was successful
 XrResult XRAPI_PTR xrCreateVulkanInstanceKHR(
     XrInstance instance,
@@ -70,5 +70,18 @@ XrResult XRAPI_PTR xrGetVulkanGraphicsDevice2KHR(
     XrInstance instance,
     const XrVulkanGraphicsDeviceGetInfoKHR* getInfo,
     VkPhysicalDevice* vulkanPhysicalDevice
+);
+
+/// Create an OpenXR compatible VkDevice
+/// @param instance An XrInstance handle previously created with xrCreateInstance
+/// @param createInfo extensible input struct of type XrCreateVulkanDeviceCreateInfoKHR
+/// @param vulkanDevice A VkDevice handle to populate with the new Vulkan device
+/// @param vulkanResult A VkResult to populate with the result of the vkCreateDevice operation as returned by XrVulkanInstanceCreateInfoKHR::pfnGetInstanceProcAddr
+/// @returns XR_SUCCESS If the operation was successful
+XrResult XRAPI_PTR xrCreateVulkanDeviceKHR(
+    XrInstance instance,
+    const XrVulkanDeviceCreateInfoKHR* createInfo,
+    VkDevice* vulkanDevice,
+    VkResult* vulkanResult
 );
 #endif
