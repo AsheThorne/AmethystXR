@@ -122,15 +122,8 @@ private:
     // Private Functions
     // ----------------------------------------- //
 
-    /// Set the SetupConfig variables
-    /// @param config Setup config
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setSetupConfigVariables(const SetupConfig& config);
-    /// Reset the SetupConfig variables
-    void resetSetupConfigVariables();
-
     /// Set the xr session graphics binding
-    void setXrGraphicsBinding();
+    void setXrGraphicsBinding() const;
 };
 
 #endif

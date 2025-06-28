@@ -67,12 +67,78 @@ void AxrVulkanWindowGraphics::addRequiredDeviceExtensions(
 }
 
 AxrResult AxrVulkanWindowGraphics::setup(const SetupConfig& config) {
-    AxrResult result = AXR_SUCCESS;
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
 
-    result = setSetupConfigVariables(config);
-    if (AXR_FAILED(result)) {
+    if (m_Instance != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Instance isn't null.");
+        return AXR_ERROR;
+    }
+
+    if (config.Instance == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Config instance is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_PhysicalDevice != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Physical device isn't null.");
+        return AXR_ERROR;
+    }
+
+    if (config.PhysicalDevice == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Config physical device is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_Device != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Logical device isn't null.");
+        return AXR_ERROR;
+    }
+
+    if (config.Device == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Config logical device is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_GraphicsCommandPool != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Graphics command pool isn't null.");
+        return AXR_ERROR;
+    }
+
+    if (config.GraphicsCommandPool == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Config graphics command pool is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_QueueFamilies.isValid()) {
+        axrLogErrorLocation("Queue families are already set.");
+        return AXR_ERROR;
+    }
+
+    if (!config.QueueFamilies.isValid()) {
+        axrLogErrorLocation("Config queue families aren't valid.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    m_Instance = config.Instance;
+    m_PhysicalDevice = config.PhysicalDevice;
+    m_Device = config.Device;
+    m_GraphicsCommandPool = config.GraphicsCommandPool;
+    m_QueueFamilies = config.QueueFamilies;
+
+    const AxrResult axrResult = setSwapchainFormatOptions(
+        config.PhysicalDevice,
+        config.SwapchainColorFormatOptions,
+        config.SwapchainDepthFormatOptions
+    );
+    if (AXR_FAILED(axrResult)) {
         resetSetup();
-        return result;
+        return axrResult;
     }
 
     m_WindowSystem.OnWindowOpenStateChangedCallbackGraphics
@@ -82,10 +148,15 @@ AxrResult AxrVulkanWindowGraphics::setup(const SetupConfig& config) {
 }
 
 void AxrVulkanWindowGraphics::resetSetup() {
-    resetWindowConfiguration();
-
+    resetSetupWindowGraphics();
     m_WindowSystem.OnWindowOpenStateChangedCallbackGraphics.reset();
-    resetSetupConfigVariables();
+
+    resetSwapchainFormatOptions();
+    m_Instance = VK_NULL_HANDLE;
+    m_PhysicalDevice = VK_NULL_HANDLE;
+    m_Device = VK_NULL_HANDLE;
+    m_GraphicsCommandPool = VK_NULL_HANDLE;
+    m_QueueFamilies.reset();
 }
 
 bool AxrVulkanWindowGraphics::isReady() const {
@@ -255,92 +326,6 @@ void AxrVulkanWindowGraphics::getRenderingMatrices(glm::mat4& viewMatrix, glm::m
 
 // ---- Private Functions ----
 
-AxrResult AxrVulkanWindowGraphics::setSetupConfigVariables(const SetupConfig& config) {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
-
-    if (m_Instance != VK_NULL_HANDLE) {
-        axrLogErrorLocation("Instance isn't null.");
-        return AXR_ERROR;
-    }
-
-    if (config.Instance == VK_NULL_HANDLE) {
-        axrLogErrorLocation("Config instance is null.");
-        return AXR_ERROR;
-    }
-
-    if (m_PhysicalDevice != VK_NULL_HANDLE) {
-        axrLogErrorLocation("Physical device isn't null.");
-        return AXR_ERROR;
-    }
-
-    if (config.PhysicalDevice == VK_NULL_HANDLE) {
-        axrLogErrorLocation("Config physical device is null.");
-        return AXR_ERROR;
-    }
-
-    if (m_Device != VK_NULL_HANDLE) {
-        axrLogErrorLocation("Logical device isn't null.");
-        return AXR_ERROR;
-    }
-
-    if (config.Device == VK_NULL_HANDLE) {
-        axrLogErrorLocation("Config logical device is null.");
-        return AXR_ERROR;
-    }
-
-    if (m_GraphicsCommandPool != VK_NULL_HANDLE) {
-        axrLogErrorLocation("Graphics command pool isn't null.");
-        return AXR_ERROR;
-    }
-
-    if (config.GraphicsCommandPool == VK_NULL_HANDLE) {
-        axrLogErrorLocation("Config graphics command pool is null.");
-        return AXR_ERROR;
-    }
-
-    if (m_QueueFamilies.isValid()) {
-        axrLogErrorLocation("Queue families are already set.");
-        return AXR_ERROR;
-    }
-
-    if (!config.QueueFamilies.isValid()) {
-        axrLogErrorLocation("Config queue families aren't valid.");
-        return AXR_ERROR;
-    }
-
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
-    m_Instance = config.Instance;
-    m_PhysicalDevice = config.PhysicalDevice;
-    m_Device = config.Device;
-    m_GraphicsCommandPool = config.GraphicsCommandPool;
-    m_QueueFamilies = config.QueueFamilies;
-
-    const AxrResult axrResult = setSwapchainFormatOptions(
-        config.PhysicalDevice,
-        config.SwapchainColorFormatOptions,
-        config.SwapchainDepthFormatOptions
-    );
-    if (AXR_FAILED(axrResult)) {
-        return axrResult;
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanWindowGraphics::resetSetupConfigVariables() {
-    resetSwapchainFormatOptions();
-
-    m_Instance = VK_NULL_HANDLE;
-    m_PhysicalDevice = VK_NULL_HANDLE;
-    m_Device = VK_NULL_HANDLE;
-    m_GraphicsCommandPool = VK_NULL_HANDLE;
-    m_QueueFamilies.reset();
-}
-
 AxrResult AxrVulkanWindowGraphics::setSwapchainFormatOptions(
     const vk::PhysicalDevice& physicalDevice,
     const std::vector<vk::SurfaceFormatKHR>& swapchainColorFormatOptions,
@@ -411,12 +396,12 @@ void AxrVulkanWindowGraphics::resetSwapchainFormatOptions() {
     m_SwapchainDepthFormatOptions.clear();
 }
 
-AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
+AxrResult AxrVulkanWindowGraphics::setupWindowGraphics() {
     AxrResult result = AXR_SUCCESS;
 
     result = createSurface();
     if (AXR_FAILED(result)) {
-        resetWindowConfiguration();
+        resetSetupWindowGraphics();
         return result;
     }
 
@@ -427,43 +412,43 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
 
     result = setSwapchainFormats(surfaceDetails.Formats);
     if (AXR_FAILED(result)) {
-        resetWindowConfiguration();
+        resetSetupWindowGraphics();
         return result;
     }
 
     result = setMsaaSampleCount();
     if (AXR_FAILED(result)) {
-        resetWindowConfiguration();
+        resetSetupWindowGraphics();
         return result;
     }
 
     result = createRenderPass();
     if (AXR_FAILED(result)) {
-        resetWindowConfiguration();
+        resetSetupWindowGraphics();
         return result;
     }
 
     result = createSyncObjects();
     if (AXR_FAILED(result)) {
-        resetWindowConfiguration();
+        resetSetupWindowGraphics();
         return result;
     }
 
     result = createCommandBuffers();
     if (AXR_FAILED(result)) {
-        resetWindowConfiguration();
+        resetSetupWindowGraphics();
         return result;
     }
 
     result = setupSwapchain(surfaceDetails);
     if (AXR_FAILED(result)) {
-        resetWindowConfiguration();
+        resetSetupWindowGraphics();
         return result;
     }
 
     result = m_LoadedScenes.setupWindowData(m_RenderPass, m_MsaaSampleCount);
     if (AXR_FAILED(result)) {
-        resetWindowConfiguration();
+        resetSetupWindowGraphics();
         return result;
     }
 
@@ -474,7 +459,7 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
     return AXR_SUCCESS;
 }
 
-void AxrVulkanWindowGraphics::resetWindowConfiguration() {
+void AxrVulkanWindowGraphics::resetSetupWindowGraphics() {
     m_IsReady = false;
     m_WindowSystem.OnWindowResizedCallbackGraphics.reset();
 
@@ -572,43 +557,43 @@ AxrResult AxrVulkanWindowGraphics::setupSwapchain(const AxrVulkanSurfaceDetails&
 
     axrResult = setSwapchainPresentationMode(surfaceDetails.PresentationModes);
     if (AXR_FAILED(axrResult)) {
-        resetWindowConfiguration();
+        resetSetupSwapchain();
         return axrResult;
     }
 
     axrResult = setSwapchainExtent(surfaceDetails.Capabilities);
     if (AXR_FAILED(axrResult)) {
-        resetWindowConfiguration();
+        resetSetupSwapchain();
         return axrResult;
     }
 
     axrResult = createSwapchain(surfaceDetails.Capabilities);
     if (AXR_FAILED(axrResult)) {
-        resetWindowConfiguration();
+        resetSetupSwapchain();
         return axrResult;
     }
 
     axrResult = getSwapchainImages();
     if (AXR_FAILED(axrResult)) {
-        resetWindowConfiguration();
+        resetSetupSwapchain();
         return axrResult;
     }
 
     axrResult = createDepthBufferImages();
     if (AXR_FAILED(axrResult)) {
-        resetWindowConfiguration();
+        resetSetupSwapchain();
         return axrResult;
     }
 
     axrResult = createMsaaImages();
     if (AXR_FAILED(axrResult)) {
-        resetWindowConfiguration();
+        resetSetupSwapchain();
         return axrResult;
     }
 
     axrResult = createFramebuffers();
     if (AXR_FAILED(axrResult)) {
-        resetWindowConfiguration();
+        resetSetupSwapchain();
         return axrResult;
     }
 
@@ -1313,10 +1298,10 @@ void AxrVulkanWindowGraphics::destroyMsaaImages() {
 
 AxrResult AxrVulkanWindowGraphics::onWindowOpenStateChangedCallback(const bool isWindowOpen) {
     if (isWindowOpen) {
-        return configureWindowGraphics();
+        return setupWindowGraphics();
     }
 
-    resetWindowConfiguration();
+    resetSetupWindowGraphics();
     return AXR_SUCCESS;
 }
 

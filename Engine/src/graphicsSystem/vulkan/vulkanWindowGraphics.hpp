@@ -204,13 +204,6 @@ private:
     // Private Functions
     // ----------------------------------------- //
 
-    /// Set the SetupConfig variables
-    /// @param config Setup config
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setSetupConfigVariables(const SetupConfig& config);
-    /// Reset the SetupConfig variables
-    void resetSetupConfigVariables();
-
     /// Set the swapchain color and depth format options
     /// @param physicalDevice Physical device to use
     /// @param swapchainColorFormatOptions Swapchain color format options to choose from
@@ -224,12 +217,11 @@ private:
     /// Reset the setSwapchainFormatOptions() function 
     void resetSwapchainFormatOptions();
 
-    // TODO: I don't like the name of this. It's used as a setup() part 2. more involved than just "configure"
-    /// Configure window graphics
+    /// Set up the window graphics
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult configureWindowGraphics();
-    /// Reset the configureWindowGraphics() function 
-    void resetWindowConfiguration();
+    [[nodiscard]] AxrResult setupWindowGraphics();
+    /// Reset the setupWindowGraphics() function 
+    void resetSetupWindowGraphics();
 
     // ---- Surface ----
 

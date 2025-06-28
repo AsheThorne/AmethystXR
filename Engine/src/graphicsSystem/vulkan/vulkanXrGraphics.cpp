@@ -22,66 +22,6 @@ AxrVulkanXrGraphics::~AxrVulkanXrGraphics() {
 // ---- Public Functions ----
 
 AxrResult AxrVulkanXrGraphics::setup(const SetupConfig& config) {
-    AxrResult axrResult = AXR_SUCCESS;
-
-    axrResult = setSetupConfigVariables(config);
-    if (AXR_FAILED(axrResult)) {
-        resetSetup();
-        return axrResult;
-    }
-
-    setXrGraphicsBinding();
-
-    // TODO: Don't need this yet
-    // m_XrSystem.OnSessionStateChangedCallbackGraphics
-    //               .connect<&AxrVulkanXrGraphics::onSessionStateChangedCallback>(this);
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanXrGraphics::resetSetup() {
-    // TODO: Don't need this yet
-    // resetXrSessionConfiguration();
-
-    // TODO: Don't need this yet
-    // m_XrSystem.OnSessionStateChangedCallbackGraphics.reset();
-    resetSetupConfigVariables();
-}
-
-AxrResult AxrVulkanXrGraphics::createVulkanInstance(
-    const vk::InstanceCreateInfo& createInfo,
-    vk::Instance& vkInstance
-) const {
-    return m_XrSystem.createVulkanInstance(
-        vkGetInstanceProcAddr,
-        createInfo,
-        reinterpret_cast<VkInstance&>(vkInstance)
-    );
-}
-
-AxrResult AxrVulkanXrGraphics::getVulkanPhysicalDevice(
-    const vk::Instance vkInstance,
-    vk::PhysicalDevice& vkPhysicalDevice
-) const {
-    return m_XrSystem.getVulkanPhysicalDevice(vkInstance, reinterpret_cast<VkPhysicalDevice&>(vkPhysicalDevice));
-}
-
-AxrResult AxrVulkanXrGraphics::createVulkanDevice(
-    const vk::PhysicalDevice vkPhysicalDevice,
-    const vk::DeviceCreateInfo& createInfo,
-    vk::Device& vkDevice
-) const {
-    return m_XrSystem.createVulkanDevice(
-        vkGetInstanceProcAddr,
-        vkPhysicalDevice,
-        createInfo,
-        reinterpret_cast<VkDevice&>(vkDevice)
-    );
-}
-
-// ---- Private Functions ----
-
-AxrResult AxrVulkanXrGraphics::setSetupConfigVariables(const SetupConfig& config) {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -134,17 +74,61 @@ AxrResult AxrVulkanXrGraphics::setSetupConfigVariables(const SetupConfig& config
     m_Device = config.Device;
     m_QueueFamilies = config.QueueFamilies;
 
+    setXrGraphicsBinding();
+
+    // TODO: Don't need this yet
+    // m_XrSystem.OnSessionStateChangedCallbackGraphics
+    //               .connect<&AxrVulkanXrGraphics::onSessionStateChangedCallback>(this);
+
     return AXR_SUCCESS;
 }
 
-void AxrVulkanXrGraphics::resetSetupConfigVariables() {
+void AxrVulkanXrGraphics::resetSetup() {
+    // TODO: Don't need this yet
+    // resetSetupXrGraphics();
+    // TODO: Don't need this yet
+    // m_XrSystem.OnSessionStateChangedCallbackGraphics.reset();
+
     m_Instance = VK_NULL_HANDLE;
     m_PhysicalDevice = VK_NULL_HANDLE;
     m_Device = VK_NULL_HANDLE;
     m_QueueFamilies.reset();
 }
 
-void AxrVulkanXrGraphics::setXrGraphicsBinding() {
+AxrResult AxrVulkanXrGraphics::createVulkanInstance(
+    const vk::InstanceCreateInfo& createInfo,
+    vk::Instance& vkInstance
+) const {
+    return m_XrSystem.createVulkanInstance(
+        vkGetInstanceProcAddr,
+        createInfo,
+        reinterpret_cast<VkInstance&>(vkInstance)
+    );
+}
+
+AxrResult AxrVulkanXrGraphics::getVulkanPhysicalDevice(
+    const vk::Instance vkInstance,
+    vk::PhysicalDevice& vkPhysicalDevice
+) const {
+    return m_XrSystem.getVulkanPhysicalDevice(vkInstance, reinterpret_cast<VkPhysicalDevice&>(vkPhysicalDevice));
+}
+
+AxrResult AxrVulkanXrGraphics::createVulkanDevice(
+    const vk::PhysicalDevice vkPhysicalDevice,
+    const vk::DeviceCreateInfo& createInfo,
+    vk::Device& vkDevice
+) const {
+    return m_XrSystem.createVulkanDevice(
+        vkGetInstanceProcAddr,
+        vkPhysicalDevice,
+        createInfo,
+        reinterpret_cast<VkDevice&>(vkDevice)
+    );
+}
+
+// ---- Private Functions ----
+
+void AxrVulkanXrGraphics::setXrGraphicsBinding() const {
     if (!m_QueueFamilies.GraphicsQueueFamilyIndex.has_value()) {
         axrLogErrorLocation("Graphics queue family index is null.");
         return;
