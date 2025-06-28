@@ -164,6 +164,9 @@ private:
     std::vector<XrEnvironmentBlendMode> m_SupportedEnvironmentBlendModes;
     XrEnvironmentBlendMode m_EnvironmentBlendMode;
     XrBaseInStructure* m_GraphicsBinding;
+    bool m_IsSessionRunning;
+    XrSession m_Session;
+    XrSessionState m_SessionState;
 
     // ----------------------------------------- //
     // Private Functions
@@ -277,6 +280,35 @@ private:
 
     /// Destroy the graphics binding
     void destroyGraphicsBinding();
+
+    // ---- Session ----
+
+    /// Destroy the session data
+    void destroySessionData();
+
+    /// Create the session
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createSession();
+    /// Destroy the session
+    void destroySession();
+
+    // ---- Events ----
+
+    /// OpenXR 'Events Lost' event handler
+    /// @param eventData Event data
+    void xrEvent_EventsLost(const XrEventDataEventsLost& eventData);
+    /// OpenXR 'Instance Loss Pending' event handler
+    /// @param eventData Event data
+    void xrEvent_InstanceLossPending(const XrEventDataInstanceLossPending& eventData);
+    /// OpenXR 'Interaction Profile Changed' event handler
+    /// @param eventData Event data
+    void xrEvent_InteractionProfileChanged(const XrEventDataInteractionProfileChanged& eventData);
+    /// OpenXR 'Reference Space Change Pending' event handler
+    /// @param eventData Event data
+    void xrEvent_ReferenceSpaceChangePending(const XrEventDataReferenceSpaceChangePending& eventData);
+    /// OpenXR 'Session State Changed' event handler
+    /// @param eventData Event data
+    void xrEvent_SessionStateChanged(const XrEventDataSessionStateChanged& eventData);
 
     // ----------------------------------------- //
     // Private Static Functions

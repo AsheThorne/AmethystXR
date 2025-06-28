@@ -72,6 +72,9 @@ AxrXrSystem::AxrXrSystem(const Config& config):
     ),
     m_EnvironmentBlendMode(XR_ENVIRONMENT_BLEND_MODE_MAX_ENUM),
     m_GraphicsBinding(nullptr),
+    m_IsSessionRunning(false),
+    m_Session(XR_NULL_HANDLE),
+    m_SessionState(XR_SESSION_STATE_UNKNOWN) {
     m_ApiLayers.add(config.ApiLayerCount, config.ApiLayers);
     m_Extensions.add(config.ExtensionCount, config.Extensions);
 
@@ -88,14 +91,37 @@ AxrXrSystem::~AxrXrSystem() {
 // ---- Public Functions ----
 
 bool AxrXrSystem::isXrSessionRunning() const {
-    return false;
+    return m_IsSessionRunning;
 }
 
 AxrResult AxrXrSystem::startXrSession() {
-    return AXR_ERROR;
+    if (m_IsSessionRunning) {
+        return AXR_SUCCESS;
+    }
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = createSession();
+    if (AXR_FAILED(axrResult)) {
+        destroySessionData();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
 }
 
 void AxrXrSystem::stopXrSession() {
+    if (!m_IsSessionRunning) {
+        return;
+    }
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return;
+    }
+
+    const XrResult xrResult = xrRequestExitSession(m_Session);
+    axrLogXrResult(xrResult, "xrRequestExitSession");
 }
 
 AxrResult AxrXrSystem::setup() {
@@ -137,6 +163,8 @@ AxrResult AxrXrSystem::setup() {
 }
 
 void AxrXrSystem::resetSetup() {
+    destroySessionData();
+
     resetEnvironmentBlendMode();
     resetViewConfiguration();
     resetSystemId();
@@ -145,6 +173,42 @@ void AxrXrSystem::resetSetup() {
 }
 
 void AxrXrSystem::processEvents() {
+    XrEventDataBuffer eventData{.type = XR_TYPE_EVENT_DATA_BUFFER};
+    auto xrPollEvents = [&]() -> bool {
+        eventData = {.type = XR_TYPE_EVENT_DATA_BUFFER};
+        return xrPollEvent(m_Instance, &eventData) == XR_SUCCESS;
+    };
+
+    while (xrPollEvents()) {
+        // NOLINTNEXTLINE(clang-diagnostic-switch-enum)
+        switch (eventData.type) {
+            case XR_TYPE_EVENT_DATA_EVENTS_LOST: {
+                xrEvent_EventsLost(*reinterpret_cast<XrEventDataEventsLost*>(&eventData));
+                break;
+            }
+            case XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING: {
+                xrEvent_InstanceLossPending(*reinterpret_cast<XrEventDataInstanceLossPending*>(&eventData));
+                break;
+            }
+            case XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED: {
+                xrEvent_InteractionProfileChanged(*reinterpret_cast<XrEventDataInteractionProfileChanged*>(&eventData));
+                break;
+            }
+            case XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING: {
+                xrEvent_ReferenceSpaceChangePending(
+                    *reinterpret_cast<XrEventDataReferenceSpaceChangePending*>(&eventData)
+                );
+                break;
+            }
+            case XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED: {
+                xrEvent_SessionStateChanged(*reinterpret_cast<XrEventDataSessionStateChanged*>(&eventData));
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+    }
 }
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
@@ -217,7 +281,12 @@ AxrResult AxrXrSystem::createVulkanInstance(
     };
 
     VkResult vkResult = VK_ERROR_UNKNOWN;
-    const XrResult xrResult = xrCreateVulkanInstanceKHR(m_Instance, &xrVulkanInstanceCreateInfo, &vkInstance, &vkResult);
+    const XrResult xrResult = xrCreateVulkanInstanceKHR(
+        m_Instance,
+        &xrVulkanInstanceCreateInfo,
+        &vkInstance,
+        &vkResult
+    );
     axrLogXrResult(xrResult, "xrCreateVulkanInstanceKHR");
     if (XR_FAILED(xrResult) || VK_FAILED(vkResult)) {
         return AXR_ERROR;
@@ -1054,6 +1123,132 @@ void AxrXrSystem::destroyGraphicsBinding() {
 
     delete m_GraphicsBinding;
     m_GraphicsBinding = nullptr;
+}
+
+void AxrXrSystem::destroySessionData() {
+    destroySession();
+    m_IsSessionRunning = false;
+}
+
+AxrResult AxrXrSystem::createSession() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Session != XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session already exists.");
+        return AXR_ERROR;
+    }
+
+    if (m_Instance == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Instance is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_SystemId == XR_NULL_SYSTEM_ID) {
+        axrLogErrorLocation("System ID is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_GraphicsBinding == nullptr) {
+        axrLogErrorLocation("Graphics binding is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const XrSessionCreateInfo sessionCreateInfo{
+        .type = XR_TYPE_SESSION_CREATE_INFO,
+        .next = m_GraphicsBinding,
+        .createFlags = {},
+        .systemId = m_SystemId,
+    };
+
+    const XrResult xrResult = xrCreateSession(m_Instance, &sessionCreateInfo, &m_Session);
+    axrLogXrResult(xrResult, "xrCreateSession");
+    if (XR_FAILED(xrResult)) {
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrXrSystem::destroySession() {
+    if (m_Session == XR_NULL_HANDLE) return;
+
+    const XrResult xrResult = xrDestroySession(m_Session);
+    axrLogXrResult(xrResult, "xrDestroySession");
+
+    if (XR_SUCCEEDED(xrResult)) {
+        m_Session = XR_NULL_HANDLE;
+    }
+}
+
+void AxrXrSystem::xrEvent_EventsLost(const XrEventDataEventsLost& eventData) {
+    axrLogWarningLocation("OpenXR - Events Lost: {0}", eventData.lostEventCount);
+}
+
+void AxrXrSystem::xrEvent_InstanceLossPending(const XrEventDataInstanceLossPending& eventData) {
+    axrLogWarningLocation("OpenXR - Instance Loss Pending at: {0}", eventData.lossTime);
+    destroySessionData();
+    resetSetup();
+}
+
+void AxrXrSystem::xrEvent_InteractionProfileChanged(const XrEventDataInteractionProfileChanged& eventData) {
+    axrLogInfo("OpenXR - Interaction Profile changed.");
+
+    if (eventData.session != m_Session) {
+        axrLogWarningLocation("XrEventDataInteractionProfileChanged for unknown Session.");
+        return;
+    }
+}
+
+void AxrXrSystem::xrEvent_ReferenceSpaceChangePending(const XrEventDataReferenceSpaceChangePending& eventData) {
+    axrLogInfo("OpenXR - Reference Space Change pending.");
+
+    if (eventData.session != m_Session) {
+        axrLogWarningLocation("XrEventDataReferenceSpaceChangePending for unknown Session.");
+        return;
+    }
+}
+
+void AxrXrSystem::xrEvent_SessionStateChanged(const XrEventDataSessionStateChanged& eventData) {
+    if (eventData.session != m_Session) {
+        axrLogWarningLocation("XrEventDataSessionStateChanged for unknown Session.");
+        return;
+    }
+
+    m_SessionState = eventData.state;
+
+    // NOLINTNEXTLINE(clang-diagnostic-switch-enum)
+    switch (m_SessionState) {
+        case XR_SESSION_STATE_READY: {
+            XrSessionBeginInfo sessionBeginInfo{.type = XR_TYPE_SESSION_BEGIN_INFO};
+            sessionBeginInfo.primaryViewConfigurationType = m_ViewConfigurationType;
+            const XrResult xrResult = xrBeginSession(m_Session, &sessionBeginInfo);
+            axrLogXrResult(xrResult, "xrBeginSession");
+            if (XR_SUCCEEDED(xrResult)) {
+                m_IsSessionRunning = true;
+            }
+            break;
+        }
+        case XR_SESSION_STATE_STOPPING: {
+            const XrResult result = xrEndSession(m_Session);
+            axrLogXrResult(result, "xrEndSession");
+            destroySessionData();
+            break;
+        }
+        case XR_SESSION_STATE_LOSS_PENDING:
+        case XR_SESSION_STATE_EXITING: {
+            destroySessionData();
+            break;
+        }
+        default: {
+            break;
+        }
+    }
 }
 
 XrBool32 AxrXrSystem::debugUtilsCallback(
