@@ -7,10 +7,19 @@
 #include "../extensionCollection.hpp"
 #include "axr/graphicsSystem.h"
 
+// Vulkan headers are required for <openxr/openxr_platform.h>
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+// ----------------------------------------- //
+// Vulkan Headers
+// ----------------------------------------- //
+#include <vulkan/vulkan_core.h>
+#endif
+
 // ----------------------------------------- //
 // OpenXR Headers
 // ----------------------------------------- //
 #include <openxr/openxr.h>
+#include <openxr/openxr_platform.h>
 
 
 /// Axr Xr System
@@ -94,6 +103,21 @@ public:
     /// Process the xr events
     void processEvents();
 
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    // ---- Vulkan Functions ----
+
+    /// Create the vulkan instance to use
+    /// @param pfnGetInstanceProcAddr A function pointer to vkGetInstanceProcAddr or a compatible entry point
+    /// @param createInfo The VkInstanceCreateInfo
+    /// @param vkInstance Output created vkInstance
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createVulkanInstance(
+        PFN_vkGetInstanceProcAddr pfnGetInstanceProcAddr,
+        const VkInstanceCreateInfo* createInfo,
+        VkInstance* vkInstance
+    ) const;
+#endif
+
 private:
     // ----------------------------------------- //
     // Private Variables
@@ -120,6 +144,16 @@ private:
     // ----------------------------------------- //
     // Private Functions
     // ----------------------------------------- //
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    // ---- Vulkan Functions ----
+
+    /// Choose the vulkan api version to use
+    /// @param desiredApiVersion The desired vulkan api version to use
+    /// @param apiVersion Output vulkan api version to use
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodscard]] AxrResult chooseVulkanApiVersion(uint32_t desiredApiVersion, uint32_t& apiVersion) const;
+#endif
 
     // ---- Instance ----
 

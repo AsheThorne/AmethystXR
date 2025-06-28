@@ -224,7 +224,7 @@ AxrResult AxrVulkanGraphicsSystem::createInstance() {
         m_ApplicationVersion,
         AxrEngineName,
         AXR_ENGINE_VERSION,
-        // TODO: OpenXR decides on the api version when that's in use
+        // OpenXR will choose the version if this isn't available for it's runtime
         vk::ApiVersion13
     );
 
@@ -234,7 +234,7 @@ AxrResult AxrVulkanGraphicsSystem::createInstance() {
     const std::vector<const char*> instanceLayers = getAllApiLayerNames();
     const std::vector<const char*> instanceExtensions = getAllInstanceExtensionNames();
 
-    const vk::InstanceCreateInfo instanceCreateInfo(
+    vk::InstanceCreateInfo instanceCreateInfo(
         {},
         &appInfo,
         static_cast<uint32_t>(instanceLayers.size()),
@@ -242,13 +242,20 @@ AxrResult AxrVulkanGraphicsSystem::createInstance() {
         static_cast<uint32_t>(instanceExtensions.size()),
         instanceExtensions.data()
     );
+    instanceCreateInfo = createInstanceChain(instanceCreateInfo).get<vk::InstanceCreateInfo>();
 
-    const vk::Result vkResult = vk::createInstance(
-        &createInstanceChain(instanceCreateInfo).get<vk::InstanceCreateInfo>(),
-        nullptr,
-        &m_Instance,
-        m_Dispatch
-    );
+    vk::Result vkResult;
+    if (m_XrGraphics != nullptr) {
+        vkResult = m_XrGraphics->createVulkanInstance(&instanceCreateInfo, &m_Instance);
+    } else {
+        vkResult = vk::createInstance(
+            &instanceCreateInfo,
+            nullptr,
+            &m_Instance,
+            m_Dispatch
+        );
+    }
+
     axrLogVkResult(vkResult, "vk::createInstance");
     if (VK_FAILED(vkResult)) return AXR_ERROR;
 

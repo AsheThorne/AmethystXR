@@ -8,6 +8,10 @@
 #include "../utils.hpp"
 #include "xrExtensionFunctions.hpp"
 
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+#include "../graphicsSystem/vulkan/vulkanUtils.hpp"
+#endif
+
 // ----------------------------------------- //
 // External Functions
 // ----------------------------------------- //
@@ -142,7 +146,146 @@ void AxrXrSystem::resetSetup() {
 void AxrXrSystem::processEvents() {
 }
 
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+AxrResult AxrXrSystem::createVulkanInstance(
+    const PFN_vkGetInstanceProcAddr pfnGetInstanceProcAddr,
+    const VkInstanceCreateInfo* createInfo,
+    VkInstance* vkInstance
+) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Instance == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Instance is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_SystemId == XR_NULL_SYSTEM_ID) {
+        axrLogErrorLocation("System ID is null.");
+        return AXR_ERROR;
+    }
+
+    if (createInfo == nullptr) {
+        axrLogErrorLocation("VkInstanceCreateInfo is null.");
+        return AXR_ERROR;
+    }
+
+    if (createInfo->pApplicationInfo == nullptr) {
+        axrLogErrorLocation("VkInstanceCreateInfo.pApplicationInfo is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    uint32_t vulkanApiVersion;
+    const AxrResult axrResult = chooseVulkanApiVersion(
+        createInfo->pApplicationInfo->apiVersion,
+        vulkanApiVersion
+    );
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
+
+    const VkApplicationInfo appInfo{
+        .sType = createInfo->pApplicationInfo->sType,
+        .pNext = createInfo->pApplicationInfo->pNext,
+        .pApplicationName = createInfo->pApplicationInfo->pApplicationName,
+        .applicationVersion = createInfo->pApplicationInfo->applicationVersion,
+        .pEngineName = createInfo->pApplicationInfo->pEngineName,
+        .engineVersion = createInfo->pApplicationInfo->engineVersion,
+        .apiVersion = vulkanApiVersion,
+    };
+
+    const VkInstanceCreateInfo vkInstanceCreateInfo{
+        .sType = createInfo->sType,
+        .pNext = createInfo->pNext,
+        .flags = createInfo->flags,
+        .pApplicationInfo = &appInfo,
+        .enabledLayerCount = createInfo->enabledLayerCount,
+        .ppEnabledLayerNames = createInfo->ppEnabledLayerNames,
+        .enabledExtensionCount = createInfo->enabledExtensionCount,
+        .ppEnabledExtensionNames = createInfo->ppEnabledExtensionNames,
+    };
+
+    const XrVulkanInstanceCreateInfoKHR xrVulkanInstanceCreateInfo{
+        .type = XR_TYPE_VULKAN_INSTANCE_CREATE_INFO_KHR,
+        .next = nullptr,
+        .systemId = m_SystemId,
+        .createFlags = {},
+        .pfnGetInstanceProcAddr = pfnGetInstanceProcAddr,
+        .vulkanCreateInfo = &vkInstanceCreateInfo,
+        .vulkanAllocator = nullptr,
+    };
+
+    VkResult vkResult = VK_ERROR_UNKNOWN;
+    const XrResult xrResult = xrCreateVulkanInstanceKHR(m_Instance, &xrVulkanInstanceCreateInfo, vkInstance, &vkResult);
+    axrLogXrResult(xrResult, "xrCreateVulkanInstanceKHR");
+    if (XR_FAILED(xrResult) || VK_FAILED(vkResult)) {
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+#endif
+
 // ---- Private Functions ----
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+AxrResult AxrXrSystem::chooseVulkanApiVersion(const uint32_t desiredApiVersion, uint32_t& apiVersion) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Instance == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Instance is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_SystemId == XR_NULL_SYSTEM_ID) {
+        axrLogErrorLocation("System ID is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    XrGraphicsRequirementsVulkan2KHR graphicsRequirements{
+        .type = XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN2_KHR
+    };
+    const XrResult xrResult = xrGetVulkanGraphicsRequirements2KHR(m_Instance, m_SystemId, &graphicsRequirements);
+    axrLogXrResult(xrResult, "xrGetVulkanGraphicsRequirements2KHR");
+    if (XR_FAILED(xrResult)) {
+        return AXR_ERROR;
+    }
+
+    const uint32_t minSupportedApiVersionMajor = XR_VERSION_MAJOR(graphicsRequirements.minApiVersionSupported);
+    const uint32_t minSupportedApiVersionMinor = XR_VERSION_MINOR(graphicsRequirements.minApiVersionSupported);
+    const uint32_t maxSupportedApiVersionMajor = XR_VERSION_MAJOR(graphicsRequirements.maxApiVersionSupported);
+    const uint32_t maxSupportedApiVersionMinor = XR_VERSION_MINOR(graphicsRequirements.maxApiVersionSupported);
+
+    const uint32_t desiredApiVersionMajor = VK_VERSION_MAJOR(desiredApiVersion);
+    const uint32_t desiredApiVersionMinor = VK_VERSION_MINOR(desiredApiVersion);
+
+    if (desiredApiVersionMajor < minSupportedApiVersionMajor ||
+        desiredApiVersionMinor < minSupportedApiVersionMinor) {
+        apiVersion = VK_MAKE_API_VERSION(0, minSupportedApiVersionMajor, minSupportedApiVersionMinor, 0);
+        return AXR_SUCCESS;
+    }
+
+    if (desiredApiVersionMajor > maxSupportedApiVersionMajor ||
+        desiredApiVersionMinor > maxSupportedApiVersionMinor) {
+        apiVersion = VK_MAKE_API_VERSION(0, maxSupportedApiVersionMajor, maxSupportedApiVersionMinor, 0);
+        return AXR_SUCCESS;
+    }
+
+    apiVersion = VK_MAKE_API_VERSION(0, desiredApiVersionMajor, desiredApiVersionMinor, 0);
+    return AXR_SUCCESS;
+}
+#endif
 
 AxrResult AxrXrSystem::createInstance() {
     // ----------------------------------------- //
@@ -501,10 +644,12 @@ AxrResult AxrXrSystem::createDebugUtils() {
 void AxrXrSystem::destroyDebugUtils() {
     if (m_DebugUtilsMessenger == XR_NULL_HANDLE) return;
 
-    const XrResult result = xrDestroyDebugUtilsMessengerEXT(m_Instance, m_DebugUtilsMessenger);
-    axrLogXrResult(result, "xrDestroyDebugUtilsMessengerEXT");
+    const XrResult xrResult = xrDestroyDebugUtilsMessengerEXT(m_Instance, m_DebugUtilsMessenger);
+    axrLogXrResult(xrResult, "xrDestroyDebugUtilsMessengerEXT");
 
-    m_DebugUtilsMessenger = XR_NULL_HANDLE;
+    if (XR_SUCCEEDED(xrResult)) {
+        m_DebugUtilsMessenger = XR_NULL_HANDLE;
+    }
 }
 
 AxrResult AxrXrSystem::setSystemId() {

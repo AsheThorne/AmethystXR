@@ -42,3 +42,48 @@ XrResult XRAPI_PTR xrDestroyDebugUtilsMessengerEXT(
 
     return function(messenger);
 }
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+// ---- Vulkan Functions ----
+
+XrResult XRAPI_PTR xrGetVulkanGraphicsRequirements2KHR(
+    const XrInstance instance,
+    const XrSystemId systemId,
+    XrGraphicsRequirementsVulkan2KHR* graphicsRequirements
+) {
+    PFN_xrGetVulkanGraphicsRequirements2KHR function = nullptr;
+    const XrResult xrResult = xrGetInstanceProcAddr(
+        instance,
+        "xrGetVulkanGraphicsRequirements2KHR",
+        reinterpret_cast<PFN_xrVoidFunction*>(&function)
+    );
+
+    if (XR_FAILED(xrResult)) {
+        axrLogErrorLocation("Failed to get xrGetVulkanGraphicsRequirements2KHR proc address.");
+        return xrResult;
+    }
+
+    return function(instance, systemId, graphicsRequirements);
+}
+
+XrResult XRAPI_PTR xrCreateVulkanInstanceKHR(
+    const XrInstance instance,
+    const XrVulkanInstanceCreateInfoKHR* createInfo,
+    VkInstance* vulkanInstance,
+    VkResult* vulkanResult
+) {
+    PFN_xrCreateVulkanInstanceKHR function = nullptr;
+    const XrResult xrResult = xrGetInstanceProcAddr(
+        instance,
+        "xrCreateVulkanInstanceKHR",
+        reinterpret_cast<PFN_xrVoidFunction*>(&function)
+    );
+
+    if (XR_FAILED(xrResult)) {
+        axrLogErrorLocation("Failed to get xrCreateVulkanInstanceKHR proc address.");
+        return xrResult;
+    }
+
+    return function(instance, createInfo, vulkanInstance, vulkanResult);
+}
+#endif

@@ -1,9 +1,15 @@
 ﻿#pragma once
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
 #include "../../xrSystem/xrSystem.hpp"
+
+// ----------------------------------------- //
+// Vulkan Headers
+// ----------------------------------------- //
+#include <vulkan/vulkan.hpp>
 
 /// Vulkan Xr Graphics
 class AxrVulkanXrGraphics {
@@ -47,6 +53,19 @@ public:
     /// @param src Source AxrVulkanXrGraphics to move from
     AxrVulkanXrGraphics& operator=(AxrVulkanXrGraphics&& src) noexcept = delete;
 
+    // ----------------------------------------- //
+    // Public Functions
+    // ----------------------------------------- //
+
+    /// Create the vulkan instance to use.
+    /// @param vkInstanceCreateInfo The VkInstanceCreateInfo
+    /// @param vkInstance Output created vkInstance
+    /// @returns The vkCreateInstance result
+    [[nodiscard]] vk::Result createVulkanInstance(
+        const vk::InstanceCreateInfo* vkInstanceCreateInfo,
+        vk::Instance* vkInstance
+    ) const;
+
 private:
     // ----------------------------------------- //
     // Private Variables
@@ -55,3 +74,5 @@ private:
     // ---- Config ----
     AxrXrSystem& m_XrSystem;
 };
+
+#endif
