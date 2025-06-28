@@ -1128,6 +1128,7 @@ void AxrXrSystem::destroyGraphicsBinding() {
 void AxrXrSystem::destroySessionData() {
     destroySession();
     m_IsSessionRunning = false;
+    OnXrSessionStateChangedCallbackGraphics(false);
 }
 
 AxrResult AxrXrSystem::createSession() {
@@ -1231,6 +1232,7 @@ void AxrXrSystem::xrEvent_SessionStateChanged(const XrEventDataSessionStateChang
             axrLogXrResult(xrResult, "xrBeginSession");
             if (XR_SUCCEEDED(xrResult)) {
                 m_IsSessionRunning = true;
+                OnXrSessionStateChangedCallbackGraphics(true);
             }
             break;
         }

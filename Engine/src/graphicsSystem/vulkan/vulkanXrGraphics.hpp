@@ -74,6 +74,10 @@ public:
     /// Reset the setup() function
     void resetSetup();
 
+    /// Check if the xr session graphics are ready for rendering
+    /// @returns True if the xr session graphics are ready for rendering
+    [[nodiscard]] bool isReady() const;
+
     /// Create the vulkan instance to use.
     /// @param createInfo The VkInstanceCreateInfo
     /// @param vkInstance Output created vkInstance
@@ -118,12 +122,28 @@ private:
     vk::Device m_Device;
     AxrVulkanQueueFamilies m_QueueFamilies;
 
+    // ---- Data ----
+    bool m_IsReady;
+
     // ----------------------------------------- //
     // Private Functions
     // ----------------------------------------- //
 
     /// Set the xr session graphics binding
     void setXrGraphicsBinding() const;
+
+    /// Set up the xr session graphics
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setupXrSessionGraphics();
+    /// Reset the setupXrSessionGraphics() function 
+    void resetSetupXrSessionGraphics();
+
+    // ---- Callbacks ----
+
+    /// 'On xr session state changed' callback function
+    /// @param isSessionRunning If true, the xr session is running. If false, the xr session is not running.
+    /// @returns AXR_SUCCESS if the function succeeded
+    AxrResult onXrSessionStateChangedCallback(bool isSessionRunning);
 };
 
 #endif

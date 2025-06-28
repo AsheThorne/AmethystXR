@@ -12,7 +12,8 @@ AxrVulkanXrGraphics::AxrVulkanXrGraphics(const Config& config):
     m_Dispatch(config.Dispatch),
     m_Instance(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
-    m_Device(VK_NULL_HANDLE) {
+    m_Device(VK_NULL_HANDLE),
+    m_IsReady(false) {
 }
 
 AxrVulkanXrGraphics::~AxrVulkanXrGraphics() {
@@ -76,23 +77,24 @@ AxrResult AxrVulkanXrGraphics::setup(const SetupConfig& config) {
 
     setXrGraphicsBinding();
 
-    // TODO: Don't need this yet
-    // m_XrSystem.OnSessionStateChangedCallbackGraphics
-    //               .connect<&AxrVulkanXrGraphics::onSessionStateChangedCallback>(this);
+    m_XrSystem.OnXrSessionStateChangedCallbackGraphics
+                  .connect<&AxrVulkanXrGraphics::onXrSessionStateChangedCallback>(this);
 
     return AXR_SUCCESS;
 }
 
 void AxrVulkanXrGraphics::resetSetup() {
-    // TODO: Don't need this yet
-    // resetSetupXrGraphics();
-    // TODO: Don't need this yet
-    // m_XrSystem.OnSessionStateChangedCallbackGraphics.reset();
+    resetSetupXrSessionGraphics();
+    m_XrSystem.OnXrSessionStateChangedCallbackGraphics.reset();
 
     m_Instance = VK_NULL_HANDLE;
     m_PhysicalDevice = VK_NULL_HANDLE;
     m_Device = VK_NULL_HANDLE;
     m_QueueFamilies.reset();
+}
+
+bool AxrVulkanXrGraphics::isReady() const {
+    return m_IsReady;
 }
 
 AxrResult AxrVulkanXrGraphics::createVulkanInstance(
@@ -144,6 +146,24 @@ void AxrVulkanXrGraphics::setXrGraphicsBinding() const {
         .queueIndex = 0
     };
     m_XrSystem.setGraphicsBinding(graphicsBinding);
+}
+
+AxrResult AxrVulkanXrGraphics::setupXrSessionGraphics() {
+    m_IsReady = true;
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanXrGraphics::resetSetupXrSessionGraphics() {
+    m_IsReady = false;
+}
+
+AxrResult AxrVulkanXrGraphics::onXrSessionStateChangedCallback(const bool isSessionRunning) {
+    if (isSessionRunning) {
+        return setupXrSessionGraphics();
+    }
+
+    resetSetupXrSessionGraphics();
+    return AXR_SUCCESS;
 }
 
 #endif

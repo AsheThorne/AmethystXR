@@ -6,6 +6,7 @@
 #include "axr/xrSystem.h"
 #include "../extensionCollection.hpp"
 #include "axr/graphicsSystem.h"
+#include "axr/common/callback.h"
 
 // Vulkan headers are required for <openxr/openxr_platform.h>
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
@@ -45,6 +46,21 @@ public:
     struct View {
         XrViewConfigurationView ViewConfigurationView;
     };
+
+    // ----------------------------------------- //
+    // Types
+    // ----------------------------------------- //
+
+    /// On xr session state changed callback function type
+    /// @param 1: True if the xr session is running. False if it's not
+    using OnXrSessionStateChangedCallback_T = AxrCallback<void(bool)>;
+
+    // ----------------------------------------- //
+    // Public Variables
+    // ----------------------------------------- //
+
+    /// On xr session state changed for the graphics system
+    OnXrSessionStateChangedCallback_T OnXrSessionStateChangedCallbackGraphics;
 
     // ----------------------------------------- //
     // Special Functions
