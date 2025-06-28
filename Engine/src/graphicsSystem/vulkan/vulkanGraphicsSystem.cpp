@@ -75,6 +75,7 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
         m_XrGraphics = new AxrVulkanXrGraphics(
             AxrVulkanXrGraphics::Config{
                 .XrSystem = *config.XrSystem,
+                .Dispatch = m_Dispatch,
             }
         );
     }
@@ -144,6 +145,12 @@ AxrResult AxrVulkanGraphicsSystem::setup() {
         return axrResult;
     }
 
+    axrResult = setupXrGraphics();
+    if (AXR_FAILED(axrResult)) {
+        resetSetup();
+        return axrResult;
+    }
+
     return AXR_SUCCESS;
 }
 
@@ -196,6 +203,7 @@ AxrResult AxrVulkanGraphicsSystem::setActiveScene(const std::string& sceneName) 
 // ---- Private Functions ----
 
 void AxrVulkanGraphicsSystem::resetSetup() {
+    resetSetupXrGraphics();
     resetSetupWindowGraphics();
     resetSetupSceneData();
     destroyCommandPools();
@@ -525,7 +533,7 @@ void AxrVulkanGraphicsSystem::addRequiredInstanceExtensions() {
         m_WindowGraphics->addRequiredInstanceExtensions(m_Extensions);
     }
 
-    // TODO: Add required instance extensions for OpenXR
+    // OpenXR adds it's extensions automatically when it creates the instance
 }
 
 void AxrVulkanGraphicsSystem::addRequiredDeviceExtensions() {
@@ -533,7 +541,7 @@ void AxrVulkanGraphicsSystem::addRequiredDeviceExtensions() {
         m_WindowGraphics->addRequiredDeviceExtensions(m_Extensions);
     }
 
-    // TODO: Add required device extensions for OpenXR
+    // OpenXR adds it's extensions automatically when it creates the device
 }
 
 vk::DebugUtilsMessengerCreateInfoEXT AxrVulkanGraphicsSystem::createDebugUtilsCreateInfo() const {
@@ -1204,6 +1212,32 @@ void AxrVulkanGraphicsSystem::resetSetupWindowGraphics() {
     if (m_WindowGraphics == nullptr) return;
 
     m_WindowGraphics->resetSetup();
+}
+
+AxrResult AxrVulkanGraphicsSystem::setupXrGraphics() {
+    // Xr graphics aren't required
+    if (m_XrGraphics == nullptr) return AXR_SUCCESS;
+
+    const AxrResult axrResult = m_XrGraphics->setup(
+        {
+            .Instance = m_Instance,
+            .PhysicalDevice = m_PhysicalDevice,
+            .Device = m_Device,
+            .QueueFamilies = m_QueueFamilies,
+        }
+    );
+    if (AXR_FAILED(axrResult)) {
+        resetSetupXrGraphics();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanGraphicsSystem::resetSetupXrGraphics() {
+    if (m_XrGraphics == nullptr) return;
+
+    m_XrGraphics->resetSetup();
 }
 
 template <typename RenderTarget>

@@ -8,15 +8,46 @@
 // ---- Special Functions ----
 
 AxrVulkanXrGraphics::AxrVulkanXrGraphics(const Config& config):
-    m_XrSystem(config.XrSystem) {
+    m_XrSystem(config.XrSystem),
+    m_Dispatch(config.Dispatch),
+    m_Instance(VK_NULL_HANDLE),
+    m_PhysicalDevice(VK_NULL_HANDLE),
+    m_Device(VK_NULL_HANDLE) {
 }
 
 AxrVulkanXrGraphics::~AxrVulkanXrGraphics() {
+    resetSetup();
 }
 
 // ---- Public Functions ----
 
-vk::Result AxrVulkanXrGraphics::createVulkanInstance(
+AxrResult AxrVulkanXrGraphics::setup(const SetupConfig& config) {
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = setSetupConfigVariables(config);
+    if (AXR_FAILED(axrResult)) {
+        resetSetup();
+        return axrResult;
+    }
+
+    setXrGraphicsBinding();
+
+    // TODO: Don't need this yet
+    // m_XrSystem.OnSessionStateChangedCallbackGraphics
+    //               .connect<&AxrVulkanXrGraphics::onSessionStateChangedCallback>(this);
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanXrGraphics::resetSetup() {
+    // TODO: Don't need this yet
+    // resetXrSessionConfiguration();
+
+    // TODO: Don't need this yet
+    // m_XrSystem.OnSessionStateChangedCallbackGraphics.reset();
+    resetSetupConfigVariables();
+}
+
 AxrResult AxrVulkanXrGraphics::createVulkanInstance(
     const vk::InstanceCreateInfo& createInfo,
     vk::Instance& vkInstance
@@ -46,6 +77,89 @@ AxrResult AxrVulkanXrGraphics::createVulkanDevice(
         createInfo,
         reinterpret_cast<VkDevice&>(vkDevice)
     );
+}
+
+// ---- Private Functions ----
+
+AxrResult AxrVulkanXrGraphics::setSetupConfigVariables(const SetupConfig& config) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Instance != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Instance isn't null.");
+        return AXR_ERROR;
+    }
+
+    if (config.Instance == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Config instance is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_PhysicalDevice != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Physical device isn't null.");
+        return AXR_ERROR;
+    }
+
+    if (config.PhysicalDevice == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Config physical device is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_Device != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Logical device isn't null.");
+        return AXR_ERROR;
+    }
+
+    if (config.Device == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Config logical device is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_QueueFamilies.isValid()) {
+        axrLogErrorLocation("Queue families are already set.");
+        return AXR_ERROR;
+    }
+
+    if (!config.QueueFamilies.isValid()) {
+        axrLogErrorLocation("Config queue families aren't valid.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+    m_Instance = config.Instance;
+    m_PhysicalDevice = config.PhysicalDevice;
+    m_Device = config.Device;
+    m_QueueFamilies = config.QueueFamilies;
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanXrGraphics::resetSetupConfigVariables() {
+    m_Instance = VK_NULL_HANDLE;
+    m_PhysicalDevice = VK_NULL_HANDLE;
+    m_Device = VK_NULL_HANDLE;
+    m_QueueFamilies.reset();
+}
+
+void AxrVulkanXrGraphics::setXrGraphicsBinding() {
+    if (!m_QueueFamilies.GraphicsQueueFamilyIndex.has_value()) {
+        axrLogErrorLocation("Graphics queue family index is null.");
+        return;
+    }
+
+    const XrGraphicsBindingVulkan2KHR graphicsBinding{
+        .type = XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR,
+        .next = nullptr,
+        .instance = m_Instance,
+        .physicalDevice = m_PhysicalDevice,
+        .device = m_Device,
+        .queueFamilyIndex = m_QueueFamilies.GraphicsQueueFamilyIndex.value(),
+        .queueIndex = 0
+    };
+    m_XrSystem.setGraphicsBinding(graphicsBinding);
 }
 
 #endif

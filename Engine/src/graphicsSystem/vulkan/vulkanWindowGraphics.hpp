@@ -53,6 +53,7 @@ public:
     // ---- Constructors ----
 
     /// Constructor
+    /// @param config window graphics config
     AxrVulkanWindowGraphics(const Config& config);
     /// Copy Constructor
     /// @param src Source AxrVulkanWindowGraphics to copy from
@@ -223,6 +224,7 @@ private:
     /// Reset the setSwapchainFormatOptions() function 
     void resetSwapchainFormatOptions();
 
+    // TODO: I don't like the name of this. It's used as a setup() part 2. more involved than just "configure"
     /// Configure window graphics
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult configureWindowGraphics();

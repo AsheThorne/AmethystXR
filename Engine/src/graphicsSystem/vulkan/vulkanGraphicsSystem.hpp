@@ -335,6 +335,14 @@ private:
     /// Reset the setupWindowGraphics() function
     void resetSetupWindowGraphics();
 
+    // ---- Xr Related Functions ----
+
+    /// Set up xr graphics
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setupXrGraphics();
+    /// Reset the setupXrGraphics() function
+    void resetSetupXrGraphics();
+
     // ---- Rendering ----
 
     /// Render the current frame using the given render target specific commands

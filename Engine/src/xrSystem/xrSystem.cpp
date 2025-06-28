@@ -70,7 +70,8 @@ AxrXrSystem::AxrXrSystem(const Config& config):
             XR_ENVIRONMENT_BLEND_MODE_ADDITIVE,
         }
     ),
-    m_EnvironmentBlendMode(XR_ENVIRONMENT_BLEND_MODE_MAX_ENUM) {
+    m_EnvironmentBlendMode(XR_ENVIRONMENT_BLEND_MODE_MAX_ENUM),
+    m_GraphicsBinding(nullptr),
     m_ApiLayers.add(config.ApiLayerCount, config.ApiLayers);
     m_Extensions.add(config.ExtensionCount, config.Extensions);
 
@@ -308,6 +309,23 @@ AxrResult AxrXrSystem::createVulkanDevice(
     }
 
     return AXR_SUCCESS;
+}
+
+void AxrXrSystem::setGraphicsBinding(const XrGraphicsBindingVulkan2KHR& graphicsBinding) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_GraphicsBinding != nullptr) {
+        axrLogErrorLocation("Graphics binding already exists.");
+        return;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    m_GraphicsBinding = reinterpret_cast<XrBaseInStructure*>(new XrGraphicsBindingVulkan2KHR(graphicsBinding));
 }
 #endif
 
@@ -1029,6 +1047,13 @@ AxrResult AxrXrSystem::setEnvironmentBlendMode() {
 
 void AxrXrSystem::resetEnvironmentBlendMode() {
     m_EnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_MAX_ENUM;
+}
+
+void AxrXrSystem::destroyGraphicsBinding() {
+    if (m_GraphicsBinding == nullptr) return;
+
+    delete m_GraphicsBinding;
+    m_GraphicsBinding = nullptr;
 }
 
 XrBool32 AxrXrSystem::debugUtilsCallback(

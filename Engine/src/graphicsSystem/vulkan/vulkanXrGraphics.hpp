@@ -5,6 +5,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "../../xrSystem/xrSystem.hpp"
+#include "vulkanQueueFamilies.hpp"
 
 // ----------------------------------------- //
 // Vulkan Headers
@@ -18,9 +19,18 @@ public:
     // Structs
     // ----------------------------------------- //
 
-    /// Vulkan xr graphics config
+    /// AxrVulkanXrGraphics config
     struct Config {
         AxrXrSystem& XrSystem;
+        vk::DispatchLoaderDynamic& Dispatch;
+    };
+
+    /// AxrVulkanXrGraphics Setup Config
+    struct SetupConfig {
+        vk::Instance Instance;
+        vk::PhysicalDevice PhysicalDevice;
+        vk::Device Device;
+        const AxrVulkanQueueFamilies& QueueFamilies;
     };
 
     // ----------------------------------------- //
@@ -56,6 +66,13 @@ public:
     // ----------------------------------------- //
     // Public Functions
     // ----------------------------------------- //
+
+    /// Set up vulkan xr graphics
+    /// @param config Setup config
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setup(const SetupConfig& config);
+    /// Reset the setup() function
+    void resetSetup();
 
     /// Create the vulkan instance to use.
     /// @param createInfo The VkInstanceCreateInfo
@@ -93,6 +110,27 @@ private:
 
     // ---- Config ----
     AxrXrSystem& m_XrSystem;
+    vk::DispatchLoaderDynamic& m_Dispatch;
+
+    // ---- Setup Config ----
+    vk::Instance m_Instance;
+    vk::PhysicalDevice m_PhysicalDevice;
+    vk::Device m_Device;
+    AxrVulkanQueueFamilies m_QueueFamilies;
+
+    // ----------------------------------------- //
+    // Private Functions
+    // ----------------------------------------- //
+
+    /// Set the SetupConfig variables
+    /// @param config Setup config
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setSetupConfigVariables(const SetupConfig& config);
+    /// Reset the SetupConfig variables
+    void resetSetupConfigVariables();
+
+    /// Set the xr session graphics binding
+    void setXrGraphicsBinding();
 };
 
 #endif

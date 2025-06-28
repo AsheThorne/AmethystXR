@@ -121,7 +121,6 @@ public:
     /// @param vkInstance The vkInstance to use
     /// @param vkPhysicalDevice The Output VkPhysicalDevice
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult getVulkanPhysicalDevice(VkInstance vkInstance, VkPhysicalDevice* vkPhysicalDevice) const;
     [[nodiscard]] AxrResult getVulkanPhysicalDevice(VkInstance vkInstance, VkPhysicalDevice& vkPhysicalDevice) const;
 
     /// Create the vulkan device to use
@@ -136,6 +135,10 @@ public:
         const VkDeviceCreateInfo& createInfo,
         VkDevice& vkDevice
     ) const;
+
+    /// Set the graphics binding
+    /// @param graphicsBinding Graphics binding to use
+    void setGraphicsBinding(const XrGraphicsBindingVulkan2KHR& graphicsBinding);
 #endif
 
 private:
@@ -160,6 +163,7 @@ private:
     std::vector<View> m_Views;
     std::vector<XrEnvironmentBlendMode> m_SupportedEnvironmentBlendModes;
     XrEnvironmentBlendMode m_EnvironmentBlendMode;
+    XrBaseInStructure* m_GraphicsBinding;
 
     // ----------------------------------------- //
     // Private Functions
@@ -268,6 +272,11 @@ private:
     [[nodiscard]] AxrResult setEnvironmentBlendMode();
     /// reset setEnvironmentBlendMode()
     void resetEnvironmentBlendMode();
+
+    // ---- Graphics Binding ----
+
+    /// Destroy the graphics binding
+    void destroyGraphicsBinding();
 
     // ----------------------------------------- //
     // Private Static Functions
