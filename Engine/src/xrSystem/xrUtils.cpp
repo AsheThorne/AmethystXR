@@ -274,7 +274,7 @@ const char* axrGetXrExtensionName(const AxrXrExtensionTypeEnum extensionType) {
             return XR_EXT_DEBUG_UTILS_EXTENSION_NAME;
         }
         case AXR_XR_EXTENSION_TYPE_VULKAN_ENABLE: {
-            return XR_KHR_VULKAN_ENABLE_EXTENSION_NAME;
+            return XR_KHR_VULKAN_ENABLE2_EXTENSION_NAME;
         }
         case AXR_XR_EXTENSION_TYPE_END:
         case AXR_XR_EXTENSION_TYPE_UNDEFINED:
