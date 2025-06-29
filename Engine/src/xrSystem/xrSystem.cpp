@@ -481,7 +481,7 @@ AxrResult AxrXrSystem::createInstance() {
     applicationInfo.applicationVersion = m_ApplicationVersion;
     strncpy_s(applicationInfo.engineName, AxrEngineName, XR_MAX_ENGINE_NAME_SIZE);
     applicationInfo.engineVersion = AXR_ENGINE_VERSION;
-    // If we update to a newer version, make sure we update axrToString(XrResult result) to include any new results
+    // If we update to a newer version, make sure we update axrToString(XrResult xrResult) to include any new results
     applicationInfo.apiVersion = XR_MAKE_VERSION(1, 0, 34);
 
     const XrInstanceCreateInfo instanceCreateInfo{
@@ -1237,8 +1237,8 @@ void AxrXrSystem::xrEvent_SessionStateChanged(const XrEventDataSessionStateChang
             break;
         }
         case XR_SESSION_STATE_STOPPING: {
-            const XrResult result = xrEndSession(m_Session);
-            axrLogXrResult(result, "xrEndSession");
+            const XrResult xrResult = xrEndSession(m_Session);
+            axrLogXrResult(xrResult, "xrEndSession");
             destroySessionData();
             break;
         }

@@ -18,21 +18,21 @@
 #include <openxr/openxr_platform.h>
 
 void axrLogXrResult(
-    const XrResult result,
+    const XrResult xrResult,
     const char* functionName,
     const std::source_location& location
 ) {
-    if (XR_FAILED(result)) {
+    if (XR_FAILED(xrResult)) {
         axrLogErrorLocation(
             {"{0} failed with a result of {1}.", location},
             functionName,
-            axrToString(result)
+            axrToString(xrResult)
         );
     }
 }
 
-const char* axrToString(const XrResult result) {
-    switch (result) {
+const char* axrToString(const XrResult xrResult) {
+    switch (xrResult) {
         case XR_SUCCESS:
             return "XR_SUCCESS";
         case XR_TIMEOUT_EXPIRED:

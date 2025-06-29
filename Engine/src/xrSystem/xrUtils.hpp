@@ -18,19 +18,19 @@
 // ---- Logging ----
 
 /// Log an XrResult if it failed
-/// @param result Xr result
+/// @param xrResult Xr result
 /// @param functionName The name of the function that gave the result
 /// @param location Source file location. You don't need to ever change this from the default
 void axrLogXrResult(
-    XrResult result,
+    XrResult xrResult,
     const char* functionName,
     const std::source_location& location = std::source_location::current()
 );
 
 /// Convert an XrResult to a string
-/// @param result The XrResult
+/// @param xrResult The XrResult
 /// @returns The XrResult as a string
-const char* axrToString(XrResult result);
+const char* axrToString(XrResult xrResult);
 
 // ---- Api Layers / Extensions ----
 

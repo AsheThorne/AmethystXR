@@ -397,12 +397,12 @@ void AxrVulkanWindowGraphics::resetSwapchainFormatOptions() {
 }
 
 AxrResult AxrVulkanWindowGraphics::setupWindowGraphics() {
-    AxrResult result = AXR_SUCCESS;
+    AxrResult axrResult = AXR_SUCCESS;
 
-    result = createSurface();
-    if (AXR_FAILED(result)) {
+    axrResult = createSurface();
+    if (AXR_FAILED(axrResult)) {
         resetSetupWindowGraphics();
-        return result;
+        return axrResult;
     }
 
     const auto surfaceDetails = AxrVulkanSurfaceDetails(m_PhysicalDevice, m_Surface, m_Dispatch);
@@ -410,46 +410,46 @@ AxrResult AxrVulkanWindowGraphics::setupWindowGraphics() {
         return AXR_ERROR;
     }
 
-    result = setSwapchainFormats(surfaceDetails.Formats);
-    if (AXR_FAILED(result)) {
+    axrResult = setSwapchainFormats(surfaceDetails.Formats);
+    if (AXR_FAILED(axrResult)) {
         resetSetupWindowGraphics();
-        return result;
+        return axrResult;
     }
 
-    result = setMsaaSampleCount();
-    if (AXR_FAILED(result)) {
+    axrResult = setMsaaSampleCount();
+    if (AXR_FAILED(axrResult)) {
         resetSetupWindowGraphics();
-        return result;
+        return axrResult;
     }
 
-    result = createRenderPass();
-    if (AXR_FAILED(result)) {
+    axrResult = createRenderPass();
+    if (AXR_FAILED(axrResult)) {
         resetSetupWindowGraphics();
-        return result;
+        return axrResult;
     }
 
-    result = createSyncObjects();
-    if (AXR_FAILED(result)) {
+    axrResult = createSyncObjects();
+    if (AXR_FAILED(axrResult)) {
         resetSetupWindowGraphics();
-        return result;
+        return axrResult;
     }
 
-    result = createCommandBuffers();
-    if (AXR_FAILED(result)) {
+    axrResult = createCommandBuffers();
+    if (AXR_FAILED(axrResult)) {
         resetSetupWindowGraphics();
-        return result;
+        return axrResult;
     }
 
-    result = setupSwapchain(surfaceDetails);
-    if (AXR_FAILED(result)) {
+    axrResult = setupSwapchain(surfaceDetails);
+    if (AXR_FAILED(axrResult)) {
         resetSetupWindowGraphics();
-        return result;
+        return axrResult;
     }
 
-    result = m_LoadedScenes.setupWindowData(m_RenderPass, m_MsaaSampleCount);
-    if (AXR_FAILED(result)) {
+    axrResult = m_LoadedScenes.setupWindowData(m_RenderPass, m_MsaaSampleCount);
+    if (AXR_FAILED(axrResult)) {
         resetSetupWindowGraphics();
-        return result;
+        return axrResult;
     }
 
     m_IsReady = true;
