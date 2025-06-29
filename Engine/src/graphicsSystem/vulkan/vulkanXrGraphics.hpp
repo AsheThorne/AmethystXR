@@ -31,6 +31,10 @@ public:
         vk::PhysicalDevice PhysicalDevice;
         vk::Device Device;
         const AxrVulkanQueueFamilies& QueueFamilies;
+        /// Ordered from most desired to the least desired
+        const std::vector<vk::Format>& SwapchainColorFormatOptions;
+        /// Ordered from most desired to the least desired
+        const std::vector<vk::Format>& SwapchainDepthFormatOptions;
     };
 
     // ----------------------------------------- //
@@ -121,9 +125,15 @@ private:
     vk::PhysicalDevice m_PhysicalDevice;
     vk::Device m_Device;
     AxrVulkanQueueFamilies m_QueueFamilies;
+    /// Ordered from most desired to the least desired
+    std::vector<vk::Format> m_SwapchainColorFormatOptions;
+    /// Ordered from most desired to the least desired
+    std::vector<vk::Format> m_SwapchainDepthFormatOptions;
 
     // ---- Data ----
     bool m_IsReady;
+    vk::Format m_SwapchainColorFormat;
+    vk::Format m_SwapchainDepthFormat;
 
     // ----------------------------------------- //
     // Private Functions
@@ -137,6 +147,27 @@ private:
     [[nodiscard]] AxrResult setupXrSessionGraphics();
     /// Reset the setupXrSessionGraphics() function 
     void resetSetupXrSessionGraphics();
+
+    // ---- Swapchain ----
+
+    /// Set the swapchain color and depth format options
+    /// @param physicalDevice Physical device to use
+    /// @param swapchainColorFormatOptions Swapchain color format options to choose from
+    /// @param swapchainDepthFormatOptions Swapchain depth format options to choose from
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setSwapchainFormatOptions(
+        const vk::PhysicalDevice& physicalDevice,
+        const std::vector<vk::Format>& swapchainColorFormatOptions,
+        const std::vector<vk::Format>& swapchainDepthFormatOptions
+    );
+    /// Reset the setSwapchainFormatOptions() function 
+    void resetSwapchainFormatOptions();
+
+    /// Set the swapchain color and depth formats
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setSwapchainFormats();
+    /// Reset the setSwapchainFormats() function
+    void resetSwapchainFormats();
 
     // ---- Callbacks ----
 

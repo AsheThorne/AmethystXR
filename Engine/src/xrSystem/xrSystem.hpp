@@ -119,6 +119,11 @@ public:
     /// Process the xr events
     void processEvents();
 
+    /// Get the supported swapchain formats to use
+    /// @param formats Output formats
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult getSupportedSwapchainFormats(std::vector<int64_t>& formats) const;
+
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     // ---- Vulkan Functions ----
 

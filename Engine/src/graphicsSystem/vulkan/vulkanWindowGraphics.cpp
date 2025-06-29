@@ -326,76 +326,6 @@ void AxrVulkanWindowGraphics::getRenderingMatrices(glm::mat4& viewMatrix, glm::m
 
 // ---- Private Functions ----
 
-AxrResult AxrVulkanWindowGraphics::setSwapchainFormatOptions(
-    const vk::PhysicalDevice& physicalDevice,
-    const std::vector<vk::SurfaceFormatKHR>& swapchainColorFormatOptions,
-    const std::vector<vk::Format>& swapchainDepthFormatOptions
-) {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
-
-    if (!m_SwapchainColorFormatOptions.empty()) {
-        axrLogErrorLocation("Swapchain color format options aren't empty.");
-        return AXR_ERROR;
-    }
-
-    if (!m_SwapchainDepthFormatOptions.empty()) {
-        axrLogErrorLocation("Swapchain depth format options aren't empty.");
-        return AXR_ERROR;
-    }
-
-    if (swapchainColorFormatOptions.empty()) {
-        axrLogErrorLocation("Swapchain color format options are empty.");
-        return AXR_ERROR;
-    }
-
-    if (swapchainDepthFormatOptions.empty()) {
-        axrLogErrorLocation("Swapchain depth format options are empty.");
-        return AXR_ERROR;
-    }
-
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
-
-    for (const vk::SurfaceFormatKHR surfaceFormat : swapchainColorFormatOptions) {
-        if (axrAreFormatFeaturesSupported(
-            surfaceFormat.format,
-            vk::ImageTiling::eOptimal,
-            vk::FormatFeatureFlagBits::eSampledImage &
-            vk::FormatFeatureFlagBits::eColorAttachment,
-            // TODO: Check if we're rendering directly to the surface first for asking for these.
-            // vk::FormatFeatureFlagBits::eBlitDst &
-            // vk::FormatFeatureFlagBits::eTransferDst,
-            physicalDevice,
-            m_Dispatch
-        )) {
-            m_SwapchainColorFormatOptions.push_back(surfaceFormat);
-        }
-    }
-
-    for (const vk::Format format : swapchainDepthFormatOptions) {
-        if (axrAreFormatFeaturesSupported(
-            format,
-            vk::ImageTiling::eOptimal,
-            vk::FormatFeatureFlagBits::eSampledImage &
-            vk::FormatFeatureFlagBits::eDepthStencilAttachment,
-            physicalDevice,
-            m_Dispatch
-        )) {
-            m_SwapchainDepthFormatOptions.push_back(format);
-        }
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanWindowGraphics::resetSwapchainFormatOptions() {
-    m_SwapchainColorFormatOptions.clear();
-    m_SwapchainDepthFormatOptions.clear();
-}
-
 AxrResult AxrVulkanWindowGraphics::setupWindowGraphics() {
     AxrResult axrResult = AXR_SUCCESS;
 
@@ -663,6 +593,76 @@ AxrResult AxrVulkanWindowGraphics::recreateSwapchain() {
     return AXR_SUCCESS;
 }
 
+AxrResult AxrVulkanWindowGraphics::setSwapchainFormatOptions(
+    const vk::PhysicalDevice& physicalDevice,
+    const std::vector<vk::SurfaceFormatKHR>& swapchainColorFormatOptions,
+    const std::vector<vk::Format>& swapchainDepthFormatOptions
+) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!m_SwapchainColorFormatOptions.empty()) {
+        axrLogErrorLocation("Swapchain color format options aren't empty.");
+        return AXR_ERROR;
+    }
+
+    if (!m_SwapchainDepthFormatOptions.empty()) {
+        axrLogErrorLocation("Swapchain depth format options aren't empty.");
+        return AXR_ERROR;
+    }
+
+    if (swapchainColorFormatOptions.empty()) {
+        axrLogErrorLocation("Swapchain color format options are empty.");
+        return AXR_ERROR;
+    }
+
+    if (swapchainDepthFormatOptions.empty()) {
+        axrLogErrorLocation("Swapchain depth format options are empty.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    for (const vk::SurfaceFormatKHR surfaceFormat : swapchainColorFormatOptions) {
+        if (axrAreFormatFeaturesSupported(
+            surfaceFormat.format,
+            vk::ImageTiling::eOptimal,
+            vk::FormatFeatureFlagBits::eSampledImage &
+            vk::FormatFeatureFlagBits::eColorAttachment,
+            // TODO: Check if we're rendering directly to the surface first for asking for these.
+            // vk::FormatFeatureFlagBits::eBlitDst &
+            // vk::FormatFeatureFlagBits::eTransferDst,
+            physicalDevice,
+            m_Dispatch
+        )) {
+            m_SwapchainColorFormatOptions.push_back(surfaceFormat);
+        }
+    }
+
+    for (const vk::Format format : swapchainDepthFormatOptions) {
+        if (axrAreFormatFeaturesSupported(
+            format,
+            vk::ImageTiling::eOptimal,
+            vk::FormatFeatureFlagBits::eSampledImage &
+            vk::FormatFeatureFlagBits::eDepthStencilAttachment,
+            physicalDevice,
+            m_Dispatch
+        )) {
+            m_SwapchainDepthFormatOptions.push_back(format);
+        }
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanWindowGraphics::resetSwapchainFormatOptions() {
+    m_SwapchainColorFormatOptions.clear();
+    m_SwapchainDepthFormatOptions.clear();
+}
+
 AxrResult AxrVulkanWindowGraphics::setSwapchainFormats(const std::vector<vk::SurfaceFormatKHR>& surfaceFormats) {
     // ----------------------------------------- //
     // Validation
@@ -707,9 +707,9 @@ AxrResult AxrVulkanWindowGraphics::setSwapchainFormats(const std::vector<vk::Sur
     if (foundFormatIt != m_SwapchainColorFormatOptions.end()) {
         m_SwapchainColorFormat = *foundFormatIt;
     } else {
-        // None of our ideal swapchain color formats could be found.
-        // It should still be ok to just pick what ever the first supported surface format is but there may be issues.
-        m_SwapchainColorFormat = surfaceFormats[0];
+        axrLogErrorLocation("Failed to find a supported swapchain color format.");
+        resetSwapchainFormats();
+        return AXR_ERROR;
     }
 
     // We don't need to check surface compatibility for the depth format.

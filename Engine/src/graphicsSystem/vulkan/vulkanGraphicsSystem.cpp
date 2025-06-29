@@ -26,7 +26,7 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
         {
             vk::SurfaceFormatKHR(vk::Format::eR8G8B8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear),
             vk::SurfaceFormatKHR(vk::Format::eB8G8R8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear),
-            vk::SurfaceFormatKHR(vk::Format::eR8G8B8Unorm, vk::ColorSpaceKHR::eSrgbNonlinear),
+            vk::SurfaceFormatKHR(vk::Format::eR8G8B8A8Unorm, vk::ColorSpaceKHR::eSrgbNonlinear),
             vk::SurfaceFormatKHR(vk::Format::eB8G8R8A8Unorm, vk::ColorSpaceKHR::eSrgbNonlinear),
         }
     ),
@@ -1218,12 +1218,19 @@ AxrResult AxrVulkanGraphicsSystem::setupXrGraphics() {
     // Xr graphics aren't required
     if (m_XrGraphics == nullptr) return AXR_SUCCESS;
 
+    std::vector<vk::Format> swapchainColorFormatOptions(m_SwapchainColorFormatOptions.size());
+    for (uint32_t i = 0; i < m_SwapchainColorFormatOptions.size(); ++i) {
+        swapchainColorFormatOptions[i] = m_SwapchainColorFormatOptions[i].format;
+    }
+
     const AxrResult axrResult = m_XrGraphics->setup(
         {
             .Instance = m_Instance,
             .PhysicalDevice = m_PhysicalDevice,
             .Device = m_Device,
             .QueueFamilies = m_QueueFamilies,
+            .SwapchainColorFormatOptions = swapchainColorFormatOptions,
+            .SwapchainDepthFormatOptions = m_SwapchainDepthFormatOptions,
         }
     );
     if (AXR_FAILED(axrResult)) {

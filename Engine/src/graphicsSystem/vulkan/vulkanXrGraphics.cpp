@@ -4,6 +4,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "vulkanXrGraphics.hpp"
+#include "vulkanUtils.hpp"
 
 // ---- Special Functions ----
 
@@ -13,7 +14,9 @@ AxrVulkanXrGraphics::AxrVulkanXrGraphics(const Config& config):
     m_Instance(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
-    m_IsReady(false) {
+    m_IsReady(false),
+    m_SwapchainColorFormat(vk::Format::eUndefined),
+    m_SwapchainDepthFormat(vk::Format::eUndefined) {
 }
 
 AxrVulkanXrGraphics::~AxrVulkanXrGraphics() {
@@ -75,10 +78,20 @@ AxrResult AxrVulkanXrGraphics::setup(const SetupConfig& config) {
     m_Device = config.Device;
     m_QueueFamilies = config.QueueFamilies;
 
+    const AxrResult axrResult = setSwapchainFormatOptions(
+        config.PhysicalDevice,
+        config.SwapchainColorFormatOptions,
+        config.SwapchainDepthFormatOptions
+    );
+    if (AXR_FAILED(axrResult)) {
+        resetSetup();
+        return axrResult;
+    }
+
     setXrGraphicsBinding();
 
     m_XrSystem.OnXrSessionStateChangedCallbackGraphics
-                  .connect<&AxrVulkanXrGraphics::onXrSessionStateChangedCallback>(this);
+              .connect<&AxrVulkanXrGraphics::onXrSessionStateChangedCallback>(this);
 
     return AXR_SUCCESS;
 }
@@ -87,6 +100,7 @@ void AxrVulkanXrGraphics::resetSetup() {
     resetSetupXrSessionGraphics();
     m_XrSystem.OnXrSessionStateChangedCallbackGraphics.reset();
 
+    resetSwapchainFormatOptions();
     m_Instance = VK_NULL_HANDLE;
     m_PhysicalDevice = VK_NULL_HANDLE;
     m_Device = VK_NULL_HANDLE;
@@ -149,12 +163,172 @@ void AxrVulkanXrGraphics::setXrGraphicsBinding() const {
 }
 
 AxrResult AxrVulkanXrGraphics::setupXrSessionGraphics() {
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = setSwapchainFormats();
+    if (AXR_FAILED(axrResult)) {
+        resetSetupXrSessionGraphics();
+        return axrResult;
+    }
+
     m_IsReady = true;
     return AXR_SUCCESS;
 }
 
 void AxrVulkanXrGraphics::resetSetupXrSessionGraphics() {
     m_IsReady = false;
+
+    resetSwapchainFormats();
+}
+
+AxrResult AxrVulkanXrGraphics::setSwapchainFormatOptions(
+    const vk::PhysicalDevice& physicalDevice,
+    const std::vector<vk::Format>& swapchainColorFormatOptions,
+    const std::vector<vk::Format>& swapchainDepthFormatOptions
+) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!m_SwapchainColorFormatOptions.empty()) {
+        axrLogErrorLocation("Swapchain color format options aren't empty.");
+        return AXR_ERROR;
+    }
+
+    if (!m_SwapchainDepthFormatOptions.empty()) {
+        axrLogErrorLocation("Swapchain depth format options aren't empty.");
+        return AXR_ERROR;
+    }
+
+    if (swapchainColorFormatOptions.empty()) {
+        axrLogErrorLocation("Swapchain color format options are empty.");
+        return AXR_ERROR;
+    }
+
+    if (swapchainDepthFormatOptions.empty()) {
+        axrLogErrorLocation("Swapchain depth format options are empty.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    for (const vk::Format format : swapchainColorFormatOptions) {
+        if (axrAreFormatFeaturesSupported(
+            format,
+            vk::ImageTiling::eOptimal,
+            vk::FormatFeatureFlagBits::eSampledImage &
+            vk::FormatFeatureFlagBits::eColorAttachment,
+            physicalDevice,
+            m_Dispatch
+        )) {
+            m_SwapchainColorFormatOptions.push_back(format);
+        }
+    }
+
+    for (const vk::Format format : swapchainDepthFormatOptions) {
+        if (axrAreFormatFeaturesSupported(
+            format,
+            vk::ImageTiling::eOptimal,
+            vk::FormatFeatureFlagBits::eSampledImage &
+            vk::FormatFeatureFlagBits::eDepthStencilAttachment,
+            physicalDevice,
+            m_Dispatch
+        )) {
+            m_SwapchainDepthFormatOptions.push_back(format);
+        }
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanXrGraphics::resetSwapchainFormatOptions() {
+    m_SwapchainColorFormatOptions.clear();
+    m_SwapchainDepthFormatOptions.clear();
+}
+
+AxrResult AxrVulkanXrGraphics::setSwapchainFormats() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_SwapchainColorFormat != vk::Format::eUndefined) {
+        axrLogErrorLocation("Swapchain color format has already been set.");
+        return AXR_ERROR;
+    }
+
+    if (m_SwapchainDepthFormat != vk::Format::eUndefined) {
+        axrLogErrorLocation("Swapchain depth format has already been set.");
+        return AXR_ERROR;
+    }
+
+    if (m_SwapchainColorFormatOptions.empty()) {
+        axrLogErrorLocation("Swapchain color format options are empty.");
+        return AXR_ERROR;
+    }
+
+    if (m_SwapchainDepthFormatOptions.empty()) {
+        axrLogErrorLocation("Swapchain depth format options are empty.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    std::vector<int64_t> supportedSwapchainFormats;
+    const AxrResult axrResult = m_XrSystem.getSupportedSwapchainFormats(supportedSwapchainFormats);
+    if (AXR_FAILED(axrResult)) {
+        axrLogErrorLocation("Failed to get supported swapchain formats.");
+        return AXR_ERROR;
+    }
+
+    std::vector<vk::Format> supportedSwapchainVkFormats(supportedSwapchainFormats.size());
+    for (size_t i = 0; i < supportedSwapchainVkFormats.size(); ++i) {
+        supportedSwapchainVkFormats[i] = static_cast<vk::Format>(supportedSwapchainFormats[i]);
+    }
+
+    // ---- Find color format ----
+
+    auto foundFormatIt = std::find_first_of(
+        m_SwapchainColorFormatOptions.begin(),
+        m_SwapchainColorFormatOptions.end(),
+        supportedSwapchainVkFormats.begin(),
+        supportedSwapchainVkFormats.end()
+    );
+
+    if (foundFormatIt == m_SwapchainColorFormatOptions.end()) {
+        axrLogErrorLocation("Failed to find a supported swapchain color format.");
+        resetSwapchainFormats();
+        return AXR_ERROR;
+    }
+
+    m_SwapchainColorFormat = *foundFormatIt;
+
+    // ---- Find depth format ----
+
+    foundFormatIt = std::find_first_of(
+        m_SwapchainDepthFormatOptions.begin(),
+        m_SwapchainDepthFormatOptions.end(),
+        supportedSwapchainVkFormats.begin(),
+        supportedSwapchainVkFormats.end()
+    );
+
+    if (foundFormatIt == m_SwapchainDepthFormatOptions.end()) {
+        axrLogErrorLocation("Failed to find a supported swapchain color format.");
+        resetSwapchainFormats();
+        return AXR_ERROR;
+    }
+
+    m_SwapchainDepthFormat = *foundFormatIt;
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanXrGraphics::resetSwapchainFormats() {
+    m_SwapchainColorFormat = vk::Format::eUndefined;
+    m_SwapchainDepthFormat = vk::Format::eUndefined;
 }
 
 AxrResult AxrVulkanXrGraphics::onXrSessionStateChangedCallback(const bool isSessionRunning) {

@@ -211,6 +211,48 @@ void AxrXrSystem::processEvents() {
     }
 }
 
+AxrResult AxrXrSystem::getSupportedSwapchainFormats(std::vector<int64_t>& formats) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    uint32_t availableSwapchainFormatsCount;
+    XrResult xrResult = xrEnumerateSwapchainFormats(
+        m_Session,
+        0,
+        &availableSwapchainFormatsCount,
+        nullptr
+    );
+    axrLogXrResult(xrResult, "xrEnumerateSwapchainFormats");
+    if (XR_FAILED(xrResult)) {
+        return AXR_ERROR;
+    }
+
+    std::vector<int64_t> availableSwapchainFormats(availableSwapchainFormatsCount);
+    xrResult = xrEnumerateSwapchainFormats(
+        m_Session,
+        availableSwapchainFormatsCount,
+        &availableSwapchainFormatsCount,
+        availableSwapchainFormats.data()
+    );
+    axrLogXrResult(xrResult, "xrEnumerateSwapchainFormats");
+    if (XR_FAILED(xrResult)) {
+        return AXR_ERROR;
+    }
+
+    formats = availableSwapchainFormats;
+    return AXR_SUCCESS;
+}
+
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 AxrResult AxrXrSystem::createVulkanInstance(
     const PFN_vkGetInstanceProcAddr pfnGetInstanceProcAddr,

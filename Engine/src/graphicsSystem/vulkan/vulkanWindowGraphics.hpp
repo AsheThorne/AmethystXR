@@ -204,19 +204,6 @@ private:
     // Private Functions
     // ----------------------------------------- //
 
-    /// Set the swapchain color and depth format options
-    /// @param physicalDevice Physical device to use
-    /// @param swapchainColorFormatOptions Swapchain color format options to choose from
-    /// @param swapchainDepthFormatOptions Swapchain depth format options to choose from
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setSwapchainFormatOptions(
-        const vk::PhysicalDevice& physicalDevice,
-        const std::vector<vk::SurfaceFormatKHR>& swapchainColorFormatOptions,
-        const std::vector<vk::Format>& swapchainDepthFormatOptions
-    );
-    /// Reset the setSwapchainFormatOptions() function 
-    void resetSwapchainFormatOptions();
-
     /// Set up the window graphics
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setupWindowGraphics();
@@ -250,6 +237,19 @@ private:
     /// @returns AXR_SUCCESS if the function succeeded. AXR_DONT_RENDER if the window is minimized.
     [[nodiscard]] AxrResult recreateSwapchain();
 
+    /// Set the swapchain color and depth format options
+    /// @param physicalDevice Physical device to use
+    /// @param swapchainColorFormatOptions Swapchain color format options to choose from
+    /// @param swapchainDepthFormatOptions Swapchain depth format options to choose from
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setSwapchainFormatOptions(
+        const vk::PhysicalDevice& physicalDevice,
+        const std::vector<vk::SurfaceFormatKHR>& swapchainColorFormatOptions,
+        const std::vector<vk::Format>& swapchainDepthFormatOptions
+    );
+    /// Reset the setSwapchainFormatOptions() function 
+    void resetSwapchainFormatOptions();
+    
     /// Set the swapchain color and depth formats
     /// @param surfaceFormats Collection of surface formats that are available to us
     /// @returns AXR_SUCCESS if the function succeeded
