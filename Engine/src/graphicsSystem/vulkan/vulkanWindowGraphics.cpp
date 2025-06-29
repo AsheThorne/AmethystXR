@@ -1098,6 +1098,11 @@ AxrResult AxrVulkanWindowGraphics::createFramebuffers() {
         return AXR_ERROR;
     }
 
+    if (m_SwapchainDepthImages.empty()) {
+        axrLogErrorLocation("Swapchain depth images don't exist.");
+        return AXR_ERROR;
+    }
+
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //

@@ -56,6 +56,7 @@ public:
         vk::Extent2D SwapchainExtent;
         SwapchainData ColorSwapchain;
         SwapchainData DepthSwapchain;
+        std::vector<vk::Framebuffer> SwapchainFramebuffers;
     };
 
     // ----------------------------------------- //
@@ -201,10 +202,10 @@ private:
     /// @param xrView Xr system view data
     /// @param view Output view graphics data
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setupSwapchain(const AxrXrSystem::View& xrView, View& view);
+    [[nodiscard]] AxrResult setupSwapchain(const AxrXrSystem::View& xrView, View& view) const;
     /// Reset the setupSwapchain() function for the given view
     /// @param view View data
-    void resetSetupSwapchain(View& view);
+    void resetSetupSwapchain(View& view) const;
 
     /// Set the swapchain extent for the given view
     /// @param xrView Xr system view data
@@ -215,13 +216,13 @@ private:
     /// @param view View data
     void resetSwapchainExtent(View& view) const;
 
-    /// Create the vulkan swapchain for the given view
+    /// Create the vulkan swapchains for the given view
     /// @param view Output view graphics data
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createSwapchain(View& view) const;
-    /// Destroy the createSwapchain() function for the given view
+    [[nodiscard]] AxrResult createSwapchains(View& view) const;
+    /// Destroy the createSwapchains() function for the given view
     /// @param view View data
-    void destroySwapchain(View& view) const;
+    void destroySwapchains(View& view) const;
 
     /// Set up swapchain images
     /// @param swapchain Swapchain to use
@@ -264,10 +265,10 @@ private:
     /// Set up the given view
     /// @param xrView Xr system view data
     /// @param view Output view graphics data
-    [[nodiscard]] AxrResult setupView(const AxrXrSystem::View& xrView, View& view);
+    [[nodiscard]] AxrResult setupView(const AxrXrSystem::View& xrView, View& view) const;
     /// Reset the given view
     /// @param view View data
-    void resetSetupView(View& view);
+    void resetSetupView(View& view) const;
 
     // ---- Sync Objects ----
 
@@ -288,6 +289,14 @@ private:
     /// Destroy command buffers for the given view
     /// @param view View data
     void destroyCommandBuffers(View& view) const;
+
+    // ---- Framebuffer ----
+
+    /// Create the swapchain framebuffers for the given view
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createFramebuffers(View& view) const;
+    /// Destroy the swapchain framebuffers for the given view
+    void destroyFramebuffers(View& view) const;
 
     // ---- Callbacks ----
 
