@@ -36,6 +36,10 @@ public:
         /// Ordered from most desired to the least desired
         const std::vector<vk::Format>& SwapchainDepthFormatOptions;
     };
+        /// One semaphore per frame in flight
+        std::vector<vk::Semaphore> m_RenderingFinishedSemaphores;
+        /// One fence per frame in flight
+        std::vector<vk::Fence> m_RenderingFences;
 
     // ----------------------------------------- //
     // Special Functions
@@ -136,6 +140,7 @@ private:
     vk::Format m_SwapchainDepthFormat;
     vk::ImageLayout m_SwapchainImageLayout;
     vk::RenderPass m_RenderPass;
+    std::vector<View> m_Views;
 
     // ----------------------------------------- //
     // Private Functions
@@ -180,6 +185,22 @@ private:
     [[nodiscard]] AxrResult createRenderPass();
     /// Destroy the render pass
     void destroyRenderPass();
+
+    // ---- View ----
+
+    /// Set up all view related data
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setupAllViews();
+    /// Reset setupViews();
+    void resetSetupAllViews();
+
+    /// Set up the given view
+    /// @param xrView Xr system view data
+    /// @param view Output view graphics data
+    [[nodiscard]] AxrResult setupView(const AxrXrSystem::View& xrView, View& view);
+    /// Reset the given view
+    /// @param view View data
+    void resetSetupView(View& view);
 
     // ---- Callbacks ----
 

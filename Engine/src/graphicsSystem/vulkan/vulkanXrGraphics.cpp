@@ -185,6 +185,12 @@ AxrResult AxrVulkanXrGraphics::setupXrSessionGraphics() {
         return axrResult;
     }
 
+    axrResult = setupAllViews();
+    if (AXR_FAILED(axrResult)) {
+        resetSetupXrSessionGraphics();
+        return axrResult;
+    }
+
     m_IsReady = true;
     return AXR_SUCCESS;
 }
@@ -192,6 +198,7 @@ AxrResult AxrVulkanXrGraphics::setupXrSessionGraphics() {
 void AxrVulkanXrGraphics::resetSetupXrSessionGraphics() {
     m_IsReady = false;
 
+    resetSetupAllViews();
     destroyRenderPass();
     resetSwapchainFormats();
 }
@@ -374,6 +381,53 @@ AxrResult AxrVulkanXrGraphics::createRenderPass() {
 
 void AxrVulkanXrGraphics::destroyRenderPass() {
     axrDestroyRenderPass(m_Device, m_RenderPass, m_Dispatch);
+}
+
+AxrResult AxrVulkanXrGraphics::setupAllViews() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!m_Views.empty()) {
+        axrLogErrorLocation("Views already exist.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+    AxrResult axrResult = AXR_SUCCESS;
+
+    const std::vector<AxrXrSystem::View> xrViews = m_XrSystem.getViews();
+    m_Views.resize(xrViews.size());
+
+    for (size_t i = 0; i < m_Views.size(); ++i) {
+        axrResult = setupView(xrViews[i], m_Views[i]);
+        if (AXR_FAILED(axrResult)) {
+            break;
+        }
+    }
+
+    if (AXR_FAILED(axrResult)) {
+        resetSetupAllViews();
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanXrGraphics::resetSetupAllViews() {
+    for (View& view : m_Views) {
+        resetSetupView(view);
+    }
+
+    m_Views.clear();
+}
+
+AxrResult AxrVulkanXrGraphics::setupView(const AxrXrSystem::View& xrView, View& view) {
+}
+
+void AxrVulkanXrGraphics::resetSetupView(View& view) {
 }
 
 AxrResult AxrVulkanXrGraphics::onXrSessionStateChangedCallback(const bool isSessionRunning) {

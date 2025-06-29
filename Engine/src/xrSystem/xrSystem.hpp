@@ -124,6 +124,10 @@ public:
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult getSupportedSwapchainFormats(std::vector<int64_t>& formats) const;
 
+    /// Get the xr views
+    /// @returns The xr views
+    [[nodiscard]] std::vector<View> getViews() const;
+
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     // ---- Vulkan Functions ----
 

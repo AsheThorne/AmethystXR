@@ -253,6 +253,10 @@ AxrResult AxrXrSystem::getSupportedSwapchainFormats(std::vector<int64_t>& format
     return AXR_SUCCESS;
 }
 
+std::vector<AxrXrSystem::View> AxrXrSystem::getViews() const {
+    return m_Views;
+}
+
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 AxrResult AxrXrSystem::createVulkanInstance(
     const PFN_vkGetInstanceProcAddr pfnGetInstanceProcAddr,
