@@ -100,6 +100,7 @@ void AxrVulkanXrGraphics::resetSetup() {
     resetSetupXrSessionGraphics();
     m_XrSystem.OnXrSessionStateChangedCallbackGraphics.reset();
 
+    resetXrGraphicsBinding();
     resetSwapchainFormatOptions();
     m_Instance = VK_NULL_HANDLE;
     m_PhysicalDevice = VK_NULL_HANDLE;
@@ -160,6 +161,10 @@ void AxrVulkanXrGraphics::setXrGraphicsBinding() const {
         .queueIndex = 0
     };
     m_XrSystem.setGraphicsBinding(graphicsBinding);
+}
+
+void AxrVulkanXrGraphics::resetXrGraphicsBinding() const {
+    m_XrSystem.resetGraphicsBinding();
 }
 
 AxrResult AxrVulkanXrGraphics::setupXrSessionGraphics() {

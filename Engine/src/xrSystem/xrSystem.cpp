@@ -440,6 +440,10 @@ void AxrXrSystem::setGraphicsBinding(const XrGraphicsBindingVulkan2KHR& graphics
 }
 #endif
 
+void AxrXrSystem::resetGraphicsBinding() {
+    destroyGraphicsBinding();
+}
+
 // ---- Private Functions ----
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN

@@ -162,6 +162,9 @@ public:
     void setGraphicsBinding(const XrGraphicsBindingVulkan2KHR& graphicsBinding);
 #endif
 
+    /// Reset setGraphicsBinding()
+    void resetGraphicsBinding();
+
 private:
     // ----------------------------------------- //
     // Private Variables

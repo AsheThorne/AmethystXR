@@ -141,6 +141,8 @@ private:
 
     /// Set the xr session graphics binding
     void setXrGraphicsBinding() const;
+    /// Reset setXrGraphicsBinding()
+    void resetXrGraphicsBinding() const;
 
     /// Set up the xr session graphics
     /// @returns AXR_SUCCESS if the function succeeded
