@@ -367,6 +367,103 @@ void AxrVulkanXrGraphics::resetSwapchainFormats() {
     m_SwapchainDepthFormat = vk::Format::eUndefined;
 }
 
+AxrResult AxrVulkanXrGraphics::setupSwapchain(const AxrXrSystem::View& xrView, View& view) {
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = setSwapchainExtent(xrView, view);
+    if (AXR_FAILED(axrResult)) {
+        resetSetupSwapchain(view);
+        return axrResult;
+    }
+
+    axrResult = createSwapchain(view);
+    if (AXR_FAILED(axrResult)) {
+        resetSetupSwapchain(view);
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanXrGraphics::resetSetupSwapchain(View& view) {
+    destroySwapchain(view);
+    resetSwapchainExtent(view);
+}
+
+AxrResult AxrVulkanXrGraphics::setSwapchainExtent(const AxrXrSystem::View& xrView, View& view) const {
+    view.SwapchainExtent = vk::Extent2D(
+        xrView.ViewConfigurationView.recommendedImageRectWidth,
+        xrView.ViewConfigurationView.recommendedImageRectHeight
+    );
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanXrGraphics::resetSwapchainExtent(View& view) const {
+    view.SwapchainExtent = vk::Extent2D(0, 0);
+}
+
+AxrResult AxrVulkanXrGraphics::createSwapchain(View& view) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (view.ColorSwapchain.Swapchain != XR_NULL_HANDLE) {
+        axrLogErrorLocation("Color swapchain already exists.");
+        return AXR_ERROR;
+    }
+
+    if (view.DepthSwapchain.Swapchain != XR_NULL_HANDLE) {
+        axrLogErrorLocation("Depth swapchain already exists.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    // ---- Color swapchain ----
+
+    axrResult = m_XrSystem.createSwapchain(
+        XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT,
+        static_cast<int64_t>(m_SwapchainColorFormat),
+        // TODO: Multisample
+        1,
+        view.SwapchainExtent.width,
+        view.SwapchainExtent.height,
+        view.ColorSwapchain.Swapchain
+    );
+    if (AXR_FAILED(axrResult)) {
+        destroySwapchain(view);
+        return axrResult;
+    }
+
+    // ---- Depth swapchain ----
+
+    axrResult = m_XrSystem.createSwapchain(
+        XR_SWAPCHAIN_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        static_cast<int64_t>(m_SwapchainDepthFormat),
+        // TODO: Multisample
+        1,
+        view.SwapchainExtent.width,
+        view.SwapchainExtent.height,
+        view.DepthSwapchain.Swapchain
+    );
+    if (AXR_FAILED(axrResult)) {
+        destroySwapchain(view);
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanXrGraphics::destroySwapchain(View& view) const {
+    m_XrSystem.destroySwapchain(view.DepthSwapchain.Swapchain);
+    m_XrSystem.destroySwapchain(view.ColorSwapchain.Swapchain);
+}
+
 AxrResult AxrVulkanXrGraphics::createRenderPass() {
     // ----------------------------------------- //
     // Validation
@@ -453,10 +550,17 @@ AxrResult AxrVulkanXrGraphics::setupView(const AxrXrSystem::View& xrView, View& 
         return axrResult;
     }
 
+    axrResult = setupSwapchain(xrView, view);
+    if (AXR_FAILED(axrResult)) {
+        resetSetupView(view);
+        return axrResult;
+    }
+
     return AXR_SUCCESS;
 }
 
 void AxrVulkanXrGraphics::resetSetupView(View& view) {
+    resetSetupSwapchain(view);
     destroyCommandBuffers(view);
     destroySyncObjects(view);
 }

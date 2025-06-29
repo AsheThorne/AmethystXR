@@ -257,6 +257,65 @@ std::vector<AxrXrSystem::View> AxrXrSystem::getViews() const {
     return m_Views;
 }
 
+AxrResult AxrXrSystem::createSwapchain(
+    const XrSwapchainUsageFlags usageFlags,
+    const int64_t format,
+    const uint32_t sampleCount,
+    const uint32_t width,
+    const uint32_t height,
+    XrSwapchain& swapchain
+) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (swapchain != XR_NULL_HANDLE) {
+        axrLogErrorLocation("Swapchain already exists.");
+        return AXR_ERROR;
+    }
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const XrSwapchainCreateInfo swapchainCreateInfo{
+        .type = XR_TYPE_SWAPCHAIN_CREATE_INFO,
+        .next = nullptr,
+        .createFlags = {},
+        .usageFlags = usageFlags,
+        .format = format,
+        .sampleCount = sampleCount,
+        .width = width,
+        .height = height,
+        .faceCount = 1,
+        .arraySize = 1,
+        .mipCount = 1,
+    };
+
+    const XrResult xrResult = xrCreateSwapchain(m_Session, &swapchainCreateInfo, &swapchain);
+    axrLogXrResult(xrResult, "xrCreateSwapchain");
+    if (XR_FAILED(xrResult)) {
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrXrSystem::destroySwapchain(XrSwapchain& swapchain) {
+    if (swapchain == XR_NULL_HANDLE) return;
+    
+    const XrResult xrResult = xrDestroySwapchain(swapchain);
+    axrLogXrResult(xrResult, "xrDestroySwapchain");
+    if (XR_SUCCEEDED(xrResult)) {
+        swapchain = XR_NULL_HANDLE;
+    }
+}
+
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 AxrResult AxrXrSystem::createVulkanInstance(
     const PFN_vkGetInstanceProcAddr pfnGetInstanceProcAddr,
@@ -1176,9 +1235,9 @@ void AxrXrSystem::destroyGraphicsBinding() {
 }
 
 void AxrXrSystem::destroySessionData() {
+    OnXrSessionStateChangedCallbackGraphics(false);
     destroySession();
     m_IsSessionRunning = false;
-    OnXrSessionStateChangedCallbackGraphics(false);
 }
 
 AxrResult AxrXrSystem::createSession() {

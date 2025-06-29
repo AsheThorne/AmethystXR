@@ -128,6 +128,27 @@ public:
     /// @returns The xr views
     [[nodiscard]] std::vector<View> getViews() const;
 
+    /// Create an xr swapchain
+    /// @param usageFlags Usage flags
+    /// @param format Format
+    /// @param sampleCount Sample count
+    /// @param width Width
+    /// @param height Height
+    /// @param swapchain Output created swapchain
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createSwapchain(
+        XrSwapchainUsageFlags usageFlags,
+        int64_t format,
+        uint32_t sampleCount,
+        uint32_t width,
+        uint32_t height,
+        XrSwapchain& swapchain
+    ) const;
+
+    /// Destroy the given swapchain
+    /// @param swapchain Swapchain
+    void destroySwapchain(XrSwapchain& swapchain);
+
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     // ---- Vulkan Functions ----
 
