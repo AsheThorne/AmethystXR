@@ -43,10 +43,10 @@ public:
     struct View {
         struct SwapchainData {
             XrSwapchain Swapchain = XR_NULL_HANDLE;
-            std::vector<VkImage> Images;
-            std::vector<VkImageView> ImageViews;
+            std::vector<vk::Image> Images;
+            std::vector<vk::ImageView> ImageViews;
         };
-        
+
         /// One semaphore per frame in flight
         std::vector<vk::Semaphore> RenderingFinishedSemaphores;
         /// One fence per frame in flight
@@ -222,6 +222,28 @@ private:
     /// Destroy the createSwapchain() function for the given view
     /// @param view View data
     void destroySwapchain(View& view) const;
+
+    /// Set up swapchain images
+    /// @param swapchain Swapchain to use
+    /// @param imageAspectFlags Image aspect flags
+    /// @param imageFormat Image format
+    /// @param images Output Images
+    /// @param imageViews Output image views
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setupSwapchainImages(
+        XrSwapchain swapchain,
+        vk::ImageAspectFlags imageAspectFlags,
+        vk::Format imageFormat,
+        std::vector<vk::Image>& images,
+        std::vector<vk::ImageView>& imageViews
+    ) const;
+    /// Reset setupSwapchainImages()
+    /// @param images Swapchain images
+    /// @param imageViews Swapchain image views
+    void resetSetupSwapchainImages(
+        std::vector<vk::Image>& images,
+        std::vector<vk::ImageView>& imageViews
+    ) const;
 
     // ---- Render pass ----
 

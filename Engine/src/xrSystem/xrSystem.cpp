@@ -308,7 +308,7 @@ AxrResult AxrXrSystem::createSwapchain(
 
 void AxrXrSystem::destroySwapchain(XrSwapchain& swapchain) {
     if (swapchain == XR_NULL_HANDLE) return;
-    
+
     const XrResult xrResult = xrDestroySwapchain(swapchain);
     axrLogXrResult(xrResult, "xrDestroySwapchain");
     if (XR_SUCCEEDED(xrResult)) {
@@ -500,6 +500,56 @@ void AxrXrSystem::setGraphicsBinding(const XrGraphicsBindingVulkan2KHR& graphics
     // ----------------------------------------- //
 
     m_GraphicsBinding = reinterpret_cast<XrBaseInStructure*>(new XrGraphicsBindingVulkan2KHR(graphicsBinding));
+}
+
+AxrResult AxrXrSystem::getVulkanSwapchainImages(const XrSwapchain swapchain, std::vector<VkImage>& images) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (swapchain == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Swapchain is null.");
+        return AXR_ERROR;
+    }
+
+    if (!images.empty()) {
+        axrLogErrorLocation("Swapchain images already exist.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+    
+    uint32_t swapchainImageCount;
+    XrResult xrResult = xrEnumerateSwapchainImages(
+        swapchain,
+        0,
+        &swapchainImageCount,
+        nullptr
+    );
+    axrLogXrResult(xrResult, "xrEnumerateSwapchainImages");
+    if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+    std::vector<XrSwapchainImageVulkan2KHR> swapchainImages(
+        swapchainImageCount,
+        {.type = XR_TYPE_SWAPCHAIN_IMAGE_VULKAN2_KHR}
+    );
+    xrResult = xrEnumerateSwapchainImages(
+        swapchain,
+        swapchainImageCount,
+        &swapchainImageCount,
+        reinterpret_cast<XrSwapchainImageBaseHeader*>(swapchainImages.data())
+    );
+    axrLogXrResult(xrResult, "xrEnumerateSwapchainImages");
+    if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+    images.resize(swapchainImageCount);
+    for (uint32_t i = 0; i < swapchainImageCount; ++i) {
+        images[i] = swapchainImages[i].image;
+    }
+
+    return AXR_SUCCESS;
 }
 #endif
 
@@ -723,7 +773,6 @@ void AxrXrSystem::addRequiredExtensions() {
 }
 
 std::vector<std::string> AxrXrSystem::getSupportedApiLayers() const {
-    // Get the number of supported api layers
     uint32_t supportedApiLayersCount;
     XrResult xrResult = xrEnumerateApiLayerProperties(
         0,
@@ -733,7 +782,6 @@ std::vector<std::string> AxrXrSystem::getSupportedApiLayers() const {
     axrLogXrResult(xrResult, "xrEnumerateApiLayerProperties");
     if (XR_FAILED(xrResult)) return {};
 
-    // Get the supported api layers
     std::vector<XrApiLayerProperties> supportedApiLayers(
         supportedApiLayersCount,
         {.type = XR_TYPE_API_LAYER_PROPERTIES}
@@ -757,7 +805,6 @@ std::vector<std::string> AxrXrSystem::getSupportedApiLayers() const {
 }
 
 std::vector<std::string> AxrXrSystem::getSupportedExtensions() const {
-    // Get the number of supported extensions
     uint32_t supportedExtensionsCount;
     XrResult xrResult = xrEnumerateInstanceExtensionProperties(
         nullptr,
@@ -768,7 +815,6 @@ std::vector<std::string> AxrXrSystem::getSupportedExtensions() const {
     axrLogXrResult(xrResult, "xrEnumerateInstanceExtensionProperties");
     if (XR_FAILED(xrResult)) return {};
 
-    // Get the supported extensions
     std::vector<XrExtensionProperties> supportedExtensions(
         supportedExtensionsCount,
         {.type = XR_TYPE_EXTENSION_PROPERTIES}

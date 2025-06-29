@@ -4,6 +4,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "vulkanXrGraphics.hpp"
+#include "vulkanImage.hpp"
 #include "vulkanUtils.hpp"
 #include "vulkanSharedFunctions.hpp"
 
@@ -440,6 +441,18 @@ AxrResult AxrVulkanXrGraphics::createSwapchain(View& view) const {
         return axrResult;
     }
 
+    axrResult = setupSwapchainImages(
+        view.ColorSwapchain.Swapchain,
+        vk::ImageAspectFlagBits::eColor,
+        m_SwapchainColorFormat,
+        view.ColorSwapchain.Images,
+        view.ColorSwapchain.ImageViews
+    );
+    if (AXR_FAILED(axrResult)) {
+        destroySwapchain(view);
+        return axrResult;
+    }
+
     // ---- Depth swapchain ----
 
     axrResult = m_XrSystem.createSwapchain(
@@ -456,12 +469,113 @@ AxrResult AxrVulkanXrGraphics::createSwapchain(View& view) const {
         return axrResult;
     }
 
+    vk::ImageAspectFlags depthImageAspectFlags = vk::ImageAspectFlagBits::eDepth;
+    if (axrFormatHasStencilComponent(m_SwapchainDepthFormat)) {
+        depthImageAspectFlags |= vk::ImageAspectFlagBits::eStencil;
+    }
+
+    axrResult = setupSwapchainImages(
+        view.DepthSwapchain.Swapchain,
+        depthImageAspectFlags,
+        m_SwapchainDepthFormat,
+        view.DepthSwapchain.Images,
+        view.DepthSwapchain.ImageViews
+    );
+    if (AXR_FAILED(axrResult)) {
+        destroySwapchain(view);
+        return axrResult;
+    }
+
     return AXR_SUCCESS;
 }
 
 void AxrVulkanXrGraphics::destroySwapchain(View& view) const {
+    resetSetupSwapchainImages(view.DepthSwapchain.Images, view.DepthSwapchain.ImageViews);
     m_XrSystem.destroySwapchain(view.DepthSwapchain.Swapchain);
+    resetSetupSwapchainImages(view.ColorSwapchain.Images, view.ColorSwapchain.ImageViews);
     m_XrSystem.destroySwapchain(view.ColorSwapchain.Swapchain);
+}
+
+AxrResult AxrVulkanXrGraphics::setupSwapchainImages(
+    const XrSwapchain swapchain,
+    const vk::ImageAspectFlags imageAspectFlags,
+    const vk::Format imageFormat,
+    std::vector<vk::Image>& images,
+    std::vector<vk::ImageView>& imageViews
+) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (swapchain == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Swapchain is null.");
+        return AXR_ERROR;
+    }
+
+    if (!images.empty()) {
+        axrLogErrorLocation("Images already exist.");
+        return AXR_ERROR;
+    }
+
+    if (!imageViews.empty()) {
+        axrLogErrorLocation("Image views already exist.");
+        return AXR_ERROR;
+    }
+
+    if (m_Device == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Device is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = m_XrSystem.getVulkanSwapchainImages(
+        swapchain,
+        *reinterpret_cast<std::vector<VkImage>*>(&images)
+    );
+    if (AXR_FAILED(axrResult)) {
+        resetSetupSwapchainImages(images, imageViews);
+        return axrResult;
+    }
+
+    imageViews.resize(images.size());
+    for (int i = 0; i < images.size(); ++i) {
+        axrResult = AxrVulkanImage::createImageView(
+            m_Device,
+            images[i],
+            imageFormat,
+            imageAspectFlags,
+            1,
+            imageViews[i],
+            m_Dispatch
+        );
+        if (AXR_FAILED(axrResult)) {
+            break;
+        }
+    }
+
+    if (AXR_FAILED(axrResult)) {
+        resetSetupSwapchainImages(images, imageViews);
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanXrGraphics::resetSetupSwapchainImages(
+    std::vector<vk::Image>& images,
+    std::vector<vk::ImageView>& imageViews
+) const {
+    for (vk::ImageView& imageView : imageViews) {
+        AxrVulkanImage::destroyImageView(m_Device, imageView, m_Dispatch);
+    }
+    imageViews.clear();
+
+    images.clear();
 }
 
 AxrResult AxrVulkanXrGraphics::createRenderPass() {

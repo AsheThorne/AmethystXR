@@ -185,6 +185,12 @@ public:
     /// Set the graphics binding
     /// @param graphicsBinding Graphics binding to use
     void setGraphicsBinding(const XrGraphicsBindingVulkan2KHR& graphicsBinding);
+
+    /// Get the vulkan images for the given swapchain
+    /// @param swapchain Swapchain
+    /// @param images Output vulkan images
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult getVulkanSwapchainImages(XrSwapchain swapchain, std::vector<VkImage>& images) const;
 #endif
 
     /// Reset setGraphicsBinding()
