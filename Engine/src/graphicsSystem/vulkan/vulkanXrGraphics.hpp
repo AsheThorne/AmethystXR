@@ -36,10 +36,14 @@ public:
         /// Ordered from most desired to the least desired
         const std::vector<vk::Format>& SwapchainDepthFormatOptions;
     };
+
+    // Per view data
+    struct View {
         /// One semaphore per frame in flight
         std::vector<vk::Semaphore> m_RenderingFinishedSemaphores;
         /// One fence per frame in flight
         std::vector<vk::Fence> m_RenderingFences;
+    };
 
     // Per view data
     struct View {
