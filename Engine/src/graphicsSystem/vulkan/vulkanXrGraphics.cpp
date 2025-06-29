@@ -5,6 +5,7 @@
 // ----------------------------------------- //
 #include "vulkanXrGraphics.hpp"
 #include "vulkanUtils.hpp"
+#include "vulkanSharedFunctions.hpp"
 
 // ---- Special Functions ----
 
@@ -16,7 +17,9 @@ AxrVulkanXrGraphics::AxrVulkanXrGraphics(const Config& config):
     m_Device(VK_NULL_HANDLE),
     m_IsReady(false),
     m_SwapchainColorFormat(vk::Format::eUndefined),
-    m_SwapchainDepthFormat(vk::Format::eUndefined) {
+    m_SwapchainDepthFormat(vk::Format::eUndefined),
+    m_SwapchainImageLayout(vk::ImageLayout::eColorAttachmentOptimal),
+    m_RenderPass(VK_NULL_HANDLE) {
 }
 
 AxrVulkanXrGraphics::~AxrVulkanXrGraphics() {
@@ -176,6 +179,12 @@ AxrResult AxrVulkanXrGraphics::setupXrSessionGraphics() {
         return axrResult;
     }
 
+    axrResult = createRenderPass();
+    if (AXR_FAILED(axrResult)) {
+        resetSetupXrSessionGraphics();
+        return axrResult;
+    }
+
     m_IsReady = true;
     return AXR_SUCCESS;
 }
@@ -183,6 +192,7 @@ AxrResult AxrVulkanXrGraphics::setupXrSessionGraphics() {
 void AxrVulkanXrGraphics::resetSetupXrSessionGraphics() {
     m_IsReady = false;
 
+    destroyRenderPass();
     resetSwapchainFormats();
 }
 
@@ -334,6 +344,36 @@ AxrResult AxrVulkanXrGraphics::setSwapchainFormats() {
 void AxrVulkanXrGraphics::resetSwapchainFormats() {
     m_SwapchainColorFormat = vk::Format::eUndefined;
     m_SwapchainDepthFormat = vk::Format::eUndefined;
+}
+
+AxrResult AxrVulkanXrGraphics::createRenderPass() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_RenderPass != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Render pass already exists.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    return axrCreateRenderPass(
+        m_Device,
+        m_SwapchainColorFormat,
+        m_SwapchainDepthFormat,
+        m_SwapchainImageLayout,
+        // TODO: multisample
+        vk::SampleCountFlagBits::e1,
+        m_RenderPass,
+        m_Dispatch
+    );
+}
+
+void AxrVulkanXrGraphics::destroyRenderPass() {
+    axrDestroyRenderPass(m_Device, m_RenderPass, m_Dispatch);
 }
 
 AxrResult AxrVulkanXrGraphics::onXrSessionStateChangedCallback(const bool isSessionRunning) {

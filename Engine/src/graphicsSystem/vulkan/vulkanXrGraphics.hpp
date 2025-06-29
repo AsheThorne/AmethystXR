@@ -134,6 +134,8 @@ private:
     bool m_IsReady;
     vk::Format m_SwapchainColorFormat;
     vk::Format m_SwapchainDepthFormat;
+    vk::ImageLayout m_SwapchainImageLayout;
+    vk::RenderPass m_RenderPass;
 
     // ----------------------------------------- //
     // Private Functions
@@ -170,6 +172,14 @@ private:
     [[nodiscard]] AxrResult setSwapchainFormats();
     /// Reset the setSwapchainFormats() function
     void resetSwapchainFormats();
+
+    // ---- Render pass ----
+
+    /// Create the render pass
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createRenderPass();
+    /// Destroy the render pass
+    void destroyRenderPass();
 
     // ---- Callbacks ----
 
