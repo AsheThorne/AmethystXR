@@ -15,6 +15,7 @@ AxrVulkanXrGraphics::AxrVulkanXrGraphics(const Config& config):
     m_MaxFramesInFlight(config.MaxFramesInFlight),
     m_Instance(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
+    m_GraphicsCommandPool(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
     m_IsReady(false),
     m_SwapchainColorFormat(vk::Format::eUndefined),
@@ -54,6 +55,16 @@ AxrResult AxrVulkanXrGraphics::setup(const SetupConfig& config) {
         return AXR_ERROR;
     }
 
+    if (m_GraphicsCommandPool != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Graphics command pool isn't null.");
+        return AXR_ERROR;
+    }
+
+    if (config.GraphicsCommandPool == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Config graphics command pool is null.");
+        return AXR_ERROR;
+    }
+
     if (m_Device != VK_NULL_HANDLE) {
         axrLogErrorLocation("Logical device isn't null.");
         return AXR_ERROR;
@@ -80,6 +91,7 @@ AxrResult AxrVulkanXrGraphics::setup(const SetupConfig& config) {
     m_Instance = config.Instance;
     m_PhysicalDevice = config.PhysicalDevice;
     m_Device = config.Device;
+    m_GraphicsCommandPool = config.GraphicsCommandPool;
     m_QueueFamilies = config.QueueFamilies;
 
     const AxrResult axrResult = setSwapchainFormatOptions(
@@ -109,6 +121,7 @@ void AxrVulkanXrGraphics::resetSetup() {
     m_Instance = VK_NULL_HANDLE;
     m_PhysicalDevice = VK_NULL_HANDLE;
     m_Device = VK_NULL_HANDLE;
+    m_GraphicsCommandPool = VK_NULL_HANDLE;
     m_QueueFamilies.reset();
 }
 
@@ -434,10 +447,17 @@ AxrResult AxrVulkanXrGraphics::setupView(const AxrXrSystem::View& xrView, View& 
         return axrResult;
     }
 
+    axrResult = createCommandBuffers(view);
+    if (AXR_FAILED(axrResult)) {
+        resetSetupView(view);
+        return axrResult;
+    }
+
     return AXR_SUCCESS;
 }
 
 void AxrVulkanXrGraphics::resetSetupView(View& view) {
+    destroyCommandBuffers(view);
     destroySyncObjects(view);
 }
 
@@ -479,6 +499,28 @@ AxrResult AxrVulkanXrGraphics::createSyncObjects(View& view) const {
 void AxrVulkanXrGraphics::destroySyncObjects(View& view) const {
     axrDestroySemaphores(m_Device, view.RenderingFinishedSemaphores, m_Dispatch);
     axrDestroyFences(m_Device, view.RenderingFences, m_Dispatch);
+}
+
+AxrResult AxrVulkanXrGraphics::createCommandBuffers(View& view) const {
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = axrCreateCommandBuffers(
+        m_Device,
+        m_GraphicsCommandPool,
+        m_MaxFramesInFlight,
+        view.RenderingCommandBuffers,
+        m_Dispatch
+    );
+    if (AXR_FAILED(axrResult)) {
+        destroyCommandBuffers(view);
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanXrGraphics::destroyCommandBuffers(View& view) const {
+    axrDestroyCommandBuffers(m_Device, m_GraphicsCommandPool, view.RenderingCommandBuffers, m_Dispatch);
 }
 
 AxrResult AxrVulkanXrGraphics::onXrSessionStateChangedCallback(const bool isSessionRunning) {

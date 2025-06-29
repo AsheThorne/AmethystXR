@@ -31,6 +31,7 @@ public:
         vk::Instance Instance;
         vk::PhysicalDevice PhysicalDevice;
         vk::Device Device;
+        vk::CommandPool GraphicsCommandPool;
         const AxrVulkanQueueFamilies& QueueFamilies;
         /// Ordered from most desired to the least desired
         const std::vector<vk::Format>& SwapchainColorFormatOptions;
@@ -44,6 +45,8 @@ public:
         std::vector<vk::Semaphore> RenderingFinishedSemaphores;
         /// One fence per frame in flight
         std::vector<vk::Fence> RenderingFences;
+        /// One command buffer per frame in flight
+        std::vector<vk::CommandBuffer> RenderingCommandBuffers;
     };
 
     // ----------------------------------------- //
@@ -134,6 +137,7 @@ private:
     vk::Instance m_Instance;
     vk::PhysicalDevice m_PhysicalDevice;
     vk::Device m_Device;
+    vk::CommandPool m_GraphicsCommandPool;
     AxrVulkanQueueFamilies m_QueueFamilies;
     /// Ordered from most desired to the least desired
     std::vector<vk::Format> m_SwapchainColorFormatOptions;
@@ -215,6 +219,14 @@ private:
     [[nodiscard]] AxrResult createSyncObjects(View& view) const;
     /// Destroy the rendering sync objects for the given view
     void destroySyncObjects(View& view) const;
+
+    // ---- Command Buffers ----
+
+    /// Create command buffers for the given view
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createCommandBuffers(View& view) const;
+    /// Destroy command buffers for the given view
+    void destroyCommandBuffers(View& view) const;
 
     // ---- Callbacks ----
 

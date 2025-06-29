@@ -1191,7 +1191,7 @@ AxrResult AxrVulkanGraphicsSystem::setupWindowGraphics() {
     if (m_WindowGraphics == nullptr) return AXR_SUCCESS;
 
     const AxrResult axrResult = m_WindowGraphics->setup(
-        {
+        AxrVulkanWindowGraphics::SetupConfig{
             .Instance = m_Instance,
             .PhysicalDevice = m_PhysicalDevice,
             .Device = m_Device,
@@ -1225,10 +1225,11 @@ AxrResult AxrVulkanGraphicsSystem::setupXrGraphics() {
     }
 
     const AxrResult axrResult = m_XrGraphics->setup(
-        {
+        AxrVulkanXrGraphics::SetupConfig{
             .Instance = m_Instance,
             .PhysicalDevice = m_PhysicalDevice,
             .Device = m_Device,
+            .GraphicsCommandPool = m_GraphicsCommandPool,
             .QueueFamilies = m_QueueFamilies,
             .SwapchainColorFormatOptions = swapchainColorFormatOptions,
             .SwapchainDepthFormatOptions = m_SwapchainDepthFormatOptions,
