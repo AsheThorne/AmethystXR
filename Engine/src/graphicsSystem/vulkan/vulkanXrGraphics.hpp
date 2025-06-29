@@ -45,14 +45,6 @@ public:
         std::vector<vk::Fence> m_RenderingFences;
     };
 
-    // Per view data
-    struct View {
-        /// One semaphore per frame in flight
-        std::vector<vk::Semaphore> m_RenderingFinishedSemaphores;
-        /// One fence per frame in flight
-        std::vector<vk::Fence> m_RenderingFences;
-    };
-
     // ----------------------------------------- //
     // Special Functions
     // ----------------------------------------- //
