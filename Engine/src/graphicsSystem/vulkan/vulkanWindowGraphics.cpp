@@ -18,15 +18,14 @@ AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
     m_WindowSystem(config.WindowSystem),
     m_Dispatch(config.Dispatch),
     m_LoadedScenes(config.LoadedScenes),
-    m_PreferredPresentationMode(config.PresentationMode),
     m_MaxFramesInFlight(config.MaxFramesInFlight),
+    m_PreferredPresentationMode(config.PresentationMode),
     m_ClearColor(config.ClearColor),
     m_MaxMsaaSampleCount(config.MaxMsaaSampleCount),
     m_Instance(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
     m_GraphicsCommandPool(VK_NULL_HANDLE),
-    m_MsaaSampleCount(vk::SampleCountFlagBits::e1),
     m_SwapchainImageLayout(vk::ImageLayout::ePresentSrcKHR),
     m_Surface(VK_NULL_HANDLE),
     m_SwapchainColorFormat(vk::Format::eUndefined),
@@ -38,7 +37,8 @@ AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
     m_IsReady(false),
     m_CurrentImageIndex(0),
     m_CurrentFrame(0),
-    m_IsSwapchainOutOfDate(false) {
+    m_IsSwapchainOutOfDate(false),
+    m_MsaaSampleCount(vk::SampleCountFlagBits::e1) {
 }
 
 AxrVulkanWindowGraphics::~AxrVulkanWindowGraphics() {

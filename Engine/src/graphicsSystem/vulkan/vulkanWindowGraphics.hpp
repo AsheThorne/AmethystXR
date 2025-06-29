@@ -27,8 +27,8 @@ public:
         AxrWindowSystem& WindowSystem;
         vk::DispatchLoaderDynamic& Dispatch;
         AxrVulkanLoadedScenesCollection& LoadedScenes;
-        AxrVulkanPresentationModeEnum PresentationMode;
         uint32_t MaxFramesInFlight;
+        AxrVulkanPresentationModeEnum PresentationMode;
         glm::vec4 ClearColor;
         AxrMsaaSampleCountEnum MaxMsaaSampleCount;
     };
@@ -157,8 +157,8 @@ private:
     AxrWindowSystem& m_WindowSystem;
     vk::DispatchLoaderDynamic& m_Dispatch;
     AxrVulkanLoadedScenesCollection& m_LoadedScenes;
-    AxrVulkanPresentationModeEnum m_PreferredPresentationMode;
     uint32_t m_MaxFramesInFlight;
+    AxrVulkanPresentationModeEnum m_PreferredPresentationMode;
     glm::vec4 m_ClearColor;
     AxrMsaaSampleCountEnum m_MaxMsaaSampleCount;
 

@@ -23,6 +23,7 @@ public:
     struct Config {
         AxrXrSystem& XrSystem;
         vk::DispatchLoaderDynamic& Dispatch;
+        uint32_t MaxFramesInFlight;
     };
 
     /// AxrVulkanXrGraphics Setup Config
@@ -40,9 +41,9 @@ public:
     // Per view data
     struct View {
         /// One semaphore per frame in flight
-        std::vector<vk::Semaphore> m_RenderingFinishedSemaphores;
+        std::vector<vk::Semaphore> RenderingFinishedSemaphores;
         /// One fence per frame in flight
-        std::vector<vk::Fence> m_RenderingFences;
+        std::vector<vk::Fence> RenderingFences;
     };
 
     // ----------------------------------------- //
@@ -127,6 +128,7 @@ private:
     // ---- Config ----
     AxrXrSystem& m_XrSystem;
     vk::DispatchLoaderDynamic& m_Dispatch;
+    uint32_t m_MaxFramesInFlight;
 
     // ---- Setup Config ----
     vk::Instance m_Instance;
@@ -205,6 +207,14 @@ private:
     /// Reset the given view
     /// @param view View data
     void resetSetupView(View& view);
+
+    // ---- Sync Objects ----
+
+    /// Create the rendering sync objects for the given view
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createSyncObjects(View& view) const;
+    /// Destroy the rendering sync objects for the given view
+    void destroySyncObjects(View& view) const;
 
     // ---- Callbacks ----
 

@@ -12,6 +12,7 @@
 AxrVulkanXrGraphics::AxrVulkanXrGraphics(const Config& config):
     m_XrSystem(config.XrSystem),
     m_Dispatch(config.Dispatch),
+    m_MaxFramesInFlight(config.MaxFramesInFlight),
     m_Instance(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
@@ -425,9 +426,59 @@ void AxrVulkanXrGraphics::resetSetupAllViews() {
 }
 
 AxrResult AxrVulkanXrGraphics::setupView(const AxrXrSystem::View& xrView, View& view) {
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = createSyncObjects(view);
+    if (AXR_FAILED(axrResult)) {
+        resetSetupView(view);
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
 }
 
 void AxrVulkanXrGraphics::resetSetupView(View& view) {
+    destroySyncObjects(view);
+}
+
+AxrResult AxrVulkanXrGraphics::createSyncObjects(View& view) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!view.RenderingFinishedSemaphores.empty()) {
+        axrLogErrorLocation("Rendering finished semaphores already exist.");
+        return AXR_ERROR;
+    }
+
+    if (!view.RenderingFences.empty()) {
+        axrLogErrorLocation("Rendering fences already exist.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = axrCreateSemaphores(m_Device, m_MaxFramesInFlight, view.RenderingFinishedSemaphores, m_Dispatch);
+    if (AXR_FAILED(axrResult)) {
+        destroySyncObjects(view);
+        return axrResult;
+    }
+
+    axrResult = axrCreateFences(m_Device, m_MaxFramesInFlight, view.RenderingFences, m_Dispatch);
+    if (AXR_FAILED(axrResult)) {
+        destroySyncObjects(view);
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanXrGraphics::destroySyncObjects(View& view) const {
+    axrDestroySemaphores(m_Device, view.RenderingFinishedSemaphores, m_Dispatch);
+    axrDestroyFences(m_Device, view.RenderingFences, m_Dispatch);
 }
 
 AxrResult AxrVulkanXrGraphics::onXrSessionStateChangedCallback(const bool isSessionRunning) {

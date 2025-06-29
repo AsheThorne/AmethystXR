@@ -60,8 +60,8 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
                     .WindowSystem = *config.WindowSystem,
                     .Dispatch = m_Dispatch,
                     .LoadedScenes = m_LoadedScenes,
-                    .PresentationMode = config.WindowConfig->PresentationMode,
                     .MaxFramesInFlight = m_MaxFramesInFlight,
+                    .PresentationMode = config.WindowConfig->PresentationMode,
                     .ClearColor = config.ClearColor,
                     .MaxMsaaSampleCount = config.WindowConfig->MaxMsaaSampleCount,
                 }
@@ -76,6 +76,7 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
             AxrVulkanXrGraphics::Config{
                 .XrSystem = *config.XrSystem,
                 .Dispatch = m_Dispatch,
+                .MaxFramesInFlight = m_MaxFramesInFlight,
             }
         );
     }
