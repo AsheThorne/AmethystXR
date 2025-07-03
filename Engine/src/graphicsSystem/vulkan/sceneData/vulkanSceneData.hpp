@@ -12,15 +12,13 @@
 #include "vulkanImageData.hpp"
 #include "vulkanImageSamplerData.hpp"
 #include "axr/scene.h"
+#include "../../../xrSystem/xrUtils.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
 // ----------------------------------------- //
 #include <string>
 #include <unordered_map>
-
-// TODO: Move this elsewhere
-#define AXR_MAX_XR_VIEWS 2
 
 /// Vulkan scene data
 class AxrVulkanSceneData {

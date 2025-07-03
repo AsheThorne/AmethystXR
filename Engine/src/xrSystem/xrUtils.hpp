@@ -15,6 +15,8 @@
 // ----------------------------------------- //
 #include <openxr/openxr.h>
 
+#define AXR_MAX_XR_VIEWS 2
+
 // ---- Logging ----
 
 /// Log an XrResult if it failed
