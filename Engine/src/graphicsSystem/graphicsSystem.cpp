@@ -38,7 +38,9 @@ AxrGraphicsSystem::AxrGraphicsSystem(const Config& config):
     if (config.GraphicsConfig.GraphicsApi == AXR_GRAPHICS_API_VULKAN) {
         if (config.GraphicsConfig.VulkanConfig != nullptr) {
             AxrVulkanGraphicsSystem::WindowConfig windowConfig{};
+            AxrVulkanGraphicsSystem::XrSessionConfig xrSessionConfig{};
             bool useWindowConfig = false;
+            bool useXrSessionConfig = false;
 
             if (config.WindowSystem != nullptr) {
                 if (config.GraphicsConfig.VulkanConfig->WindowConfig != nullptr &&
@@ -53,6 +55,17 @@ AxrGraphicsSystem::AxrGraphicsSystem(const Config& config):
                 }
             }
 
+            if (config.XrSystem != nullptr) {
+                if (config.GraphicsConfig.GraphicsXrSessionConfig != nullptr) {
+                    xrSessionConfig = AxrVulkanGraphicsSystem::XrSessionConfig{
+                        .MaxMsaaSampleCount = config.GraphicsConfig.GraphicsXrSessionConfig->MaxMsaaSampleCount,
+                    };
+                    useXrSessionConfig = true;
+                } else {
+                    axrLogErrorLocation("Failed to set xr session graphics config. Missing xr session graphic configs.");
+                }
+            }
+
             m_VulkanGraphicsSystem = new AxrVulkanGraphicsSystem(
                 AxrVulkanGraphicsSystem::Config{
                     .ApplicationName = config.ApplicationName,
@@ -61,6 +74,7 @@ AxrGraphicsSystem::AxrGraphicsSystem(const Config& config):
                     .XrSystem = config.XrSystem,
                     .GlobalAssetCollection = config.GlobalAssetCollection,
                     .WindowConfig = useWindowConfig ? &windowConfig : nullptr,
+                    .XrSessionConfig = useXrSessionConfig ? &xrSessionConfig : nullptr,
                     .SamplerAnisotropyQuality = config.GraphicsConfig.SamplerAnisotropyQuality,
                     .ApiLayerCount = config.GraphicsConfig.VulkanConfig->ApiLayerCount,
                     .ApiLayers = config.GraphicsConfig.VulkanConfig->ApiLayers,

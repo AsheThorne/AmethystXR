@@ -71,21 +71,67 @@ namespace axr {
         // Public Functions
         // ----------------------------------------- //
 
-        /// Get a handle to the GraphicsSystemConfig as an GraphicsWindowConfig
-        /// @returns This as an GraphicsWindowConfig
-        const GraphicsWindowConfig* toRaw() const {
-            return reinterpret_cast<const GraphicsWindowConfig*>(this);
+        /// Get a handle to the GraphicsWindowConfig as an AxrGraphicsWindowConfig
+        /// @returns This as an AxrGraphicsWindowConfig
+        const AxrGraphicsWindowConfig* toRaw() const {
+            return reinterpret_cast<const AxrGraphicsWindowConfig*>(this);
         }
 
-        /// Get a handle to the GraphicsSystemConfig as an GraphicsWindowConfig
-        /// @returns This as an GraphicsWindowConfig
-        GraphicsWindowConfig* toRaw() {
-            return reinterpret_cast<GraphicsWindowConfig*>(this);
+        /// Get a handle to the GraphicsWindowConfig as an AxrGraphicsWindowConfig
+        /// @returns This as an AxrGraphicsWindowConfig
+        AxrGraphicsWindowConfig* toRaw() {
+            return reinterpret_cast<AxrGraphicsWindowConfig*>(this);
         }
     };
 
     static_assert(
         sizeof(AxrGraphicsWindowConfig) == sizeof(axr::GraphicsWindowConfig),
+        "Original type and wrapper have different size!"
+    );
+
+    /// Config for the xr session graphics
+    struct GraphicsXrSessionConfig {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        axr::MsaaSampleCountEnum MaxMsaaSampleCount;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        GraphicsXrSessionConfig() :
+            MaxMsaaSampleCount(axr::MsaaSampleCountEnum::SampleCount1) {
+        }
+
+        /// Constructor
+        /// @param maxMsaaSampleCount Max msaa sample count to use
+        explicit GraphicsXrSessionConfig(const axr::MsaaSampleCountEnum maxMsaaSampleCount) :
+            MaxMsaaSampleCount(maxMsaaSampleCount) {
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the GraphicsXrSessionConfig as an AxrGraphicsXrSessionConfig
+        /// @returns This as an AxrGraphicsXrSessionConfig
+        const AxrGraphicsXrSessionConfig* toRaw() const {
+            return reinterpret_cast<const AxrGraphicsXrSessionConfig*>(this);
+        }
+
+        /// Get a handle to the GraphicsXrSessionConfig as an AxrGraphicsXrSessionConfig
+        /// @returns This as an AxrGraphicsXrSessionConfig
+        AxrGraphicsXrSessionConfig* toRaw() {
+            return reinterpret_cast<AxrGraphicsXrSessionConfig*>(this);
+        }
+    };
+
+    static_assert(
+        sizeof(AxrGraphicsXrSessionConfig) == sizeof(axr::GraphicsXrSessionConfig),
         "Original type and wrapper have different size!"
     );
 
@@ -99,6 +145,7 @@ namespace axr {
         axr::VulkanApiConfig* VulkanApiConfig = nullptr;
 #endif
         const axr::GraphicsWindowConfig* WindowConfig;
+        const axr::GraphicsXrSessionConfig* XrSessionConfig;
         axr::SamplerAnisotropyQualityEnum SamplerAnisotropyQuality;
 
         // ----------------------------------------- //
@@ -111,6 +158,7 @@ namespace axr {
         GraphicsSystemConfig() :
             GraphicsApi(axr::GraphicsApiEnum::Undefined),
             WindowConfig(nullptr),
+            XrSessionConfig(nullptr),
             SamplerAnisotropyQuality(axr::SamplerAnisotropyQualityEnum::None) {
         }
 
@@ -118,14 +166,17 @@ namespace axr {
         /// Vulkan Graphics Constructor
         /// @param vulkanApiConfig The vulkan api config
         /// @param windowConfig The window graphics config
+        /// @param xrSessionConfig The xr session graphics config
         /// @param samplerAnisotropyQuality The sampler anisotropy quality
         GraphicsSystemConfig(
             axr::VulkanApiConfig* vulkanApiConfig,
             const axr::GraphicsWindowConfig* windowConfig,
+            const axr::GraphicsXrSessionConfig* xrSessionConfig,
             const axr::SamplerAnisotropyQualityEnum samplerAnisotropyQuality
         ) : GraphicsApi(axr::GraphicsApiEnum::Vulkan),
             VulkanApiConfig(vulkanApiConfig),
             WindowConfig(windowConfig),
+            XrSessionConfig(xrSessionConfig),
             SamplerAnisotropyQuality(samplerAnisotropyQuality) {
         }
 #endif

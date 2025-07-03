@@ -41,9 +41,13 @@ public:
     // ----------------------------------------- //
 
     /// Vulkan Graphics System Config
-
     struct WindowConfig {
         AxrVulkanPresentationModeEnum PresentationMode;
+        AxrMsaaSampleCountEnum MaxMsaaSampleCount;
+    };
+
+    /// Vulkan Graphics Xr Session Config
+    struct XrSessionConfig {
         AxrMsaaSampleCountEnum MaxMsaaSampleCount;
     };
 
@@ -55,6 +59,7 @@ public:
         AxrXrSystem_T XrSystem;
         AxrAssetCollection_T GlobalAssetCollection;
         WindowConfig* WindowConfig;
+        XrSessionConfig* XrSessionConfig;
         AxrSamplerAnisotropyQualityEnum SamplerAnisotropyQuality;
         uint32_t ApiLayerCount;
         AxrVulkanApiLayer_T* ApiLayers;

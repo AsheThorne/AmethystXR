@@ -52,6 +52,11 @@ struct AxrGraphicsWindowConfig {
     AxrMsaaSampleCountEnum MaxMsaaSampleCount;
 };
 
+/// Config for the xr session graphics
+struct AxrGraphicsXrSessionConfig {
+    AxrMsaaSampleCountEnum MaxMsaaSampleCount;
+};
+
 /// Config for the graphics system
 struct AxrGraphicsSystemConfig {
     AxrGraphicsApiEnum GraphicsApi;
@@ -59,6 +64,7 @@ struct AxrGraphicsSystemConfig {
     AxrVulkanApiConfig_T VulkanConfig;
 #endif
     const AxrGraphicsWindowConfig* GraphicsWindowConfig;
+    const AxrGraphicsXrSessionConfig* GraphicsXrSessionConfig;
     AxrSamplerAnisotropyQualityEnum SamplerAnisotropyQuality;
 };
 

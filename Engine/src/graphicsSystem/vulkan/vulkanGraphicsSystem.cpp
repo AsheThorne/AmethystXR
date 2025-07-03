@@ -70,14 +70,19 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     }
 
     if (config.XrSystem != nullptr) {
-        m_XrGraphics = new AxrVulkanXrGraphics(
-            AxrVulkanXrGraphics::Config{
-                .XrSystem = *config.XrSystem,
-                .Dispatch = m_Dispatch,
-                .LoadedScenes = m_LoadedScenes,
-                .MaxFramesInFlight = m_MaxFramesInFlight,
-            }
-        );
+        if (config.XrSessionConfig != nullptr) {
+            m_XrGraphics = new AxrVulkanXrGraphics(
+                AxrVulkanXrGraphics::Config{
+                    .XrSystem = *config.XrSystem,
+                    .Dispatch = m_Dispatch,
+                    .LoadedScenes = m_LoadedScenes,
+                    .MaxFramesInFlight = m_MaxFramesInFlight,
+                    .MaxMsaaSampleCount = config.XrSessionConfig->MaxMsaaSampleCount,
+                }
+            );
+        } else {
+            axrLogErrorLocation("Xr session config is null.");
+        }
     }
 
     addRequiredInstanceExtensions();

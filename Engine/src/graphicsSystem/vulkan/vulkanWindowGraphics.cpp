@@ -20,12 +20,12 @@ AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
     m_LoadedScenes(config.LoadedScenes),
     m_MaxFramesInFlight(config.MaxFramesInFlight),
     m_PreferredPresentationMode(config.PresentationMode),
-    m_ClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)),
     m_MaxMsaaSampleCount(config.MaxMsaaSampleCount),
     m_Instance(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
     m_GraphicsCommandPool(VK_NULL_HANDLE),
+    m_ClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)),
     m_SwapchainImageLayout(vk::ImageLayout::ePresentSrcKHR),
     m_Surface(VK_NULL_HANDLE),
     m_SwapchainColorFormat(vk::Format::eUndefined),
@@ -420,6 +420,7 @@ void AxrVulkanWindowGraphics::resetSetupWindowGraphics() {
     destroyCommandBuffers();
     destroySyncObjects();
     destroyRenderPass();
+    resetMsaaSampleCount();
     resetSwapchainFormats();
     destroySurface();
 }

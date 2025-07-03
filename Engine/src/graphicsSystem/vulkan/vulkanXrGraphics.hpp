@@ -26,6 +26,7 @@ public:
         vk::DispatchLoaderDynamic& Dispatch;
         AxrVulkanLoadedScenesCollection& LoadedScenes;
         uint32_t MaxFramesInFlight;
+        AxrMsaaSampleCountEnum MaxMsaaSampleCount;
     };
 
     /// AxrVulkanXrGraphics Setup Config
@@ -60,6 +61,7 @@ public:
         SwapchainData ColorSwapchain;
         // TODO: Does this need to be an XrSwapchain like color? or can we just create the depth images like the window does
         SwapchainData DepthSwapchain;
+        std::vector<AxrVulkanImage> SwapchainMsaaImages;
         std::vector<vk::Framebuffer> SwapchainFramebuffers;
     };
 
@@ -230,6 +232,7 @@ private:
     vk::DispatchLoaderDynamic& m_Dispatch;
     AxrVulkanLoadedScenesCollection& m_LoadedScenes;
     uint32_t m_MaxFramesInFlight;
+    AxrMsaaSampleCountEnum m_MaxMsaaSampleCount;
 
     // ---- Setup Config ----
     vk::Instance m_Instance;
@@ -251,6 +254,7 @@ private:
     vk::RenderPass m_RenderPass;
     std::vector<View> m_Views;
     uint32_t m_CurrentFrame;
+    vk::SampleCountFlagBits m_MsaaSampleCount;
 
     RenderData m_FrameRenderData;
 
@@ -398,6 +402,20 @@ private:
     /// @param farClip Far clipping plane
     /// @returns The projection matrix
     [[nodiscard]] glm::mat4 createProjectionMatrix(XrFovf fov, float nearClip, float farClip) const;
+
+    // ---- Msaa ----
+
+    /// Set the msaa sample count
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setMsaaSampleCount();
+    /// Reset the msaa sample count
+    void resetMsaaSampleCount();
+
+    /// Create the msaa images
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createMsaaImages(View& view) const;
+    /// Destroy the msaa images
+    void destroyMsaaImages(View& view) const;
 
     // ---- Callbacks ----
 

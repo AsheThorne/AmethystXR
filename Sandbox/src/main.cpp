@@ -35,11 +35,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     );
 #endif
 
-    const axr::GraphicsWindowConfig windowGraphicsConfig(axr::MsaaSampleCountEnum::SampleCount1);
+    const axr::GraphicsWindowConfig windowGraphicsConfig(axr::MsaaSampleCountEnum::SampleCount64);
+    const axr::GraphicsXrSessionConfig xrSessionGraphicsConfig(axr::MsaaSampleCountEnum::SampleCount1);
 
     const axr::GraphicsSystemConfig graphicsSystemConfig(
         &vulkanApiConfig,
         &windowGraphicsConfig,
+        &xrSessionGraphicsConfig,
         axr::SamplerAnisotropyQualityEnum::High
     );
 

@@ -15,6 +15,7 @@ AxrVulkanXrGraphics::AxrVulkanXrGraphics(const Config& config):
     m_Dispatch(config.Dispatch),
     m_LoadedScenes(config.LoadedScenes),
     m_MaxFramesInFlight(config.MaxFramesInFlight),
+    m_MaxMsaaSampleCount(config.MaxMsaaSampleCount),
     m_Instance(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
@@ -26,6 +27,7 @@ AxrVulkanXrGraphics::AxrVulkanXrGraphics(const Config& config):
     m_SwapchainImageLayout(vk::ImageLayout::eColorAttachmentOptimal),
     m_RenderPass(VK_NULL_HANDLE),
     m_CurrentFrame(0),
+    m_MsaaSampleCount(vk::SampleCountFlagBits::e1),
     m_FrameRenderData() {
 }
 
@@ -286,14 +288,6 @@ std::vector<vk::PipelineStageFlags> AxrVulkanXrGraphics::getRenderingWaitStages(
 
 std::vector<vk::Semaphore> AxrVulkanXrGraphics::getRenderingSignalSemaphores(const uint32_t viewIndex) const {
     return {};
-
-    // TODO: This is only used with the offscreen buffer stuff. Which we aren't doing yet...
-    // if (viewIndex > m_Views.size() - 1) {
-    //     axrLogErrorLocation("View index out of bounds.");
-    //     return {};
-    // }
-    //
-    // return {m_Views[viewIndex].RenderingFinishedSemaphores[m_CurrentFrame]};
 }
 
 vk::Fence AxrVulkanXrGraphics::getRenderingFence(const uint32_t viewIndex) const {
@@ -403,6 +397,12 @@ AxrResult AxrVulkanXrGraphics::setupXrSessionGraphics() {
         return axrResult;
     }
 
+    axrResult = setMsaaSampleCount();
+    if (AXR_FAILED(axrResult)) {
+        resetSetupXrSessionGraphics();
+        return axrResult;
+    }
+
     axrResult = createRenderPass();
     if (AXR_FAILED(axrResult)) {
         resetSetupXrSessionGraphics();
@@ -415,10 +415,9 @@ AxrResult AxrVulkanXrGraphics::setupXrSessionGraphics() {
         return axrResult;
     }
 
-    // TODO: multisampling
     axrResult = m_LoadedScenes.setupXrSessionData(
         m_RenderPass,
-        vk::SampleCountFlagBits::e1,
+        m_MsaaSampleCount,
         static_cast<uint32_t>(m_Views.size())
     );
     if (AXR_FAILED(axrResult)) {
@@ -436,6 +435,7 @@ void AxrVulkanXrGraphics::resetSetupXrSessionGraphics() {
     m_LoadedScenes.resetSetupXrSessionData();
     resetSetupAllViews();
     destroyRenderPass();
+    resetMsaaSampleCount();
     resetSwapchainFormats();
 }
 
@@ -604,6 +604,12 @@ AxrResult AxrVulkanXrGraphics::setupSwapchain(const XrViewConfigurationView& vie
         return axrResult;
     }
 
+    axrResult = createMsaaImages(view);
+    if (AXR_FAILED(axrResult)) {
+        resetSetupSwapchain(view);
+        return axrResult;
+    }
+
     axrResult = createFramebuffers(view);
     if (AXR_FAILED(axrResult)) {
         resetSetupSwapchain(view);
@@ -615,6 +621,7 @@ AxrResult AxrVulkanXrGraphics::setupSwapchain(const XrViewConfigurationView& vie
 
 void AxrVulkanXrGraphics::resetSetupSwapchain(View& view) const {
     destroyFramebuffers(view);
+    destroyMsaaImages(view);
     destroySwapchains(view);
     resetSwapchainExtent(view);
 }
@@ -658,7 +665,6 @@ AxrResult AxrVulkanXrGraphics::createSwapchains(View& view) const {
     axrResult = m_XrSystem.createSwapchain(
         XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT,
         static_cast<int64_t>(m_SwapchainColorFormat),
-        // TODO: Multisample
         static_cast<uint32_t>(vk::SampleCountFlagBits::e1),
         view.SwapchainExtent.width,
         view.SwapchainExtent.height,
@@ -686,8 +692,7 @@ AxrResult AxrVulkanXrGraphics::createSwapchains(View& view) const {
     axrResult = m_XrSystem.createSwapchain(
         XR_SWAPCHAIN_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
         static_cast<int64_t>(m_SwapchainDepthFormat),
-        // TODO: Multisample
-        1,
+        static_cast<uint32_t>(m_MsaaSampleCount),
         view.SwapchainExtent.width,
         view.SwapchainExtent.height,
         view.DepthSwapchain.Swapchain
@@ -825,8 +830,7 @@ AxrResult AxrVulkanXrGraphics::createRenderPass() {
         m_SwapchainColorFormat,
         m_SwapchainDepthFormat,
         m_SwapchainImageLayout,
-        // TODO: multisample
-        vk::SampleCountFlagBits::e1,
+        m_MsaaSampleCount,
         m_RenderPass,
         m_Dispatch
     );
@@ -993,16 +997,19 @@ AxrResult AxrVulkanXrGraphics::createFramebuffers(View& view) const {
     // Process
     // ----------------------------------------- //
 
+    std::vector<vk::ImageView> msaaImageViews(view.SwapchainMsaaImages.size());
+    for (int i = 0; i < msaaImageViews.size(); ++i) {
+        msaaImageViews[i] = view.SwapchainMsaaImages[i].getImageView();
+    }
+
     const AxrResult axrResult = axrCreateFramebuffers(
         m_Device,
         m_RenderPass,
         view.SwapchainExtent,
-        // TODO: multisample
-        vk::SampleCountFlagBits::e1,
+        m_MsaaSampleCount,
         view.ColorSwapchain.ImageViews,
         view.DepthSwapchain.ImageViews,
-        // TODO: multisample
-        {},
+        msaaImageViews,
         view.SwapchainFramebuffers,
         m_Dispatch
     );
@@ -1039,6 +1046,83 @@ glm::mat4 AxrVulkanXrGraphics::createProjectionMatrix(
     projectionMatrix[2] = {(r + l) / w, (u + d) / h, -(farClip + nearClip) / (farClip - nearClip), -1.0f};
     projectionMatrix[3] = {0.0f, 0.0f, -(farClip * (nearClip + nearClip)) / (farClip - nearClip), 0.0f};
     return projectionMatrix;
+}
+
+AxrResult AxrVulkanXrGraphics::setMsaaSampleCount() {
+    m_MsaaSampleCount = axrGetVulkanSampleCountToUse(m_PhysicalDevice, m_MaxMsaaSampleCount, m_Dispatch);
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanXrGraphics::resetMsaaSampleCount() {
+    m_MsaaSampleCount = vk::SampleCountFlagBits::e1;
+}
+
+AxrResult AxrVulkanXrGraphics::createMsaaImages(View& view) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!axrIsVulkanMsaaEnabled(m_MsaaSampleCount)) {
+        return AXR_SUCCESS;
+    }
+
+    if (!view.SwapchainMsaaImages.empty()) {
+        axrLogErrorLocation("Msaa images already exist.");
+        return AXR_ERROR;
+    }
+
+    if (view.ColorSwapchain.Images.empty()) {
+        axrLogErrorLocation("Swapchain color image images don't exist.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+    AxrResult axrResult = AXR_SUCCESS;
+
+    view.SwapchainMsaaImages.resize(view.ColorSwapchain.Images.size());
+
+    for (AxrVulkanImage& msaaImage : view.SwapchainMsaaImages) {
+        msaaImage = AxrVulkanImage(
+            {
+                .PhysicalDevice = m_PhysicalDevice,
+                .Device = m_Device,
+                .GraphicsCommandPool = m_GraphicsCommandPool,
+                .GraphicsQueue = m_QueueFamilies.GraphicsQueue,
+                .DispatchHandle = &m_Dispatch
+            }
+        );
+
+        axrResult = msaaImage.createImage(
+            view.SwapchainExtent,
+            m_MsaaSampleCount,
+            m_SwapchainColorFormat,
+            vk::ImageTiling::eOptimal,
+            vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment,
+            vk::MemoryPropertyFlagBits::eDeviceLocal,
+            vk::ImageAspectFlagBits::eColor
+        );
+
+        if (AXR_FAILED(axrResult)) {
+            break;
+        }
+    }
+
+    if (AXR_FAILED(axrResult)) {
+        destroyMsaaImages(view);
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanXrGraphics::destroyMsaaImages(View& view) const {
+    for (AxrVulkanImage& msaaImage : view.SwapchainMsaaImages) {
+        msaaImage.destroyImage();
+    }
+    view.SwapchainMsaaImages.clear();
 }
 
 AxrResult AxrVulkanXrGraphics::onXrSessionStateChangedCallback(const bool isSessionRunning) {
