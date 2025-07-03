@@ -163,6 +163,20 @@ bool AxrVulkanWindowGraphics::isReady() const {
     return m_IsReady;
 }
 
+AxrResult AxrVulkanWindowGraphics::beginRendering() {
+    // Nothing needed here
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrVulkanWindowGraphics::endRendering() {
+    // Nothing needed here
+    return AXR_SUCCESS;
+}
+
+uint32_t AxrVulkanWindowGraphics::getViewCount() const {
+    return 1;
+}
+
 AxrPlatformType AxrVulkanWindowGraphics::getPlatformType() const {
     return AXR_PLATFORM_TYPE_WINDOW;
 }
@@ -171,11 +185,11 @@ vk::RenderPass AxrVulkanWindowGraphics::getRenderPass() const {
     return m_RenderPass;
 }
 
-vk::Framebuffer AxrVulkanWindowGraphics::getFramebuffer() const {
+vk::Framebuffer AxrVulkanWindowGraphics::getFramebuffer(const uint32_t viewIndex) const {
     return m_SwapchainFramebuffers[m_CurrentImageIndex];
 }
 
-vk::Extent2D AxrVulkanWindowGraphics::getSwapchainExtent() const {
+vk::Extent2D AxrVulkanWindowGraphics::getSwapchainExtent(const uint32_t viewIndex) const {
     return m_SwapchainExtent;
 }
 
@@ -183,23 +197,23 @@ vk::ClearColorValue AxrVulkanWindowGraphics::getClearColorValue() const {
     return vk::ClearColorValue(m_ClearColor.x, m_ClearColor.y, m_ClearColor.z, m_ClearColor.w);
 }
 
-vk::CommandBuffer AxrVulkanWindowGraphics::getRenderingCommandBuffer() const {
+vk::CommandBuffer AxrVulkanWindowGraphics::getRenderingCommandBuffer(const uint32_t viewIndex) const {
     return m_RenderingCommandBuffers[m_CurrentFrame];
 }
 
-std::vector<vk::Semaphore> AxrVulkanWindowGraphics::getRenderingWaitSemaphores() const {
+std::vector<vk::Semaphore> AxrVulkanWindowGraphics::getRenderingWaitSemaphores(const uint32_t viewIndex) const {
     return {m_ImageAvailableSemaphores[m_CurrentFrame]};
 }
 
-std::vector<vk::PipelineStageFlags> AxrVulkanWindowGraphics::getRenderingWaitStages() const {
+std::vector<vk::PipelineStageFlags> AxrVulkanWindowGraphics::getRenderingWaitStages(const uint32_t viewIndex) const {
     return {vk::PipelineStageFlagBits::eColorAttachmentOutput};
 }
 
-std::vector<vk::Semaphore> AxrVulkanWindowGraphics::getRenderingSignalSemaphores() const {
+std::vector<vk::Semaphore> AxrVulkanWindowGraphics::getRenderingSignalSemaphores(const uint32_t viewIndex) const {
     return {m_RenderingFinishedSemaphores[m_CurrentFrame]};
 }
 
-vk::Fence AxrVulkanWindowGraphics::getRenderingFence() const {
+vk::Fence AxrVulkanWindowGraphics::getRenderingFence(const uint32_t viewIndex) const {
     return {m_RenderingFences[m_CurrentFrame]};
 }
 
@@ -207,7 +221,7 @@ uint32_t AxrVulkanWindowGraphics::getCurrentRenderingFrame() const {
     return m_CurrentFrame;
 }
 
-AxrResult AxrVulkanWindowGraphics::acquireNextSwapchainImage() {
+AxrResult AxrVulkanWindowGraphics::acquireNextSwapchainImage(const uint32_t viewIndex) {
     AxrResult axrResult = AXR_SUCCESS;
 
     if (m_IsSwapchainOutOfDate) {
@@ -251,8 +265,8 @@ AxrResult AxrVulkanWindowGraphics::acquireNextSwapchainImage() {
     return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanWindowGraphics::presentFrame() {
-    const std::vector<vk::Semaphore> waitSemaphores = getRenderingSignalSemaphores();
+AxrResult AxrVulkanWindowGraphics::presentFrame(const uint32_t viewIndex) {
+    const std::vector<vk::Semaphore> waitSemaphores = getRenderingSignalSemaphores(viewIndex);
 
     const vk::PresentInfoKHR presentInfo(
         static_cast<uint32_t>(waitSemaphores.size()),
@@ -290,7 +304,11 @@ AxrResult AxrVulkanWindowGraphics::presentFrame() {
     return AXR_SUCCESS;
 }
 
-void AxrVulkanWindowGraphics::getRenderingMatrices(glm::mat4& viewMatrix, glm::mat4& projectionMatrix) const {
+void AxrVulkanWindowGraphics::getRenderingMatrices(
+    const uint32_t viewIndex,
+    glm::mat4& viewMatrix,
+    glm::mat4& projectionMatrix
+) const {
     const AxrScene_T activeScene = m_LoadedScenes.getActiveScene();
     if (activeScene == nullptr) {
         axrLogErrorLocation("No active scene.");

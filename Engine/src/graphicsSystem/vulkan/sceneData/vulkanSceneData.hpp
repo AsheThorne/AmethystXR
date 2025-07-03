@@ -19,6 +19,9 @@
 #include <string>
 #include <unordered_map>
 
+// TODO: Move this elsewhere
+#define AXR_MAX_XR_VIEWS 2
+
 /// Vulkan scene data
 class AxrVulkanSceneData {
 public:
@@ -63,8 +66,10 @@ public:
     struct MaterialForRendering {
         const vk::PipelineLayout& PipelineLayout;
         const vk::Pipeline& WindowPipeline;
+        const vk::Pipeline& XrSessionPipeline;
         /// One for each frame in flight
         const std::vector<vk::DescriptorSet>& WindowDescriptorSets;
+        const std::vector<vk::DescriptorSet>& XrSessionDescriptorSets;
         PushConstantForRendering PushConstant;
         std::vector<MeshForRendering> Meshes;
     };
@@ -121,6 +126,19 @@ public:
     /// Unload the window specific scene data
     void unloadWindowData();
 
+    /// Load the xr session specific scene data
+    /// @param renderPass Render pass to use
+    /// @param msaaSampleCount Msaa sample count
+    /// @param viewCount The number of views for the xr device
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult loadXrSessionData(
+        vk::RenderPass renderPass,
+        vk::SampleCountFlagBits msaaSampleCount,
+        uint32_t viewCount
+    );
+    /// Unload the xr session specific scene data
+    void unloadXrSessionData();
+
     /// Get the materials, organized specifically for rendering
     /// @returns The collection of materials for rendering
     [[nodiscard]] const std::unordered_map<std::string, MaterialForRendering>& getMaterialsForRendering() const;
@@ -129,6 +147,7 @@ public:
     /// @param platformType Platform type
     /// @param bufferName Buffer name
     /// @param frameIndex Frame index to use
+    /// @param viewIndex View index
     /// @param offset Data offset
     /// @param dataSize Data size
     /// @param data Data
@@ -137,6 +156,7 @@ public:
         AxrPlatformType platformType,
         const std::string& bufferName,
         uint32_t frameIndex,
+        uint32_t viewIndex,
         vk::DeviceSize offset,
         vk::DeviceSize dataSize,
         const void* data
@@ -171,10 +191,22 @@ private:
 
     // ---- Window data ----
     bool m_IsWindowDataLoaded;
+    // TODO: Do we need to double up on this data? it was saved in the loadedScenesCollection too
     vk::RenderPass m_WindowRenderPass;
     vk::SampleCountFlagBits m_WindowMsaaSampleCount;
     /// Window specific engine defined uniform buffers
     std::unordered_map<std::string, AxrVulkanUniformBufferData> m_WindowUniformBufferData;
+
+    // ---- Xr session data ----
+    bool m_IsXrSessionDataLoaded;
+    // TODO: Do we need to double up on this data? it was saved in the loadedScenesCollection too
+    vk::RenderPass m_XrSessionRenderPass;
+    vk::SampleCountFlagBits m_XrSessionMsaaSampleCount;
+    uint32_t m_XrSessionViewCount;
+    /// Xr session specific engine defined uniform buffers.
+    /// There's one uniform buffer per view.
+    std::unordered_map<std::string, std::array<AxrVulkanUniformBufferData, AXR_MAX_XR_VIEWS>>
+    m_XrSessionUniformBufferData;
 
     std::unordered_map<std::string, AxrVulkanUniformBufferData> m_UniformBufferData;
     std::unordered_map<std::string, AxrVulkanModelData> m_ModelData;
@@ -221,6 +253,11 @@ private:
     /// Destroy all uniform buffer data
     /// @param uniformBufferData Uniform buffer data to destroy
     void destroyUniformBufferData(std::unordered_map<std::string, AxrVulkanUniformBufferData>& uniformBufferData);
+    /// Destroy all uniform buffer data
+    /// @param uniformBufferData Uniform buffer data to destroy
+    void destroyUniformBufferData(
+        std::unordered_map<std::string, std::array<AxrVulkanUniformBufferData, AXR_MAX_XR_VIEWS>>& uniformBufferData
+    );
 
     /// Create all uniform buffer data
     /// @results AXR_SUCCESS if the function succeeded
@@ -234,21 +271,23 @@ private:
     /// Initialize a single uniform buffer's data. Define either a uniformBufferHandle or a uniform buffer engineAsset
     /// @param uniformBufferHandle Uniform buffer handle to use
     /// @param engineAsset Uniform buffer engine asset to use
-    /// @param uniformBufferDataCollection Uniform buffer data collection to modify
+    /// @param uniformBufferData Output Uniform buffer data
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult initializeUniformBufferData(
         const AxrUniformBuffer* uniformBufferHandle,
         AxrEngineAssetEnum engineAsset,
-        std::unordered_map<std::string, AxrVulkanUniformBufferData>& uniformBufferDataCollection
+        AxrVulkanUniformBufferData& uniformBufferData
     ) const;
 
     /// Find the named uniform buffer data, including the global data in the search
     /// @param name The name of the uniform buffer
     /// @param platformType The platform type to check for platform specific uniform buffers
+    /// @param viewIndex The view index
     /// @returns A handle to the found uniform buffer. Or nullptr if it wasn't found
     [[nodiscard]] const AxrVulkanUniformBufferData* findUniformBufferData_shared(
         const std::string& name,
-        AxrPlatformType platformType
+        AxrPlatformType platformType,
+        uint32_t viewIndex
     ) const;
 
     /// Create all window uniform buffer data
@@ -265,6 +304,27 @@ private:
     /// @param name The name of the window uniform buffer
     /// @returns A handle to the found window uniform buffer. Or nullptr if it wasn't found
     [[nodiscard]] const AxrVulkanUniformBufferData* findWindowUniformBufferData_shared(const std::string& name) const;
+
+    /// Create all xr session uniform buffer data
+    /// @param viewCount The number of views for the xr device
+    /// @results AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createAllXrSessionUniformBufferData(uint32_t viewCount);
+    /// Destroy all xr session uniform buffer data
+    void destroyAllXrSessionUniformBufferData();
+
+    /// Initialize all the xr session uniform buffer data
+    /// @param viewCount The number of views for the xr device
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult initializeAllXrSessionUniformBufferData(uint32_t viewCount);
+
+    /// Find the named xr session uniform buffer data, including the global data in the search
+    /// @param name The name of the xr session uniform buffer
+    /// @param viewIndex The xr view index
+    /// @returns A handle to the found xr session uniform buffer. Or nullptr if it wasn't found
+    [[nodiscard]] const AxrVulkanUniformBufferData* findXrSessionUniformBufferData_shared(
+        const std::string& name,
+        uint32_t viewIndex
+    ) const;
 
     /// 'On uniform buffer created' callback for the asset collection
     /// @param uniformBuffer Newly created uniform buffer 
@@ -400,6 +460,19 @@ private:
     /// Destroy all window specific material data
     void destroyAllWindowMaterialData();
 
+    /// Create all xr session specific material data
+    /// @param renderPass Render pass to use
+    /// @param msaaSampleCount Msaa sample count
+    /// @param viewCount The number of views for the xr device
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createAllXrSessionMaterialData(
+        vk::RenderPass renderPass,
+        vk::SampleCountFlagBits msaaSampleCount,
+        uint32_t viewCount
+    );
+    /// Destroy all xr session specific material data
+    void destroyAllXrSessionMaterialData();
+
     /// Find the named material data, including the global data in the search
     /// @param name The name of the material
     /// @returns A handle to the found material. Or nullptr if it wasn't found
@@ -413,18 +486,21 @@ private:
 
     /// Write all material descriptor sets
     /// @param platformType The platform type to use
+    /// @param viewCount The number of views for the xr device
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult writeAllDescriptorSets(AxrPlatformType platformType);
+    [[nodiscard]] AxrResult writeAllDescriptorSets(AxrPlatformType platformType, uint32_t viewCount);
     /// Reset all material descriptor sets
     /// @param platformType The platform type to use
     void resetAllDescriptorSets(AxrPlatformType platformType);
 
     /// Write the descriptor sets for the given material data
     /// @param platformType The platform type to use
+    /// @param viewCount The number of views for the xr device
     /// @param materialData The material data to use
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult writeDescriptorSets(
         AxrPlatformType platformType,
+        uint32_t viewCount,
         AxrVulkanMaterialData& materialData
     ) const;
     /// Reset the descriptor sets for the given material data

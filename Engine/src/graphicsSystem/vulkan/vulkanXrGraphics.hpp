@@ -6,6 +6,7 @@
 // ----------------------------------------- //
 #include "../../xrSystem/xrSystem.hpp"
 #include "vulkanQueueFamilies.hpp"
+#include "sceneData/vulkanLoadedScenesCollection.hpp"
 
 // ----------------------------------------- //
 // Vulkan Headers
@@ -23,6 +24,7 @@ public:
     struct Config {
         AxrXrSystem& XrSystem;
         vk::DispatchLoaderDynamic& Dispatch;
+        AxrVulkanLoadedScenesCollection& LoadedScenes;
         uint32_t MaxFramesInFlight;
     };
 
@@ -43,6 +45,7 @@ public:
     struct View {
         struct SwapchainData {
             XrSwapchain Swapchain = XR_NULL_HANDLE;
+            uint32_t AcquiredImageIndex = 0;
             std::vector<vk::Image> Images;
             std::vector<vk::ImageView> ImageViews;
         };
@@ -55,8 +58,20 @@ public:
         std::vector<vk::CommandBuffer> RenderingCommandBuffers;
         vk::Extent2D SwapchainExtent;
         SwapchainData ColorSwapchain;
+        // TODO: Does this need to be an XrSwapchain like color? or can we just create the depth images like the window does
         SwapchainData DepthSwapchain;
         std::vector<vk::Framebuffer> SwapchainFramebuffers;
+    };
+
+    // Render data for each frame
+    struct RenderData {
+        XrTime PredictedDisplayTime;
+        std::vector<XrCompositionLayerProjectionView> CompositionLayerViews;
+
+        void reset() {
+            PredictedDisplayTime = 0;
+            CompositionLayerViews.clear();
+        }
     };
 
     // ----------------------------------------- //
@@ -133,6 +148,74 @@ public:
         vk::Device& vkDevice
     ) const;
 
+    /// Begin rendering
+    /// @returns AXR_SUCCESS if the function succeeded
+    /// @returns AXR_DONT_RENDER if we should skip rendering this frame.
+    [[nodiscard]] AxrResult beginRendering();
+    /// End rendering
+    /// @returns AXR_SUCCESS if the function succeeded
+    AxrResult endRendering();
+    /// Get the number of views
+    /// @returns The number of views
+    [[nodiscard]] uint32_t getViewCount() const;
+    /// Get the platform type
+    /// @returns the platform type
+    [[nodiscard]] AxrPlatformType getPlatformType() const;
+    /// Get the render pass
+    /// @returns The render pass
+    [[nodiscard]] vk::RenderPass getRenderPass() const;
+    /// Get the framebuffer for the current swapchain image
+    /// @param viewIndex View index
+    /// @returns The framebuffer for the current swapchain image
+    [[nodiscard]] vk::Framebuffer getFramebuffer(uint32_t viewIndex) const;
+    /// Get the swapchain extent
+    /// @param viewIndex View index
+    /// @returns The swapchain extent
+    [[nodiscard]] vk::Extent2D getSwapchainExtent(uint32_t viewIndex) const;
+    /// Get the clear color value
+    /// @returns The clear color value
+    [[nodiscard]] vk::ClearColorValue getClearColorValue() const;
+    /// Get the command buffer to use for rendering for the current frame
+    /// @param viewIndex View index
+    /// @returns The rendering command buffer for the current frame
+    [[nodiscard]] vk::CommandBuffer getRenderingCommandBuffer(uint32_t viewIndex) const;
+    /// Get the rendering wait semaphores to use for the current frame
+    /// @param viewIndex View index
+    /// @returns The wait semaphores for the current frame
+    [[nodiscard]] std::vector<vk::Semaphore> getRenderingWaitSemaphores(uint32_t viewIndex) const;
+    /// Get the rendering wait stages to use for the current frame
+    /// @param viewIndex View index
+    /// @returns The wait stages for the current frame
+    [[nodiscard]] std::vector<vk::PipelineStageFlags> getRenderingWaitStages(uint32_t viewIndex) const;
+    /// Get the rendering signal semaphores to use for the current frame
+    /// @param viewIndex View index
+    /// @returns The signal semaphores for the current frame
+    [[nodiscard]] std::vector<vk::Semaphore> getRenderingSignalSemaphores(uint32_t viewIndex) const;
+    /// Get the rendering fence to use for the current frame
+    /// @param viewIndex View index
+    /// @returns The rendering fence for the current frame
+    [[nodiscard]] vk::Fence getRenderingFence(uint32_t viewIndex) const;
+    /// Get the current rendering frame index
+    /// @returns The current rendering frame index
+    [[nodiscard]] uint32_t getCurrentRenderingFrame() const;
+
+    /// Acquire the next swapchain image
+    /// @param viewIndex View index
+    /// @returns AXR_SUCCESS if the function succeeded.
+    /// @returns AXR_DONT_RENDER if we should skip rendering this frame.
+    [[nodiscard]] AxrResult acquireNextSwapchainImage(uint32_t viewIndex);
+    /// Present the current frame to the xr device
+    /// @param viewIndex View index
+    /// @returns AXR_SUCCESS if the function succeeded.
+    /// @returns AXR_DONT_RENDER if we should skip rendering this frame.
+    [[nodiscard]] AxrResult presentFrame(uint32_t viewIndex);
+
+    /// Get the rendering matrices for the current frame
+    /// @param viewIndex View index
+    /// @param viewMatrix Output view matrix
+    /// @param projectionMatrix Output projection matrix
+    void getRenderingMatrices(uint32_t viewIndex, glm::mat4& viewMatrix, glm::mat4& projectionMatrix) const;
+
 private:
     // ----------------------------------------- //
     // Private Variables
@@ -141,6 +224,7 @@ private:
     // ---- Config ----
     AxrXrSystem& m_XrSystem;
     vk::DispatchLoaderDynamic& m_Dispatch;
+    AxrVulkanLoadedScenesCollection& m_LoadedScenes;
     uint32_t m_MaxFramesInFlight;
 
     // ---- Setup Config ----
@@ -161,6 +245,9 @@ private:
     vk::ImageLayout m_SwapchainImageLayout;
     vk::RenderPass m_RenderPass;
     std::vector<View> m_Views;
+    uint32_t m_CurrentFrame;
+
+    RenderData m_FrameRenderData;
 
     // ----------------------------------------- //
     // Private Functions
@@ -199,19 +286,19 @@ private:
     void resetSwapchainFormats();
 
     /// Set up swapchain related data for the given view
-    /// @param xrView Xr system view data
+    /// @param viewConfiguration Xr view configuration
     /// @param view Output view graphics data
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setupSwapchain(const AxrXrSystem::View& xrView, View& view) const;
+    [[nodiscard]] AxrResult setupSwapchain(const XrViewConfigurationView& viewConfiguration, View& view) const;
     /// Reset the setupSwapchain() function for the given view
     /// @param view View data
     void resetSetupSwapchain(View& view) const;
 
     /// Set the swapchain extent for the given view
-    /// @param xrView Xr system view data
+    /// @param viewConfiguration Xr view configuration
     /// @param view Output view graphics data
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setSwapchainExtent(const AxrXrSystem::View& xrView, View& view) const;
+    [[nodiscard]] AxrResult setSwapchainExtent(const XrViewConfigurationView& viewConfiguration, View& view) const;
     /// Reset the setSwapchainExtent() function for the given view
     /// @param view View data
     void resetSwapchainExtent(View& view) const;
@@ -263,9 +350,9 @@ private:
     void resetSetupAllViews();
 
     /// Set up the given view
-    /// @param xrView Xr system view data
+    /// @param viewConfiguration Xr view configuration
     /// @param view Output view graphics data
-    [[nodiscard]] AxrResult setupView(const AxrXrSystem::View& xrView, View& view) const;
+    [[nodiscard]] AxrResult setupView(const XrViewConfigurationView& viewConfiguration, View& view) const;
     /// Reset the given view
     /// @param view View data
     void resetSetupView(View& view) const;
@@ -297,6 +384,15 @@ private:
     [[nodiscard]] AxrResult createFramebuffers(View& view) const;
     /// Destroy the swapchain framebuffers for the given view
     void destroyFramebuffers(View& view) const;
+
+    // ---- Matrix ----
+
+    /// Create the vulkan Xr session projection matrix
+    /// @param fov Xr session fov
+    /// @param nearClip Near clipping plane
+    /// @param farClip Far clipping plane
+    /// @returns The projection matrix
+    [[nodiscard]] glm::mat4 createProjectionMatrix(XrFovf fov, float nearClip, float farClip) const;
 
     // ---- Callbacks ----
 

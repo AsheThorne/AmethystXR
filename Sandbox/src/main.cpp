@@ -81,7 +81,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     if (AXR_FAILED(globalAssetCollection.createShader(axr::EngineAssetEnum::ShaderDefaultFrag))) return -1;
     if (AXR_FAILED(globalAssetCollection.createShader(axr::EngineAssetEnum::ShaderDefaultVert))) return -1;
 
-    TestScene scene(app);
+    SponzaScene scene(app);
     if (AXR_FAILED(scene.setup())) return -1;
 
     if (AXR_FAILED(scene.loadScene())) return -1;

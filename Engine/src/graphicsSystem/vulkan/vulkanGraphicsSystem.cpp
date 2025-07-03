@@ -76,6 +76,7 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
             AxrVulkanXrGraphics::Config{
                 .XrSystem = *config.XrSystem,
                 .Dispatch = m_Dispatch,
+                .LoadedScenes = m_LoadedScenes,
                 .MaxFramesInFlight = m_MaxFramesInFlight,
             }
         );
@@ -162,6 +163,16 @@ void AxrVulkanGraphicsSystem::drawFrame() const {
         const AxrVulkanRenderCommands windowRenderCommands(*m_WindowGraphics, m_Device, m_Dispatch);
 
         axrResult = renderCurrentFrame(windowRenderCommands);
+        if (AXR_FAILED(axrResult)) {
+            axrLogErrorLocation("Failed to render current frame.");
+            return;
+        }
+    }
+
+    if (m_XrGraphics != nullptr && m_XrGraphics->isReady()) {
+        const AxrVulkanRenderCommands xrRenderCommands(*m_XrGraphics, m_Device, m_Dispatch);
+
+        axrResult = renderCurrentFrame(xrRenderCommands);
         if (AXR_FAILED(axrResult)) {
             axrLogErrorLocation("Failed to render current frame.");
             return;
@@ -1261,71 +1272,70 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    axrResult = renderCommands.updateUniformBuffers(sceneData);
-    if (AXR_FAILED(axrResult)) {
-        return axrResult;
-    }
+    axrResult = renderCommands.beginRendering();
+    if (axrResult == AXR_DONT_RENDER) return AXR_SUCCESS;
+    if (AXR_FAILED(axrResult)) return axrResult;
 
-    axrResult = renderCommands.waitForFrameFence();
-    if (AXR_FAILED(axrResult)) {
-        return axrResult;
-    }
+    for (uint32_t viewIndex = 0; viewIndex < renderCommands.getViewCount(); ++viewIndex) {
+        axrResult = renderCommands.updateUniformBuffers(viewIndex, sceneData);
+        if (AXR_FAILED(axrResult)) return axrResult;
 
-    axrResult = renderCommands.acquireNextSwapchainImage();
-    if (axrResult == AXR_DONT_RENDER) {
-        return AXR_SUCCESS;
-    }
-    if (AXR_FAILED(axrResult)) {
-        return axrResult;
-    }
+        axrResult = renderCommands.waitForFrameFence(viewIndex);
+        if (AXR_FAILED(axrResult)) return axrResult;
 
-    axrResult = renderCommands.resetCommandBuffer();
-    if (AXR_FAILED(axrResult)) {
-        return axrResult;
-    }
+        axrResult = renderCommands.acquireNextSwapchainImage(viewIndex);
+        if (axrResult == AXR_DONT_RENDER) return AXR_SUCCESS;
+        if (AXR_FAILED(axrResult)) return axrResult;
 
-    axrResult = renderCommands.beginCommandBuffer();
-    if (AXR_FAILED(axrResult)) {
-        return axrResult;
-    }
+        axrResult = renderCommands.resetCommandBuffer(viewIndex);
+        if (AXR_FAILED(axrResult)) return axrResult;
 
-    renderCommands.beginRenderPass();
-    renderCommands.setViewport();
-    renderCommands.setScissor();
+        axrResult = renderCommands.beginCommandBuffer(viewIndex);
+        if (AXR_FAILED(axrResult)) return axrResult;
 
-    // TODO: Implement frustum culling
-    for (auto& [materialName, material] : sceneData->getMaterialsForRendering()) {
-        // TODO: Don't hardcode the window pipeline here
-        renderCommands.bindPipeline(material.WindowPipeline);
-        // TODO: Don't hardcode the window descriptor sets here
-        renderCommands.bindDescriptorSets(material.PipelineLayout, material.WindowDescriptorSets);
-        renderCommands.pushConstants(material.PipelineLayout, material.PushConstant, sceneData);
+        renderCommands.beginRenderPass(viewIndex);
+        renderCommands.setViewport(viewIndex);
+        renderCommands.setScissor(viewIndex);
 
-        for (const AxrVulkanSceneData::MeshForRendering& mesh : material.Meshes) {
-            renderCommands.pushConstants(material.PipelineLayout, mesh.PushConstant, sceneData);
-            renderCommands.draw(mesh);
+        for (auto& [materialName, material] : sceneData->getMaterialsForRendering()) {
+            renderCommands.bindPipeline(
+                viewIndex,
+                AxrVulkanRenderCommandPipelines{
+                    .WindowPipeline = material.WindowPipeline,
+                    .XrSessionPipeline = material.XrSessionPipeline,
+                }
+            );
+            renderCommands.bindDescriptorSets(
+                viewIndex,
+                material.PipelineLayout,
+                AxrVulkanRenderCommandDescriptorSets{
+                    .WindowDescriptorSets = material.WindowDescriptorSets,
+                    .XrSessionDescriptorSets = material.XrSessionDescriptorSets,
+                }
+            );
+            renderCommands.pushConstants(viewIndex, material.PipelineLayout, material.PushConstant, sceneData);
+
+            for (const AxrVulkanSceneData::MeshForRendering& mesh : material.Meshes) {
+                renderCommands.pushConstants(viewIndex, material.PipelineLayout, mesh.PushConstant, sceneData);
+                renderCommands.draw(viewIndex, mesh);
+            }
         }
+
+        renderCommands.endRenderPass(viewIndex);
+
+        axrResult = renderCommands.endCommandBuffer(viewIndex);
+        if (AXR_FAILED(axrResult)) return axrResult;
+
+        axrResult = renderCommands.submitCommandBuffer(viewIndex, m_QueueFamilies.GraphicsQueue);
+        if (AXR_FAILED(axrResult)) return axrResult;
+
+        axrResult = renderCommands.presentFrame(viewIndex);
+        if (axrResult == AXR_DONT_RENDER) return AXR_SUCCESS;
+        if (AXR_FAILED(axrResult)) return axrResult;
     }
 
-    renderCommands.endRenderPass();
-
-    axrResult = renderCommands.endCommandBuffer();
-    if (AXR_FAILED(axrResult)) {
-        return axrResult;
-    }
-
-    axrResult = renderCommands.submitCommandBuffer(m_QueueFamilies.GraphicsQueue);
-    if (AXR_FAILED(axrResult)) {
-        return axrResult;
-    }
-
-    axrResult = renderCommands.presentFrame();
-    if (axrResult == AXR_DONT_RENDER) {
-        return AXR_SUCCESS;
-    }
-    if (AXR_FAILED(axrResult)) {
-        return axrResult;
-    }
+    axrResult = renderCommands.endRendering();
+    if (AXR_FAILED(axrResult)) return axrResult;
 
     return AXR_SUCCESS;
 }

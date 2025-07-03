@@ -23,6 +23,9 @@ AxrVulkanLoadedScenesCollection::AxrVulkanLoadedScenesCollection():
     m_IsSetup(false),
     m_WindowRenderPass(VK_NULL_HANDLE),
     m_WindowMsaaSampleCount(vk::SampleCountFlagBits::e1),
+    m_XrSessionRenderPass(VK_NULL_HANDLE),
+    m_XrSessionMsaaSampleCount(vk::SampleCountFlagBits::e1),
+    m_XrSessionViewCount(0),
     m_ActiveScene(std::pair(nullptr, nullptr)) {
 }
 
@@ -133,6 +136,7 @@ AxrResult AxrVulkanLoadedScenesCollection::setup(const SetupConfig& config) {
 void AxrVulkanLoadedScenesCollection::resetSetup() {
     clear();
     resetSetupWindowData();
+    resetSetupXrSessionData();
 
     m_IsSetup = false;
 
@@ -189,6 +193,18 @@ AxrResult AxrVulkanLoadedScenesCollection::loadGlobalSceneData(const AxrAssetCol
 
     if (isWindowReady()) {
         axrResult = sceneData->loadWindowData(m_WindowRenderPass, m_WindowMsaaSampleCount);
+        if (AXR_FAILED(axrResult)) {
+            unloadScene(sceneData->getSceneName());
+            return axrResult;
+        }
+    }
+
+    if (isXrSessionReady()) {
+        axrResult = sceneData->loadXrSessionData(
+            m_XrSessionRenderPass,
+            m_XrSessionMsaaSampleCount,
+            m_XrSessionViewCount
+        );
         if (AXR_FAILED(axrResult)) {
             unloadScene(sceneData->getSceneName());
             return axrResult;
@@ -253,6 +269,18 @@ AxrResult AxrVulkanLoadedScenesCollection::loadScene(const AxrScene_T scene) {
         }
     }
 
+    if (isXrSessionReady()) {
+        axrResult = sceneData->loadXrSessionData(
+            m_XrSessionRenderPass,
+            m_XrSessionMsaaSampleCount,
+            m_XrSessionViewCount
+        );
+        if (AXR_FAILED(axrResult)) {
+            unloadScene(sceneData->getSceneName());
+            return axrResult;
+        }
+    }
+
     return AXR_SUCCESS;
 }
 
@@ -269,6 +297,7 @@ void AxrVulkanLoadedScenesCollection::unloadScene(const std::string& sceneName) 
     }
 
     foundScene->second->unloadWindowData();
+    foundScene->second->unloadXrSessionData();
     foundScene->second->unloadScene();
     destroySceneData(foundScene->second);
 
@@ -278,6 +307,7 @@ void AxrVulkanLoadedScenesCollection::unloadScene(const std::string& sceneName) 
 void AxrVulkanLoadedScenesCollection::clear() {
     for (AxrVulkanSceneData* sceneData : m_LoadedScenes | std::views::values) {
         sceneData->unloadWindowData();
+        sceneData->unloadXrSessionData();
         sceneData->unloadScene();
         destroySceneData(sceneData);
     }
@@ -353,6 +383,50 @@ void AxrVulkanLoadedScenesCollection::resetSetupWindowData() {
     m_WindowMsaaSampleCount = vk::SampleCountFlagBits::e1;
 
     unloadAllWindowSceneData();
+}
+
+AxrResult AxrVulkanLoadedScenesCollection::setupXrSessionData(
+    const vk::RenderPass renderPass,
+    const vk::SampleCountFlagBits msaaSampleCount,
+    const uint32_t viewCount
+) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (isXrSessionReady()) {
+        axrLogErrorLocation("Xr session data is already set up.");
+        return AXR_ERROR;
+    }
+
+    if (m_XrSessionRenderPass != VK_NULL_HANDLE) {
+        axrLogErrorLocation("Xr session render pass already exists.");
+        return AXR_ERROR;
+    }
+
+    if (renderPass == VK_NULL_HANDLE) {
+        axrLogErrorLocation("renderPass is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    m_XrSessionRenderPass = renderPass;
+    m_XrSessionMsaaSampleCount = msaaSampleCount;
+    m_XrSessionViewCount = viewCount;
+    // If anything new gets added here, make sure it also gets added to the isXrSessionReady() function
+
+    return loadAllXrSessionSceneData();
+}
+
+void AxrVulkanLoadedScenesCollection::resetSetupXrSessionData() {
+    m_XrSessionRenderPass = VK_NULL_HANDLE;
+    m_XrSessionMsaaSampleCount = vk::SampleCountFlagBits::e1;
+    m_XrSessionViewCount = 0;
+
+    unloadAllXrSessionSceneData();
 }
 
 // ---- Private Functions ----
@@ -440,6 +514,47 @@ AxrResult AxrVulkanLoadedScenesCollection::loadAllWindowSceneData() const {
 void AxrVulkanLoadedScenesCollection::unloadAllWindowSceneData() const {
     for (AxrVulkanSceneData* scene : m_LoadedScenes | std::views::values) {
         scene->unloadWindowData();
+    }
+}
+
+bool AxrVulkanLoadedScenesCollection::isXrSessionReady() const {
+    return m_XrSessionRenderPass != VK_NULL_HANDLE;
+}
+
+AxrResult AxrVulkanLoadedScenesCollection::loadAllXrSessionSceneData() const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!isXrSessionReady()) {
+        axrLogErrorLocation("Xr session data is not ready.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    for (AxrVulkanSceneData* scene : m_LoadedScenes | std::views::values) {
+        axrResult = scene->loadXrSessionData(m_XrSessionRenderPass, m_XrSessionMsaaSampleCount, m_XrSessionViewCount);
+        if (AXR_FAILED(axrResult)) {
+            break;
+        }
+    }
+
+    if (AXR_FAILED(axrResult)) {
+        axrLogErrorLocation("Failed to load all xr session scene data.");
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanLoadedScenesCollection::unloadAllXrSessionSceneData() const {
+    for (AxrVulkanSceneData* scene : m_LoadedScenes | std::views::values) {
+        scene->unloadXrSessionData();
     }
 }
 

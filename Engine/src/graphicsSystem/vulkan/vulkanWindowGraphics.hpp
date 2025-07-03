@@ -102,6 +102,15 @@ public:
     /// @returns True if the window graphics are ready for rendering
     [[nodiscard]] bool isReady() const;
 
+    /// Begin rendering
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult beginRendering();
+    /// End rendering
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult endRendering();
+    /// Get the number of views
+    /// @returns The number of views
+    [[nodiscard]] uint32_t getViewCount() const;
     /// Get the platform type
     /// @returns the platform type
     [[nodiscard]] AxrPlatformType getPlatformType() const;
@@ -109,44 +118,56 @@ public:
     /// @returns The render pass
     [[nodiscard]] vk::RenderPass getRenderPass() const;
     /// Get the framebuffer for the current swapchain image
+    /// @param viewIndex View index
     /// @returns The framebuffer for the current swapchain image
-    [[nodiscard]] vk::Framebuffer getFramebuffer() const;
+    [[nodiscard]] vk::Framebuffer getFramebuffer(uint32_t viewIndex) const;
     /// Get the swapchain extent
+    /// @param viewIndex View index
     /// @returns The swapchain extent
-    [[nodiscard]] vk::Extent2D getSwapchainExtent() const;
+    [[nodiscard]] vk::Extent2D getSwapchainExtent(uint32_t viewIndex) const;
     /// Get the clear color value
     /// @returns The clear color value
     [[nodiscard]] vk::ClearColorValue getClearColorValue() const;
     /// Get the command buffer to use for rendering for the current frame
+    /// @param viewIndex View index
     /// @returns The rendering command buffer for the current frame
-    [[nodiscard]] vk::CommandBuffer getRenderingCommandBuffer() const;
+    [[nodiscard]] vk::CommandBuffer getRenderingCommandBuffer(uint32_t viewIndex) const;
     /// Get the rendering wait semaphores to use for the current frame
+    /// @param viewIndex View index
     /// @returns The wait semaphores for the current frame
-    [[nodiscard]] std::vector<vk::Semaphore> getRenderingWaitSemaphores() const;
+    [[nodiscard]] std::vector<vk::Semaphore> getRenderingWaitSemaphores(uint32_t viewIndex) const;
     /// Get the rendering wait stages to use for the current frame
+    /// @param viewIndex View index
     /// @returns The wait stages for the current frame
-    [[nodiscard]] std::vector<vk::PipelineStageFlags> getRenderingWaitStages() const;
+    [[nodiscard]] std::vector<vk::PipelineStageFlags> getRenderingWaitStages(uint32_t viewIndex) const;
     /// Get the rendering signal semaphores to use for the current frame
+    /// @param viewIndex View index
     /// @returns The signal semaphores for the current frame
-    [[nodiscard]] std::vector<vk::Semaphore> getRenderingSignalSemaphores() const;
+    [[nodiscard]] std::vector<vk::Semaphore> getRenderingSignalSemaphores(uint32_t viewIndex) const;
     /// Get the rendering fence to use for the current frame
+    /// @param viewIndex View index
     /// @returns The rendering fence for the current frame
-    [[nodiscard]] vk::Fence getRenderingFence() const;
+    [[nodiscard]] vk::Fence getRenderingFence(uint32_t viewIndex) const;
     /// Get the current rendering frame index
-    /// @returns The curent rendering frame index
+    /// @returns The current rendering frame index
     [[nodiscard]] uint32_t getCurrentRenderingFrame() const;
 
     /// Acquire the next swapchain image
-    /// @returns AXR_SUCCESS if the function succeeded. AXR_DONT_RENDER if the window is minimized.
-    [[nodiscard]] AxrResult acquireNextSwapchainImage();
+    /// @param viewIndex View index
+    /// @returns AXR_SUCCESS if the function succeeded.
+    /// @returns AXR_DONT_RENDER if we should skip rendering this frame.
+    [[nodiscard]] AxrResult acquireNextSwapchainImage(uint32_t viewIndex);
     /// Present the current frame to the window
-    /// @returns AXR_SUCCESS if the function succeeded. AXR_DONT_RENDER if the window is minimized.
-    [[nodiscard]] AxrResult presentFrame();
+    /// @param viewIndex View index
+    /// @returns AXR_SUCCESS if the function succeeded.
+    /// @returns AXR_DONT_RENDER if we should skip rendering this frame.
+    [[nodiscard]] AxrResult presentFrame(uint32_t viewIndex);
 
     /// Get the rendering matrices for the current frame
+    /// @param viewIndex View index
     /// @param viewMatrix Output view matrix
     /// @param projectionMatrix Output projection matrix
-    void getRenderingMatrices(glm::mat4& viewMatrix, glm::mat4& projectionMatrix) const;
+    void getRenderingMatrices(uint32_t viewIndex, glm::mat4& viewMatrix, glm::mat4& projectionMatrix) const;
 
 private:
     // ----------------------------------------- //
@@ -234,7 +255,8 @@ private:
     void resetSetupSwapchain();
 
     /// Recreate the swapchain and it's related data
-    /// @returns AXR_SUCCESS if the function succeeded. AXR_DONT_RENDER if the window is minimized.
+    /// @returns AXR_SUCCESS if the function succeeded.
+    /// @returns AXR_DONT_RENDER if we should skip rendering this frame.
     [[nodiscard]] AxrResult recreateSwapchain();
 
     /// Set the swapchain color and depth format options

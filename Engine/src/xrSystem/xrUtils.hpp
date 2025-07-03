@@ -42,3 +42,10 @@ const char* axrGetXrApiLayerName(AxrXrApiLayerTypeEnum apiLayerType);
 /// @param extensionType Xr extension type
 /// @returns The extension name
 const char* axrGetXrExtensionName(AxrXrExtensionTypeEnum extensionType);
+
+// ---- Space ----
+
+/// Convert an AxrXrReferenceSpaceEnum to an XrReferenceSpaceType
+/// @param referenceSpace The AxrXrReferenceSpaceEnum
+/// @returns The AxrXrReferenceSpaceEnum as an XrReferenceSpaceType
+XrReferenceSpaceType axrToReferenceSpace(AxrXrReferenceSpaceEnum referenceSpace);

@@ -53,7 +53,7 @@ AxrXrSystem::AxrXrSystem(const Config& config):
     m_ApplicationName(config.ApplicationName),
     m_ApplicationVersion(0),
     m_GraphicsApi(config.GraphicsApi),
-    m_StageReferenceSpace(config.StageReferenceSpace),
+    m_StageReferenceSpaceType(config.StageReferenceSpace),
     m_Instance(XR_NULL_HANDLE),
     m_DebugUtilsMessenger(XR_NULL_HANDLE),
     m_SystemId(XR_NULL_SYSTEM_ID),
@@ -74,7 +74,8 @@ AxrXrSystem::AxrXrSystem(const Config& config):
     m_GraphicsBinding(nullptr),
     m_IsSessionRunning(false),
     m_Session(XR_NULL_HANDLE),
-    m_SessionState(XR_SESSION_STATE_UNKNOWN) {
+    m_SessionState(XR_SESSION_STATE_UNKNOWN),
+    m_StageReferenceSpace(XR_NULL_HANDLE) {
     m_ApiLayers.add(config.ApiLayerCount, config.ApiLayers);
     m_Extensions.add(config.ExtensionCount, config.Extensions);
 
@@ -102,6 +103,15 @@ AxrResult AxrXrSystem::startXrSession() {
     AxrResult axrResult = AXR_SUCCESS;
 
     axrResult = createSession();
+    if (AXR_FAILED(axrResult)) {
+        destroySessionData();
+        return axrResult;
+    }
+
+    axrResult = createReferenceSpace(
+        axrToReferenceSpace(m_StageReferenceSpaceType),
+        m_StageReferenceSpace
+    );
     if (AXR_FAILED(axrResult)) {
         destroySessionData();
         return axrResult;
@@ -253,8 +263,12 @@ AxrResult AxrXrSystem::getSupportedSwapchainFormats(std::vector<int64_t>& format
     return AXR_SUCCESS;
 }
 
-std::vector<AxrXrSystem::View> AxrXrSystem::getViews() const {
-    return m_Views;
+XrEnvironmentBlendMode AxrXrSystem::getEnvironmentBlendMode() const {
+    return m_EnvironmentBlendMode;
+}
+
+std::vector<XrViewConfigurationView> AxrXrSystem::getViewConfigurations() const {
+    return m_ViewConfigurations;
 }
 
 AxrResult AxrXrSystem::createSwapchain(
@@ -520,7 +534,7 @@ AxrResult AxrXrSystem::getVulkanSwapchainImages(const XrSwapchain swapchain, std
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //
-    
+
     uint32_t swapchainImageCount;
     XrResult xrResult = xrEnumerateSwapchainImages(
         swapchain,
@@ -555,6 +569,210 @@ AxrResult AxrXrSystem::getVulkanSwapchainImages(const XrSwapchain swapchain, std
 
 void AxrXrSystem::resetGraphicsBinding() {
     destroyGraphicsBinding();
+}
+
+AxrResult AxrXrSystem::beginFrame(XrTime& predictedDisplayTime) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    XrFrameState frameState{.type = XR_TYPE_FRAME_STATE};
+    XrResult xrResult = xrWaitFrame(m_Session, nullptr, &frameState);
+    axrLogXrResult(xrResult, "xrWaitFrame");
+    if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+    constexpr XrFrameBeginInfo frameBeginInfo{.type = XR_TYPE_FRAME_BEGIN_INFO};
+    xrResult = xrBeginFrame(m_Session, &frameBeginInfo);
+    axrLogXrResult(xrResult, "xrBeginFrame");
+    if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+    if (!isSessionActive() || !frameState.shouldRender) {
+        const AxrResult axrResult = endFrame(
+            frameState.predictedDisplayTime,
+            {}
+        );
+        if (AXR_FAILED(axrResult)) {
+            return axrResult;
+        }
+
+        return AXR_DONT_RENDER;
+    }
+
+    predictedDisplayTime = frameState.predictedDisplayTime;
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrXrSystem::endFrame(
+    const XrTime displayTime,
+    const std::vector<XrCompositionLayerProjectionView>& compositionLayerViews
+) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_StageReferenceSpace == XR_NULL_HANDLE) {
+        axrLogErrorLocation("View reference space is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    std::vector<const XrCompositionLayerBaseHeader*> compositionLayers;
+    XrCompositionLayerProjection projectionLayer;
+
+    if (!compositionLayerViews.empty()) {
+        projectionLayer = XrCompositionLayerProjection{
+            .type = XR_TYPE_COMPOSITION_LAYER_PROJECTION,
+            .next = nullptr,
+            .layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT,
+            .space = m_StageReferenceSpace,
+            .viewCount = static_cast<uint32_t>(compositionLayerViews.size()),
+            .views = compositionLayerViews.data(),
+        };
+
+        compositionLayers.push_back(reinterpret_cast<const XrCompositionLayerBaseHeader*>(&projectionLayer));
+    }
+
+    const XrFrameEndInfo frameEndInfo{
+        .type = XR_TYPE_FRAME_END_INFO,
+        .next = nullptr,
+        .displayTime = displayTime,
+        .environmentBlendMode = m_EnvironmentBlendMode,
+        .layerCount = static_cast<uint32_t>(compositionLayers.size()),
+        .layers = compositionLayers.data(),
+    };
+    const XrResult xrResult = xrEndFrame(m_Session, &frameEndInfo);
+    axrLogXrResult(xrResult, "xrEndFrame");
+    if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrXrSystem::locateViews(const XrTime predictedDisplayTime, std::vector<XrView>& xrViews) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_ViewConfigurationType == XR_VIEW_CONFIGURATION_TYPE_MAX_ENUM) {
+        axrLogErrorLocation("View configuration type is undefined.");
+        return AXR_ERROR;
+    }
+
+    if (m_ViewConfigurations.empty()) {
+        axrLogErrorLocation("View configurations are empty.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const XrViewLocateInfo viewLocateInfo{
+        .type = XR_TYPE_VIEW_LOCATE_INFO,
+        .next = nullptr,
+        .viewConfigurationType = m_ViewConfigurationType,
+        .displayTime = predictedDisplayTime,
+        .space = m_StageReferenceSpace,
+    };
+
+    XrViewState viewState{.type = XR_TYPE_VIEW_STATE};
+    xrViews = std::vector(m_ViewConfigurations.size(), XrView{.type = XR_TYPE_VIEW});
+    uint32_t viewCount = 0;
+    const XrResult xrResult = xrLocateViews(
+        m_Session,
+        &viewLocateInfo,
+        &viewState,
+        static_cast<uint32_t>(xrViews.size()),
+        &viewCount,
+        xrViews.data()
+    );
+    axrLogXrResult(xrResult, "xrLocateViews");
+    if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrXrSystem::acquireSwapchainImage(const XrSwapchain swapchain, uint32_t& imageIndex) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (swapchain == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Swapchain is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    constexpr XrSwapchainImageAcquireInfo acquireInfo{
+        .type = XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO,
+        .next = nullptr,
+    };
+
+    XrResult xrResult = xrAcquireSwapchainImage(swapchain, &acquireInfo, &imageIndex);
+    axrLogXrResult(xrResult, "xrAcquireSwapchainImage");
+    if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+    constexpr XrSwapchainImageWaitInfo waitInfo{
+        .type = XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO,
+        .next = nullptr,
+        .timeout = XR_INFINITE_DURATION
+    };
+
+    xrResult = xrWaitSwapchainImage(swapchain, &waitInfo);
+    axrLogXrResult(xrResult, "xrWaitSwapchainImage");
+    if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrXrSystem::releaseSwapchainImage(const XrSwapchain swapchain) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (swapchain == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Swapchain is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    constexpr XrSwapchainImageReleaseInfo releaseInfo{
+        .type = XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO,
+        .next = nullptr,
+    };
+
+    const XrResult xrResult = xrReleaseSwapchainImage(swapchain, &releaseInfo);
+    axrLogXrResult(xrResult, "xrReleaseSwapchainImage");
+    if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+    return AXR_SUCCESS;
 }
 
 // ---- Private Functions ----
@@ -612,6 +830,12 @@ AxrResult AxrXrSystem::chooseVulkanApiVersion(const uint32_t desiredApiVersion, 
     return AXR_SUCCESS;
 }
 #endif
+
+bool AxrXrSystem::isSessionActive() const {
+    return m_SessionState == XR_SESSION_STATE_SYNCHRONIZED ||
+        m_SessionState == XR_SESSION_STATE_VISIBLE ||
+        m_SessionState == XR_SESSION_STATE_FOCUSED;
+}
 
 AxrResult AxrXrSystem::createInstance() {
     // ----------------------------------------- //
@@ -1068,7 +1292,7 @@ AxrResult AxrXrSystem::setViewConfiguration() {
     // Validation
     // ----------------------------------------- //
 
-    if (!m_Views.empty()) {
+    if (!m_ViewConfigurations.empty()) {
         axrLogErrorLocation("Views already exists.");
         return AXR_ERROR;
     }
@@ -1127,16 +1351,13 @@ AxrResult AxrXrSystem::setViewConfiguration() {
         return AXR_ERROR;
     }
 
-    m_Views = std::vector<View>(viewConfigurationViews.size());
-    for (size_t i = 0; i < viewConfigurationViews.size(); ++i) {
-        m_Views[i].ViewConfigurationView = viewConfigurationViews[i];
-    }
+    m_ViewConfigurations = viewConfigurationViews;
 
     return AXR_SUCCESS;
 }
 
 void AxrXrSystem::resetViewConfiguration() {
-    m_Views.clear();
+    m_ViewConfigurations.clear();
     m_ViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_MAX_ENUM;
 }
 
@@ -1282,6 +1503,7 @@ void AxrXrSystem::destroyGraphicsBinding() {
 
 void AxrXrSystem::destroySessionData() {
     OnXrSessionStateChangedCallbackGraphics(false);
+    destroySpace(m_StageReferenceSpace);
     destroySession();
     m_IsSessionRunning = false;
 }
@@ -1339,6 +1561,65 @@ void AxrXrSystem::destroySession() {
 
     if (XR_SUCCEEDED(xrResult)) {
         m_Session = XR_NULL_HANDLE;
+    }
+}
+
+AxrResult AxrXrSystem::createReferenceSpace(
+    const XrReferenceSpaceType referenceSpaceType,
+    XrSpace& referenceSpace
+) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (referenceSpace != XR_NULL_HANDLE) {
+        axrLogErrorLocation("Reference space already exists.");
+        return AXR_ERROR;
+    }
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const XrReferenceSpaceCreateInfo referenceSpaceCreateInfo{
+        .type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO,
+        .next = nullptr,
+        .referenceSpaceType = referenceSpaceType,
+        .poseInReferenceSpace = XrPosef{
+            .orientation = XrQuaternionf{
+                .x = 0.0f,
+                .y = 0.0f,
+                .z = 0.0f,
+                .w = 1.0f,
+            },
+            .position = XrVector3f{
+                .x = 0.0f,
+                .y = 0.0f,
+                .z = 0.0f,
+            }
+        },
+    };
+
+    const XrResult xrResult = xrCreateReferenceSpace(m_Session, &referenceSpaceCreateInfo, &referenceSpace);
+    axrLogXrResult(xrResult, "xrCreateReferenceSpace");
+    if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+    return AXR_SUCCESS;
+}
+
+void AxrXrSystem::destroySpace(XrSpace& space) const {
+    if (space == XR_NULL_HANDLE) return;
+
+    const XrResult xrResult = xrDestroySpace(space);
+    axrLogXrResult(xrResult, "xrDestroySpace");
+
+    if (XR_SUCCEEDED(xrResult)) {
+        space = XR_NULL_HANDLE;
     }
 }
 

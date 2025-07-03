@@ -18,6 +18,22 @@
 #include "axr/common/utils.h"
 #include "../../assets/engineAssets.hpp"
 
+// ----------------------------------------- //
+// Structs
+// ----------------------------------------- //
+
+/// Render command pipelines
+struct AxrVulkanRenderCommandPipelines {
+    vk::Pipeline WindowPipeline = VK_NULL_HANDLE;
+    vk::Pipeline XrSessionPipeline = VK_NULL_HANDLE;
+};
+
+/// Render command descriptor sets
+struct AxrVulkanRenderCommandDescriptorSets {
+    const std::vector<vk::DescriptorSet>& WindowDescriptorSets;
+    const std::vector<vk::DescriptorSet>& XrSessionDescriptorSets;
+};
+
 /// Wrapper for recording vulkan render commands
 /// @tparam RenderTarget Render target class. Like a window or xr device
 template <typename RenderTarget>
@@ -47,26 +63,46 @@ public:
     // Public Functions
     // ----------------------------------------- //
 
+    /// Signal the render target that we're starting the render
+    /// @returns AXR_SUCCESS if the function succeeded
+    /// @returns AXR_DONT_RENDER if we should skip rendering this frame.
+    [[nodiscard]] AxrResult beginRendering() const {
+        return m_RenderTarget.beginRendering();
+    }
+
+    /// Get the number of views for the render target
+    /// @returns The number of views for the render target
+    [[nodiscard]] uint32_t getViewCount() const {
+        return m_RenderTarget.getViewCount();
+    }
+
     /// Update all necessary uniform buffers for the current frame
+    /// @param viewIndex The view index
     /// @param sceneData The active scene
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult updateUniformBuffers(const AxrVulkanSceneData* sceneData) const {
+    [[nodiscard]] AxrResult updateUniformBuffers(const uint32_t viewIndex, const AxrVulkanSceneData* sceneData) const {
         AxrResult axrResult = AXR_SUCCESS;
         const uint32_t currentFrame = m_RenderTarget.getCurrentRenderingFrame();
         const AxrPlatformType platformType = m_RenderTarget.getPlatformType();
 
         AxrEngineAssetUniformBuffer_SceneData sceneDataUniformBuffer{};
-        m_RenderTarget.getRenderingMatrices(sceneDataUniformBuffer.ViewMatrix, sceneDataUniformBuffer.ProjectionMatrix);
+        m_RenderTarget.getRenderingMatrices(
+            viewIndex,
+            sceneDataUniformBuffer.ViewMatrix,
+            sceneDataUniformBuffer.ProjectionMatrix
+        );
 
         axrResult = sceneData->setPlatformUniformBufferData(
             platformType,
             axrEngineAssetGetUniformBufferName(AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA),
             currentFrame,
+            viewIndex,
             0,
             sizeof(sceneDataUniformBuffer),
             &sceneDataUniformBuffer
         );
         if (AXR_FAILED(axrResult)) {
+            axrLogErrorLocation("Failed to set engine asset uniform buffer scene data.");
             return axrResult;
         }
 
@@ -74,9 +110,11 @@ public:
     }
 
     /// Wait for the current frame's fence
+    /// @param viewIndex The view index
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult waitForFrameFence() const {
-        const vk::Fence fence = m_RenderTarget.getRenderingFence();
+    [[nodiscard]] AxrResult waitForFrameFence(const uint32_t viewIndex) const {
+        const vk::Fence fence = m_RenderTarget.getRenderingFence(viewIndex);
+        if (fence == VK_NULL_HANDLE) return AXR_SUCCESS;
 
         const vk::Result vkResult = m_Device.waitForFences(1, &fence, vk::True, UINT64_MAX, m_Dispatch);
         axrLogVkResult(vkResult, "m_Device.waitForFences");
@@ -88,15 +126,19 @@ public:
     }
 
     /// Acquire the next image in the swapchain
-    /// @returns AXR_SUCCESS if the function succeeded. AXR_DONT_RENDER if the window is minimized.
-    [[nodiscard]] AxrResult acquireNextSwapchainImage() const {
-        return m_RenderTarget.acquireNextSwapchainImage();
+    /// @param viewIndex The view index
+    /// @returns AXR_SUCCESS if the function succeeded.
+    /// @returns AXR_DONT_RENDER if we should skip rendering this frame.
+    [[nodiscard]] AxrResult acquireNextSwapchainImage(const uint32_t viewIndex) const {
+        return m_RenderTarget.acquireNextSwapchainImage(viewIndex);
     }
 
     /// Reset the render target's command buffer
+    /// @param viewIndex The view index
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult resetCommandBuffer() const {
-        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer();
+    [[nodiscard]] AxrResult resetCommandBuffer(const uint32_t viewIndex) const {
+        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer(viewIndex);
+        if (commandBuffer == VK_NULL_HANDLE) return AXR_ERROR;
 
         const vk::Result vkResult = commandBuffer.reset({}, m_Dispatch);
         axrLogVkResult(vkResult, "commandBuffer.reset");
@@ -108,9 +150,11 @@ public:
     }
 
     /// Begin the render target's command buffer
+    /// @param viewIndex The view index
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult beginCommandBuffer() const {
-        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer();
+    [[nodiscard]] AxrResult beginCommandBuffer(const uint32_t viewIndex) const {
+        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer(viewIndex);
+        if (commandBuffer == VK_NULL_HANDLE) return AXR_ERROR;
 
         constexpr vk::CommandBufferBeginInfo commandBufferBeginInfo(
             {},
@@ -127,9 +171,11 @@ public:
     }
 
     /// End the render target's command buffer
+    /// @param viewIndex The view index
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult endCommandBuffer() const {
-        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer();
+    [[nodiscard]] AxrResult endCommandBuffer(const uint32_t viewIndex) const {
+        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer(viewIndex);
+        if (commandBuffer == VK_NULL_HANDLE) return AXR_ERROR;
 
         const vk::Result vkResult = commandBuffer.end(m_Dispatch);
         axrLogVkResult(vkResult, "commandBuffer.end");
@@ -141,18 +187,25 @@ public:
     }
 
     /// Submit the render target's command buffer
+    /// @param viewIndex The view index
+    /// @param queue Queue to use
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult submitCommandBuffer(const vk::Queue queue) const {
-        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer();
-        const std::vector<vk::Semaphore>& waitSemaphores = m_RenderTarget.getRenderingWaitSemaphores();
-        const std::vector<vk::PipelineStageFlags>& waitStages = m_RenderTarget.getRenderingWaitStages();
-        const std::vector<vk::Semaphore>& signalSemaphores = m_RenderTarget.getRenderingSignalSemaphores();
-        const vk::Fence fence = m_RenderTarget.getRenderingFence();
+    [[nodiscard]] AxrResult submitCommandBuffer(const uint32_t viewIndex, const vk::Queue queue) const {
+        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer(viewIndex);
+        if (commandBuffer == VK_NULL_HANDLE) return AXR_ERROR;
 
-        vk::Result vkResult = m_Device.resetFences(1, &fence, m_Dispatch);
-        axrLogVkResult(vkResult, "m_Device.resetFences");
-        if (VK_FAILED(vkResult)) {
-            return AXR_ERROR;
+        const std::vector<vk::Semaphore>& waitSemaphores = m_RenderTarget.getRenderingWaitSemaphores(viewIndex);
+        const std::vector<vk::PipelineStageFlags>& waitStages = m_RenderTarget.getRenderingWaitStages(viewIndex);
+        const std::vector<vk::Semaphore>& signalSemaphores = m_RenderTarget.getRenderingSignalSemaphores(viewIndex);
+        const vk::Fence fence = m_RenderTarget.getRenderingFence(viewIndex);
+        vk::Result vkResult;
+
+        if (fence != VK_NULL_HANDLE) {
+            vkResult = m_Device.resetFences(1, &fence, m_Dispatch);
+            axrLogVkResult(vkResult, "m_Device.resetFences");
+            if (VK_FAILED(vkResult)) {
+                return AXR_ERROR;
+            }
         }
 
         const vk::SubmitInfo submitInfo(
@@ -175,11 +228,16 @@ public:
     }
 
     /// Add a vkCmdBeginRenderPass command to the render target's command buffer
-    void beginRenderPass() const {
-        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer();
+    /// @param viewIndex The view index
+    void beginRenderPass(const uint32_t viewIndex) const {
+        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer(viewIndex);
+        if (commandBuffer == VK_NULL_HANDLE) return;
+
         const vk::RenderPass renderPass = m_RenderTarget.getRenderPass();
-        const vk::Framebuffer framebuffer = m_RenderTarget.getFramebuffer();
-        const vk::Extent2D swapchainExtent = m_RenderTarget.getSwapchainExtent();
+        const vk::Framebuffer framebuffer = m_RenderTarget.getFramebuffer(viewIndex);
+        if (framebuffer == VK_NULL_HANDLE) return;
+
+        const vk::Extent2D swapchainExtent = m_RenderTarget.getSwapchainExtent(viewIndex);
         const vk::ClearColorValue clearColorValue = m_RenderTarget.getClearColorValue();
 
         const vk::Rect2D renderArea(
@@ -204,16 +262,21 @@ public:
     }
 
     /// Add a vkCmdEndRenderPass command to the render target's command buffer
-    void endRenderPass() const {
-        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer();
+    /// @param viewIndex The view index
+    void endRenderPass(const uint32_t viewIndex) const {
+        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer(viewIndex);
+        if (commandBuffer == VK_NULL_HANDLE) return;
 
         commandBuffer.endRenderPass(m_Dispatch);
     }
 
     /// Add a vkCmdSetViewport command to the render target's command buffer
-    void setViewport() const {
-        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer();
-        const vk::Extent2D swapchainExtent = m_RenderTarget.getSwapchainExtent();
+    /// @param viewIndex The view index
+    void setViewport(const uint32_t viewIndex) const {
+        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer(viewIndex);
+        if (commandBuffer == VK_NULL_HANDLE) return;
+
+        const vk::Extent2D swapchainExtent = m_RenderTarget.getSwapchainExtent(viewIndex);
 
         const vk::Viewport viewport(
             0.0f,
@@ -228,9 +291,12 @@ public:
     }
 
     /// Add a vkCmdSetScissor command to the render target's command buffer
-    void setScissor() const {
-        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer();
-        const vk::Extent2D swapchainExtent = m_RenderTarget.getSwapchainExtent();
+    /// @param viewIndex The view index
+    void setScissor(const uint32_t viewIndex) const {
+        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer(viewIndex);
+        if (commandBuffer == VK_NULL_HANDLE) return;
+
+        const vk::Extent2D swapchainExtent = m_RenderTarget.getSwapchainExtent(viewIndex);
 
         const vk::Rect2D scissor(
             vk::Offset2D(0.0f, 0.0f),
@@ -241,25 +307,49 @@ public:
     }
 
     /// Add a vkCmdBindPipeline command to the render target's command buffer
-    /// @param pipeline Pipeline to bind
-    void bindPipeline(const vk::Pipeline pipeline) const {
-        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer();
+    /// @param viewIndex The view index
+    /// @param pipelines Pipeline options
+    void bindPipeline(const uint32_t viewIndex, const AxrVulkanRenderCommandPipelines& pipelines) const {
+        const AxrPlatformType platformType = m_RenderTarget.getPlatformType();
+        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer(viewIndex);
+        if (commandBuffer == VK_NULL_HANDLE) return;
+
+        vk::Pipeline pipeline = VK_NULL_HANDLE;
+
+        switch (platformType) {
+            case AXR_PLATFORM_TYPE_WINDOW: {
+                pipeline = pipelines.WindowPipeline;
+                break;
+            }
+            case AXR_PLATFORM_TYPE_XR_DEVICE: {
+                pipeline = pipelines.XrSessionPipeline;
+                break;
+            }
+            case AXR_PLATFORM_TYPE_UNDEFINED:
+            default: {
+                axrLogErrorLocation("Unknown platform type.");
+                return;
+            }
+        }
 
         commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline, m_Dispatch);
     }
 
     /// Add a vkCmdPushConstants command to the render target's command buffer
+    /// @param viewIndex The view index
     /// @param pipelineLayout Pipeline layout to use
     /// @param pushConstant Push constant to use
     /// @param sceneData Scene data to search for the push constant data in
     void pushConstants(
+        const uint32_t viewIndex,
         const vk::PipelineLayout& pipelineLayout,
         const AxrVulkanSceneData::PushConstantForRendering& pushConstant,
         const AxrVulkanSceneData* sceneData
     ) const {
         if (axrStringIsEmpty(pushConstant.BufferName)) return;
 
-        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer();
+        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer(viewIndex);
+        if (commandBuffer == VK_NULL_HANDLE) return;
 
         // ---- Set Model Matrix Push Constant Buffer ----
 
@@ -303,21 +393,46 @@ public:
     }
 
     /// Add a vkCmdBindDescriptorSets command to the render target's command buffer
+    /// @param viewIndex The view index
     /// @param pipelineLayout Pipeline layout to use
     /// @param descriptorSets Descriptor sets to use
     void bindDescriptorSets(
+        const uint32_t viewIndex,
         const vk::PipelineLayout& pipelineLayout,
-        const std::vector<vk::DescriptorSet>& descriptorSets
+        const AxrVulkanRenderCommandDescriptorSets& descriptorSets
     ) const {
-        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer();
+        const AxrPlatformType platformType = m_RenderTarget.getPlatformType();
+        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer(viewIndex);
+        if (commandBuffer == VK_NULL_HANDLE) return;
+
         const uint32_t currentFrame = m_RenderTarget.getCurrentRenderingFrame();
+
+        vk::DescriptorSet descriptorSet = VK_NULL_HANDLE;
+
+        switch (platformType) {
+            case AXR_PLATFORM_TYPE_WINDOW: {
+                descriptorSet = descriptorSets.WindowDescriptorSets[currentFrame];
+                break;
+            }
+            case AXR_PLATFORM_TYPE_XR_DEVICE: {
+                const uint32_t framesInFlight = descriptorSets.XrSessionDescriptorSets.size() / m_RenderTarget.getViewCount();
+                const uint32_t viewIndexOffset = framesInFlight * viewIndex;
+                descriptorSet = descriptorSets.XrSessionDescriptorSets[viewIndexOffset + currentFrame];
+                break;
+            }
+            case AXR_PLATFORM_TYPE_UNDEFINED:
+            default: {
+                axrLogErrorLocation("Unknown platform type.");
+                return;
+            }
+        }
 
         commandBuffer.bindDescriptorSets(
             vk::PipelineBindPoint::eGraphics,
             pipelineLayout,
             0,
             1,
-            &descriptorSets[currentFrame],
+            &descriptorSet,
             0,
             nullptr,
             m_Dispatch
@@ -325,9 +440,11 @@ public:
     }
 
     /// Add commands to draw the given mesh
+    /// @param viewIndex The view index
     /// @param mesh Mesh to draw
-    void draw(const AxrVulkanSceneData::MeshForRendering& mesh) const {
-        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer();
+    void draw(const uint32_t viewIndex, const AxrVulkanSceneData::MeshForRendering& mesh) const {
+        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer(viewIndex);
+        if (commandBuffer == VK_NULL_HANDLE) return;
 
         commandBuffer.bindIndexBuffer(mesh.Buffer, mesh.BufferIndicesOffset, vk::IndexType::eUint32, m_Dispatch);
         commandBuffer.bindVertexBuffers(0, 1, &mesh.Buffer, &mesh.BufferVerticesOffset, m_Dispatch);
@@ -336,9 +453,17 @@ public:
     }
 
     /// Present the current frame
-    /// @returns AXR_SUCCESS if the function succeeded. AXR_DONT_RENDER if the window is minimized.
-    [[nodiscard]] AxrResult presentFrame() const {
-        return m_RenderTarget.presentFrame();
+    /// @param viewIndex The view index
+    /// @returns AXR_SUCCESS if the function succeeded.
+    /// @returns AXR_DONT_RENDER if we should skip rendering this frame.
+    [[nodiscard]] AxrResult presentFrame(const uint32_t viewIndex) const {
+        return m_RenderTarget.presentFrame(viewIndex);
+    }
+
+    /// Signal the render target that we're ending the render
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult endRendering() const {
+        return m_RenderTarget.endRendering();
     }
 
 private:

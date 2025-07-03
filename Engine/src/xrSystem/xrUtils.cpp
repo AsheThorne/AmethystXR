@@ -284,3 +284,19 @@ const char* axrGetXrExtensionName(const AxrXrExtensionTypeEnum extensionType) {
         }
     }
 }
+
+XrReferenceSpaceType axrToReferenceSpace(const AxrXrReferenceSpaceEnum referenceSpace) {
+    switch (referenceSpace) {
+        case AXR_XR_REFERENCE_SPACE_LOCAL: {
+            return XR_REFERENCE_SPACE_TYPE_LOCAL;
+        }
+        case AXR_XR_REFERENCE_SPACE_STAGE: {
+            return XR_REFERENCE_SPACE_TYPE_STAGE;
+        }
+        case AXR_XR_REFERENCE_SPACE_UNDEFINED:
+        default: {
+            axrLogErrorLocation("Unknown reference space type {0}.", static_cast<uint32_t>(referenceSpace));
+            return XR_REFERENCE_SPACE_TYPE_MAX_ENUM;
+        }
+    }
+}

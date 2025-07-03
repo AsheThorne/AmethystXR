@@ -42,11 +42,6 @@ public:
         AxrXrExtension_T* Extensions;
     };
 
-    // Xr view data
-    struct View {
-        XrViewConfigurationView ViewConfigurationView;
-    };
-
     // ----------------------------------------- //
     // Types
     // ----------------------------------------- //
@@ -123,10 +118,13 @@ public:
     /// @param formats Output formats
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult getSupportedSwapchainFormats(std::vector<int64_t>& formats) const;
+    /// Get the environment blend mode
+    /// @returns The environment blend mode
+    [[nodiscard]] XrEnvironmentBlendMode getEnvironmentBlendMode() const;
 
     /// Get the xr views
     /// @returns The xr views
-    [[nodiscard]] std::vector<View> getViews() const;
+    [[nodiscard]] std::vector<XrViewConfigurationView> getViewConfigurations() const;
 
     /// Create an xr swapchain
     /// @param usageFlags Usage flags
@@ -196,6 +194,36 @@ public:
     /// Reset setGraphicsBinding()
     void resetGraphicsBinding();
 
+    /// Begin the next render frame
+    /// @param predictedDisplayTime Output predicted display time
+    /// @returns AXR_SUCCESS if the function succeeded.
+    /// @returns AXR_DONT_RENDER if we should skip rendering this frame.
+    [[nodiscard]] AxrResult beginFrame(XrTime& predictedDisplayTime) const;
+    /// End the current frame
+    /// @param displayTime Display time
+    /// @param compositionLayerViews Composition layer projection views
+    /// @returns AXR_SUCCESS if the function succeeded.
+    [[nodiscard]] AxrResult endFrame(
+        XrTime displayTime,
+        const std::vector<XrCompositionLayerProjectionView>& compositionLayerViews
+    ) const;
+
+    /// Locate the views for rendering
+    /// @param predictedDisplayTime Predicted display time
+    /// @param xrViews Output xr views
+    /// @returns AXR_SUCCESS if the function succeeded.
+    [[nodiscard]] AxrResult locateViews(XrTime predictedDisplayTime, std::vector<XrView>& xrViews) const;
+
+    /// Acquire the next swapchain image to use
+    /// @param swapchain Swapchain to use
+    /// @param imageIndex Output swapchain image index
+    /// @returns AXR_SUCCESS if the function succeeded.
+    [[nodiscard]] AxrResult acquireSwapchainImage(XrSwapchain swapchain, uint32_t& imageIndex) const;
+    /// Release the current swapchain image
+    /// @param swapchain Swapchain to use
+    /// @returns AXR_SUCCESS if the function succeeded.
+    [[nodiscard]] AxrResult releaseSwapchainImage(XrSwapchain swapchain) const;
+
 private:
     // ----------------------------------------- //
     // Private Variables
@@ -205,7 +233,7 @@ private:
     const char* m_ApplicationName;
     uint32_t m_ApplicationVersion;
     AxrGraphicsApiEnum m_GraphicsApi;
-    AxrXrReferenceSpaceEnum m_StageReferenceSpace;
+    AxrXrReferenceSpaceEnum m_StageReferenceSpaceType;
     AxrExtensionCollection<AxrXrApiLayer_T, AxrXrApiLayerTypeEnum> m_ApiLayers;
     AxrExtensionCollection<AxrXrExtension_T, AxrXrExtensionTypeEnum> m_Extensions;
 
@@ -215,13 +243,14 @@ private:
     XrSystemId m_SystemId;
     std::vector<XrViewConfigurationType> m_SupportedViewConfigurationTypes;
     XrViewConfigurationType m_ViewConfigurationType;
-    std::vector<View> m_Views;
+    std::vector<XrViewConfigurationView> m_ViewConfigurations;
     std::vector<XrEnvironmentBlendMode> m_SupportedEnvironmentBlendModes;
     XrEnvironmentBlendMode m_EnvironmentBlendMode;
     XrBaseInStructure* m_GraphicsBinding;
     bool m_IsSessionRunning;
     XrSession m_Session;
     XrSessionState m_SessionState;
+    XrSpace m_StageReferenceSpace;
 
     // ----------------------------------------- //
     // Private Functions
@@ -236,6 +265,10 @@ private:
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodscard]] AxrResult chooseVulkanApiVersion(uint32_t desiredApiVersion, uint32_t& apiVersion) const;
 #endif
+
+    /// Check if the session is active
+    /// @returns True if the session is active
+    [[nodiscard]] bool isSessionActive() const;
 
     // ---- Instance ----
 
@@ -346,6 +379,20 @@ private:
     [[nodiscard]] AxrResult createSession();
     /// Destroy the session
     void destroySession();
+
+    // ---- Space ----
+
+    /// Create an XrSpace from the given reference space type
+    /// @param referenceSpaceType Reference space type
+    /// @param referenceSpace Output reference space
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createReferenceSpace(
+        XrReferenceSpaceType referenceSpaceType,
+        XrSpace& referenceSpace
+    ) const;
+    /// Destroy the given XrSpace
+    /// @param space Space to destroy
+    void destroySpace(XrSpace& space) const;
 
     // ---- Events ----
 

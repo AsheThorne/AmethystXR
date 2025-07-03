@@ -13,16 +13,19 @@
 AxrVulkanXrGraphics::AxrVulkanXrGraphics(const Config& config):
     m_XrSystem(config.XrSystem),
     m_Dispatch(config.Dispatch),
+    m_LoadedScenes(config.LoadedScenes),
     m_MaxFramesInFlight(config.MaxFramesInFlight),
     m_Instance(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
-    m_GraphicsCommandPool(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
+    m_GraphicsCommandPool(VK_NULL_HANDLE),
     m_IsReady(false),
     m_SwapchainColorFormat(vk::Format::eUndefined),
     m_SwapchainDepthFormat(vk::Format::eUndefined),
     m_SwapchainImageLayout(vk::ImageLayout::eColorAttachmentOptimal),
-    m_RenderPass(VK_NULL_HANDLE) {
+    m_RenderPass(VK_NULL_HANDLE),
+    m_CurrentFrame(0),
+    m_FrameRenderData() {
 }
 
 AxrVulkanXrGraphics::~AxrVulkanXrGraphics() {
@@ -161,6 +164,208 @@ AxrResult AxrVulkanXrGraphics::createVulkanDevice(
     );
 }
 
+AxrResult AxrVulkanXrGraphics::beginRendering() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Views.empty()) {
+        axrLogErrorLocation("Views are empty.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    AxrResult axrResult = m_XrSystem.beginFrame(m_FrameRenderData.PredictedDisplayTime);
+    if (AXR_FAILED(axrResult)) return axrResult;
+
+    std::vector<XrView> xrViews;
+    axrResult = m_XrSystem.locateViews(m_FrameRenderData.PredictedDisplayTime, xrViews);
+    if (AXR_FAILED(axrResult)) {
+        endRendering();
+        return axrResult;
+    }
+
+    m_FrameRenderData.CompositionLayerViews.resize(xrViews.size());
+    for (size_t i = 0; i < m_FrameRenderData.CompositionLayerViews.size(); ++i) {
+        m_FrameRenderData.CompositionLayerViews[i].type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
+        m_FrameRenderData.CompositionLayerViews[i].fov = xrViews[i].fov;
+        m_FrameRenderData.CompositionLayerViews[i].pose = xrViews[i].pose;
+        m_FrameRenderData.CompositionLayerViews[i].subImage.swapchain = m_Views[i].ColorSwapchain.Swapchain;
+        m_FrameRenderData.CompositionLayerViews[i].subImage.imageArrayIndex = 0;
+        m_FrameRenderData.CompositionLayerViews[i].subImage.imageRect = XrRect2Di{
+            .offset = XrOffset2Di{
+                .x = 0,
+                .y = 0,
+            },
+            .extent = XrExtent2Di{
+                .width = static_cast<int32_t>(m_Views[i].SwapchainExtent.width),
+                .height = static_cast<int32_t>(m_Views[i].SwapchainExtent.height),
+            },
+        };
+    }
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrVulkanXrGraphics::endRendering() {
+    const AxrResult axrResult = m_XrSystem.endFrame(
+        m_FrameRenderData.PredictedDisplayTime,
+        m_FrameRenderData.CompositionLayerViews
+    );
+    if (AXR_FAILED(axrResult)) return axrResult;
+
+    m_FrameRenderData.reset();
+    return AXR_SUCCESS;
+}
+
+uint32_t AxrVulkanXrGraphics::getViewCount() const {
+    return static_cast<uint32_t>(m_Views.size());
+}
+
+AxrPlatformType AxrVulkanXrGraphics::getPlatformType() const {
+    return AXR_PLATFORM_TYPE_XR_DEVICE;
+}
+
+vk::RenderPass AxrVulkanXrGraphics::getRenderPass() const {
+    return m_RenderPass;
+}
+
+vk::Framebuffer AxrVulkanXrGraphics::getFramebuffer(const uint32_t viewIndex) const {
+    if (viewIndex > m_Views.size() - 1) {
+        axrLogErrorLocation("View index out of bounds.");
+        return VK_NULL_HANDLE;
+    }
+
+    return m_Views[viewIndex].SwapchainFramebuffers[m_Views[viewIndex].ColorSwapchain.AcquiredImageIndex];
+}
+
+vk::Extent2D AxrVulkanXrGraphics::getSwapchainExtent(const uint32_t viewIndex) const {
+    if (viewIndex > m_Views.size() - 1) {
+        axrLogErrorLocation("View index out of bounds.");
+        return {};
+    }
+
+    return m_Views[viewIndex].SwapchainExtent;
+}
+
+vk::ClearColorValue AxrVulkanXrGraphics::getClearColorValue() const {
+    if (m_XrSystem.getEnvironmentBlendMode() == XR_ENVIRONMENT_BLEND_MODE_ADDITIVE) {
+        // The clear color needs to be black for XR_ENVIRONMENT_BLEND_MODE_ADDITIVE to work properly
+        return vk::ClearColorValue{0.0f, 0.0f, 0.0f, 1.0f};
+    }
+
+    // TODO: Make this a config option
+    return vk::ClearColorValue{0.2f, 0.05f, 0.2f, 1.0f};
+}
+
+vk::CommandBuffer AxrVulkanXrGraphics::getRenderingCommandBuffer(const uint32_t viewIndex) const {
+    if (viewIndex > m_Views.size() - 1) {
+        axrLogErrorLocation("View index out of bounds.");
+        return VK_NULL_HANDLE;
+    }
+
+    return m_Views[viewIndex].RenderingCommandBuffers[m_CurrentFrame];
+}
+
+std::vector<vk::Semaphore> AxrVulkanXrGraphics::getRenderingWaitSemaphores(const uint32_t viewIndex) const {
+    // Nothing here
+    return {};
+}
+
+std::vector<vk::PipelineStageFlags> AxrVulkanXrGraphics::getRenderingWaitStages(const uint32_t viewIndex) const {
+    // Nothing here
+    return {};
+}
+
+std::vector<vk::Semaphore> AxrVulkanXrGraphics::getRenderingSignalSemaphores(const uint32_t viewIndex) const {
+    return {};
+
+    // TODO: This is only used with the offscreen buffer stuff. Which we aren't doing yet...
+    // if (viewIndex > m_Views.size() - 1) {
+    //     axrLogErrorLocation("View index out of bounds.");
+    //     return {};
+    // }
+    //
+    // return {m_Views[viewIndex].RenderingFinishedSemaphores[m_CurrentFrame]};
+}
+
+vk::Fence AxrVulkanXrGraphics::getRenderingFence(const uint32_t viewIndex) const {
+    if (viewIndex > m_Views.size() - 1) {
+        axrLogErrorLocation("View index out of bounds.");
+        return VK_NULL_HANDLE;
+    }
+
+    return m_Views[viewIndex].RenderingFences[m_CurrentFrame];
+}
+
+uint32_t AxrVulkanXrGraphics::getCurrentRenderingFrame() const {
+    return m_CurrentFrame;
+}
+
+AxrResult AxrVulkanXrGraphics::acquireNextSwapchainImage(const uint32_t viewIndex) {
+    if (viewIndex > m_Views.size() - 1) {
+        axrLogErrorLocation("View index out of bounds.");
+        return AXR_ERROR;
+    }
+
+    return m_XrSystem.acquireSwapchainImage(
+        m_Views[viewIndex].ColorSwapchain.Swapchain,
+        m_Views[viewIndex].ColorSwapchain.AcquiredImageIndex
+    );
+}
+
+AxrResult AxrVulkanXrGraphics::presentFrame(const uint32_t viewIndex) {
+    if (viewIndex > m_Views.size() - 1) {
+        axrLogErrorLocation("View index out of bounds.");
+        return AXR_ERROR;
+    }
+
+    const AxrResult axrResult = m_XrSystem.releaseSwapchainImage(m_Views[viewIndex].ColorSwapchain.Swapchain);
+    if (AXR_FAILED(axrResult)) return axrResult;
+
+    m_CurrentFrame = (m_CurrentFrame + 1) % m_MaxFramesInFlight;
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanXrGraphics::getRenderingMatrices(
+    const uint32_t viewIndex,
+    glm::mat4& viewMatrix,
+    glm::mat4& projectionMatrix
+) const {
+    if (viewIndex > m_Views.size() - 1) {
+        axrLogErrorLocation("View index out of bounds.");
+        return;
+    }
+
+    const glm::vec3 position = glm::vec3(
+        m_FrameRenderData.CompositionLayerViews[viewIndex].pose.position.x,
+        m_FrameRenderData.CompositionLayerViews[viewIndex].pose.position.y,
+        m_FrameRenderData.CompositionLayerViews[viewIndex].pose.position.z
+    );
+    const glm::quat orientation = glm::quat(
+        m_FrameRenderData.CompositionLayerViews[viewIndex].pose.orientation.w,
+        m_FrameRenderData.CompositionLayerViews[viewIndex].pose.orientation.x,
+        m_FrameRenderData.CompositionLayerViews[viewIndex].pose.orientation.y,
+        m_FrameRenderData.CompositionLayerViews[viewIndex].pose.orientation.z
+    );
+
+    viewMatrix = glm::inverse(
+        glm::translate(glm::mat4(1.0f), position) *
+        glm::toMat4(orientation)
+    );
+
+    projectionMatrix = createProjectionMatrix(
+        m_FrameRenderData.CompositionLayerViews[viewIndex].fov,
+        // TODO: Make this adjustable by the application
+        0.01f,
+        1000.0f
+    );
+}
+
 // ---- Private Functions ----
 
 void AxrVulkanXrGraphics::setXrGraphicsBinding() const {
@@ -206,6 +411,17 @@ AxrResult AxrVulkanXrGraphics::setupXrSessionGraphics() {
         return axrResult;
     }
 
+    // TODO: multisampling
+    axrResult = m_LoadedScenes.setupXrSessionData(
+        m_RenderPass,
+        vk::SampleCountFlagBits::e1,
+        static_cast<uint32_t>(m_Views.size())
+    );
+    if (AXR_FAILED(axrResult)) {
+        resetSetupXrSessionGraphics();
+        return axrResult;
+    }
+
     m_IsReady = true;
     return AXR_SUCCESS;
 }
@@ -213,6 +429,7 @@ AxrResult AxrVulkanXrGraphics::setupXrSessionGraphics() {
 void AxrVulkanXrGraphics::resetSetupXrSessionGraphics() {
     m_IsReady = false;
 
+    m_LoadedScenes.resetSetupXrSessionData();
     resetSetupAllViews();
     destroyRenderPass();
     resetSwapchainFormats();
@@ -368,10 +585,10 @@ void AxrVulkanXrGraphics::resetSwapchainFormats() {
     m_SwapchainDepthFormat = vk::Format::eUndefined;
 }
 
-AxrResult AxrVulkanXrGraphics::setupSwapchain(const AxrXrSystem::View& xrView, View& view) const {
+AxrResult AxrVulkanXrGraphics::setupSwapchain(const XrViewConfigurationView& viewConfiguration, View& view) const {
     AxrResult axrResult = AXR_SUCCESS;
 
-    axrResult = setSwapchainExtent(xrView, view);
+    axrResult = setSwapchainExtent(viewConfiguration, view);
     if (AXR_FAILED(axrResult)) {
         resetSetupSwapchain(view);
         return axrResult;
@@ -398,10 +615,10 @@ void AxrVulkanXrGraphics::resetSetupSwapchain(View& view) const {
     resetSwapchainExtent(view);
 }
 
-AxrResult AxrVulkanXrGraphics::setSwapchainExtent(const AxrXrSystem::View& xrView, View& view) const {
+AxrResult AxrVulkanXrGraphics::setSwapchainExtent(const XrViewConfigurationView& viewConfiguration, View& view) const {
     view.SwapchainExtent = vk::Extent2D(
-        xrView.ViewConfigurationView.recommendedImageRectWidth,
-        xrView.ViewConfigurationView.recommendedImageRectHeight
+        viewConfiguration.recommendedImageRectWidth,
+        viewConfiguration.recommendedImageRectHeight
     );
 
     return AXR_SUCCESS;
@@ -438,7 +655,7 @@ AxrResult AxrVulkanXrGraphics::createSwapchains(View& view) const {
         XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT,
         static_cast<int64_t>(m_SwapchainColorFormat),
         // TODO: Multisample
-        1,
+        static_cast<uint32_t>(vk::SampleCountFlagBits::e1),
         view.SwapchainExtent.width,
         view.SwapchainExtent.height,
         view.ColorSwapchain.Swapchain
@@ -630,11 +847,11 @@ AxrResult AxrVulkanXrGraphics::setupAllViews() {
     // ----------------------------------------- //
     AxrResult axrResult = AXR_SUCCESS;
 
-    const std::vector<AxrXrSystem::View> xrViews = m_XrSystem.getViews();
-    m_Views.resize(xrViews.size());
+    const std::vector<XrViewConfigurationView> viewConfigurations = m_XrSystem.getViewConfigurations();
+    m_Views.resize(viewConfigurations.size());
 
     for (size_t i = 0; i < m_Views.size(); ++i) {
-        axrResult = setupView(xrViews[i], m_Views[i]);
+        axrResult = setupView(viewConfigurations[i], m_Views[i]);
         if (AXR_FAILED(axrResult)) {
             break;
         }
@@ -656,7 +873,7 @@ void AxrVulkanXrGraphics::resetSetupAllViews() {
     m_Views.clear();
 }
 
-AxrResult AxrVulkanXrGraphics::setupView(const AxrXrSystem::View& xrView, View& view) const {
+AxrResult AxrVulkanXrGraphics::setupView(const XrViewConfigurationView& viewConfiguration, View& view) const {
     AxrResult axrResult = AXR_SUCCESS;
 
     axrResult = createSyncObjects(view);
@@ -671,7 +888,7 @@ AxrResult AxrVulkanXrGraphics::setupView(const AxrXrSystem::View& xrView, View& 
         return axrResult;
     }
 
-    axrResult = setupSwapchain(xrView, view);
+    axrResult = setupSwapchain(viewConfiguration, view);
     if (AXR_FAILED(axrResult)) {
         resetSetupView(view);
         return axrResult;
@@ -797,6 +1014,27 @@ AxrResult AxrVulkanXrGraphics::createFramebuffers(View& view) const {
 
 void AxrVulkanXrGraphics::destroyFramebuffers(View& view) const {
     axrDestroyFramebuffers(m_Device, view.SwapchainFramebuffers, m_Dispatch);
+}
+
+glm::mat4 AxrVulkanXrGraphics::createProjectionMatrix(
+    const XrFovf fov,
+    const float nearClip,
+    const float farClip
+) const {
+    const float l = glm::tan(fov.angleLeft);
+    const float r = glm::tan(fov.angleRight);
+    const float d = glm::tan(fov.angleDown);
+    const float u = glm::tan(fov.angleUp);
+
+    const float w = r - l;
+    const float h = d - u;
+
+    glm::mat4 projectionMatrix;
+    projectionMatrix[0] = {2.0f / w, 0.0f, 0.0f, 0.0f};
+    projectionMatrix[1] = {0.0f, 2.0f / h, 0.0f, 0.0f};
+    projectionMatrix[2] = {(r + l) / w, (u + d) / h, -(farClip + nearClip) / (farClip - nearClip), -1.0f};
+    projectionMatrix[3] = {0.0f, 0.0f, -(farClip * (nearClip + nearClip)) / (farClip - nearClip), 0.0f};
+    return projectionMatrix;
 }
 
 AxrResult AxrVulkanXrGraphics::onXrSessionStateChangedCallback(const bool isSessionRunning) {
