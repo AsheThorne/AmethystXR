@@ -8,6 +8,15 @@
 // External Functions
 // ----------------------------------------- //
 
+bool axrWindowSystemIsValid(const AxrWindowSystemConst_T windowSystem) {
+    if (windowSystem == nullptr) {
+        axrLogErrorLocation("`windowSystem` is null.");
+        return false;
+    }
+
+    return windowSystem->isValid();
+}
+
 bool axrWindowSystemIsWindowOpen(const AxrWindowSystemConst_T windowSystem) {
     if (windowSystem == nullptr) {
         axrLogErrorLocation("`windowSystem` is null.");
@@ -41,7 +50,11 @@ void axrWindowSystemCloseWindow(const AxrWindowSystem_T windowSystem) {
 
 // ---- Special Functions ----
 
-AxrWindowSystem::AxrWindowSystem(const Config& config) {
+AxrWindowSystem::AxrWindowSystem(std::nullptr_t) {
+}
+
+AxrWindowSystem::AxrWindowSystem(const Config& config):
+    m_IsValid(true) {
 #ifdef AXR_USE_PLATFORM_WIN32
     OnWindowResizedCallback_T windowResizedCallback;
     windowResizedCallback.connect<&AxrWindowSystem::onWindowResizedCallback>(this);
@@ -49,8 +62,8 @@ AxrWindowSystem::AxrWindowSystem(const Config& config) {
     m_Win32WindowSystem = new AxrWin32WindowSystem(
         AxrWin32WindowSystem::Config{
             .ApplicationName = config.ApplicationName,
-            .Width = config.WindowConfig.Width,
-            .Height = config.WindowConfig.Height,
+            .Width = config.Width,
+            .Height = config.Height,
             .OnWindowResizedCallback = windowResizedCallback
         }
     );
@@ -58,10 +71,14 @@ AxrWindowSystem::AxrWindowSystem(const Config& config) {
 }
 
 AxrWindowSystem::~AxrWindowSystem() {
-    cleanup();
+    resetSetup();
 }
 
 // ---- Public Functions ----
+
+bool AxrWindowSystem::isValid() const {
+    return m_IsValid;
+}
 
 bool AxrWindowSystem::isWindowOpen() const {
 #ifdef AXR_USE_PLATFORM_WIN32
@@ -134,7 +151,7 @@ AxrResult AxrWindowSystem::setup() {
 #endif
 }
 
-void AxrWindowSystem::cleanup() {
+void AxrWindowSystem::resetSetup() {
 #ifdef AXR_USE_PLATFORM_WIN32
     if (m_Win32WindowSystem != nullptr) {
         delete m_Win32WindowSystem;

@@ -8,6 +8,7 @@
 #include "graphicsSystem.hpp"
 #include "assets.hpp"
 #include "scene.hpp"
+#include "xrSystem.hpp"
 
 namespace axr {
     // ----------------------------------------- //
@@ -21,8 +22,9 @@ namespace axr {
         // ----------------------------------------- //
         const char* ApplicationName;
         uint32_t ApplicationVersion;
-        axr::WindowSystemConfig WindowSystemConfig;
         axr::GraphicsSystemConfig GraphicsSystemConfig;
+        const axr::WindowSystemConfig* WindowSystemConfig;
+        const axr::XrSystemConfig* XrSystemConfig;
 
         // ----------------------------------------- //
         // Special Functions
@@ -32,26 +34,30 @@ namespace axr {
 
         /// Default Constructor
         ApplicationConfig() :
-            ApplicationName{},
-            ApplicationVersion{},
-            WindowSystemConfig{},
-            GraphicsSystemConfig{} {
+            ApplicationName(""),
+            ApplicationVersion(0),
+            GraphicsSystemConfig({}),
+            WindowSystemConfig(nullptr),
+            XrSystemConfig(nullptr) {
         }
 
         /// Constructor
         /// @param applicationName The application name
         /// @param applicationVersion The application version
-        /// @param windowSystemConfig The window system config
         /// @param graphicsSystemConfig The graphics system config
+        /// @param windowSystemConfig The window system config
+        /// @param xrSystemConfig The xr system config
         ApplicationConfig(
             const char* applicationName,
             const uint32_t applicationVersion,
-            const axr::WindowSystemConfig& windowSystemConfig,
-            const axr::GraphicsSystemConfig& graphicsSystemConfig
+            const axr::GraphicsSystemConfig& graphicsSystemConfig,
+            const axr::WindowSystemConfig* windowSystemConfig,
+            const axr::XrSystemConfig* xrSystemConfig
         ) : ApplicationName(applicationName),
             ApplicationVersion(applicationVersion),
+            GraphicsSystemConfig(graphicsSystemConfig),
             WindowSystemConfig(windowSystemConfig),
-            GraphicsSystemConfig(graphicsSystemConfig) {
+            XrSystemConfig(xrSystemConfig) {
         }
 
         // ----------------------------------------- //
@@ -142,6 +148,12 @@ namespace axr {
         /// @returns A handle to the window system
         [[nodiscard]] axr::WindowSystem getWindowSystem() const {
             return axrApplicationGetWindowSystem(m_Application);
+        }
+
+        /// Get the xr system
+        /// @returns A handle to the xr system
+        [[nodiscard]] axr::XrSystem getXrSystem() const {
+            return axrApplicationGetXrSystem(m_Application);
         }
 
         /// Get the graphics system

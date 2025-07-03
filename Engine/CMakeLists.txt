@@ -33,6 +33,7 @@ set(AXR_PUBLIC_HEADER_FILES
     ${AXR_INCLUDE_DIR}/axr/vulkanApi.h
     ${AXR_INCLUDE_DIR}/axr/assets.h
     ${AXR_INCLUDE_DIR}/axr/scene.h
+    ${AXR_INCLUDE_DIR}/axr/xrSystem.h
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr/common/defines.h.in
     ${AXR_INCLUDE_DIR}/axr/common/defines.h
@@ -56,6 +57,7 @@ set(AXR_PUBLIC_HEADER_HPP_FILES
     ${AXR_INCLUDE_DIR}/axr-hpp/flags.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/assets.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/scene.hpp
+    ${AXR_INCLUDE_DIR}/axr-hpp/xrSystem.hpp
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr-hpp/common/defines.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/common/enums.hpp
@@ -68,6 +70,7 @@ set(AXR_HEADER_FILES
     # ---- Root ----
     ${AXR_SRC_DIR}/common.hpp
     ${AXR_SRC_DIR}/utils.hpp
+    ${AXR_SRC_DIR}/extensionCollection.hpp
     # ---- AXR Application ----
     ${AXR_SRC_DIR}/application/application.hpp
     # ---- Window System ----
@@ -82,7 +85,7 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanSharedFunctions.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanQueueFamilies.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanWindowGraphics.hpp
-    ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanExtensionCollection.hpp
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanXrGraphics.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanSurfaceDetails.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanBuffer.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanRenderCommands.hpp
@@ -114,6 +117,10 @@ set(AXR_HEADER_FILES
     # ---- Scene ----
     ${AXR_SRC_DIR}/scene/scene.hpp
     ${AXR_SRC_DIR}/scene/sceneUtils.hpp
+    # ---- Xr System ----
+    ${AXR_SRC_DIR}/xrSystem/xrSystem.hpp
+    ${AXR_SRC_DIR}/xrSystem/xrUtils.hpp
+    ${AXR_SRC_DIR}/xrSystem/xrExtensionFunctions.hpp
 )
 
 # ---------------------------------------------
@@ -139,6 +146,7 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanSharedFunctions.cpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanQueueFamilies.cpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanWindowGraphics.cpp
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanXrGraphics.cpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanSurfaceDetails.cpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanBuffer.cpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanImage.cpp
@@ -169,6 +177,10 @@ set(AXR_CPP_FILES
     # ---- Scene ----
     ${AXR_SRC_DIR}/scene/scene.cpp
     ${AXR_SRC_DIR}/scene/sceneUtils.cpp
+    # ---- Xr System ----
+    ${AXR_SRC_DIR}/xrSystem/xrSystem.cpp
+    ${AXR_SRC_DIR}/xrSystem/xrUtils.cpp
+    ${AXR_SRC_DIR}/xrSystem/xrExtensionFunctions.cpp
 )
 
 # ---------------------------------------------
@@ -199,7 +211,8 @@ set_target_properties(AXR_Engine PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(AXR_Engine
     PRIVATE axr_compiler_flags
     Vulkan::Vulkan
-    OpenXR::openxr_loader
+    optimized OpenXR::openxr_loader
+    debug OpenXR::openxr_loader_debug
 )
 
 # ---------------------------------------------

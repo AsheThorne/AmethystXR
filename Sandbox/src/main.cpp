@@ -24,14 +24,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 #ifndef NDEBUG
     vulkanApiConfig.addApiLayerCoreValidation();
     vulkanApiConfig.addExtensionDebugUtils(
-        // axr::VulkanDebugUtilsSeverityFlagBits::Verbose |
-        // axr::VulkanDebugUtilsSeverityFlagBits::Info |
-        axr::VulkanDebugUtilsSeverityFlagBits::Warning |
-        axr::VulkanDebugUtilsSeverityFlagBits::Error,
-        axr::VulkanDebugUtilsTypeFlagBits::General |
-        axr::VulkanDebugUtilsTypeFlagBits::Validation |
-        axr::VulkanDebugUtilsTypeFlagBits::Performance |
-        axr::VulkanDebugUtilsTypeFlagBits::DeviceAddressBinding
+        // axr::VulkanDebugUtilsSeverityFlagBits::VerboseBit |
+        // axr::VulkanDebugUtilsSeverityFlagBits::InfoBit |
+        axr::VulkanDebugUtilsSeverityFlagBits::WarningBit |
+        axr::VulkanDebugUtilsSeverityFlagBits::ErrorBit,
+        axr::VulkanDebugUtilsTypeFlagBits::GeneralBit |
+        axr::VulkanDebugUtilsTypeFlagBits::ValidationBit |
+        axr::VulkanDebugUtilsTypeFlagBits::PerformanceBit |
+        axr::VulkanDebugUtilsTypeFlagBits::DeviceAddressBindingBit
     );
 #endif
 
@@ -40,21 +40,36 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     const axr::GraphicsSystemConfig graphicsSystemConfig(
         &vulkanApiConfig,
         &windowGraphicsConfig,
-        glm::vec4(0.2f, 0.05f, 0.2f, 1.0f),
         axr::SamplerAnisotropyQualityEnum::High
     );
 
-    // TODO: make window config optional. if window config is null, there's no window
     const axr::WindowSystemConfig windowSystemConfig(
         800,
         600
     );
 
+    axr::XrSystemConfig xrSystemConfig(axr::XrReferenceSpaceEnum::Stage);
+
+#ifndef NDEBUG
+    xrSystemConfig.addApiLayerCoreValidation();
+    xrSystemConfig.addExtensionDebugUtils(
+        // axr::XrDebugUtilsSeverityFlagBits::VerboseBit |
+        // axr::XrDebugUtilsSeverityFlagBits::InfoBit |
+        axr::XrDebugUtilsSeverityFlagBits::WarningBit |
+        axr::XrDebugUtilsSeverityFlagBits::ErrorBit,
+        axr::XrDebugUtilsTypeFlagBits::GeneralBit |
+        axr::XrDebugUtilsTypeFlagBits::ValidationBit |
+        axr::XrDebugUtilsTypeFlagBits::PerformanceBit |
+        axr::XrDebugUtilsTypeFlagBits::ConformanceBit
+    );
+#endif
+
     const auto appConfig = axr::ApplicationConfig(
         applicationName.c_str(),
         AXR_MAKE_VERSION(1, 0, 0),
-        windowSystemConfig,
-        graphicsSystemConfig
+        graphicsSystemConfig,
+        &windowSystemConfig,
+        &xrSystemConfig
     );
 
     auto app = axr::Application(appConfig);
@@ -64,19 +79,35 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     if (AXR_FAILED(globalAssetCollection.createShader(axr::EngineAssetEnum::ShaderDefaultFrag))) return -1;
     if (AXR_FAILED(globalAssetCollection.createShader(axr::EngineAssetEnum::ShaderDefaultVert))) return -1;
 
-    TestScene scene(app);
+    SponzaScene scene(app);
     if (AXR_FAILED(scene.setup())) return -1;
 
     if (AXR_FAILED(scene.loadScene())) return -1;
     if (AXR_FAILED(scene.setAsActiveScene())) return -1;
 
     axr::WindowSystem windowSystem = app.getWindowSystem();
-    if (AXR_FAILED(windowSystem.openWindow())) return -1;
+    if (windowSystem.isValid()) {
+        if (AXR_FAILED(windowSystem.openWindow())) return -1;
+    }
 
-    const axr::GraphicsSystem graphicsSystem = app.getGraphicsSystem();
+    axr::XrSystem xrSystem = app.getXrSystem();
+    if (xrSystem.isValid()) {
+        if (AXR_FAILED(xrSystem.startXrSession())) return -1;
+    }
+
+    axr::GraphicsSystem graphicsSystem = app.getGraphicsSystem();
+    graphicsSystem.setClearColor(glm::vec4(0.2f, 0.05f, 0.2f, 1.0f));
 
     while (app.isRunning()) {
         app.processEvents();
+
+        if (!windowSystem.isWindowOpen()) {
+            xrSystem.stopXrSession();
+            app.processEvents();
+            if (!app.isRunning()) {
+                break;
+            }
+        }
 
         scene.update();
 

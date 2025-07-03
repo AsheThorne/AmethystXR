@@ -99,7 +99,6 @@ namespace axr {
         axr::VulkanApiConfig* VulkanApiConfig = nullptr;
 #endif
         const axr::GraphicsWindowConfig* WindowConfig;
-        glm::vec4 ClearColor;
         axr::SamplerAnisotropyQualityEnum SamplerAnisotropyQuality;
 
         // ----------------------------------------- //
@@ -112,7 +111,6 @@ namespace axr {
         GraphicsSystemConfig() :
             GraphicsApi(axr::GraphicsApiEnum::Undefined),
             WindowConfig(nullptr),
-            ClearColor({1.0f}),
             SamplerAnisotropyQuality(axr::SamplerAnisotropyQualityEnum::None) {
         }
 
@@ -120,17 +118,14 @@ namespace axr {
         /// Vulkan Graphics Constructor
         /// @param vulkanApiConfig The vulkan api config
         /// @param windowConfig The window graphics config
-        /// @param clearColor The clear color
         /// @param samplerAnisotropyQuality The sampler anisotropy quality
         GraphicsSystemConfig(
             axr::VulkanApiConfig* vulkanApiConfig,
             const axr::GraphicsWindowConfig* windowConfig,
-            const glm::vec4 clearColor,
             const axr::SamplerAnisotropyQualityEnum samplerAnisotropyQuality
         ) : GraphicsApi(axr::GraphicsApiEnum::Vulkan),
             VulkanApiConfig(vulkanApiConfig),
             WindowConfig(windowConfig),
-            ClearColor(clearColor),
             SamplerAnisotropyQuality(samplerAnisotropyQuality) {
         }
 #endif
@@ -183,6 +178,12 @@ namespace axr {
         /// Draw the current frame
         void drawFrame() const {
             axrGraphicsSystemDrawFrame(m_GraphicsSystem);
+        }
+
+        /// Set the clear color
+        /// @param color Clear color
+        void setClearColor(const glm::vec4& color) const {
+            axrGraphicsSystemSetClearColor(m_GraphicsSystem, color);
         }
 
     private:

@@ -5,7 +5,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/windowSystem.h"
-#include "vulkanExtensionCollection.hpp"
+#include "../../extensionCollection.hpp"
 #include "vulkanQueueFamilies.hpp"
 #include "sceneData/vulkanLoadedScenesCollection.hpp"
 #include "vulkanSurfaceDetails.hpp"
@@ -27,9 +27,8 @@ public:
         AxrWindowSystem& WindowSystem;
         vk::DispatchLoaderDynamic& Dispatch;
         AxrVulkanLoadedScenesCollection& LoadedScenes;
-        AxrVulkanPresentationModeEnum PresentationMode;
         uint32_t MaxFramesInFlight;
-        glm::vec4 ClearColor;
+        AxrVulkanPresentationModeEnum PresentationMode;
         AxrMsaaSampleCountEnum MaxMsaaSampleCount;
     };
 
@@ -53,6 +52,7 @@ public:
     // ---- Constructors ----
 
     /// Constructor
+    /// @param config window graphics config
     AxrVulkanWindowGraphics(const Config& config);
     /// Copy Constructor
     /// @param src Source AxrVulkanWindowGraphics to copy from
@@ -82,13 +82,17 @@ public:
     /// Add the instance extensions required for window graphics to the given extension collection
     /// @param extensions The extension collection to add to
     void addRequiredInstanceExtensions(
-        AxrVulkanExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum>& extensions
+        AxrExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum>& extensions
     ) const;
     /// Add the device extensions required for window graphics to the given extension collection
     /// @param extensions The extension collection to add to
     void addRequiredDeviceExtensions(
-        AxrVulkanExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum>& extensions
+        AxrExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum>& extensions
     ) const;
+
+    /// Set the clear color
+    /// @param color Clear color
+    void setClearColor(const glm::vec4& color);
 
     /// Set up vulkan window graphics
     /// @param config Setup config
@@ -101,6 +105,15 @@ public:
     /// @returns True if the window graphics are ready for rendering
     [[nodiscard]] bool isReady() const;
 
+    /// Begin rendering
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult beginRendering();
+    /// End rendering
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult endRendering();
+    /// Get the number of views
+    /// @returns The number of views
+    [[nodiscard]] uint32_t getViewCount() const;
     /// Get the platform type
     /// @returns the platform type
     [[nodiscard]] AxrPlatformType getPlatformType() const;
@@ -108,44 +121,56 @@ public:
     /// @returns The render pass
     [[nodiscard]] vk::RenderPass getRenderPass() const;
     /// Get the framebuffer for the current swapchain image
+    /// @param viewIndex View index
     /// @returns The framebuffer for the current swapchain image
-    [[nodiscard]] vk::Framebuffer getFramebuffer() const;
+    [[nodiscard]] vk::Framebuffer getFramebuffer(uint32_t viewIndex) const;
     /// Get the swapchain extent
+    /// @param viewIndex View index
     /// @returns The swapchain extent
-    [[nodiscard]] vk::Extent2D getSwapchainExtent() const;
+    [[nodiscard]] vk::Extent2D getSwapchainExtent(uint32_t viewIndex) const;
     /// Get the clear color value
     /// @returns The clear color value
     [[nodiscard]] vk::ClearColorValue getClearColorValue() const;
     /// Get the command buffer to use for rendering for the current frame
+    /// @param viewIndex View index
     /// @returns The rendering command buffer for the current frame
-    [[nodiscard]] vk::CommandBuffer getRenderingCommandBuffer() const;
+    [[nodiscard]] vk::CommandBuffer getRenderingCommandBuffer(uint32_t viewIndex) const;
     /// Get the rendering wait semaphores to use for the current frame
+    /// @param viewIndex View index
     /// @returns The wait semaphores for the current frame
-    [[nodiscard]] std::vector<vk::Semaphore> getRenderingWaitSemaphores() const;
+    [[nodiscard]] std::vector<vk::Semaphore> getRenderingWaitSemaphores(uint32_t viewIndex) const;
     /// Get the rendering wait stages to use for the current frame
+    /// @param viewIndex View index
     /// @returns The wait stages for the current frame
-    [[nodiscard]] std::vector<vk::PipelineStageFlags> getRenderingWaitStages() const;
+    [[nodiscard]] std::vector<vk::PipelineStageFlags> getRenderingWaitStages(uint32_t viewIndex) const;
     /// Get the rendering signal semaphores to use for the current frame
+    /// @param viewIndex View index
     /// @returns The signal semaphores for the current frame
-    [[nodiscard]] std::vector<vk::Semaphore> getRenderingSignalSemaphores() const;
+    [[nodiscard]] std::vector<vk::Semaphore> getRenderingSignalSemaphores(uint32_t viewIndex) const;
     /// Get the rendering fence to use for the current frame
+    /// @param viewIndex View index
     /// @returns The rendering fence for the current frame
-    [[nodiscard]] vk::Fence getRenderingFence() const;
+    [[nodiscard]] vk::Fence getRenderingFence(uint32_t viewIndex) const;
     /// Get the current rendering frame index
-    /// @returns The curent rendering frame index
+    /// @returns The current rendering frame index
     [[nodiscard]] uint32_t getCurrentRenderingFrame() const;
 
     /// Acquire the next swapchain image
-    /// @returns AXR_SUCCESS if the function succeeded. AXR_DONT_RENDER if the window is minimized.
-    [[nodiscard]] AxrResult acquireNextSwapchainImage();
+    /// @param viewIndex View index
+    /// @returns AXR_SUCCESS if the function succeeded.
+    /// @returns AXR_DONT_RENDER if we should skip rendering this frame.
+    [[nodiscard]] AxrResult acquireNextSwapchainImage(uint32_t viewIndex);
     /// Present the current frame to the window
-    /// @returns AXR_SUCCESS if the function succeeded. AXR_DONT_RENDER if the window is minimized.
-    [[nodiscard]] AxrResult presentFrame();
+    /// @param viewIndex View index
+    /// @returns AXR_SUCCESS if the function succeeded.
+    /// @returns AXR_DONT_RENDER if we should skip rendering this frame.
+    [[nodiscard]] AxrResult presentFrame(uint32_t viewIndex);
 
     /// Get the rendering matrices for the current frame
+    /// @param viewIndex View index
     /// @param viewMatrix Output view matrix
     /// @param projectionMatrix Output projection matrix
-    void getRenderingMatrices(glm::mat4& viewMatrix, glm::mat4& projectionMatrix) const;
+    void getRenderingMatrices(uint32_t viewIndex, glm::mat4& viewMatrix, glm::mat4& projectionMatrix) const;
 
 private:
     // ----------------------------------------- //
@@ -156,9 +181,8 @@ private:
     AxrWindowSystem& m_WindowSystem;
     vk::DispatchLoaderDynamic& m_Dispatch;
     AxrVulkanLoadedScenesCollection& m_LoadedScenes;
-    AxrVulkanPresentationModeEnum m_PreferredPresentationMode;
     uint32_t m_MaxFramesInFlight;
-    glm::vec4 m_ClearColor;
+    AxrVulkanPresentationModeEnum m_PreferredPresentationMode;
     AxrMsaaSampleCountEnum m_MaxMsaaSampleCount;
 
     // ---- Setup Config ----
@@ -172,6 +196,7 @@ private:
     /// Ordered from most desired to the least desired
     std::vector<vk::Format> m_SwapchainDepthFormatOptions;
 
+    glm::vec4 m_ClearColor;
     vk::ImageLayout m_SwapchainImageLayout;
     vk::SurfaceKHR m_Surface;
     vk::SurfaceFormatKHR m_SwapchainColorFormat;
@@ -203,31 +228,11 @@ private:
     // Private Functions
     // ----------------------------------------- //
 
-    /// Set the SetupConfig variables
-    /// @param config Setup config
+    /// Set up the window graphics
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setSetupConfigVariables(const SetupConfig& config);
-    /// Reset the SetupConfig variables
-    void resetSetupConfigVariables();
-
-    /// Set the swapchain color and depth format options
-    /// @param physicalDevice Physical device to use
-    /// @param swapchainColorFormatOptions Swapchain color format options to choose from
-    /// @param swapchainDepthFormatOptions Swapchain depth format options to choose from
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setSwapchainFormatOptions(
-        const vk::PhysicalDevice& physicalDevice,
-        const std::vector<vk::SurfaceFormatKHR>& swapchainColorFormatOptions,
-        const std::vector<vk::Format>& swapchainDepthFormatOptions
-    );
-    /// Reset the setSwapchainFormatOptions() function 
-    void resetSwapchainFormatOptions();
-
-    /// Configure window graphics
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult configureWindowGraphics();
-    /// Reset the configureWindowGraphics() function 
-    void resetWindowConfiguration();
+    [[nodiscard]] AxrResult setupWindowGraphics();
+    /// Reset the setupWindowGraphics() function 
+    void resetSetupWindowGraphics();
 
     // ---- Surface ----
 
@@ -253,9 +258,23 @@ private:
     void resetSetupSwapchain();
 
     /// Recreate the swapchain and it's related data
-    /// @returns AXR_SUCCESS if the function succeeded. AXR_DONT_RENDER if the window is minimized.
+    /// @returns AXR_SUCCESS if the function succeeded.
+    /// @returns AXR_DONT_RENDER if we should skip rendering this frame.
     [[nodiscard]] AxrResult recreateSwapchain();
 
+    /// Set the swapchain color and depth format options
+    /// @param physicalDevice Physical device to use
+    /// @param swapchainColorFormatOptions Swapchain color format options to choose from
+    /// @param swapchainDepthFormatOptions Swapchain depth format options to choose from
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setSwapchainFormatOptions(
+        const vk::PhysicalDevice& physicalDevice,
+        const std::vector<vk::SurfaceFormatKHR>& swapchainColorFormatOptions,
+        const std::vector<vk::Format>& swapchainDepthFormatOptions
+    );
+    /// Reset the setSwapchainFormatOptions() function 
+    void resetSwapchainFormatOptions();
+    
     /// Set the swapchain color and depth formats
     /// @param surfaceFormats Collection of surface formats that are available to us
     /// @returns AXR_SUCCESS if the function succeeded

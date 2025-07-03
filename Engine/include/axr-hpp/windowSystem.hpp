@@ -86,6 +86,12 @@ namespace axr {
         // Public Functions
         // ----------------------------------------- //
 
+        /// Check if the window system is valid for use
+        /// @returns True if the window system is valid for use
+        [[nodiscard]] bool isValid() const {
+            return axrWindowSystemIsValid(m_WindowSystem);
+        }
+
         /// Check if the window is open
         /// @returns True if the window is open
         [[nodiscard]] bool isWindowOpen() const {
@@ -94,12 +100,12 @@ namespace axr {
 
         /// Open the window
         /// @returns AXR_SUCCESS if the function succeeded
-        [[nodiscard]] axr::Result openWindow() {
+        [[nodiscard]] axr::Result openWindow() const {
             return static_cast<axr::Result>(axrWindowSystemOpenWindow(m_WindowSystem));
         }
 
         /// Signal that we want to close the window
-        void closeWindow() {
+        void closeWindow() const {
             axrWindowSystemCloseWindow(m_WindowSystem);
         }
 

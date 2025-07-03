@@ -1,11 +1,6 @@
 #pragma once
 
 // ----------------------------------------- //
-// C Headers
-// ----------------------------------------- //
-#include <cstdint>
-
-// ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/common/defines.h"
@@ -14,6 +9,7 @@
 #include "axr/graphicsSystem.h"
 #include "axr/assets.h"
 #include "axr/scene.h"
+#include "axr/xrSystem.h"
 
 // ----------------------------------------- //
 // Structs
@@ -23,8 +19,9 @@
 struct AxrApplicationConfig {
     const char* ApplicationName;
     uint32_t ApplicationVersion;
-    AxrWindowSystemConfig WindowSystemConfig;
     AxrGraphicsSystemConfig GraphicsSystemConfig;
+    const AxrWindowSystemConfig* WindowSystemConfig;
+    const AxrXrSystemConfig* XrSystemConfig;
 };
 
 // ----------------------------------------- //
@@ -64,6 +61,10 @@ extern "C" {
     /// @param app The AxrApplication to use
     /// @returns A handle to the window system
     AXR_API AxrWindowSystem_T axrApplicationGetWindowSystem(AxrApplication_T app);
+    /// Get the axrApplication xr system
+    /// @param app The AxrApplication to use
+    /// @returns A handle to the xr system
+    AXR_API AxrXrSystem_T axrApplicationGetXrSystem(AxrApplication_T app);
     /// Get the axrApplication graphics system
     /// @param app The AxrApplication to use
     /// @returns A handle to the graphics system

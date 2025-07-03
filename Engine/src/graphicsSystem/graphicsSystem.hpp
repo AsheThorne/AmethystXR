@@ -24,6 +24,7 @@ public:
         const char* ApplicationName;
         uint32_t ApplicationVersion;
         AxrWindowSystem_T WindowSystem;
+        AxrXrSystem_T XrSystem;
         AxrAssetCollection_T GlobalAssetCollection;
         AxrGraphicsSystemConfig GraphicsConfig;
     };
@@ -65,6 +66,10 @@ public:
     /// Draw the current frame
     void drawFrame();
 
+    /// Set the clear color
+    /// @param color Clear color
+    void setClearColor(const glm::vec4& color) const;
+
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
     // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
@@ -72,8 +77,8 @@ public:
     /// Set up the graphics system
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setup();
-    /// Clean up this class
-    void cleanup();
+    /// Reset setup()
+    void resetSetup();
 
     /// Load the named scene
     /// @param scene Scene to load

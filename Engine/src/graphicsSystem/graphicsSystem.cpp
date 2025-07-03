@@ -17,6 +17,15 @@ void axrGraphicsSystemDrawFrame(const AxrGraphicsSystem_T graphicsSystem) {
     graphicsSystem->drawFrame();
 }
 
+void axrGraphicsSystemSetClearColor(const AxrGraphicsSystemConst_T graphicsSystem, const glm::vec4 color) {
+    if (graphicsSystem == nullptr) {
+        axrLogErrorLocation("`graphicsSystem` is null.");
+        return;
+    }
+
+    graphicsSystem->setClearColor(color);
+}
+
 // ----------------------------------------- //
 // Internal Functions
 // ----------------------------------------- //
@@ -49,9 +58,9 @@ AxrGraphicsSystem::AxrGraphicsSystem(const Config& config):
                     .ApplicationName = config.ApplicationName,
                     .ApplicationVersion = config.ApplicationVersion,
                     .WindowSystem = config.WindowSystem,
+                    .XrSystem = config.XrSystem,
                     .GlobalAssetCollection = config.GlobalAssetCollection,
                     .WindowConfig = useWindowConfig ? &windowConfig : nullptr,
-                    .ClearColor = config.GraphicsConfig.ClearColor,
                     .SamplerAnisotropyQuality = config.GraphicsConfig.SamplerAnisotropyQuality,
                     .ApiLayerCount = config.GraphicsConfig.VulkanConfig->ApiLayerCount,
                     .ApiLayers = config.GraphicsConfig.VulkanConfig->ApiLayers,
@@ -67,7 +76,7 @@ AxrGraphicsSystem::AxrGraphicsSystem(const Config& config):
 }
 
 AxrGraphicsSystem::~AxrGraphicsSystem() {
-    cleanup();
+    resetSetup();
 }
 
 // ---- Public Headers ----
@@ -82,6 +91,30 @@ void AxrGraphicsSystem::drawFrame() {
             }
 
             m_VulkanGraphicsSystem->drawFrame();
+            return;
+#elif
+            axrLogErrorLocation("Vulkan not supported.");
+            return;
+#endif
+        }
+        case AXR_GRAPHICS_API_UNDEFINED:
+        default: { // NOLINT(clang-diagnostic-covered-switch-default)
+            axrLogErrorLocation("Unknown platform.");
+            return;
+        }
+    }
+}
+
+void AxrGraphicsSystem::setClearColor(const glm::vec4& color) const {
+    switch (m_GraphicsApi) {
+        case AXR_GRAPHICS_API_VULKAN: {
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+            if (m_VulkanGraphicsSystem == nullptr) {
+                axrLogErrorLocation("VulkanGraphicsSystem is null.");
+                return;
+            }
+
+            m_VulkanGraphicsSystem->setClearColor(color);
             return;
 #elif
             axrLogErrorLocation("Vulkan not supported.");
@@ -119,7 +152,7 @@ AxrResult AxrGraphicsSystem::setup() {
     }
 }
 
-void AxrGraphicsSystem::cleanup() {
+void AxrGraphicsSystem::resetSetup() {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     if (m_VulkanGraphicsSystem != nullptr) {
         delete m_VulkanGraphicsSystem;

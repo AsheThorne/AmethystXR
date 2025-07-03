@@ -80,6 +80,9 @@ public:
     /// Get the window pipeline
     /// @returns The window pipeline
     [[nodiscard]] const vk::Pipeline& getWindowPipeline() const;
+    /// Get the xr session pipeline
+    /// @returns The xr session pipeline
+    [[nodiscard]] const vk::Pipeline& getXrSessionPipeline() const;
     /// Get the push constant buffer name
     /// @returns The push constant buffer name
     [[nodiscard]] const std::string& getPushConstantBufferName() const;
@@ -100,6 +103,9 @@ public:
     /// Check if the window specific data exists
     /// @returns True if the window specific data exists
     [[nodiscard]] bool doesWindowDataExist() const;
+    /// Check if the xr session specific data exists
+    /// @returns True if the xr session specific data exists
+    [[nodiscard]] bool doesXrSessionDataExist() const;
 
     /// Create the material data
     /// @returns AXR_SUCCESS if the function succeeded
@@ -117,6 +123,19 @@ public:
     );
     /// Destroy the window specific material data
     void destroyWindowData();
+
+    /// Create the xr session specific material data
+    /// @param renderPass Render pass to use
+    /// @param msaaSampleCount Msaa sample count
+    /// @param viewCount The number of views for the xr device
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createXrSessionData(
+        vk::RenderPass renderPass,
+        vk::SampleCountFlagBits msaaSampleCount,
+        uint32_t viewCount
+    );
+    /// Destroy the xr session specific material data
+    void destroyXrSessionData();
 
 private:
     // ----------------------------------------- //
@@ -140,8 +159,16 @@ private:
 
     // ---- Window Data ----
     vk::DescriptorPool m_WindowDescriptorPool;
+    /// One for each frame in flight
     std::vector<vk::DescriptorSet> m_WindowDescriptorSets;
     vk::Pipeline m_WindowPipeline;
+
+    // ---- Xr Session Data ----
+    vk::DescriptorPool m_XrSessionDescriptorPool;
+    /// One for each frame in flight and for each view.
+    /// Data organised view first, like this: [View1-Frame1, View1-Frame2, ..., View2-Frame1, View2-Frame2, ...].
+    std::vector<vk::DescriptorSet> m_XrSessionDescriptorSets;
+    vk::Pipeline m_XrSessionPipeline;
 
     // ----------------------------------------- //
     // Private Functions
@@ -167,10 +194,12 @@ private:
     // ---- Descriptor Sets ----
 
     /// Create the descriptor sets
+    /// @param viewCount The number of views for the xr device
     /// @param descriptorPool The descriptor pool to use
     /// @param descriptorSets The output descriptor sets
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult createDescriptorSets(
+        uint32_t viewCount,
         vk::DescriptorPool descriptorPool,
         std::vector<vk::DescriptorSet>& descriptorSets
     ) const;

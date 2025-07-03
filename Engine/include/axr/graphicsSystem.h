@@ -59,7 +59,6 @@ struct AxrGraphicsSystemConfig {
     AxrVulkanApiConfig_T VulkanConfig;
 #endif
     const AxrGraphicsWindowConfig* GraphicsWindowConfig;
-    glm::vec4 ClearColor;
     AxrSamplerAnisotropyQualityEnum SamplerAnisotropyQuality;
 };
 
@@ -79,4 +78,8 @@ extern "C" {
     /// Draw the current frame
     /// @param graphicsSystem Graphics system to use
     AXR_API void axrGraphicsSystemDrawFrame(AxrGraphicsSystem_T graphicsSystem);
+    /// Set the clear color
+    /// @param graphicsSystem Graphics system to use
+    /// @param color Clear color
+    AXR_API void axrGraphicsSystemSetClearColor(AxrGraphicsSystemConst_T graphicsSystem, glm::vec4 color);
 }

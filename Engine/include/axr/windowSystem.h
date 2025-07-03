@@ -11,15 +11,6 @@
 #include "axr/common.h"
 
 // ----------------------------------------- //
-// Forward Declared Handles
-// ----------------------------------------- //
-
-/// AxrWindowSystem Handle
-typedef class AxrWindowSystem* AxrWindowSystem_T;
-/// const AxrWindowSystem Handle
-typedef const AxrWindowSystem* AxrWindowSystemConst_T;
-
-// ----------------------------------------- //
 // Structs
 // ----------------------------------------- //
 
@@ -30,9 +21,22 @@ struct AxrWindowSystemConfig {
 };
 
 // ----------------------------------------- //
+// Forward Declared Handles
+// ----------------------------------------- //
+
+/// AxrWindowSystem Handle
+typedef class AxrWindowSystem* AxrWindowSystem_T;
+/// const AxrWindowSystem Handle
+typedef const AxrWindowSystem* AxrWindowSystemConst_T;
+
+// ----------------------------------------- //
 // External Function Definitions
 // ----------------------------------------- //
 extern "C" {
+    /// Check if the window system is valid for use
+    /// @param windowSystem The widow system to use
+    /// @returns True if the window system is valid for use
+    AXR_API bool axrWindowSystemIsValid(AxrWindowSystemConst_T windowSystem);
     /// Check if the window is open
     /// @param windowSystem The window system to use
     /// @returns True if the window is open

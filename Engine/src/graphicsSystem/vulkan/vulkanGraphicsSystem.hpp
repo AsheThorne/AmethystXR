@@ -14,7 +14,8 @@
 #include "axr/assets.h"
 #include "vulkanQueueFamilies.hpp"
 #include "vulkanWindowGraphics.hpp"
-#include "vulkanExtensionCollection.hpp"
+#include "vulkanXrGraphics.hpp"
+#include "../../extensionCollection.hpp"
 #include "sceneData/vulkanLoadedScenesCollection.hpp"
 #include "vulkanRenderCommands.hpp"
 
@@ -51,9 +52,9 @@ public:
         const char* ApplicationName;
         uint32_t ApplicationVersion;
         AxrWindowSystem_T WindowSystem;
+        AxrXrSystem_T XrSystem;
         AxrAssetCollection_T GlobalAssetCollection;
         WindowConfig* WindowConfig;
-        glm::vec4 ClearColor;
         AxrSamplerAnisotropyQualityEnum SamplerAnisotropyQuality;
         uint32_t ApiLayerCount;
         AxrVulkanApiLayer_T* ApiLayers;
@@ -102,6 +103,10 @@ public:
     /// Draw the current frame
     void drawFrame() const;
 
+    /// Set the clear color
+    /// @param color Clear color
+    void setClearColor(const glm::vec4& color) const;
+
     /// Load the named scene
     /// @param scene Scene to load
     /// @returns AXR_SUCCESS if the function succeeded
@@ -121,8 +126,8 @@ private:
     std::string m_ApplicationName;
     uint32_t m_ApplicationVersion;
     AxrAssetCollection_T m_GlobalAssetCollection;
-    AxrVulkanExtensionCollection<AxrVulkanApiLayer_T, AxrVulkanApiLayerTypeEnum> m_ApiLayers;
-    AxrVulkanExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum> m_Extensions;
+    AxrExtensionCollection<AxrVulkanApiLayer_T, AxrVulkanApiLayerTypeEnum> m_ApiLayers;
+    AxrExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum> m_Extensions;
     AxrSamplerAnisotropyQualityEnum m_SamplerAnisotropyQuality;
 
     /// Ordered from most desired to the least desired
@@ -142,6 +147,7 @@ private:
 
     AxrVulkanLoadedScenesCollection m_LoadedScenes;
     AxrVulkanWindowGraphics* m_WindowGraphics;
+    AxrVulkanXrGraphics* m_XrGraphics;
 
     // ----------------------------------------- //
     // Private Functions
@@ -204,7 +210,7 @@ private:
 
     /// Create the debug utils messenger create info
     /// @retrns The debug utils messenger create info
-    [[nodiscard]] vk::DebugUtilsMessengerCreateInfoEXT createDebugUtilsCreateInto() const;
+    [[nodiscard]] vk::DebugUtilsMessengerCreateInfoEXT createDebugUtilsCreateInfo() const;
 
     /// Create the debug utils messenger
     /// @returns AXR_SUCCESS if the function succeeded
@@ -222,8 +228,9 @@ private:
 
     /// Decide on which physical device we'd like to use.
     /// If OpenXR is being used though, we need to use the one it selects for us
-    /// @returns The physical device we should use
-    [[nodiscard]] vk::PhysicalDevice pickPhysicalDevice() const;
+    /// @param physicalDevice Output physical device we should use
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult pickPhysicalDevice(vk::PhysicalDevice& physicalDevice) const;
 
     /// Score the given physical device. The higher the number, the better.
     /// 0 Means it is not suitable to use.
@@ -330,6 +337,14 @@ private:
     [[nodiscard]] AxrResult setupWindowGraphics();
     /// Reset the setupWindowGraphics() function
     void resetSetupWindowGraphics();
+
+    // ---- Xr Related Functions ----
+
+    /// Set up xr graphics
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setupXrGraphics();
+    /// Reset the setupXrGraphics() function
+    void resetSetupXrGraphics();
 
     // ---- Rendering ----
 

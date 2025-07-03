@@ -17,7 +17,8 @@ public:
     /// Window System Config
     struct Config {
         const char* ApplicationName;
-        AxrWindowSystemConfig WindowConfig;
+        uint32_t Width;
+        uint32_t Height;
     };
 
     // ----------------------------------------- //
@@ -49,9 +50,11 @@ public:
 
     // ---- Constructors ----
 
+    /// Null config Constructor
+    explicit AxrWindowSystem(std::nullptr_t);
     /// Constructor
     /// @param config Window config
-    AxrWindowSystem(const Config& config);
+    explicit AxrWindowSystem(const Config& config);
     /// Copy Constructor
     /// @param src Source AxrWindowSystem to copy from
     AxrWindowSystem(const AxrWindowSystem& src) = delete;
@@ -77,6 +80,10 @@ public:
     // Public Functions
     // ----------------------------------------- //
 
+    /// Check if the window system is valid for use
+    /// @returns True if the window system is valid for use
+    [[nodiscard]] bool isValid() const;
+
     /// Check if the window is open
     /// @returns True if the window is open
     [[nodiscard]] bool isWindowOpen() const;
@@ -93,8 +100,8 @@ public:
     /// Set up the window system
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setup();
-    /// Clean up this class
-    void cleanup();
+    /// Reset setup()
+    void resetSetup();
 
     /// Process the window events
     void processEvents();
@@ -113,10 +120,11 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
+    bool m_IsValid = false;
 
 #ifdef AXR_USE_PLATFORM_WIN32
     // ---- Win32 Variables ----
-    AxrWin32WindowSystem* m_Win32WindowSystem;
+    AxrWin32WindowSystem* m_Win32WindowSystem = nullptr;
 #endif
 
     // ----------------------------------------- //

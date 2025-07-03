@@ -119,6 +119,19 @@ public:
     /// Reset the setupWindowData() function
     void resetSetupWindowData();
 
+    /// Set up the xr session data for all scenes and load all xr session specific scene data
+    /// @param renderPass Render pass to use
+    /// @param msaaSampleCount Msaa sample count
+    /// @param viewCount The number of views for the xr device
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setupXrSessionData(
+        vk::RenderPass renderPass,
+        vk::SampleCountFlagBits msaaSampleCount,
+        uint32_t viewCount
+    );
+    /// Reset the setupXrSessionData() function
+    void resetSetupXrSessionData();
+
 private:
     // ----------------------------------------- //
     // Private Variables
@@ -141,6 +154,12 @@ private:
     // ---- Setup Window Config ----
     vk::RenderPass m_WindowRenderPass;
     vk::SampleCountFlagBits m_WindowMsaaSampleCount;
+
+    // TODO: Should this be in a struct? then we can use it in setupXrSessionData() too
+    // ---- Setup Xr Session Config ----
+    vk::RenderPass m_XrSessionRenderPass;
+    vk::SampleCountFlagBits m_XrSessionMsaaSampleCount;
+    uint32_t m_XrSessionViewCount;
 
     std::pair<AxrScene_T, AxrVulkanSceneData*> m_ActiveScene;
     std::vector<std::pair<AxrScene_T, AxrVulkanSceneData*>> m_LoadedScenes;
@@ -174,7 +193,7 @@ private:
     // ---- Window Scene Data ----
 
     /// Check if the window scene data is ready
-    /// @returns True if teh window scene data is ready
+    /// @returns True if the window scene data is ready
     [[nodiscard]] bool isWindowReady() const;
 
     /// Load all window specific scene data for the loaded scenes
@@ -182,6 +201,18 @@ private:
     [[nodiscard]] AxrResult loadAllWindowSceneData() const;
     /// Unload all window specific scene data for the loaded scenes
     void unloadAllWindowSceneData() const;
+
+    // ---- Xr session Scene Data ----
+
+    /// Check if the xr session scene data is ready
+    /// @returns True if the xr session scene data is ready
+    [[nodiscard]] bool isXrSessionReady() const;
+
+    /// Load all xr session specific scene data for the loaded scenes
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult loadAllXrSessionSceneData() const;
+    /// Unload all xr session specific scene data for the loaded scenes
+    void unloadAllXrSessionSceneData() const;
 };
 
 #endif

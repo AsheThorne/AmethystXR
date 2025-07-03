@@ -18,15 +18,14 @@ AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
     m_WindowSystem(config.WindowSystem),
     m_Dispatch(config.Dispatch),
     m_LoadedScenes(config.LoadedScenes),
-    m_PreferredPresentationMode(config.PresentationMode),
     m_MaxFramesInFlight(config.MaxFramesInFlight),
-    m_ClearColor(config.ClearColor),
+    m_PreferredPresentationMode(config.PresentationMode),
+    m_ClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)),
     m_MaxMsaaSampleCount(config.MaxMsaaSampleCount),
     m_Instance(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
     m_GraphicsCommandPool(VK_NULL_HANDLE),
-    m_MsaaSampleCount(vk::SampleCountFlagBits::e1),
     m_SwapchainImageLayout(vk::ImageLayout::ePresentSrcKHR),
     m_Surface(VK_NULL_HANDLE),
     m_SwapchainColorFormat(vk::Format::eUndefined),
@@ -38,7 +37,8 @@ AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
     m_IsReady(false),
     m_CurrentImageIndex(0),
     m_CurrentFrame(0),
-    m_IsSwapchainOutOfDate(false) {
+    m_IsSwapchainOutOfDate(false),
+    m_MsaaSampleCount(vk::SampleCountFlagBits::e1) {
 }
 
 AxrVulkanWindowGraphics::~AxrVulkanWindowGraphics() {
@@ -48,7 +48,7 @@ AxrVulkanWindowGraphics::~AxrVulkanWindowGraphics() {
 // ---- Public Functions ----
 
 void AxrVulkanWindowGraphics::addRequiredInstanceExtensions(
-    AxrVulkanExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum>& extensions
+    AxrExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum>& extensions
 ) const {
     auto surfaceExtension = AxrVulkanExtensionSurface{};
     extensions.add(reinterpret_cast<AxrVulkanExtension_T>(&surfaceExtension));
@@ -60,202 +60,17 @@ void AxrVulkanWindowGraphics::addRequiredInstanceExtensions(
 }
 
 void AxrVulkanWindowGraphics::addRequiredDeviceExtensions(
-    AxrVulkanExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum>& extensions
+    AxrExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum>& extensions
 ) const {
     auto swapchainExtension = AxrVulkanExtensionSwapchain{};
     extensions.add(reinterpret_cast<AxrVulkanExtension_T>(&swapchainExtension));
 }
 
+void AxrVulkanWindowGraphics::setClearColor(const glm::vec4& color) {
+    m_ClearColor = color;
+}
+
 AxrResult AxrVulkanWindowGraphics::setup(const SetupConfig& config) {
-    AxrResult result = AXR_SUCCESS;
-
-    result = setSetupConfigVariables(config);
-    if (AXR_FAILED(result)) {
-        resetSetup();
-        return result;
-    }
-
-    m_WindowSystem.OnWindowOpenStateChangedCallbackGraphics
-                  .connect<&AxrVulkanWindowGraphics::onWindowOpenStateChangedCallback>(this);
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanWindowGraphics::resetSetup() {
-    resetWindowConfiguration();
-
-    m_WindowSystem.OnWindowOpenStateChangedCallbackGraphics.reset();
-    resetSetupConfigVariables();
-}
-
-bool AxrVulkanWindowGraphics::isReady() const {
-    return m_IsReady;
-}
-
-AxrPlatformType AxrVulkanWindowGraphics::getPlatformType() const {
-    return AXR_PLATFORM_TYPE_WINDOW;
-}
-
-vk::RenderPass AxrVulkanWindowGraphics::getRenderPass() const {
-    return m_RenderPass;
-}
-
-vk::Framebuffer AxrVulkanWindowGraphics::getFramebuffer() const {
-    return m_SwapchainFramebuffers[m_CurrentImageIndex];
-}
-
-vk::Extent2D AxrVulkanWindowGraphics::getSwapchainExtent() const {
-    return m_SwapchainExtent;
-}
-
-vk::ClearColorValue AxrVulkanWindowGraphics::getClearColorValue() const {
-    return vk::ClearColorValue(m_ClearColor.x, m_ClearColor.y, m_ClearColor.z, m_ClearColor.w);
-}
-
-vk::CommandBuffer AxrVulkanWindowGraphics::getRenderingCommandBuffer() const {
-    return m_RenderingCommandBuffers[m_CurrentFrame];
-}
-
-std::vector<vk::Semaphore> AxrVulkanWindowGraphics::getRenderingWaitSemaphores() const {
-    return {m_ImageAvailableSemaphores[m_CurrentFrame]};
-}
-
-std::vector<vk::PipelineStageFlags> AxrVulkanWindowGraphics::getRenderingWaitStages() const {
-    return {vk::PipelineStageFlagBits::eColorAttachmentOutput};
-}
-
-std::vector<vk::Semaphore> AxrVulkanWindowGraphics::getRenderingSignalSemaphores() const {
-    return {m_RenderingFinishedSemaphores[m_CurrentFrame]};
-}
-
-vk::Fence AxrVulkanWindowGraphics::getRenderingFence() const {
-    return {m_RenderingFences[m_CurrentFrame]};
-}
-
-uint32_t AxrVulkanWindowGraphics::getCurrentRenderingFrame() const {
-    return m_CurrentFrame;
-}
-
-AxrResult AxrVulkanWindowGraphics::acquireNextSwapchainImage() {
-    AxrResult axrResult = AXR_SUCCESS;
-
-    if (m_IsSwapchainOutOfDate) {
-        axrResult = recreateSwapchain();
-        if (axrResult == AXR_DONT_RENDER) {
-            return AXR_DONT_RENDER;
-        }
-
-        if (AXR_FAILED(axrResult)) {
-            axrLogErrorLocation("Failed to recreate swapchain.");
-            return AXR_ERROR;
-        }
-    }
-
-    const vk::Result vkResult = m_Device.acquireNextImageKHR(
-        m_Swapchain,
-        UINT64_MAX,
-        m_ImageAvailableSemaphores[m_CurrentFrame],
-        VK_NULL_HANDLE,
-        &m_CurrentImageIndex,
-        m_Dispatch
-    );
-
-    if (vkResult == vk::Result::eErrorOutOfDateKHR || vkResult == vk::Result::eSuboptimalKHR) {
-        axrResult = recreateSwapchain();
-        if (axrResult == AXR_DONT_RENDER) {
-            return AXR_DONT_RENDER;
-        }
-
-        if (AXR_FAILED(axrResult)) {
-            axrLogErrorLocation("Failed to recreate swapchain.");
-            return axrResult;
-        }
-    } else {
-        axrLogVkResult(vkResult, "m_Device.acquireNextImageKHR");
-        if (VK_FAILED(vkResult)) {
-            return AXR_ERROR;
-        }
-    }
-
-    return AXR_SUCCESS;
-}
-
-AxrResult AxrVulkanWindowGraphics::presentFrame() {
-    const std::vector<vk::Semaphore> waitSemaphores = getRenderingSignalSemaphores();
-
-    const vk::PresentInfoKHR presentInfo(
-        static_cast<uint32_t>(waitSemaphores.size()),
-        waitSemaphores.data(),
-        1,
-        &m_Swapchain,
-        &m_CurrentImageIndex,
-        nullptr
-    );
-
-    const vk::Result vkResult = m_QueueFamilies.PresentationQueue.presentKHR(
-        &presentInfo,
-        m_Dispatch
-    );
-
-    if (vkResult == vk::Result::eErrorOutOfDateKHR || vkResult == vk::Result::eSuboptimalKHR) {
-        const AxrResult axrResult = recreateSwapchain();
-        if (axrResult == AXR_DONT_RENDER) {
-            return AXR_DONT_RENDER;
-        }
-
-        if (AXR_FAILED(axrResult)) {
-            axrLogErrorLocation("Failed to recreate swapchain.");
-            return axrResult;
-        }
-    } else {
-        axrLogVkResult(vkResult, "PresentationQueue.presentKHR");
-        if (AXR_FAILED(vkResult)) {
-            return AXR_ERROR;
-        }
-    }
-
-    m_CurrentFrame = (m_CurrentFrame + 1) % m_MaxFramesInFlight;
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanWindowGraphics::getRenderingMatrices(glm::mat4& viewMatrix, glm::mat4& projectionMatrix) const {
-    const AxrScene_T activeScene = m_LoadedScenes.getActiveScene();
-    if (activeScene == nullptr) {
-        axrLogErrorLocation("No active scene.");
-        return;
-    }
-
-    if (!activeScene->isMainCameraValid()) {
-        axrLogErrorLocation("No main camera.");
-        return;
-    }
-
-    const AxrEntityConst_T cameraEntity = activeScene->getMainCamera();
-    auto [cameraComponent, cameraTransformComponent] = cameraEntity
-        .get<AxrCameraComponent, AxrTransformComponent>();
-
-    viewMatrix = glm::inverse(
-        glm::translate(glm::mat4(1.0f), cameraTransformComponent.Position) *
-        glm::toMat4(cameraTransformComponent.Orientation)
-    );
-
-    const float aspectRatio = static_cast<float>(m_SwapchainExtent.height) / static_cast<float>(m_SwapchainExtent.
-        width);
-    const float verticalFovRadians = 2.0f * atan(tan(glm::radians(cameraComponent.Fov) / 2.0f) * aspectRatio);
-
-    projectionMatrix = glm::perspective(
-        verticalFovRadians,
-        static_cast<float>(m_SwapchainExtent.width) / static_cast<float>(m_SwapchainExtent.height),
-        cameraComponent.NearPlane,
-        cameraComponent.FarPlane
-    );
-    projectionMatrix[1][1] *= -1.0f;
-}
-
-// ---- Private Functions ----
-
-AxrResult AxrVulkanWindowGraphics::setSetupConfigVariables(const SetupConfig& config) {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -313,6 +128,7 @@ AxrResult AxrVulkanWindowGraphics::setSetupConfigVariables(const SetupConfig& co
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //
+
     m_Instance = config.Instance;
     m_PhysicalDevice = config.PhysicalDevice;
     m_Device = config.Device;
@@ -325,15 +141,21 @@ AxrResult AxrVulkanWindowGraphics::setSetupConfigVariables(const SetupConfig& co
         config.SwapchainDepthFormatOptions
     );
     if (AXR_FAILED(axrResult)) {
+        resetSetup();
         return axrResult;
     }
+
+    m_WindowSystem.OnWindowOpenStateChangedCallbackGraphics
+                  .connect<&AxrVulkanWindowGraphics::onWindowOpenStateChangedCallback>(this);
 
     return AXR_SUCCESS;
 }
 
-void AxrVulkanWindowGraphics::resetSetupConfigVariables() {
-    resetSwapchainFormatOptions();
+void AxrVulkanWindowGraphics::resetSetup() {
+    resetSetupWindowGraphics();
+    m_WindowSystem.OnWindowOpenStateChangedCallbackGraphics.reset();
 
+    resetSwapchainFormatOptions();
     m_Instance = VK_NULL_HANDLE;
     m_PhysicalDevice = VK_NULL_HANDLE;
     m_Device = VK_NULL_HANDLE;
@@ -341,83 +163,198 @@ void AxrVulkanWindowGraphics::resetSetupConfigVariables() {
     m_QueueFamilies.reset();
 }
 
-AxrResult AxrVulkanWindowGraphics::setSwapchainFormatOptions(
-    const vk::PhysicalDevice& physicalDevice,
-    const std::vector<vk::SurfaceFormatKHR>& swapchainColorFormatOptions,
-    const std::vector<vk::Format>& swapchainDepthFormatOptions
-) {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
+bool AxrVulkanWindowGraphics::isReady() const {
+    return m_IsReady;
+}
 
-    if (!m_SwapchainColorFormatOptions.empty()) {
-        axrLogErrorLocation("Swapchain color format options aren't empty.");
-        return AXR_ERROR;
-    }
+AxrResult AxrVulkanWindowGraphics::beginRendering() {
+    // Nothing needed here
+    return AXR_SUCCESS;
+}
 
-    if (!m_SwapchainDepthFormatOptions.empty()) {
-        axrLogErrorLocation("Swapchain depth format options aren't empty.");
-        return AXR_ERROR;
-    }
+AxrResult AxrVulkanWindowGraphics::endRendering() {
+    // Nothing needed here
+    return AXR_SUCCESS;
+}
 
-    if (swapchainColorFormatOptions.empty()) {
-        axrLogErrorLocation("Swapchain color format options are empty.");
-        return AXR_ERROR;
-    }
+uint32_t AxrVulkanWindowGraphics::getViewCount() const {
+    return 1;
+}
 
-    if (swapchainDepthFormatOptions.empty()) {
-        axrLogErrorLocation("Swapchain depth format options are empty.");
-        return AXR_ERROR;
-    }
+AxrPlatformType AxrVulkanWindowGraphics::getPlatformType() const {
+    return AXR_PLATFORM_TYPE_WINDOW;
+}
 
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
+vk::RenderPass AxrVulkanWindowGraphics::getRenderPass() const {
+    return m_RenderPass;
+}
 
-    for (const vk::SurfaceFormatKHR surfaceFormat : swapchainColorFormatOptions) {
-        if (axrAreFormatFeaturesSupported(
-            surfaceFormat.format,
-            vk::ImageTiling::eOptimal,
-            vk::FormatFeatureFlagBits::eSampledImage &
-            vk::FormatFeatureFlagBits::eColorAttachment,
-            // TODO: Check if we're rendering directly to the surface first for asking for these.
-            // vk::FormatFeatureFlagBits::eBlitDst &
-            // vk::FormatFeatureFlagBits::eTransferDst,
-            physicalDevice,
-            m_Dispatch
-        )) {
-            m_SwapchainColorFormatOptions.push_back(surfaceFormat);
+vk::Framebuffer AxrVulkanWindowGraphics::getFramebuffer(const uint32_t viewIndex) const {
+    return m_SwapchainFramebuffers[m_CurrentImageIndex];
+}
+
+vk::Extent2D AxrVulkanWindowGraphics::getSwapchainExtent(const uint32_t viewIndex) const {
+    return m_SwapchainExtent;
+}
+
+vk::ClearColorValue AxrVulkanWindowGraphics::getClearColorValue() const {
+    return vk::ClearColorValue(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
+}
+
+vk::CommandBuffer AxrVulkanWindowGraphics::getRenderingCommandBuffer(const uint32_t viewIndex) const {
+    return m_RenderingCommandBuffers[m_CurrentFrame];
+}
+
+std::vector<vk::Semaphore> AxrVulkanWindowGraphics::getRenderingWaitSemaphores(const uint32_t viewIndex) const {
+    return {m_ImageAvailableSemaphores[m_CurrentFrame]};
+}
+
+std::vector<vk::PipelineStageFlags> AxrVulkanWindowGraphics::getRenderingWaitStages(const uint32_t viewIndex) const {
+    return {vk::PipelineStageFlagBits::eColorAttachmentOutput};
+}
+
+std::vector<vk::Semaphore> AxrVulkanWindowGraphics::getRenderingSignalSemaphores(const uint32_t viewIndex) const {
+    return {m_RenderingFinishedSemaphores[m_CurrentFrame]};
+}
+
+vk::Fence AxrVulkanWindowGraphics::getRenderingFence(const uint32_t viewIndex) const {
+    return {m_RenderingFences[m_CurrentFrame]};
+}
+
+uint32_t AxrVulkanWindowGraphics::getCurrentRenderingFrame() const {
+    return m_CurrentFrame;
+}
+
+AxrResult AxrVulkanWindowGraphics::acquireNextSwapchainImage(const uint32_t viewIndex) {
+    AxrResult axrResult = AXR_SUCCESS;
+
+    if (m_IsSwapchainOutOfDate) {
+        axrResult = recreateSwapchain();
+        if (axrResult == AXR_DONT_RENDER) {
+            return AXR_DONT_RENDER;
+        }
+
+        if (AXR_FAILED(axrResult)) {
+            axrLogErrorLocation("Failed to recreate swapchain.");
+            return AXR_ERROR;
         }
     }
 
-    for (const vk::Format format : swapchainDepthFormatOptions) {
-        if (axrAreFormatFeaturesSupported(
-            format,
-            vk::ImageTiling::eOptimal,
-            vk::FormatFeatureFlagBits::eSampledImage &
-            vk::FormatFeatureFlagBits::eDepthStencilAttachment,
-            physicalDevice,
-            m_Dispatch
-        )) {
-            m_SwapchainDepthFormatOptions.push_back(format);
+    const vk::Result vkResult = m_Device.acquireNextImageKHR(
+        m_Swapchain,
+        UINT64_MAX,
+        m_ImageAvailableSemaphores[m_CurrentFrame],
+        VK_NULL_HANDLE,
+        &m_CurrentImageIndex,
+        m_Dispatch
+    );
+
+    if (vkResult == vk::Result::eErrorOutOfDateKHR || vkResult == vk::Result::eSuboptimalKHR) {
+        axrResult = recreateSwapchain();
+        if (axrResult == AXR_DONT_RENDER) {
+            return AXR_DONT_RENDER;
+        }
+
+        if (AXR_FAILED(axrResult)) {
+            axrLogErrorLocation("Failed to recreate swapchain.");
+            return axrResult;
+        }
+    } else {
+        axrLogVkResult(vkResult, "m_Device.acquireNextImageKHR");
+        if (VK_FAILED(vkResult)) {
+            return AXR_ERROR;
         }
     }
 
     return AXR_SUCCESS;
 }
 
-void AxrVulkanWindowGraphics::resetSwapchainFormatOptions() {
-    m_SwapchainColorFormatOptions.clear();
-    m_SwapchainDepthFormatOptions.clear();
+AxrResult AxrVulkanWindowGraphics::presentFrame(const uint32_t viewIndex) {
+    const std::vector<vk::Semaphore> waitSemaphores = getRenderingSignalSemaphores(viewIndex);
+
+    const vk::PresentInfoKHR presentInfo(
+        static_cast<uint32_t>(waitSemaphores.size()),
+        waitSemaphores.data(),
+        1,
+        &m_Swapchain,
+        &m_CurrentImageIndex,
+        nullptr
+    );
+
+    const vk::Result vkResult = m_QueueFamilies.PresentationQueue.presentKHR(
+        &presentInfo,
+        m_Dispatch
+    );
+
+    if (vkResult == vk::Result::eErrorOutOfDateKHR || vkResult == vk::Result::eSuboptimalKHR) {
+        const AxrResult axrResult = recreateSwapchain();
+        if (axrResult == AXR_DONT_RENDER) {
+            return AXR_DONT_RENDER;
+        }
+
+        if (AXR_FAILED(axrResult)) {
+            axrLogErrorLocation("Failed to recreate swapchain.");
+            return axrResult;
+        }
+    } else {
+        axrLogVkResult(vkResult, "PresentationQueue.presentKHR");
+        if (AXR_FAILED(vkResult)) {
+            return AXR_ERROR;
+        }
+    }
+
+    m_CurrentFrame = (m_CurrentFrame + 1) % m_MaxFramesInFlight;
+
+    return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
-    AxrResult result = AXR_SUCCESS;
+void AxrVulkanWindowGraphics::getRenderingMatrices(
+    const uint32_t viewIndex,
+    glm::mat4& viewMatrix,
+    glm::mat4& projectionMatrix
+) const {
+    const AxrScene_T activeScene = m_LoadedScenes.getActiveScene();
+    if (activeScene == nullptr) {
+        axrLogErrorLocation("No active scene.");
+        return;
+    }
 
-    result = createSurface();
-    if (AXR_FAILED(result)) {
-        resetWindowConfiguration();
-        return result;
+    if (!activeScene->isMainCameraValid()) {
+        axrLogErrorLocation("No main camera.");
+        return;
+    }
+
+    const AxrEntityConst_T cameraEntity = activeScene->getMainCamera();
+    auto [cameraComponent, cameraTransformComponent] = cameraEntity
+        .get<AxrCameraComponent, AxrTransformComponent>();
+
+    viewMatrix = glm::inverse(
+        glm::translate(glm::mat4(1.0f), cameraTransformComponent.Position) *
+        glm::toMat4(cameraTransformComponent.Orientation)
+    );
+
+    const float aspectRatio = static_cast<float>(m_SwapchainExtent.height) / static_cast<float>(m_SwapchainExtent.
+        width);
+    const float verticalFovRadians = 2.0f * atan(tan(glm::radians(cameraComponent.Fov) / 2.0f) * aspectRatio);
+
+    projectionMatrix = glm::perspective(
+        verticalFovRadians,
+        static_cast<float>(m_SwapchainExtent.width) / static_cast<float>(m_SwapchainExtent.height),
+        cameraComponent.NearPlane,
+        cameraComponent.FarPlane
+    );
+    projectionMatrix[1][1] *= -1.0f;
+}
+
+// ---- Private Functions ----
+
+AxrResult AxrVulkanWindowGraphics::setupWindowGraphics() {
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = createSurface();
+    if (AXR_FAILED(axrResult)) {
+        resetSetupWindowGraphics();
+        return axrResult;
     }
 
     const auto surfaceDetails = AxrVulkanSurfaceDetails(m_PhysicalDevice, m_Surface, m_Dispatch);
@@ -425,46 +362,46 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
         return AXR_ERROR;
     }
 
-    result = setSwapchainFormats(surfaceDetails.Formats);
-    if (AXR_FAILED(result)) {
-        resetWindowConfiguration();
-        return result;
+    axrResult = setSwapchainFormats(surfaceDetails.Formats);
+    if (AXR_FAILED(axrResult)) {
+        resetSetupWindowGraphics();
+        return axrResult;
     }
 
-    result = setMsaaSampleCount();
-    if (AXR_FAILED(result)) {
-        resetWindowConfiguration();
-        return result;
+    axrResult = setMsaaSampleCount();
+    if (AXR_FAILED(axrResult)) {
+        resetSetupWindowGraphics();
+        return axrResult;
     }
 
-    result = createRenderPass();
-    if (AXR_FAILED(result)) {
-        resetWindowConfiguration();
-        return result;
+    axrResult = createRenderPass();
+    if (AXR_FAILED(axrResult)) {
+        resetSetupWindowGraphics();
+        return axrResult;
     }
 
-    result = createSyncObjects();
-    if (AXR_FAILED(result)) {
-        resetWindowConfiguration();
-        return result;
+    axrResult = createSyncObjects();
+    if (AXR_FAILED(axrResult)) {
+        resetSetupWindowGraphics();
+        return axrResult;
     }
 
-    result = createCommandBuffers();
-    if (AXR_FAILED(result)) {
-        resetWindowConfiguration();
-        return result;
+    axrResult = createCommandBuffers();
+    if (AXR_FAILED(axrResult)) {
+        resetSetupWindowGraphics();
+        return axrResult;
     }
 
-    result = setupSwapchain(surfaceDetails);
-    if (AXR_FAILED(result)) {
-        resetWindowConfiguration();
-        return result;
+    axrResult = setupSwapchain(surfaceDetails);
+    if (AXR_FAILED(axrResult)) {
+        resetSetupWindowGraphics();
+        return axrResult;
     }
 
-    result = m_LoadedScenes.setupWindowData(m_RenderPass, m_MsaaSampleCount);
-    if (AXR_FAILED(result)) {
-        resetWindowConfiguration();
-        return result;
+    axrResult = m_LoadedScenes.setupWindowData(m_RenderPass, m_MsaaSampleCount);
+    if (AXR_FAILED(axrResult)) {
+        resetSetupWindowGraphics();
+        return axrResult;
     }
 
     m_IsReady = true;
@@ -474,7 +411,7 @@ AxrResult AxrVulkanWindowGraphics::configureWindowGraphics() {
     return AXR_SUCCESS;
 }
 
-void AxrVulkanWindowGraphics::resetWindowConfiguration() {
+void AxrVulkanWindowGraphics::resetSetupWindowGraphics() {
     m_IsReady = false;
     m_WindowSystem.OnWindowResizedCallbackGraphics.reset();
 
@@ -572,43 +509,43 @@ AxrResult AxrVulkanWindowGraphics::setupSwapchain(const AxrVulkanSurfaceDetails&
 
     axrResult = setSwapchainPresentationMode(surfaceDetails.PresentationModes);
     if (AXR_FAILED(axrResult)) {
-        resetWindowConfiguration();
+        resetSetupSwapchain();
         return axrResult;
     }
 
     axrResult = setSwapchainExtent(surfaceDetails.Capabilities);
     if (AXR_FAILED(axrResult)) {
-        resetWindowConfiguration();
+        resetSetupSwapchain();
         return axrResult;
     }
 
     axrResult = createSwapchain(surfaceDetails.Capabilities);
     if (AXR_FAILED(axrResult)) {
-        resetWindowConfiguration();
+        resetSetupSwapchain();
         return axrResult;
     }
 
     axrResult = getSwapchainImages();
     if (AXR_FAILED(axrResult)) {
-        resetWindowConfiguration();
+        resetSetupSwapchain();
         return axrResult;
     }
 
     axrResult = createDepthBufferImages();
     if (AXR_FAILED(axrResult)) {
-        resetWindowConfiguration();
+        resetSetupSwapchain();
         return axrResult;
     }
 
     axrResult = createMsaaImages();
     if (AXR_FAILED(axrResult)) {
-        resetWindowConfiguration();
+        resetSetupSwapchain();
         return axrResult;
     }
 
     axrResult = createFramebuffers();
     if (AXR_FAILED(axrResult)) {
-        resetWindowConfiguration();
+        resetSetupSwapchain();
         return axrResult;
     }
 
@@ -678,6 +615,76 @@ AxrResult AxrVulkanWindowGraphics::recreateSwapchain() {
     return AXR_SUCCESS;
 }
 
+AxrResult AxrVulkanWindowGraphics::setSwapchainFormatOptions(
+    const vk::PhysicalDevice& physicalDevice,
+    const std::vector<vk::SurfaceFormatKHR>& swapchainColorFormatOptions,
+    const std::vector<vk::Format>& swapchainDepthFormatOptions
+) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!m_SwapchainColorFormatOptions.empty()) {
+        axrLogErrorLocation("Swapchain color format options aren't empty.");
+        return AXR_ERROR;
+    }
+
+    if (!m_SwapchainDepthFormatOptions.empty()) {
+        axrLogErrorLocation("Swapchain depth format options aren't empty.");
+        return AXR_ERROR;
+    }
+
+    if (swapchainColorFormatOptions.empty()) {
+        axrLogErrorLocation("Swapchain color format options are empty.");
+        return AXR_ERROR;
+    }
+
+    if (swapchainDepthFormatOptions.empty()) {
+        axrLogErrorLocation("Swapchain depth format options are empty.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    for (const vk::SurfaceFormatKHR surfaceFormat : swapchainColorFormatOptions) {
+        if (axrAreFormatFeaturesSupported(
+            surfaceFormat.format,
+            vk::ImageTiling::eOptimal,
+            vk::FormatFeatureFlagBits::eSampledImage &
+            vk::FormatFeatureFlagBits::eColorAttachment,
+            // TODO: Check if we're rendering directly to the surface first for asking for these.
+            // vk::FormatFeatureFlagBits::eBlitDst &
+            // vk::FormatFeatureFlagBits::eTransferDst,
+            physicalDevice,
+            m_Dispatch
+        )) {
+            m_SwapchainColorFormatOptions.push_back(surfaceFormat);
+        }
+    }
+
+    for (const vk::Format format : swapchainDepthFormatOptions) {
+        if (axrAreFormatFeaturesSupported(
+            format,
+            vk::ImageTiling::eOptimal,
+            vk::FormatFeatureFlagBits::eSampledImage &
+            vk::FormatFeatureFlagBits::eDepthStencilAttachment,
+            physicalDevice,
+            m_Dispatch
+        )) {
+            m_SwapchainDepthFormatOptions.push_back(format);
+        }
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanWindowGraphics::resetSwapchainFormatOptions() {
+    m_SwapchainColorFormatOptions.clear();
+    m_SwapchainDepthFormatOptions.clear();
+}
+
 AxrResult AxrVulkanWindowGraphics::setSwapchainFormats(const std::vector<vk::SurfaceFormatKHR>& surfaceFormats) {
     // ----------------------------------------- //
     // Validation
@@ -722,9 +729,9 @@ AxrResult AxrVulkanWindowGraphics::setSwapchainFormats(const std::vector<vk::Sur
     if (foundFormatIt != m_SwapchainColorFormatOptions.end()) {
         m_SwapchainColorFormat = *foundFormatIt;
     } else {
-        // None of our ideal swapchain color formats could be found.
-        // It should still be ok to just pick what ever the first supported surface format is but there may be issues.
-        m_SwapchainColorFormat = surfaceFormats[0];
+        axrLogErrorLocation("Failed to find a supported swapchain color format.");
+        resetSwapchainFormats();
+        return AXR_ERROR;
     }
 
     // We don't need to check surface compatibility for the depth format.
@@ -1113,6 +1120,11 @@ AxrResult AxrVulkanWindowGraphics::createFramebuffers() {
         return AXR_ERROR;
     }
 
+    if (m_SwapchainDepthImages.empty()) {
+        axrLogErrorLocation("Swapchain depth images don't exist.");
+        return AXR_ERROR;
+    }
+
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //
@@ -1313,10 +1325,10 @@ void AxrVulkanWindowGraphics::destroyMsaaImages() {
 
 AxrResult AxrVulkanWindowGraphics::onWindowOpenStateChangedCallback(const bool isWindowOpen) {
     if (isWindowOpen) {
-        return configureWindowGraphics();
+        return setupWindowGraphics();
     }
 
-    resetWindowConfiguration();
+    resetSetupWindowGraphics();
     return AXR_SUCCESS;
 }
 

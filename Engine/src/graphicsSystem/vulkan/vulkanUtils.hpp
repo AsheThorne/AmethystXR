@@ -58,11 +58,11 @@ vk::PresentModeKHR axrToVkPresentMode(AxrVulkanPresentationModeEnum presentation
 /// Get the api layer name from the given vulkan api layer type
 /// @param apiLayerType Vulkan api layer type
 /// @returns The api layer name
-const char* axrGetApiLayerName(AxrVulkanApiLayerTypeEnum apiLayerType);
+const char* axrGetVulkanApiLayerName(AxrVulkanApiLayerTypeEnum apiLayerType);
 /// Get the extension name from the given vulkan extension type
 /// @param extensionType Vulkan extension type
 /// @returns The extension name
-const char* axrGetExtensionName(AxrVulkanExtensionTypeEnum extensionType);
+const char* axrGetVulkanExtensionName(AxrVulkanExtensionTypeEnum extensionType);
 
 // ---- Format ----
 

@@ -66,6 +66,15 @@ AxrWindowSystem_T axrApplicationGetWindowSystem(const AxrApplication_T app) {
     return app->getWindowSystem();
 }
 
+AxrXrSystem_T axrApplicationGetXrSystem(const AxrApplication_T app) {
+    if (app == nullptr) {
+        axrLogErrorLocation("`app` is null.");
+        return nullptr;
+    }
+
+    return app->getXrSystem();
+}
+
 AxrGraphicsSystem_T axrApplicationGetGraphicsSystem(const AxrApplication_T app) {
     if (app == nullptr) {
         axrLogErrorLocation("`app` is null.");
@@ -138,27 +147,58 @@ AxrResult axrApplicationSetActiveScene(const AxrApplication_T app, const char* s
 AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
     m_ApplicationName(config.ApplicationName),
     m_ApplicationVersion(config.ApplicationVersion),
-    m_WindowSystem(
-        AxrWindowSystem::Config{
-            .ApplicationName = config.ApplicationName,
-            .WindowConfig = config.WindowSystemConfig
-        }
-    ),
     m_GraphicsSystem(
         AxrGraphicsSystem::Config{
             .ApplicationName = config.ApplicationName,
             .ApplicationVersion = config.ApplicationVersion,
-            .WindowSystem = &m_WindowSystem,
+            .WindowSystem = config.WindowSystemConfig == nullptr ? nullptr : &m_WindowSystem,
+            .XrSystem = config.XrSystemConfig == nullptr ? nullptr : &m_XrSystem,
             .GlobalAssetCollection = &m_GlobalAssetCollection,
             .GraphicsConfig = config.GraphicsSystemConfig,
         }
+    ),
+    m_WindowSystem(
+        [&] {
+            if (config.WindowSystemConfig == nullptr) {
+                return AxrWindowSystem(nullptr);
+            }
+
+            return AxrWindowSystem(
+                AxrWindowSystem::Config{
+                    .ApplicationName = config.ApplicationName,
+                    .Width = config.WindowSystemConfig->Width,
+                    .Height = config.WindowSystemConfig->Height,
+                }
+            );
+        }()
+    ),
+    m_XrSystem(
+        [&] {
+            if (config.XrSystemConfig == nullptr) {
+                return AxrXrSystem(nullptr);
+            }
+
+            return AxrXrSystem(
+                AxrXrSystem::Config{
+                    .ApplicationName = config.ApplicationName,
+                    .ApplicationVersion = config.ApplicationVersion,
+                    .GraphicsApi = config.GraphicsSystemConfig.GraphicsApi,
+                    .StageReferenceSpace = config.XrSystemConfig->StageReferenceSpace,
+                    .ApiLayerCount = config.XrSystemConfig->ApiLayerCount,
+                    .ApiLayers = config.XrSystemConfig->ApiLayers,
+                    .ExtensionCount = config.XrSystemConfig->ExtensionCount,
+                    .Extensions = config.XrSystemConfig->Extensions
+                }
+            );
+        }()
     ),
     m_DeltaTime(0) {
 }
 
 AxrApplication::~AxrApplication() {
-    m_GraphicsSystem.cleanup();
-    m_WindowSystem.cleanup();
+    m_GraphicsSystem.resetSetup();
+    m_WindowSystem.resetSetup();
+    m_XrSystem.resetSetup();
     m_GlobalAssetCollection.cleanup();
 }
 
@@ -170,8 +210,15 @@ AxrResult AxrApplication::setup() {
     axrResult = setupGlobalAssetCollection();
     if (AXR_FAILED(axrResult)) return axrResult;
 
-    axrResult = m_WindowSystem.setup();
-    if (AXR_FAILED(axrResult)) return axrResult;
+    if (m_WindowSystem.isValid()) {
+        axrResult = m_WindowSystem.setup();
+        if (AXR_FAILED(axrResult)) return axrResult;
+    }
+
+    if (m_XrSystem.isValid()) {
+        axrResult = m_XrSystem.setup();
+        if (AXR_FAILED(axrResult)) return axrResult;
+    }
 
     axrResult = m_GraphicsSystem.setup();
     if (AXR_FAILED(axrResult)) return axrResult;
@@ -180,13 +227,27 @@ AxrResult AxrApplication::setup() {
 }
 
 bool AxrApplication::isRunning() const {
-    // TODO: Check if the OpenXR session is running too
-    return m_WindowSystem.isWindowOpen();
+    bool windowIsOpen = false;
+    bool xrSessionIsRunning = false;
+
+    if (m_WindowSystem.isValid()) {
+        windowIsOpen = m_WindowSystem.isWindowOpen();
+    }
+
+    if (m_XrSystem.isValid()) {
+        xrSessionIsRunning = m_XrSystem.isXrSessionRunning();
+    }
+
+    return windowIsOpen || xrSessionIsRunning;
 }
 
 void AxrApplication::processEvents() {
-    // TODO: Process OpenXR events too
-    m_WindowSystem.processEvents();
+    if (m_WindowSystem.isValid()) {
+        m_WindowSystem.processEvents();
+    }
+    if (m_XrSystem.isValid()) {
+        m_XrSystem.processEvents();
+    }
 
     static std::chrono::high_resolution_clock::time_point lastFrameTime = std::chrono::high_resolution_clock::now();
     const std::chrono::high_resolution_clock::time_point currentFrameTime = std::chrono::high_resolution_clock::now();
@@ -197,6 +258,10 @@ void AxrApplication::processEvents() {
 
 AxrWindowSystem_T AxrApplication::getWindowSystem() {
     return &m_WindowSystem;
+}
+
+AxrXrSystem_T AxrApplication::getXrSystem() {
+    return &m_XrSystem;
 }
 
 AxrGraphicsSystem_T AxrApplication::getGraphicsSystem() {

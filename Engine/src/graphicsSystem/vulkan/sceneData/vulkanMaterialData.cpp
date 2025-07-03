@@ -27,8 +27,10 @@ AxrVulkanMaterialData::AxrVulkanMaterialData():
     m_MaxFramesInFlight(0),
     m_Device(VK_NULL_HANDLE),
     m_DispatchHandle(nullptr),
+    m_WindowDescriptorPool(VK_NULL_HANDLE),
     m_WindowPipeline(VK_NULL_HANDLE),
-    m_WindowDescriptorPool(VK_NULL_HANDLE) {
+    m_XrSessionDescriptorPool(VK_NULL_HANDLE),
+    m_XrSessionPipeline(VK_NULL_HANDLE) {
 }
 
 AxrVulkanMaterialData::AxrVulkanMaterialData(const Config& config):
@@ -39,11 +41,16 @@ AxrVulkanMaterialData::AxrVulkanMaterialData(const Config& config):
     m_MaxFramesInFlight(config.MaxFramesInFlight),
     m_Device(config.Device),
     m_DispatchHandle(config.DispatchHandle),
+    m_WindowDescriptorPool(VK_NULL_HANDLE),
     m_WindowPipeline(VK_NULL_HANDLE),
-    m_WindowDescriptorPool(VK_NULL_HANDLE) {
+    m_XrSessionDescriptorPool(VK_NULL_HANDLE),
+    m_XrSessionPipeline(VK_NULL_HANDLE) {
 }
 
 AxrVulkanMaterialData::AxrVulkanMaterialData(AxrVulkanMaterialData&& src) noexcept {
+    m_WindowDescriptorSets = std::move(src.m_WindowDescriptorSets);
+    m_XrSessionDescriptorSets = std::move(src.m_XrSessionDescriptorSets);
+
     m_VertexShaderHandle = src.m_VertexShaderHandle;
     m_FragmentShaderHandle = src.m_FragmentShaderHandle;
     m_MaterialHandle = src.m_MaterialHandle;
@@ -53,6 +60,8 @@ AxrVulkanMaterialData::AxrVulkanMaterialData(AxrVulkanMaterialData&& src) noexce
     m_DispatchHandle = src.m_DispatchHandle;
     m_WindowPipeline = src.m_WindowPipeline;
     m_WindowDescriptorPool = src.m_WindowDescriptorPool;
+    m_XrSessionPipeline = src.m_XrSessionPipeline;
+    m_XrSessionDescriptorPool = src.m_XrSessionDescriptorPool;
 
     src.m_VertexShaderHandle = nullptr;
     src.m_FragmentShaderHandle = nullptr;
@@ -63,6 +72,8 @@ AxrVulkanMaterialData::AxrVulkanMaterialData(AxrVulkanMaterialData&& src) noexce
     src.m_DispatchHandle = nullptr;
     src.m_WindowPipeline = VK_NULL_HANDLE;
     src.m_WindowDescriptorPool = VK_NULL_HANDLE;
+    src.m_XrSessionPipeline = VK_NULL_HANDLE;
+    src.m_XrSessionDescriptorPool = VK_NULL_HANDLE;
 }
 
 AxrVulkanMaterialData::~AxrVulkanMaterialData() {
@@ -72,6 +83,8 @@ AxrVulkanMaterialData::~AxrVulkanMaterialData() {
 AxrVulkanMaterialData& AxrVulkanMaterialData::operator=(AxrVulkanMaterialData&& src) noexcept {
     if (this != &src) {
         cleanup();
+        m_WindowDescriptorSets = std::move(src.m_WindowDescriptorSets);
+        m_XrSessionDescriptorSets = std::move(src.m_XrSessionDescriptorSets);
 
         m_VertexShaderHandle = src.m_VertexShaderHandle;
         m_FragmentShaderHandle = src.m_FragmentShaderHandle;
@@ -82,6 +95,8 @@ AxrVulkanMaterialData& AxrVulkanMaterialData::operator=(AxrVulkanMaterialData&& 
         m_DispatchHandle = src.m_DispatchHandle;
         m_WindowPipeline = src.m_WindowPipeline;
         m_WindowDescriptorPool = src.m_WindowDescriptorPool;
+        m_XrSessionPipeline = src.m_XrSessionPipeline;
+        m_XrSessionDescriptorPool = src.m_XrSessionDescriptorPool;
 
         src.m_VertexShaderHandle = nullptr;
         src.m_FragmentShaderHandle = nullptr;
@@ -92,6 +107,8 @@ AxrVulkanMaterialData& AxrVulkanMaterialData::operator=(AxrVulkanMaterialData&& 
         src.m_DispatchHandle = nullptr;
         src.m_WindowPipeline = VK_NULL_HANDLE;
         src.m_WindowDescriptorPool = VK_NULL_HANDLE;
+        src.m_XrSessionPipeline = VK_NULL_HANDLE;
+        src.m_XrSessionDescriptorPool = VK_NULL_HANDLE;
     }
 
     return *this;
@@ -103,7 +120,7 @@ const std::string& AxrVulkanMaterialData::getName() const {
     if (m_MaterialHandle == nullptr) {
         return m_DummyName;
     }
-    
+
     return m_MaterialHandle->getName();
 }
 
@@ -113,6 +130,10 @@ const AxrVulkanMaterialLayoutData* AxrVulkanMaterialData::getMaterialLayoutData(
 
 const vk::Pipeline& AxrVulkanMaterialData::getWindowPipeline() const {
     return m_WindowPipeline;
+}
+
+const vk::Pipeline& AxrVulkanMaterialData::getXrSessionPipeline() const {
+    return m_XrSessionPipeline;
 }
 
 const std::string& AxrVulkanMaterialData::getPushConstantBufferName() const {
@@ -127,8 +148,7 @@ const std::vector<vk::DescriptorSet>& AxrVulkanMaterialData::getDescriptorSets(
             return m_WindowDescriptorSets;
         }
         case AXR_PLATFORM_TYPE_XR_DEVICE: {
-            axrLogErrorLocation("XR descriptor sets don't exist yet.");
-            return m_DummyDescriptorSets;
+            return m_XrSessionDescriptorSets;
         }
         case AXR_PLATFORM_TYPE_UNDEFINED:
         default: {
@@ -145,7 +165,7 @@ void AxrVulkanMaterialData::resetDescriptorSets(const AxrPlatformType platformTy
             break;
         }
         case AXR_PLATFORM_TYPE_XR_DEVICE: {
-            axrLogErrorLocation("XR descriptor sets don't exist yet.");
+            resetDescriptorSets(m_XrSessionDescriptorPool, m_XrSessionDescriptorSets);
             break;
         }
         case AXR_PLATFORM_TYPE_UNDEFINED:
@@ -171,6 +191,12 @@ bool AxrVulkanMaterialData::doesWindowDataExist() const {
         m_WindowPipeline != VK_NULL_HANDLE;
 }
 
+bool AxrVulkanMaterialData::doesXrSessionDataExist() const {
+    return m_XrSessionDescriptorPool != VK_NULL_HANDLE &&
+        !m_XrSessionDescriptorSets.empty() &&
+        m_XrSessionPipeline != VK_NULL_HANDLE;
+}
+
 AxrResult AxrVulkanMaterialData::createData() {
     // We don't have general data yet
     return AXR_SUCCESS;
@@ -178,6 +204,7 @@ AxrResult AxrVulkanMaterialData::createData() {
 
 void AxrVulkanMaterialData::destroyData() {
     destroyWindowData();
+    destroyXrSessionData();
 
     // Destroy general data here when we have some
 }
@@ -212,7 +239,7 @@ AxrResult AxrVulkanMaterialData::createWindowData(
         return axrResult;
     }
 
-    axrResult = createDescriptorSets(m_WindowDescriptorPool, m_WindowDescriptorSets);
+    axrResult = createDescriptorSets(1, m_WindowDescriptorPool, m_WindowDescriptorSets);
     if (AXR_FAILED(axrResult)) {
         destroyWindowData();
         return axrResult;
@@ -233,10 +260,63 @@ void AxrVulkanMaterialData::destroyWindowData() {
     destroyDescriptorPool(m_WindowDescriptorPool);
 }
 
+AxrResult AxrVulkanMaterialData::createXrSessionData(
+    const vk::RenderPass renderPass,
+    const vk::SampleCountFlagBits msaaSampleCount,
+    const uint32_t viewCount
+) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (doesXrSessionDataExist()) {
+        axrLogErrorLocation("Material xr session data already exists.");
+        return AXR_ERROR;
+    }
+
+    if (!doesDataExist()) {
+        axrLogErrorLocation("Material data is missing.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = createDescriptorPool(viewCount, m_XrSessionDescriptorPool);
+    if (AXR_FAILED(axrResult)) {
+        destroyXrSessionData();
+        return axrResult;
+    }
+
+    axrResult = createDescriptorSets(viewCount, m_XrSessionDescriptorPool, m_XrSessionDescriptorSets);
+    if (AXR_FAILED(axrResult)) {
+        destroyXrSessionData();
+        return axrResult;
+    }
+
+    axrResult = createPipeline(renderPass, msaaSampleCount, m_XrSessionPipeline);
+    if (AXR_FAILED(axrResult)) {
+        destroyXrSessionData();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanMaterialData::destroyXrSessionData() {
+    destroyPipeline(m_XrSessionPipeline);
+    resetDescriptorSets(AXR_PLATFORM_TYPE_XR_DEVICE);
+    destroyDescriptorPool(m_XrSessionDescriptorPool);
+}
+
 // ---- Private Functions ----
 
 void AxrVulkanMaterialData::cleanup() {
     destroyWindowData();
+    destroyXrSessionData();
     destroyData();
 
     m_VertexShaderHandle = nullptr;
@@ -342,6 +422,7 @@ void AxrVulkanMaterialData::destroyDescriptorPool(vk::DescriptorPool& descriptor
 }
 
 AxrResult AxrVulkanMaterialData::createDescriptorSets(
+    const uint32_t viewCount,
     const vk::DescriptorPool descriptorPool,
     std::vector<vk::DescriptorSet>& descriptorSets
 ) const {
@@ -370,6 +451,11 @@ AxrResult AxrVulkanMaterialData::createDescriptorSets(
         return AXR_ERROR;
     }
 
+    if (viewCount < 1) {
+        axrLogErrorLocation("View count must be greater than 0.");
+        return AXR_ERROR;
+    }
+
     if (m_Device == VK_NULL_HANDLE) {
         axrLogErrorLocation("Device is null.");
         return AXR_ERROR;
@@ -384,15 +470,15 @@ AxrResult AxrVulkanMaterialData::createDescriptorSets(
     // Process
     // ----------------------------------------- //
 
-    const std::vector layouts(m_MaxFramesInFlight, descriptorSetLayout);
+    const std::vector layouts(m_MaxFramesInFlight * viewCount, descriptorSetLayout);
 
     const vk::DescriptorSetAllocateInfo descriptorSetAllocateInfo(
         descriptorPool,
-        m_MaxFramesInFlight,
+        m_MaxFramesInFlight * viewCount,
         layouts.data()
     );
 
-    descriptorSets.resize(m_MaxFramesInFlight);
+    descriptorSets.resize(m_MaxFramesInFlight * viewCount);
 
     const vk::Result vkResult = m_Device.allocateDescriptorSets(
         &descriptorSetAllocateInfo,
