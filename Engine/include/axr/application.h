@@ -20,7 +20,7 @@ struct AxrApplicationConfig {
     const char* ApplicationName;
     uint32_t ApplicationVersion;
     AxrGraphicsSystemConfig GraphicsSystemConfig;
-    AxrWindowSystemConfig WindowSystemConfig;
+    const AxrWindowSystemConfig* WindowSystemConfig;
     const AxrXrSystemConfig* XrSystemConfig;
 };
 

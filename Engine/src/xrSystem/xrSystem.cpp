@@ -130,6 +130,7 @@ AxrResult AxrXrSystem::startXrSession() {
         return axrResult;
     }
 
+    m_IsSessionRunning = true;
     return AXR_SUCCESS;
 }
 
@@ -1680,7 +1681,6 @@ void AxrXrSystem::xrEvent_SessionStateChanged(const XrEventDataSessionStateChang
             const XrResult xrResult = xrBeginSession(m_Session, &sessionBeginInfo);
             axrLogXrResult(xrResult, "xrBeginSession");
             if (XR_SUCCEEDED(xrResult)) {
-                m_IsSessionRunning = true;
                 OnXrSessionStateChangedCallbackGraphics(true);
             }
             break;

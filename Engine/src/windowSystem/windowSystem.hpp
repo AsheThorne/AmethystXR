@@ -17,7 +17,8 @@ public:
     /// Window System Config
     struct Config {
         const char* ApplicationName;
-        AxrWindowSystemConfig WindowConfig;
+        uint32_t Width;
+        uint32_t Height;
     };
 
     // ----------------------------------------- //
@@ -49,6 +50,8 @@ public:
 
     // ---- Constructors ----
 
+    /// Null config Constructor
+    AxrWindowSystem(std::nullptr_t);
     /// Constructor
     /// @param config Window config
     AxrWindowSystem(const Config& config);
@@ -118,10 +121,11 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
+    bool m_IsValid;
 
 #ifdef AXR_USE_PLATFORM_WIN32
     // ---- Win32 Variables ----
-    AxrWin32WindowSystem* m_Win32WindowSystem;
+    AxrWin32WindowSystem* m_Win32WindowSystem = nullptr;
 #endif
 
     // ----------------------------------------- //

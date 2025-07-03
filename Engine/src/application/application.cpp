@@ -151,17 +151,26 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
         AxrGraphicsSystem::Config{
             .ApplicationName = config.ApplicationName,
             .ApplicationVersion = config.ApplicationVersion,
-            .WindowSystem = &m_WindowSystem,
+            .WindowSystem = config.WindowSystemConfig == nullptr ? nullptr : &m_WindowSystem,
             .XrSystem = config.XrSystemConfig == nullptr ? nullptr : &m_XrSystem,
             .GlobalAssetCollection = &m_GlobalAssetCollection,
             .GraphicsConfig = config.GraphicsSystemConfig,
         }
     ),
     m_WindowSystem(
-        AxrWindowSystem::Config{
-            .ApplicationName = config.ApplicationName,
-            .WindowConfig = config.WindowSystemConfig
-        }
+        [&] {
+            if (config.WindowSystemConfig == nullptr) {
+                return AxrWindowSystem(nullptr);
+            }
+
+            return AxrWindowSystem(
+                AxrWindowSystem::Config{
+                    .ApplicationName = config.ApplicationName,
+                    .Width = config.WindowSystemConfig->Width,
+                    .Height = config.WindowSystemConfig->Height,
+                }
+            );
+        }()
     ),
     m_XrSystem(
         config.XrSystemConfig == nullptr
@@ -212,15 +221,15 @@ AxrResult AxrApplication::setup() {
 }
 
 bool AxrApplication::isRunning() const {
-    bool xrSessionIsRunning = false;
     bool windowIsOpen = false;
-
-    if (m_XrSystem.isValid()) {
-        xrSessionIsRunning = m_XrSystem.isXrSessionRunning();
-    }
+    bool xrSessionIsRunning = false;
 
     if (m_WindowSystem.isValid()) {
         windowIsOpen = m_WindowSystem.isWindowOpen();
+    }
+
+    if (m_XrSystem.isValid()) {
+        xrSessionIsRunning = m_XrSystem.isXrSessionRunning();
     }
 
     return windowIsOpen || xrSessionIsRunning;

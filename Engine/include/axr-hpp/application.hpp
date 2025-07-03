@@ -23,7 +23,7 @@ namespace axr {
         const char* ApplicationName;
         uint32_t ApplicationVersion;
         axr::GraphicsSystemConfig GraphicsSystemConfig;
-        axr::WindowSystemConfig WindowSystemConfig;
+        const axr::WindowSystemConfig* WindowSystemConfig;
         const axr::XrSystemConfig* XrSystemConfig;
 
         // ----------------------------------------- //
@@ -37,7 +37,7 @@ namespace axr {
             ApplicationName(""),
             ApplicationVersion(0),
             GraphicsSystemConfig({}),
-            WindowSystemConfig({}),
+            WindowSystemConfig(nullptr),
             XrSystemConfig(nullptr) {
         }
 
@@ -51,7 +51,7 @@ namespace axr {
             const char* applicationName,
             const uint32_t applicationVersion,
             const axr::GraphicsSystemConfig& graphicsSystemConfig,
-            const axr::WindowSystemConfig& windowSystemConfig,
+            const axr::WindowSystemConfig* windowSystemConfig,
             const axr::XrSystemConfig* xrSystemConfig
         ) : ApplicationName(applicationName),
             ApplicationVersion(applicationVersion),

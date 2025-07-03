@@ -43,7 +43,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         axr::SamplerAnisotropyQualityEnum::High
     );
 
-    // TODO: make window config optional. if window config is null, there's no window
     const axr::WindowSystemConfig windowSystemConfig(
         800,
         600
@@ -69,7 +68,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         applicationName.c_str(),
         AXR_MAKE_VERSION(1, 0, 0),
         graphicsSystemConfig,
-        windowSystemConfig,
+        &windowSystemConfig,
         &xrSystemConfig
     );
 
@@ -87,7 +86,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     if (AXR_FAILED(scene.setAsActiveScene())) return -1;
 
     axr::WindowSystem windowSystem = app.getWindowSystem();
-    if (AXR_FAILED(windowSystem.openWindow())) return -1;
+    if (windowSystem.isValid()) {
+        if (AXR_FAILED(windowSystem.openWindow())) return -1;
+    }
 
     axr::XrSystem xrSystem = app.getXrSystem();
     if (xrSystem.isValid()) {

@@ -45,7 +45,8 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     m_GraphicsCommandPool(VK_NULL_HANDLE),
     m_TransferCommandPool(VK_NULL_HANDLE),
     m_MaxFramesInFlight(2),
-    m_XrGraphics(nullptr) {
+    m_XrGraphics(nullptr),
+    m_WindowGraphics(nullptr) {
     m_Dispatch.init();
 
     m_ApiLayers.add(config.ApiLayerCount, config.ApiLayers);
