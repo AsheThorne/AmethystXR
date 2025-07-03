@@ -19,6 +19,7 @@ AxrVulkanXrGraphics::AxrVulkanXrGraphics(const Config& config):
     m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
     m_GraphicsCommandPool(VK_NULL_HANDLE),
+    m_ClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)),
     m_IsReady(false),
     m_SwapchainColorFormat(vk::Format::eUndefined),
     m_SwapchainDepthFormat(vk::Format::eUndefined),
@@ -33,6 +34,10 @@ AxrVulkanXrGraphics::~AxrVulkanXrGraphics() {
 }
 
 // ---- Public Functions ----
+
+void AxrVulkanXrGraphics::setClearColor(const glm::vec4& color) {
+    m_ClearColor = color;
+}
 
 AxrResult AxrVulkanXrGraphics::setup(const SetupConfig& config) {
     // ----------------------------------------- //
@@ -257,8 +262,7 @@ vk::ClearColorValue AxrVulkanXrGraphics::getClearColorValue() const {
         return vk::ClearColorValue{0.0f, 0.0f, 0.0f, 1.0f};
     }
 
-    // TODO: Make this a config option
-    return vk::ClearColorValue{0.2f, 0.05f, 0.2f, 1.0f};
+    return vk::ClearColorValue{m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a};
 }
 
 vk::CommandBuffer AxrVulkanXrGraphics::getRenderingCommandBuffer(const uint32_t viewIndex) const {

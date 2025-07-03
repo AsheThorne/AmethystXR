@@ -40,7 +40,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     const axr::GraphicsSystemConfig graphicsSystemConfig(
         &vulkanApiConfig,
         &windowGraphicsConfig,
-        glm::vec4(0.2f, 0.05f, 0.2f, 1.0f),
         axr::SamplerAnisotropyQualityEnum::High
     );
 
@@ -81,7 +80,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     if (AXR_FAILED(globalAssetCollection.createShader(axr::EngineAssetEnum::ShaderDefaultFrag))) return -1;
     if (AXR_FAILED(globalAssetCollection.createShader(axr::EngineAssetEnum::ShaderDefaultVert))) return -1;
 
-    SponzaScene scene(app);
+    TestScene scene(app);
     if (AXR_FAILED(scene.setup())) return -1;
 
     if (AXR_FAILED(scene.loadScene())) return -1;
@@ -93,7 +92,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     axr::XrSystem xrSystem = app.getXrSystem();
     if (AXR_FAILED(xrSystem.startXrSession())) return -1;
 
-    const axr::GraphicsSystem graphicsSystem = app.getGraphicsSystem();
+    axr::GraphicsSystem graphicsSystem = app.getGraphicsSystem();
+    graphicsSystem.setClearColor(glm::vec4(0.2f, 0.05f, 0.2f, 1.0f));
 
     while (app.isRunning()) {
         app.processEvents();

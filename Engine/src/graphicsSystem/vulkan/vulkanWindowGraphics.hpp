@@ -29,7 +29,6 @@ public:
         AxrVulkanLoadedScenesCollection& LoadedScenes;
         uint32_t MaxFramesInFlight;
         AxrVulkanPresentationModeEnum PresentationMode;
-        glm::vec4 ClearColor;
         AxrMsaaSampleCountEnum MaxMsaaSampleCount;
     };
 
@@ -90,6 +89,10 @@ public:
     void addRequiredDeviceExtensions(
         AxrExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum>& extensions
     ) const;
+
+    /// Set the clear color
+    /// @param color Clear color
+    void setClearColor(const glm::vec4& color);
 
     /// Set up vulkan window graphics
     /// @param config Setup config
@@ -180,7 +183,6 @@ private:
     AxrVulkanLoadedScenesCollection& m_LoadedScenes;
     uint32_t m_MaxFramesInFlight;
     AxrVulkanPresentationModeEnum m_PreferredPresentationMode;
-    glm::vec4 m_ClearColor;
     AxrMsaaSampleCountEnum m_MaxMsaaSampleCount;
 
     // ---- Setup Config ----
@@ -194,6 +196,7 @@ private:
     /// Ordered from most desired to the least desired
     std::vector<vk::Format> m_SwapchainDepthFormatOptions;
 
+    glm::vec4 m_ClearColor;
     vk::ImageLayout m_SwapchainImageLayout;
     vk::SurfaceKHR m_Surface;
     vk::SurfaceFormatKHR m_SwapchainColorFormat;

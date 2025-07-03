@@ -66,6 +66,10 @@ public:
     /// Draw the current frame
     void drawFrame();
 
+    /// Set the clear color
+    /// @param color Clear color
+    void setClearColor(const glm::vec4& color) const;
+
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
     // They have not been given a publicly accessible function in the 'include headers' to be used by an application.

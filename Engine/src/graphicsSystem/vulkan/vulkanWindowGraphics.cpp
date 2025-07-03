@@ -20,7 +20,7 @@ AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
     m_LoadedScenes(config.LoadedScenes),
     m_MaxFramesInFlight(config.MaxFramesInFlight),
     m_PreferredPresentationMode(config.PresentationMode),
-    m_ClearColor(config.ClearColor),
+    m_ClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)),
     m_MaxMsaaSampleCount(config.MaxMsaaSampleCount),
     m_Instance(VK_NULL_HANDLE),
     m_PhysicalDevice(VK_NULL_HANDLE),
@@ -64,6 +64,10 @@ void AxrVulkanWindowGraphics::addRequiredDeviceExtensions(
 ) const {
     auto swapchainExtension = AxrVulkanExtensionSwapchain{};
     extensions.add(reinterpret_cast<AxrVulkanExtension_T>(&swapchainExtension));
+}
+
+void AxrVulkanWindowGraphics::setClearColor(const glm::vec4& color) {
+    m_ClearColor = color;
 }
 
 AxrResult AxrVulkanWindowGraphics::setup(const SetupConfig& config) {
@@ -194,7 +198,7 @@ vk::Extent2D AxrVulkanWindowGraphics::getSwapchainExtent(const uint32_t viewInde
 }
 
 vk::ClearColorValue AxrVulkanWindowGraphics::getClearColorValue() const {
-    return vk::ClearColorValue(m_ClearColor.x, m_ClearColor.y, m_ClearColor.z, m_ClearColor.w);
+    return vk::ClearColorValue(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
 }
 
 vk::CommandBuffer AxrVulkanWindowGraphics::getRenderingCommandBuffer(const uint32_t viewIndex) const {

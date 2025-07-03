@@ -55,7 +55,6 @@ public:
         AxrXrSystem_T XrSystem;
         AxrAssetCollection_T GlobalAssetCollection;
         WindowConfig* WindowConfig;
-        glm::vec4 ClearColor;
         AxrSamplerAnisotropyQualityEnum SamplerAnisotropyQuality;
         uint32_t ApiLayerCount;
         AxrVulkanApiLayer_T* ApiLayers;
@@ -103,6 +102,10 @@ public:
 
     /// Draw the current frame
     void drawFrame() const;
+
+    /// Set the clear color
+    /// @param color Clear color
+    void setClearColor(const glm::vec4& color) const;
 
     /// Load the named scene
     /// @param scene Scene to load

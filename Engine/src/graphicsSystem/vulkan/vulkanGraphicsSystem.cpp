@@ -62,7 +62,6 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
                     .LoadedScenes = m_LoadedScenes,
                     .MaxFramesInFlight = m_MaxFramesInFlight,
                     .PresentationMode = config.WindowConfig->PresentationMode,
-                    .ClearColor = config.ClearColor,
                     .MaxMsaaSampleCount = config.WindowConfig->MaxMsaaSampleCount,
                 }
             );
@@ -177,6 +176,16 @@ void AxrVulkanGraphicsSystem::drawFrame() const {
             axrLogErrorLocation("Failed to render current frame.");
             return;
         }
+    }
+}
+
+void AxrVulkanGraphicsSystem::setClearColor(const glm::vec4& color) const {
+    if (m_WindowGraphics != nullptr) {
+        m_WindowGraphics->setClearColor(color);
+    }
+
+    if (m_XrGraphics != nullptr) {
+        m_XrGraphics->setClearColor(color);
     }
 }
 
