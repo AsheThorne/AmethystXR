@@ -125,7 +125,6 @@ struct AxrXrExtensionVulkanEnable {
 enum AxrXrReferenceSpaceEnum {
     AXR_XR_REFERENCE_SPACE_UNDEFINED = 0,
     AXR_XR_REFERENCE_SPACE_LOCAL,
-    // TODO: This might not be supported. make sure we check for it
     AXR_XR_REFERENCE_SPACE_STAGE,
 };
 

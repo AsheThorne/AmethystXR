@@ -1572,8 +1572,50 @@ void AxrXrSystem::destroySession() {
     }
 }
 
+AxrResult AxrXrSystem::getSupportedReferenceSpaces(std::vector<XrReferenceSpaceType>& referenceSpaces) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    uint32_t availableReferenceSpacesCount;
+    XrResult xrResult = xrEnumerateReferenceSpaces(
+        m_Session,
+        0,
+        &availableReferenceSpacesCount,
+        nullptr
+    );
+    axrLogXrResult(xrResult, "xrEnumerateReferenceSpaces");
+    if (XR_FAILED(xrResult)) {
+        return AXR_ERROR;
+    }
+
+    std::vector<XrReferenceSpaceType> availableReferenceSpaces(availableReferenceSpacesCount);
+    xrResult = xrEnumerateReferenceSpaces(
+        m_Session,
+        availableReferenceSpacesCount,
+        &availableReferenceSpacesCount,
+        availableReferenceSpaces.data()
+    );
+    axrLogXrResult(xrResult, "xrEnumerateReferenceSpaces");
+    if (XR_FAILED(xrResult)) {
+        return AXR_ERROR;
+    }
+
+    referenceSpaces = availableReferenceSpaces;
+    return AXR_SUCCESS;
+}
+
 AxrResult AxrXrSystem::createReferenceSpace(
-    const XrReferenceSpaceType referenceSpaceType,
+    XrReferenceSpaceType referenceSpaceType,
     XrSpace& referenceSpace
 ) const {
     // ----------------------------------------- //
@@ -1593,6 +1635,23 @@ AxrResult AxrXrSystem::createReferenceSpace(
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //
+
+    std::vector<XrReferenceSpaceType> supportedReferenceSpaces;
+    const AxrResult axrResult = getSupportedReferenceSpaces(supportedReferenceSpaces);
+    if (AXR_FAILED(axrResult)) return axrResult;
+
+    if (std::ranges::none_of(
+        supportedReferenceSpaces,
+        [referenceSpaceType](const XrReferenceSpaceType supportedReferenceSpace) -> bool {
+            return supportedReferenceSpace == referenceSpaceType;
+        }
+    )) {
+        axrLogWarningLocation(
+            "Reference space type: {0} is not supported. Defaulting to using XR_REFERENCE_SPACE_TYPE_LOCAL.",
+            static_cast<int32_t>(referenceSpaceType)
+        );
+        referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
+    }
 
     const XrReferenceSpaceCreateInfo referenceSpaceCreateInfo{
         .type = XR_TYPE_REFERENCE_SPACE_CREATE_INFO,
@@ -1645,7 +1704,6 @@ void AxrXrSystem::xrEvent_InteractionProfileChanged(const XrEventDataInteraction
     axrLogInfo("OpenXR - Interaction Profile changed.");
 
     if (eventData.session != m_Session) {
-        axrLogWarningLocation("XrEventDataInteractionProfileChanged for unknown Session.");
         return;
     }
 }
@@ -1654,14 +1712,12 @@ void AxrXrSystem::xrEvent_ReferenceSpaceChangePending(const XrEventDataReference
     axrLogInfo("OpenXR - Reference Space Change pending.");
 
     if (eventData.session != m_Session) {
-        axrLogWarningLocation("XrEventDataReferenceSpaceChangePending for unknown Session.");
         return;
     }
 }
 
 void AxrXrSystem::xrEvent_SessionStateChanged(const XrEventDataSessionStateChanged& eventData) {
     if (eventData.session != m_Session) {
-        axrLogWarningLocation("XrEventDataSessionStateChanged for unknown Session.");
         return;
     }
 

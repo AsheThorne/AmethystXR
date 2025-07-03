@@ -389,6 +389,11 @@ private:
 
     // ---- Space ----
 
+    /// Get the supported reference space types
+    /// @param referenceSpaces Output reference space types
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult getSupportedReferenceSpaces(std::vector<XrReferenceSpaceType>& referenceSpaces) const;
+
     /// Create an XrSpace from the given reference space type
     /// @param referenceSpaceType Reference space type
     /// @param referenceSpace Output reference space
