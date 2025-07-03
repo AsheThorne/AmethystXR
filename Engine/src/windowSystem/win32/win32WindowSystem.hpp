@@ -75,6 +75,10 @@ public:
     // Public Functions
     // ----------------------------------------- //
 
+    /// Check if the window system is valid for use
+    /// @returns True if the window system is valid for use
+    [[nodiscard]] bool isValid() const;
+
     /// Set up the win32 window system
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setup();

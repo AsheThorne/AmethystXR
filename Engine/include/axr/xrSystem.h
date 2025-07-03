@@ -160,6 +160,10 @@ typedef const AxrXrSystem* AxrXrSystemConst_T;
 // External Function Definitions
 // ----------------------------------------- //
 extern "C" {
+    /// Check if the xr system is valid for use
+    /// @param xrSystem The xr system to use
+    /// @returns True if the xr system is valid for use
+   AXR_API bool axrXrSystemIsValid(AxrXrSystemConst_T xrSystem);
     /// Check if the xr session is running
     /// @param xrSystem The xr system to use
     /// @returns True if the xr session is running

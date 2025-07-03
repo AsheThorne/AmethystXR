@@ -33,6 +33,10 @@ typedef const AxrWindowSystem* AxrWindowSystemConst_T;
 // External Function Definitions
 // ----------------------------------------- //
 extern "C" {
+    /// Check if the window system is valid for use
+    /// @param windowSystem The widow system to use
+    /// @returns True if the window system is valid for use
+    AXR_API bool axrWindowSystemIsValid(AxrWindowSystemConst_T windowSystem);
     /// Check if the window is open
     /// @param windowSystem The window system to use
     /// @returns True if the window is open

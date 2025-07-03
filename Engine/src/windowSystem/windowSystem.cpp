@@ -8,6 +8,15 @@
 // External Functions
 // ----------------------------------------- //
 
+bool axrWindowSystemIsValid(const AxrWindowSystemConst_T windowSystem) {
+    if (windowSystem == nullptr) {
+        axrLogErrorLocation("`windowSystem` is null.");
+        return false;
+    }
+
+    return windowSystem->isValid();
+}
+
 bool axrWindowSystemIsWindowOpen(const AxrWindowSystemConst_T windowSystem) {
     if (windowSystem == nullptr) {
         axrLogErrorLocation("`windowSystem` is null.");
@@ -62,6 +71,18 @@ AxrWindowSystem::~AxrWindowSystem() {
 }
 
 // ---- Public Functions ----
+
+bool AxrWindowSystem::isValid() const {
+#ifdef AXR_USE_PLATFORM_WIN32
+    if (m_Win32WindowSystem == nullptr) {
+        return false;
+    }
+
+    return m_Win32WindowSystem->isValid();
+#else
+    return false;
+#endif
+}
 
 bool AxrWindowSystem::isWindowOpen() const {
 #ifdef AXR_USE_PLATFORM_WIN32

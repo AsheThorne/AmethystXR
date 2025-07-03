@@ -86,6 +86,12 @@ namespace axr {
         // Public Functions
         // ----------------------------------------- //
 
+        /// Check if the window system is valid for use
+        /// @returns True if the window system is valid for use
+        [[nodiscard]] bool isValid() const {
+            return axrWindowSystemIsValid(m_WindowSystem);
+        }
+
         /// Check if the window is open
         /// @returns True if the window is open
         [[nodiscard]] bool isWindowOpen() const {

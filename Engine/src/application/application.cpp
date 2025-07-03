@@ -152,7 +152,7 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
             .ApplicationName = config.ApplicationName,
             .ApplicationVersion = config.ApplicationVersion,
             .WindowSystem = &m_WindowSystem,
-            .XrSystem = &m_XrSystem,
+            .XrSystem = config.XrSystemConfig == nullptr ? nullptr : &m_XrSystem,
             .GlobalAssetCollection = &m_GlobalAssetCollection,
             .GraphicsConfig = config.GraphicsSystemConfig,
         }
@@ -183,7 +183,6 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
 AxrApplication::~AxrApplication() {
     m_GraphicsSystem.cleanup();
     m_WindowSystem.cleanup();
-    // TODO: Check that we actually have a valid Xr system first. m_XrSystem.isValid(), which checks that the config is valid
     m_XrSystem.resetSetup();
     m_GlobalAssetCollection.cleanup();
 }
@@ -196,12 +195,15 @@ AxrResult AxrApplication::setup() {
     axrResult = setupGlobalAssetCollection();
     if (AXR_FAILED(axrResult)) return axrResult;
 
-    axrResult = m_WindowSystem.setup();
-    if (AXR_FAILED(axrResult)) return axrResult;
+    if (m_WindowSystem.isValid()) {
+        axrResult = m_WindowSystem.setup();
+        if (AXR_FAILED(axrResult)) return axrResult;
+    }
 
-    // TODO: Check that we actually have a valid Xr system first. m_XrSystem.isValid(), which checks that the config is valid
-    axrResult = m_XrSystem.setup();
-    if (AXR_FAILED(axrResult)) return axrResult;
+    if (m_XrSystem.isValid()) {
+        axrResult = m_XrSystem.setup();
+        if (AXR_FAILED(axrResult)) return axrResult;
+    }
 
     axrResult = m_GraphicsSystem.setup();
     if (AXR_FAILED(axrResult)) return axrResult;
@@ -210,14 +212,27 @@ AxrResult AxrApplication::setup() {
 }
 
 bool AxrApplication::isRunning() const {
-    // TODO: Check that we actually have a valid Xr system first. m_XrSystem.isValid(), which checks that the config is valid
-    return m_WindowSystem.isWindowOpen() || m_XrSystem.isXrSessionRunning();
+    bool xrSessionIsRunning = false;
+    bool windowIsOpen = false;
+
+    if (m_XrSystem.isValid()) {
+        xrSessionIsRunning = m_XrSystem.isXrSessionRunning();
+    }
+
+    if (m_WindowSystem.isValid()) {
+        windowIsOpen = m_WindowSystem.isWindowOpen();
+    }
+
+    return windowIsOpen || xrSessionIsRunning;
 }
 
 void AxrApplication::processEvents() {
-    m_WindowSystem.processEvents();
-    // TODO: Check that we actually have a valid Xr system first. m_XrSystem.isValid(), which checks that the config is valid
-    m_XrSystem.processEvents();
+    if (m_WindowSystem.isValid()) {
+        m_WindowSystem.processEvents();
+    }
+    if (m_XrSystem.isValid()) {
+        m_XrSystem.processEvents();
+    }
 
     static std::chrono::high_resolution_clock::time_point lastFrameTime = std::chrono::high_resolution_clock::now();
     const std::chrono::high_resolution_clock::time_point currentFrameTime = std::chrono::high_resolution_clock::now();
@@ -231,7 +246,6 @@ AxrWindowSystem_T AxrApplication::getWindowSystem() {
 }
 
 AxrXrSystem_T AxrApplication::getXrSystem() {
-    // TODO: Make sure m_XrSystem.isValid() is an external function so the application can check it before it uses it
     return &m_XrSystem;
 }
 

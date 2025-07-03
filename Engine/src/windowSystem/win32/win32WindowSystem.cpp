@@ -25,6 +25,10 @@ AxrWin32WindowSystem::~AxrWin32WindowSystem() {
 
 // ---- Public Functions ----
 
+bool AxrWin32WindowSystem::isValid() const {
+    return !axrStringIsEmpty(m_ApplicationName);
+}
+
 AxrResult AxrWin32WindowSystem::setup() {
     m_Instance = GetModuleHandle(nullptr);
 

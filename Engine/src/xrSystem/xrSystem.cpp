@@ -16,6 +16,15 @@
 // External Functions
 // ----------------------------------------- //
 
+bool axrXrSystemIsValid(const AxrXrSystemConst_T xrSystem) {
+    if (xrSystem == nullptr) {
+        axrLogErrorLocation("`xrSystem` is null.");
+        return false;
+    }
+
+    return xrSystem->isValid();
+}
+
 bool axrXrSystemIsXrSessionRunning(const AxrXrSystemConst_T xrSystem) {
     if (xrSystem == nullptr) {
         axrLogErrorLocation("`xrSystem` is null.");
@@ -51,7 +60,7 @@ void axrXrSystemStopXrSession(const AxrXrSystem_T xrSystem) {
 
 AxrXrSystem::AxrXrSystem(const Config& config):
     m_ApplicationName(config.ApplicationName),
-    m_ApplicationVersion(0),
+    m_ApplicationVersion(config.ApplicationVersion),
     m_GraphicsApi(config.GraphicsApi),
     m_StageReferenceSpaceType(config.StageReferenceSpace),
     m_Instance(XR_NULL_HANDLE),
@@ -90,6 +99,10 @@ AxrXrSystem::~AxrXrSystem() {
 }
 
 // ---- Public Functions ----
+
+bool AxrXrSystem::isValid() const {
+    return !axrStringIsEmpty(m_ApplicationName);
+}
 
 bool AxrXrSystem::isXrSessionRunning() const {
     return m_IsSessionRunning;

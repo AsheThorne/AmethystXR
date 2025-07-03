@@ -77,6 +77,10 @@ public:
     // Public Functions
     // ----------------------------------------- //
 
+    /// Check if the window system is valid for use
+    /// @returns True if the window system is valid for use
+    [[nodiscard]] bool isValid() const;
+
     /// Check if the window is open
     /// @returns True if the window is open
     [[nodiscard]] bool isWindowOpen() const;

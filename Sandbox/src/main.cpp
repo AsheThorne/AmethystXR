@@ -80,7 +80,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     if (AXR_FAILED(globalAssetCollection.createShader(axr::EngineAssetEnum::ShaderDefaultFrag))) return -1;
     if (AXR_FAILED(globalAssetCollection.createShader(axr::EngineAssetEnum::ShaderDefaultVert))) return -1;
 
-    TestScene scene(app);
+    SponzaScene scene(app);
     if (AXR_FAILED(scene.setup())) return -1;
 
     if (AXR_FAILED(scene.loadScene())) return -1;
@@ -90,7 +90,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     if (AXR_FAILED(windowSystem.openWindow())) return -1;
 
     axr::XrSystem xrSystem = app.getXrSystem();
-    if (AXR_FAILED(xrSystem.startXrSession())) return -1;
+    if (xrSystem.isValid()) {
+        if (AXR_FAILED(xrSystem.startXrSession())) return -1;
+    }
 
     axr::GraphicsSystem graphicsSystem = app.getGraphicsSystem();
     graphicsSystem.setClearColor(glm::vec4(0.2f, 0.05f, 0.2f, 1.0f));

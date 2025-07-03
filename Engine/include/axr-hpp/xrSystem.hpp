@@ -357,6 +357,12 @@ namespace axr {
         // Public Functions
         // ----------------------------------------- //
 
+        /// Check if the xr system is valid for use
+        /// @returns True if the xr system is valid for use
+        [[nodiscard]] bool isValid() const {
+            return axrXrSystemIsValid(m_XrSystem);
+        }
+
         /// Check if the xr session is running
         /// @returns True if the xr session is running
         [[nodiscard]] bool isXrSessionRunning() const {
@@ -380,5 +386,4 @@ namespace axr {
         // ----------------------------------------- //
         AxrXrSystem_T m_XrSystem;
     };
-
 }
