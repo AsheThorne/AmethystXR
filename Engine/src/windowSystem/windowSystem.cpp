@@ -71,7 +71,7 @@ AxrWindowSystem::AxrWindowSystem(const Config& config):
 }
 
 AxrWindowSystem::~AxrWindowSystem() {
-    cleanup();
+    resetSetup();
 }
 
 // ---- Public Functions ----
@@ -151,7 +151,7 @@ AxrResult AxrWindowSystem::setup() {
 #endif
 }
 
-void AxrWindowSystem::cleanup() {
+void AxrWindowSystem::resetSetup() {
 #ifdef AXR_USE_PLATFORM_WIN32
     if (m_Win32WindowSystem != nullptr) {
         delete m_Win32WindowSystem;

@@ -77,8 +77,8 @@ public:
     /// Set up the graphics system
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setup();
-    /// Clean up this class
-    void cleanup();
+    /// Reset setup()
+    void resetSetup();
 
     /// Load the named scene
     /// @param scene Scene to load

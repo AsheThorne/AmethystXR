@@ -76,7 +76,7 @@ AxrGraphicsSystem::AxrGraphicsSystem(const Config& config):
 }
 
 AxrGraphicsSystem::~AxrGraphicsSystem() {
-    cleanup();
+    resetSetup();
 }
 
 // ---- Public Headers ----
@@ -152,7 +152,7 @@ AxrResult AxrGraphicsSystem::setup() {
     }
 }
 
-void AxrGraphicsSystem::cleanup() {
+void AxrGraphicsSystem::resetSetup() {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     if (m_VulkanGraphicsSystem != nullptr) {
         delete m_VulkanGraphicsSystem;
