@@ -52,9 +52,6 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     m_ApiLayers.add(config.ApiLayerCount, config.ApiLayers);
     m_Extensions.add(config.ExtensionCount, config.Extensions);
 
-    addRequiredInstanceExtensions();
-    addRequiredDeviceExtensions();
-
     if (config.WindowSystem != nullptr) {
         if (config.WindowConfig != nullptr) {
             m_WindowGraphics = new AxrVulkanWindowGraphics(
@@ -82,6 +79,9 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
             }
         );
     }
+
+    addRequiredInstanceExtensions();
+    addRequiredDeviceExtensions();
 }
 
 AxrVulkanGraphicsSystem::~AxrVulkanGraphicsSystem() {

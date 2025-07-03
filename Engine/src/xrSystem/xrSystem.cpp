@@ -58,33 +58,27 @@ void axrXrSystemStopXrSession(const AxrXrSystem_T xrSystem) {
 
 // ---- Special Functions ----
 
+AxrXrSystem::AxrXrSystem(std::nullptr_t) {
+}
+
 AxrXrSystem::AxrXrSystem(const Config& config):
+    m_IsValid(true),
     m_ApplicationName(config.ApplicationName),
     m_ApplicationVersion(config.ApplicationVersion),
     m_GraphicsApi(config.GraphicsApi),
     m_StageReferenceSpaceType(config.StageReferenceSpace),
-    m_Instance(XR_NULL_HANDLE),
-    m_DebugUtilsMessenger(XR_NULL_HANDLE),
-    m_SystemId(XR_NULL_SYSTEM_ID),
     m_SupportedViewConfigurationTypes(
         {
             XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
             XR_VIEW_CONFIGURATION_TYPE_PRIMARY_MONO,
         }
     ),
-    m_ViewConfigurationType(XR_VIEW_CONFIGURATION_TYPE_MAX_ENUM),
     m_SupportedEnvironmentBlendModes(
         {
             XR_ENVIRONMENT_BLEND_MODE_OPAQUE,
             XR_ENVIRONMENT_BLEND_MODE_ADDITIVE,
         }
-    ),
-    m_EnvironmentBlendMode(XR_ENVIRONMENT_BLEND_MODE_MAX_ENUM),
-    m_GraphicsBinding(nullptr),
-    m_IsSessionRunning(false),
-    m_Session(XR_NULL_HANDLE),
-    m_SessionState(XR_SESSION_STATE_UNKNOWN),
-    m_StageReferenceSpace(XR_NULL_HANDLE) {
+    ) {
     m_ApiLayers.add(config.ApiLayerCount, config.ApiLayers);
     m_Extensions.add(config.ExtensionCount, config.Extensions);
 
@@ -101,7 +95,7 @@ AxrXrSystem::~AxrXrSystem() {
 // ---- Public Functions ----
 
 bool AxrXrSystem::isValid() const {
-    return !axrStringIsEmpty(m_ApplicationName);
+    return m_IsValid;
 }
 
 bool AxrXrSystem::isXrSessionRunning() const {

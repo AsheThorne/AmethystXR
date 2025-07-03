@@ -51,10 +51,10 @@ public:
     // ---- Constructors ----
 
     /// Null config Constructor
-    AxrWindowSystem(std::nullptr_t);
+    explicit AxrWindowSystem(std::nullptr_t);
     /// Constructor
     /// @param config Window config
-    AxrWindowSystem(const Config& config);
+    explicit AxrWindowSystem(const Config& config);
     /// Copy Constructor
     /// @param src Source AxrWindowSystem to copy from
     AxrWindowSystem(const AxrWindowSystem& src) = delete;
@@ -121,7 +121,7 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
-    bool m_IsValid;
+    bool m_IsValid = false;
 
 #ifdef AXR_USE_PLATFORM_WIN32
     // ---- Win32 Variables ----

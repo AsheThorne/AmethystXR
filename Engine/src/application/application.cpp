@@ -173,18 +173,24 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
         }()
     ),
     m_XrSystem(
-        config.XrSystemConfig == nullptr
-            ? AxrXrSystem::Config{}
-            : AxrXrSystem::Config{
-                .ApplicationName = config.ApplicationName,
-                .ApplicationVersion = config.ApplicationVersion,
-                .GraphicsApi = config.GraphicsSystemConfig.GraphicsApi,
-                .StageReferenceSpace = config.XrSystemConfig->StageReferenceSpace,
-                .ApiLayerCount = config.XrSystemConfig->ApiLayerCount,
-                .ApiLayers = config.XrSystemConfig->ApiLayers,
-                .ExtensionCount = config.XrSystemConfig->ExtensionCount,
-                .Extensions = config.XrSystemConfig->Extensions
+        [&] {
+            if (config.XrSystemConfig == nullptr) {
+                return AxrXrSystem(nullptr);
             }
+
+            return AxrXrSystem(
+                AxrXrSystem::Config{
+                    .ApplicationName = config.ApplicationName,
+                    .ApplicationVersion = config.ApplicationVersion,
+                    .GraphicsApi = config.GraphicsSystemConfig.GraphicsApi,
+                    .StageReferenceSpace = config.XrSystemConfig->StageReferenceSpace,
+                    .ApiLayerCount = config.XrSystemConfig->ApiLayerCount,
+                    .ApiLayers = config.XrSystemConfig->ApiLayers,
+                    .ExtensionCount = config.XrSystemConfig->ExtensionCount,
+                    .Extensions = config.XrSystemConfig->Extensions
+                }
+            );
+        }()
     ),
     m_DeltaTime(0) {
 }

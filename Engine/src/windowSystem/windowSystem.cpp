@@ -50,8 +50,7 @@ void axrWindowSystemCloseWindow(const AxrWindowSystem_T windowSystem) {
 
 // ---- Special Functions ----
 
-AxrWindowSystem::AxrWindowSystem(std::nullptr_t):
-    m_IsValid(false) {
+AxrWindowSystem::AxrWindowSystem(std::nullptr_t) {
 }
 
 AxrWindowSystem::AxrWindowSystem(const Config& config):

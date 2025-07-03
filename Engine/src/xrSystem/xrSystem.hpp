@@ -63,9 +63,11 @@ public:
 
     // ---- Constructors ----
 
+    /// Null config Constructor
+    explicit AxrXrSystem(std::nullptr_t);
     /// Constructor
     /// @param config Xr system config
-    AxrXrSystem(const Config& config);
+    explicit AxrXrSystem(const Config& config);
     /// Copy Constructor
     /// @param src Source AxrXrSystem to copy from
     AxrXrSystem(const AxrXrSystem& src) = delete;
@@ -232,29 +234,30 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
+    bool m_IsValid = false;
 
     // ---- Config Variables ----
-    const char* m_ApplicationName;
-    uint32_t m_ApplicationVersion;
-    AxrGraphicsApiEnum m_GraphicsApi;
-    AxrXrReferenceSpaceEnum m_StageReferenceSpaceType;
+    const char* m_ApplicationName = "";
+    uint32_t m_ApplicationVersion = 0;
+    AxrGraphicsApiEnum m_GraphicsApi = AXR_GRAPHICS_API_UNDEFINED;
+    AxrXrReferenceSpaceEnum m_StageReferenceSpaceType = AXR_XR_REFERENCE_SPACE_UNDEFINED;
     AxrExtensionCollection<AxrXrApiLayer_T, AxrXrApiLayerTypeEnum> m_ApiLayers;
     AxrExtensionCollection<AxrXrExtension_T, AxrXrExtensionTypeEnum> m_Extensions;
 
     // ---- Data ----
-    XrInstance m_Instance;
-    XrDebugUtilsMessengerEXT m_DebugUtilsMessenger;
-    XrSystemId m_SystemId;
+    XrInstance m_Instance = XR_NULL_HANDLE;
+    XrDebugUtilsMessengerEXT m_DebugUtilsMessenger= XR_NULL_HANDLE;
+    XrSystemId m_SystemId = XR_NULL_SYSTEM_ID;
     std::vector<XrViewConfigurationType> m_SupportedViewConfigurationTypes;
-    XrViewConfigurationType m_ViewConfigurationType;
+    XrViewConfigurationType m_ViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_MAX_ENUM;
     std::vector<XrViewConfigurationView> m_ViewConfigurations;
     std::vector<XrEnvironmentBlendMode> m_SupportedEnvironmentBlendModes;
-    XrEnvironmentBlendMode m_EnvironmentBlendMode;
-    XrBaseInStructure* m_GraphicsBinding;
-    bool m_IsSessionRunning;
-    XrSession m_Session;
-    XrSessionState m_SessionState;
-    XrSpace m_StageReferenceSpace;
+    XrEnvironmentBlendMode m_EnvironmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_MAX_ENUM;
+    XrBaseInStructure* m_GraphicsBinding = nullptr;
+    bool m_IsSessionRunning = false;
+    XrSession m_Session = XR_NULL_HANDLE;
+    XrSessionState m_SessionState = XR_SESSION_STATE_UNKNOWN;
+    XrSpace m_StageReferenceSpace = XR_NULL_HANDLE;
 
     // ----------------------------------------- //
     // Private Functions
