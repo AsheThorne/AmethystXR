@@ -158,7 +158,7 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
         }
     ),
     m_WindowSystem(
-        [&]-> AxrWindowSystem {
+        [config]() -> AxrWindowSystem {
             if (config.WindowSystemConfig == nullptr) {
                 return AxrWindowSystem(nullptr);
             }
@@ -173,7 +173,7 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
         }()
     ),
     m_XrSystem(
-        [&]-> AxrXrSystem {
+        [config]() -> AxrXrSystem {
             if (config.XrSystemConfig == nullptr) {
                 return AxrXrSystem(nullptr);
             }
