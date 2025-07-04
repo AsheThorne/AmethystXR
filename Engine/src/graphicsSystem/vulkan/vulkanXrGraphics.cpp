@@ -548,11 +548,9 @@ AxrResult AxrVulkanXrGraphics::setSwapchainFormats() {
 
     // ---- Find color format ----
 
-    auto foundFormatIt = std::find_first_of(
-        m_SwapchainColorFormatOptions.begin(),
-        m_SwapchainColorFormatOptions.end(),
-        supportedSwapchainVkFormats.begin(),
-        supportedSwapchainVkFormats.end()
+    auto foundFormatIt = std::ranges::find_first_of(
+        m_SwapchainColorFormatOptions,
+        supportedSwapchainVkFormats
     );
 
     if (foundFormatIt == m_SwapchainColorFormatOptions.end()) {
@@ -565,11 +563,9 @@ AxrResult AxrVulkanXrGraphics::setSwapchainFormats() {
 
     // ---- Find depth format ----
 
-    foundFormatIt = std::find_first_of(
-        m_SwapchainDepthFormatOptions.begin(),
-        m_SwapchainDepthFormatOptions.end(),
-        supportedSwapchainVkFormats.begin(),
-        supportedSwapchainVkFormats.end()
+    foundFormatIt = std::ranges::find_first_of(
+        m_SwapchainDepthFormatOptions,
+        supportedSwapchainVkFormats
     );
 
     if (foundFormatIt == m_SwapchainDepthFormatOptions.end()) {
@@ -597,7 +593,13 @@ AxrResult AxrVulkanXrGraphics::setupSwapchain(const XrViewConfigurationView& vie
         return axrResult;
     }
 
-    axrResult = createSwapchains(view);
+    axrResult = createSwapchain(view);
+    if (AXR_FAILED(axrResult)) {
+        resetSetupSwapchain(view);
+        return axrResult;
+    }
+
+    axrResult = createDepthBufferImages(view);
     if (AXR_FAILED(axrResult)) {
         resetSetupSwapchain(view);
         return axrResult;
@@ -621,7 +623,8 @@ AxrResult AxrVulkanXrGraphics::setupSwapchain(const XrViewConfigurationView& vie
 void AxrVulkanXrGraphics::resetSetupSwapchain(View& view) const {
     destroyFramebuffers(view);
     destroyMsaaImages(view);
-    destroySwapchains(view);
+    destroyDepthBufferImages(view);
+    destroySwapchain(view);
     resetSwapchainExtent(view);
 }
 
@@ -638,18 +641,13 @@ void AxrVulkanXrGraphics::resetSwapchainExtent(View& view) const {
     view.SwapchainExtent = vk::Extent2D(0, 0);
 }
 
-AxrResult AxrVulkanXrGraphics::createSwapchains(View& view) const {
+AxrResult AxrVulkanXrGraphics::createSwapchain(View& view) const {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
 
     if (view.ColorSwapchain.Swapchain != XR_NULL_HANDLE) {
         axrLogErrorLocation("Color swapchain already exists.");
-        return AXR_ERROR;
-    }
-
-    if (view.DepthSwapchain.Swapchain != XR_NULL_HANDLE) {
-        axrLogErrorLocation("Depth swapchain already exists.");
         return AXR_ERROR;
     }
 
@@ -670,7 +668,7 @@ AxrResult AxrVulkanXrGraphics::createSwapchains(View& view) const {
         view.ColorSwapchain.Swapchain
     );
     if (AXR_FAILED(axrResult)) {
-        destroySwapchains(view);
+        destroySwapchain(view);
         return axrResult;
     }
 
@@ -682,48 +680,14 @@ AxrResult AxrVulkanXrGraphics::createSwapchains(View& view) const {
         view.ColorSwapchain.ImageViews
     );
     if (AXR_FAILED(axrResult)) {
-        destroySwapchains(view);
-        return axrResult;
-    }
-
-    // ---- Depth swapchain ----
-
-    axrResult = m_XrSystem.createSwapchain(
-        XR_SWAPCHAIN_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-        static_cast<int64_t>(m_SwapchainDepthFormat),
-        static_cast<uint32_t>(m_MsaaSampleCount),
-        view.SwapchainExtent.width,
-        view.SwapchainExtent.height,
-        view.DepthSwapchain.Swapchain
-    );
-    if (AXR_FAILED(axrResult)) {
-        destroySwapchains(view);
-        return axrResult;
-    }
-
-    vk::ImageAspectFlags depthImageAspectFlags = vk::ImageAspectFlagBits::eDepth;
-    if (axrFormatHasStencilComponent(m_SwapchainDepthFormat)) {
-        depthImageAspectFlags |= vk::ImageAspectFlagBits::eStencil;
-    }
-
-    axrResult = setupSwapchainImages(
-        view.DepthSwapchain.Swapchain,
-        depthImageAspectFlags,
-        m_SwapchainDepthFormat,
-        view.DepthSwapchain.Images,
-        view.DepthSwapchain.ImageViews
-    );
-    if (AXR_FAILED(axrResult)) {
-        destroySwapchains(view);
+        destroySwapchain(view);
         return axrResult;
     }
 
     return AXR_SUCCESS;
 }
 
-void AxrVulkanXrGraphics::destroySwapchains(View& view) const {
-    resetSetupSwapchainImages(view.DepthSwapchain.Images, view.DepthSwapchain.ImageViews);
-    m_XrSystem.destroySwapchain(view.DepthSwapchain.Swapchain);
+void AxrVulkanXrGraphics::destroySwapchain(View& view) const {
     resetSetupSwapchainImages(view.ColorSwapchain.Images, view.ColorSwapchain.ImageViews);
     m_XrSystem.destroySwapchain(view.ColorSwapchain.Swapchain);
 }
@@ -808,6 +772,88 @@ void AxrVulkanXrGraphics::resetSetupSwapchainImages(
     imageViews.clear();
 
     images.clear();
+}
+
+AxrResult AxrVulkanXrGraphics::createDepthBufferImages(View& view) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!view.SwapchainDepthImages.empty()) {
+        axrLogErrorLocation("Depth buffer images already exist.");
+        return AXR_ERROR;
+    }
+
+    if (view.ColorSwapchain.Images.empty()) {
+        axrLogErrorLocation("Swapchain color image images don't exist.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    vk::ImageAspectFlags imageAspectFlags = vk::ImageAspectFlagBits::eDepth;
+    if (axrFormatHasStencilComponent(m_SwapchainDepthFormat)) {
+        imageAspectFlags |= vk::ImageAspectFlagBits::eStencil;
+    }
+
+    view.SwapchainDepthImages.resize(view.ColorSwapchain.Images.size());
+
+    for (AxrVulkanImage& depthBufferImage : view.SwapchainDepthImages) {
+        depthBufferImage = AxrVulkanImage(
+            {
+                .PhysicalDevice = m_PhysicalDevice,
+                .Device = m_Device,
+                .GraphicsCommandPool = m_GraphicsCommandPool,
+                .GraphicsQueue = m_QueueFamilies.GraphicsQueue,
+                .DispatchHandle = &m_Dispatch
+            }
+        );
+
+        axrResult = depthBufferImage.createImage(
+            view.SwapchainExtent,
+            m_MsaaSampleCount,
+            m_SwapchainDepthFormat,
+            vk::ImageTiling::eOptimal,
+            vk::ImageUsageFlagBits::eDepthStencilAttachment,
+            vk::MemoryPropertyFlagBits::eDeviceLocal,
+            imageAspectFlags
+        );
+
+        if (AXR_FAILED(axrResult)) {
+            break;
+        }
+
+        axrResult = depthBufferImage.transitionImageLayout(
+            vk::AccessFlagBits::eNone,
+            vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite,
+            vk::ImageLayout::eUndefined,
+            vk::ImageLayout::eDepthStencilAttachmentOptimal,
+            vk::PipelineStageFlagBits::eTopOfPipe,
+            vk::PipelineStageFlagBits::eEarlyFragmentTests
+        );
+
+        if (AXR_FAILED(axrResult)) {
+            break;
+        }
+    }
+
+    if (AXR_FAILED(axrResult)) {
+        destroyDepthBufferImages(view);
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanXrGraphics::destroyDepthBufferImages(View& view) const {
+    for (AxrVulkanImage& depthBufferImage : view.SwapchainDepthImages) {
+        depthBufferImage.destroyImage();
+    }
+    view.SwapchainDepthImages.clear();
 }
 
 AxrResult AxrVulkanXrGraphics::createRenderPass() {
@@ -987,14 +1033,26 @@ AxrResult AxrVulkanXrGraphics::createFramebuffers(View& view) const {
         return AXR_ERROR;
     }
 
-    if (view.DepthSwapchain.ImageViews.empty()) {
-        axrLogErrorLocation("Swapchain color image views don't exist.");
+    if (view.SwapchainDepthImages.empty()) {
+        axrLogErrorLocation("Swapchain color images don't exist.");
         return AXR_ERROR;
+    }
+
+    if (axrIsVulkanMsaaEnabled(m_MsaaSampleCount)) {
+        if (view.SwapchainMsaaImages.empty()) {
+            axrLogErrorLocation("Swapchain msaa images don't exist.");
+            return AXR_ERROR;
+        }
     }
 
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //
+
+    std::vector<vk::ImageView> depthImageViews(view.SwapchainDepthImages.size());
+    for (int i = 0; i < depthImageViews.size(); ++i) {
+        depthImageViews[i] = view.SwapchainDepthImages[i].getImageView();
+    }
 
     std::vector<vk::ImageView> msaaImageViews(view.SwapchainMsaaImages.size());
     for (int i = 0; i < msaaImageViews.size(); ++i) {
@@ -1007,7 +1065,7 @@ AxrResult AxrVulkanXrGraphics::createFramebuffers(View& view) const {
         view.SwapchainExtent,
         m_MsaaSampleCount,
         view.ColorSwapchain.ImageViews,
-        view.DepthSwapchain.ImageViews,
+        depthImageViews,
         msaaImageViews,
         view.SwapchainFramebuffers,
         m_Dispatch

@@ -59,8 +59,7 @@ public:
         std::vector<vk::CommandBuffer> RenderingCommandBuffers;
         vk::Extent2D SwapchainExtent;
         SwapchainData ColorSwapchain;
-        // TODO: Does this need to be an XrSwapchain like color? or can we just create the depth images like the window does
-        SwapchainData DepthSwapchain;
+        std::vector<AxrVulkanImage> SwapchainDepthImages;
         std::vector<AxrVulkanImage> SwapchainMsaaImages;
         std::vector<vk::Framebuffer> SwapchainFramebuffers;
     };
@@ -312,13 +311,13 @@ private:
     /// @param view View data
     void resetSwapchainExtent(View& view) const;
 
-    /// Create the vulkan swapchains for the given view
+    /// Create the swapchain for the given view
     /// @param view Output view graphics data
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createSwapchains(View& view) const;
-    /// Destroy the createSwapchains() function for the given view
+    [[nodiscard]] AxrResult createSwapchain(View& view) const;
+    /// Destroy the swapchain for the given view
     /// @param view View data
-    void destroySwapchains(View& view) const;
+    void destroySwapchain(View& view) const;
 
     /// Set up swapchain images
     /// @param swapchain Swapchain to use
@@ -341,6 +340,16 @@ private:
         std::vector<vk::Image>& images,
         std::vector<vk::ImageView>& imageViews
     ) const;
+
+    // ---- Depth Buffer ----
+
+    /// Create the depth buffer images
+    /// @param view Output view graphics data
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createDepthBufferImages(View& view) const;
+    /// Destroy the depth buffer images
+    /// @param view View data
+    void destroyDepthBufferImages(View& view) const;
 
     // ---- Render pass ----
 
