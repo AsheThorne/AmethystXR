@@ -102,13 +102,13 @@ float axrApplicationGetDeltaTime(const AxrApplication_T app) {
     return app->getDeltaTime();
 }
 
-AxrResult axrApplicationCreateScene(const AxrApplication_T app, const char* sceneName) {
+AxrResult axrApplicationCreateScene(const AxrApplication_T app, char sceneName[AXR_MAX_SCENE_NAME_SIZE]) {
     if (app == nullptr) {
         axrLogErrorLocation("`app` is null.");
         return AXR_ERROR;
     }
 
-    return app->createScene(sceneName);
+    return app->createScene(sceneName == nullptr ? "" : sceneName);
 }
 
 AxrScene_T axrApplicationFindScene(const AxrApplication_T app, const char* sceneName) {
@@ -149,7 +149,7 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
     m_ApplicationVersion(config.ApplicationVersion),
     m_GraphicsSystem(
         AxrGraphicsSystem::Config{
-            .ApplicationName = config.ApplicationName,
+            .ApplicationName = config.ApplicationName == nullptr ? "" : config.ApplicationName,
             .ApplicationVersion = config.ApplicationVersion,
             .WindowSystem = config.WindowSystemConfig == nullptr ? nullptr : &m_WindowSystem,
             .XrSystem = config.XrSystemConfig == nullptr ? nullptr : &m_XrSystem,
@@ -158,7 +158,7 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
         }
     ),
     m_WindowSystem(
-        [&] {
+        [&]-> AxrWindowSystem {
             if (config.WindowSystemConfig == nullptr) {
                 return AxrWindowSystem(nullptr);
             }
@@ -173,7 +173,7 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
         }()
     ),
     m_XrSystem(
-        [&] {
+        [&]-> AxrXrSystem {
             if (config.XrSystemConfig == nullptr) {
                 return AxrXrSystem(nullptr);
             }
@@ -290,7 +290,7 @@ AxrResult AxrApplication::createScene(const std::string& sceneName) {
     // Process
     // ----------------------------------------- //
 
-    const auto insertResult = m_Scenes.insert(std::pair(sceneName, AxrScene(sceneName.c_str())));
+    const auto insertResult = m_Scenes.insert(std::pair(sceneName, AxrScene(sceneName)));
     if (!insertResult.second) {
         // If the insertion failed
         return AXR_ERROR;

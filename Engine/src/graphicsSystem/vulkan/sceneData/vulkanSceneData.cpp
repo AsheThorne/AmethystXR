@@ -1940,11 +1940,11 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
             }
 
             const AxrVulkanImageSamplerData* foundImageSamplerData = findImageSamplerData_shared(
-                imageSamplerBuffer->SamplerName
+                imageSamplerBuffer->ImageSamplerName
             );
 
             if (foundImageSamplerData == nullptr) {
-                axrLogErrorLocation("Failed to find image sampler named: {0}.", imageSamplerBuffer->SamplerName);
+                axrLogErrorLocation("Failed to find image sampler named: {0}.", imageSamplerBuffer->ImageSamplerName);
                 axrResult = AXR_ERROR;
                 break;
             }

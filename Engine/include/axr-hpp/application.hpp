@@ -20,7 +20,7 @@ namespace axr {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-        const char* ApplicationName;
+        char ApplicationName[AXR_MAX_APPLICATION_NAME_SIZE]{};
         uint32_t ApplicationVersion;
         axr::GraphicsSystemConfig GraphicsSystemConfig;
         const axr::WindowSystemConfig* WindowSystemConfig;
@@ -34,7 +34,6 @@ namespace axr {
 
         /// Default Constructor
         ApplicationConfig() :
-            ApplicationName(""),
             ApplicationVersion(0),
             GraphicsSystemConfig({}),
             WindowSystemConfig(nullptr),
@@ -53,11 +52,13 @@ namespace axr {
             const axr::GraphicsSystemConfig& graphicsSystemConfig,
             const axr::WindowSystemConfig* windowSystemConfig,
             const axr::XrSystemConfig* xrSystemConfig
-        ) : ApplicationName(applicationName),
-            ApplicationVersion(applicationVersion),
+        ) : ApplicationVersion(applicationVersion),
             GraphicsSystemConfig(graphicsSystemConfig),
             WindowSystemConfig(windowSystemConfig),
             XrSystemConfig(xrSystemConfig) {
+            if (applicationName != nullptr) {
+                strncpy_s(ApplicationName, applicationName, AXR_MAX_APPLICATION_NAME_SIZE);
+            }
         }
 
         // ----------------------------------------- //
@@ -178,7 +179,9 @@ namespace axr {
         /// @param sceneName Name of the scene
         /// @returns AXR_SUCCESS if the function succeeded
         [[nodiscard]] axr::Result createScene(const char* sceneName) {
-            return static_cast<axr::Result>(axrApplicationCreateScene(m_Application, sceneName));
+            char sceneNameBuffer[AXR_MAX_SCENE_NAME_SIZE]{};
+            strncpy_s(sceneNameBuffer, sceneName, AXR_MAX_SCENE_NAME_SIZE);
+            return static_cast<axr::Result>(axrApplicationCreateScene(m_Application, sceneNameBuffer));
         }
 
         /// Find the named scene

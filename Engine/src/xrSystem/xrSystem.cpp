@@ -890,8 +890,7 @@ AxrResult AxrXrSystem::createInstance() {
     XrBaseOutStructure* instanceStructureChain = createInstanceChain();
 
     XrApplicationInfo applicationInfo{};
-    // TODO: Change AXR api/includes to no longer take const char* or char* for strings. Use char[MAX_SIZE] like here. 
-    strncpy_s(applicationInfo.applicationName, m_ApplicationName, XR_MAX_APPLICATION_NAME_SIZE);
+    strncpy_s(applicationInfo.applicationName, m_ApplicationName.c_str(), XR_MAX_APPLICATION_NAME_SIZE);
     applicationInfo.applicationVersion = m_ApplicationVersion;
     strncpy_s(applicationInfo.engineName, AxrEngineName, XR_MAX_ENGINE_NAME_SIZE);
     applicationInfo.engineVersion = AXR_ENGINE_VERSION;

@@ -350,10 +350,15 @@ AxrShaderUniformBufferLink_T AxrShaderValuesRAII::clone(
 ) {
     if (shaderBufferLink == nullptr) return nullptr;
 
-    return new AxrShaderUniformBufferLink{
+    AxrShaderUniformBufferLink* link = new AxrShaderUniformBufferLink{
         .Binding = shaderBufferLink->Binding,
-        .BufferName = shaderBufferLink->BufferName,
+        .BufferName = {},
     };
+    if (shaderBufferLink->BufferName != nullptr) {
+        strncpy_s(link->BufferName, shaderBufferLink->BufferName, AXR_MAX_ASSET_NAME_SIZE);
+    }
+
+    return link;
 }
 
 void AxrShaderValuesRAII::destroy(AxrShaderUniformBufferLink_T& shaderBufferLink) {
@@ -368,11 +373,19 @@ AxrShaderImageSamplerBufferLink_T AxrShaderValuesRAII::clone(
 ) {
     if (shaderBufferLink == nullptr) return nullptr;
 
-    return new AxrShaderImageSamplerBufferLink{
+    AxrShaderImageSamplerBufferLink* link = new AxrShaderImageSamplerBufferLink{
         .Binding = shaderBufferLink->Binding,
-        .ImageName = shaderBufferLink->ImageName,
-        .SamplerName = shaderBufferLink->SamplerName,
+        .ImageName = {},
+        .ImageSamplerName = {},
     };
+    if (shaderBufferLink->ImageName != nullptr) {
+        strncpy_s(link->ImageName, shaderBufferLink->ImageName, AXR_MAX_ASSET_NAME_SIZE);
+    }
+    if (shaderBufferLink->ImageSamplerName != nullptr) {
+        strncpy_s(link->ImageSamplerName, shaderBufferLink->ImageSamplerName, AXR_MAX_ASSET_NAME_SIZE);
+    }
+
+    return link;
 }
 
 void AxrShaderValuesRAII::destroy(AxrShaderImageSamplerBufferLink_T& shaderBufferLink) {

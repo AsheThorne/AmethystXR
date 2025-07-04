@@ -64,7 +64,7 @@ AxrScene::AxrScene():
     m_MainCamera({m_Registry, entt::null}) {
 }
 
-AxrScene::AxrScene(const char* name):
+AxrScene::AxrScene(const std::string& name):
     m_Name(name),
     m_MainCamera(m_Registry, entt::null) {
 }

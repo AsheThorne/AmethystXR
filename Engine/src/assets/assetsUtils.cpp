@@ -34,20 +34,23 @@ AxrModelFileImageSamplerInfo axrModelFileImageSamplerInfoClone(
         return {};
     }
 
-    return AxrModelFileImageSamplerInfo{
-        .Name = axrCloneString(modelFileImageSamplerInfo->Name),
+    AxrModelFileImageSamplerInfo info{
+        .Name = {},
         .MinFilter = modelFileImageSamplerInfo->MinFilter,
         .MagFilter = modelFileImageSamplerInfo->MagFilter,
         .MipmapFilter = modelFileImageSamplerInfo->MipmapFilter,
         .WrapU = modelFileImageSamplerInfo->WrapU,
         .WrapV = modelFileImageSamplerInfo->WrapV,
     };
+    strncpy_s(info.Name, modelFileImageSamplerInfo->Name, AXR_MAX_ASSET_NAME_SIZE);
+
+    return info;
 }
 
 void axrModelFileImageSamplerInfoDestroy(AxrModelFileImageSamplerInfo* modelFileImageSamplerInfo) {
     if (modelFileImageSamplerInfo == nullptr) return;
 
-    axrDestroyString(&modelFileImageSamplerInfo->Name);
+    memset(modelFileImageSamplerInfo->Name, 0, sizeof(modelFileImageSamplerInfo->Name));
     modelFileImageSamplerInfo->MinFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
     modelFileImageSamplerInfo->MagFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
     modelFileImageSamplerInfo->MipmapFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
@@ -61,17 +64,21 @@ AxrModelFileImageInfo axrModelFileImageInfoClone(const AxrModelFileImageInfo* mo
         return {};
     }
 
-    return AxrModelFileImageInfo{
-        .Name = axrCloneString(modelFileImageInfo->Name),
-        .FilePath = axrCloneString(modelFileImageInfo->FilePath),
+    AxrModelFileImageInfo info{
+        .Name = {},
+        .FilePath = {},
     };
+    strncpy_s(info.Name, modelFileImageInfo->Name, AXR_MAX_ASSET_NAME_SIZE);
+    strncpy_s(info.FilePath, modelFileImageInfo->FilePath, AXR_MAX_FILE_PATH_SIZE);
+
+    return info;
 }
 
 void axrModelFileImageInfoDestroy(AxrModelFileImageInfo* modelFileImageInfo) {
     if (modelFileImageInfo == nullptr) return;
 
-    axrDestroyString(&modelFileImageInfo->Name);
-    axrDestroyString(&modelFileImageInfo->FilePath);
+    memset(modelFileImageInfo->Name, 0, sizeof(modelFileImageInfo->Name));
+    memset(modelFileImageInfo->FilePath, 0, sizeof(modelFileImageInfo->FilePath));
 }
 
 AxrModelFileMaterialInfo axrModelFileMaterialInfoClone(
@@ -82,18 +89,21 @@ AxrModelFileMaterialInfo axrModelFileMaterialInfoClone(
         return {};
     }
 
-    return AxrModelFileMaterialInfo{
-        .Name = axrCloneString(modelFileMaterialInfo->Name),
+    AxrModelFileMaterialInfo info{
+        .Name = {},
         .ColorImageIndex = modelFileMaterialInfo->ColorImageIndex,
         .ColorImageSamplerIndex = modelFileMaterialInfo->ColorImageSamplerIndex,
         .ColorFactor = modelFileMaterialInfo->ColorFactor,
     };
+    strncpy_s(info.Name, modelFileMaterialInfo->Name, AXR_MAX_ASSET_NAME_SIZE);
+
+    return info;
 }
 
 void axrModelFileMaterialInfoDestroy(AxrModelFileMaterialInfo* modelFileMaterialInfo) {
     if (modelFileMaterialInfo == nullptr) return;
 
-    axrDestroyString(&modelFileMaterialInfo->Name);
+    memset(modelFileMaterialInfo->Name, 0, sizeof(modelFileMaterialInfo->Name));
     modelFileMaterialInfo->ColorImageIndex = -1;
     modelFileMaterialInfo->ColorImageSamplerIndex = -1;
     modelFileMaterialInfo->ColorFactor = {};
@@ -532,7 +542,11 @@ AxrResult axrGetModelFileInfo_glTF(
     for (size_t i = 0; i < model.samplers.size(); ++i) {
         AxrImageSamplerFilterEnum filterPlaceholder{};
 
-        modelFileInfo->ImageSamplers[i].Name = axrCloneString(model.samplers[i].name.c_str());
+        strncpy_s(
+            modelFileInfo->ImageSamplers[i].Name,
+            model.samplers[i].name.c_str(),
+            AXR_MAX_ASSET_NAME_SIZE
+        );
         modelFileInfo->ImageSamplers[i].MinFilter = axrToImageSamplerFilter(
             model.samplers[i].minFilter,
             modelFileInfo->ImageSamplers[i].MipmapFilter
@@ -548,16 +562,26 @@ AxrResult axrGetModelFileInfo_glTF(
     modelFileInfo->ImageCount = model.images.size();
     modelFileInfo->Images = new AxrModelFileImageInfo[modelFileInfo->ImageCount]{};
     for (size_t i = 0; i < model.images.size(); ++i) {
-        modelFileInfo->Images[i].Name = axrCloneString(model.images[i].name.c_str());
-        modelFileInfo->Images[i].FilePath = axrCloneString(
-            path.parent_path().append(model.images[i].uri).string().c_str()
+        strncpy_s(
+            modelFileInfo->Images[i].Name,
+            model.images[i].name.c_str(),
+            AXR_MAX_ASSET_NAME_SIZE
+        );
+        strncpy_s(
+            modelFileInfo->Images[i].FilePath,
+            path.parent_path().append(model.images[i].uri).string().c_str(),
+            AXR_MAX_FILE_PATH_SIZE
         );
     }
 
     modelFileInfo->MaterialCount = model.materials.size();
     modelFileInfo->Materials = new AxrModelFileMaterialInfo[modelFileInfo->MaterialCount]{};
     for (size_t i = 0; i < model.materials.size(); ++i) {
-        modelFileInfo->Materials[i].Name = axrCloneString(model.materials[i].name.c_str());
+        strncpy_s(
+            modelFileInfo->Materials[i].Name,
+            model.materials[i].name.c_str(),
+            AXR_MAX_ASSET_NAME_SIZE
+        );
 
         const int colorTextureIndex = model.materials[i].pbrMetallicRoughness.baseColorTexture.index;
         // The index is -1 if there's no texture

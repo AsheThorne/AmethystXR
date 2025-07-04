@@ -451,7 +451,7 @@ AxrVulkanSceneData* AxrVulkanLoadedScenesCollection::createSceneData(
     AxrVulkanSceneData* globalSceneData
 ) const {
     return new AxrVulkanSceneData(
-        {
+        AxrVulkanSceneData::Config{
             .SceneName = sceneName.c_str(),
             .AssetCollection = assetCollection,
             .EcsRegistryHandle = ecsRegistryHandle,

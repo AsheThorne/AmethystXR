@@ -53,7 +53,7 @@ public:
 
     /// Vulkan Graphics System Config
     struct Config {
-        const char* ApplicationName;
+        std::string ApplicationName;
         uint32_t ApplicationVersion;
         AxrWindowSystem_T WindowSystem;
         AxrXrSystem_T XrSystem;

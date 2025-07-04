@@ -22,6 +22,10 @@ Any header file which isn't accessed by the application, must go inside the `src
 Avoid putting `#ifdef` preprocessors around enum values. The available enums shouldn't change depending on platform or
 graphics api or anything else really.
 
+For the AXR API (include headers), use `const char*` for strings that don't need to be stored.
+Use string arrays, like `char ApplicationName[AXR_MAX_APPLICATION_NAME_SIZE]` for strings
+that will be stored.
+
 ### Definitions
 
 `cleanup` functions are reserved for cleaning up the entire class.

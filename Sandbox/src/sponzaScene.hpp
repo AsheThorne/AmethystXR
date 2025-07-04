@@ -46,18 +46,12 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
-    std::string m_SceneName = "SponzaScene";
-    std::string m_ModelName = "SponzaModel";
-    std::string m_DefaultMaterialName = "SponzaDefaultMaterial";
-
     axr::Application& m_Application;
 
+    std::string m_SceneName = "SponzaScene";
     axr::Scene m_Scene;
     axr::Entity_T m_Entity;
     axr::Entity_T m_CameraEntity;
-    std::vector<std::string> m_ImageSamplerNames;
-    std::vector<std::string> m_ImageNames;
-    std::vector<std::string> m_MaterialNames;
     std::vector<AxrModelComponent::Mesh::Submesh> m_ComponentSubmeshes;
     std::vector<AxrModelComponent::Mesh> m_ComponentMeshes;
 };

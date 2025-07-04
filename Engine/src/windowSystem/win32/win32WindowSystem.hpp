@@ -35,7 +35,7 @@ public:
 
     /// Win32 Window System Config
     struct Config {
-        const char* ApplicationName;
+        std::string ApplicationName;
         uint32_t Width;
         uint32_t Height;
         OnWindowResizedCallback_T OnWindowResizedCallback;
@@ -108,7 +108,7 @@ private:
     // ----------------------------------------- //
 
     // ---- Config Variables ----
-    const char* m_ApplicationName;
+    std::string m_ApplicationName;
     uint32_t m_Width;
     uint32_t m_Height;
     OnWindowResizedCallback_T m_OnWindowResizedCallback;

@@ -29,7 +29,7 @@ public:
 
     /// Vulkan scene data config
     struct Config {
-        const char* SceneName;
+        std::string SceneName;
         AxrAssetCollection_T AssetCollection;
         entt::registry* EcsRegistryHandle;
         AxrVulkanSceneData* GlobalSceneData;

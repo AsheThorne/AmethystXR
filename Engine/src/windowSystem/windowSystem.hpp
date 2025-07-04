@@ -16,7 +16,7 @@ public:
 
     /// Window System Config
     struct Config {
-        const char* ApplicationName;
+        std::string ApplicationName;
         uint32_t Width;
         uint32_t Height;
     };

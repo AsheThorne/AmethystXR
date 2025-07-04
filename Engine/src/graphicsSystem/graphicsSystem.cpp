@@ -62,7 +62,9 @@ AxrGraphicsSystem::AxrGraphicsSystem(const Config& config):
                     };
                     useXrSessionConfig = true;
                 } else {
-                    axrLogErrorLocation("Failed to set xr session graphics config. Missing xr session graphic configs.");
+                    axrLogErrorLocation(
+                        "Failed to set xr session graphics config. Missing xr session graphic configs."
+                    );
                 }
             }
 

@@ -19,7 +19,7 @@ public:
     AxrScene();
     /// Constructor
     /// @param name Name of the scene
-    AxrScene(const char* name);
+    AxrScene(const std::string& name);
     /// Copy Constructor
     /// @param src Source AxrScene to copy from
     AxrScene(const AxrScene& src) = delete;

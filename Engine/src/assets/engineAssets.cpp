@@ -259,11 +259,17 @@ AxrResult axrEngineAssetCreateShader_DefaultVert(AxrShader& shader) {
 
     const auto shaderPath = axrGetEngineAssetsDirectoryPath().append("shaders/shader.vert").generic_string();
 
-    const AxrShaderConfig shaderConfig{
-        .Name = axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT),
-        .FilePath = shaderPath.c_str(),
+    AxrShaderConfig shaderConfig{
+        .Name = {},
+        .FilePath = {},
         .Properties = reinterpret_cast<AxrShaderProperties_T>(&shaderProperties)
     };
+    strncpy_s(
+        shaderConfig.Name,
+        axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT),
+        AXR_MAX_ASSET_NAME_SIZE
+    );
+    strncpy_s(shaderConfig.FilePath, shaderPath.c_str(), AXR_MAX_FILE_PATH_SIZE);
 
     if (!axrShaderConfigIsValid(&shaderConfig)) {
         return AXR_ERROR;
@@ -290,11 +296,17 @@ AxrResult axrEngineAssetCreateShader_DefaultFrag(AxrShader& shader) {
 
     const auto shaderPath = axrGetEngineAssetsDirectoryPath().append("shaders/shader.frag").generic_string();
 
-    const AxrShaderConfig shaderConfig{
-        .Name = axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG),
-        .FilePath = shaderPath.c_str(),
+    AxrShaderConfig shaderConfig{
+        .Name = {},
+        .FilePath = {},
         .Properties = reinterpret_cast<AxrShaderProperties_T>(&shaderProperties)
     };
+    strncpy_s(
+        shaderConfig.Name,
+        axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG),
+        AXR_MAX_ASSET_NAME_SIZE
+    );
+    strncpy_s(shaderConfig.FilePath, shaderPath.c_str(), AXR_MAX_FILE_PATH_SIZE);
 
     if (!axrShaderConfigIsValid(&shaderConfig)) {
         return AXR_ERROR;
@@ -404,8 +416,13 @@ AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
 ) {
     AxrShaderUniformBufferLink sceneDataBufferLink{
         .Binding = 0,
-        .BufferName = axrEngineAssetGetUniformBufferName(AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA)
+        .BufferName = {},
     };
+    strncpy_s(
+        sceneDataBufferLink.BufferName,
+        axrEngineAssetGetUniformBufferName(AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA),
+        AXR_MAX_ASSET_NAME_SIZE
+    );
 
     std::array vertexBufferLinks{
         reinterpret_cast<AxrShaderBufferLink_T>(&sceneDataBufferLink),
@@ -418,9 +435,15 @@ AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
 
     AxrShaderImageSamplerBufferLink imageSamplerBufferLink{
         .Binding = 1,
-        .ImageName = materialValues.ImageName,
-        .SamplerName = materialValues.SamplerName,
+        .ImageName = {},
+        .ImageSamplerName = {},
     };
+    if (materialValues.ImageName != nullptr) {
+        strncpy_s(imageSamplerBufferLink.ImageName, materialValues.ImageName, AXR_MAX_ASSET_NAME_SIZE);
+    }
+    if (materialValues.ImageSamplerName != nullptr) {
+        strncpy_s(imageSamplerBufferLink.ImageSamplerName, materialValues.ImageSamplerName, AXR_MAX_ASSET_NAME_SIZE);
+    }
 
     std::array fragmentBufferLinks{
         reinterpret_cast<AxrShaderBufferLink_T>(&imageSamplerBufferLink),
@@ -431,14 +454,29 @@ AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
         .BufferLinks = fragmentBufferLinks.data()
     };
 
-    const AxrMaterialConfig materialConfig{
-        .Name = materialName.c_str(),
-        .VertexShaderName = axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT),
-        .FragmentShaderName = axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG),
-        .PushConstantBufferName = "",
+    AxrMaterialConfig materialConfig{
+        .Name = {},
+        .VertexShaderName = {},
+        .FragmentShaderName = {},
+        .PushConstantBufferName = {},
         .VertexShaderValues = &vertexShaderValues,
         .FragmentShaderValues = &fragmentShaderValues
     };
+    strncpy_s(
+        materialConfig.Name,
+        materialName.c_str(),
+        AXR_MAX_ASSET_NAME_SIZE
+    );
+    strncpy_s(
+        materialConfig.VertexShaderName,
+        axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT),
+        AXR_MAX_ASSET_NAME_SIZE
+    );
+    strncpy_s(
+        materialConfig.FragmentShaderName,
+        axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG),
+        AXR_MAX_ASSET_NAME_SIZE
+    );
 
     if (!axrMaterialConfigIsValid(&materialConfig)) {
         return AXR_ERROR;
@@ -487,10 +525,12 @@ AxrResult axrEngineAssetCreateModel(
 }
 
 AxrResult axrEngineAssetCreateModel_Triangle(const std::string& modelName, AxrModel& model) {
-    const AxrModelConfig modelConfig{
-        .Name = modelName.c_str(),
-        .FilePath = ""
+    AxrModelConfig modelConfig{
+        .Name = {},
+        .FilePath = {},
     };
+    strncpy_s(modelConfig.Name, modelName.c_str(), AXR_MAX_ASSET_NAME_SIZE);
+
     model = AxrModel(modelConfig);
 
     std::vector<AxrVertex> vertices{
@@ -536,10 +576,11 @@ AxrResult axrEngineAssetCreateModel_Triangle(const std::string& modelName, AxrMo
 }
 
 AxrResult axrEngineAssetCreateModel_Square(const std::string& modelName, AxrModel& model) {
-    const AxrModelConfig modelConfig{
-        .Name = modelName.c_str(),
-        .FilePath = ""
+    AxrModelConfig modelConfig{
+        .Name = {},
+        .FilePath = {},
     };
+    strncpy_s(modelConfig.Name, modelName.c_str(), AXR_MAX_ASSET_NAME_SIZE);
 
     model = AxrModel(modelConfig);
 
@@ -592,10 +633,11 @@ AxrResult axrEngineAssetCreateModel_Square(const std::string& modelName, AxrMode
 }
 
 AxrResult axrEngineAssetCreateModel_Cube(const std::string& modelName, AxrModel& model) {
-    const AxrModelConfig modelConfig{
-        .Name = modelName.c_str(),
-        .FilePath = ""
+    AxrModelConfig modelConfig{
+        .Name = {},
+        .FilePath = {},
     };
+    strncpy_s(modelConfig.Name, modelName.c_str(), AXR_MAX_ASSET_NAME_SIZE);
 
     model = AxrModel(modelConfig);
 
@@ -842,14 +884,16 @@ AxrResult axrEngineAssetCreateImageSampler_NearestRepeat(
     const std::string& imageSamplerName,
     AxrImageSampler& imageSampler
 ) {
-    const AxrImageSamplerConfig imageSamplerConfig{
-        .Name = imageSamplerName.c_str(),
+    AxrImageSamplerConfig imageSamplerConfig{
+        .Name = {},
         .MinFilter = AXR_IMAGE_SAMPLER_FILTER_NEAREST,
         .MagFilter = AXR_IMAGE_SAMPLER_FILTER_NEAREST,
         .MipmapFilter = AXR_IMAGE_SAMPLER_FILTER_NEAREST,
         .WrapU = AXR_IMAGE_SAMPLER_WRAP_REPEAT,
         .WrapV = AXR_IMAGE_SAMPLER_WRAP_REPEAT,
     };
+    strncpy_s(imageSamplerConfig.Name, imageSamplerName.c_str(), AXR_MAX_ASSET_NAME_SIZE);
+
     imageSampler = AxrImageSampler(imageSamplerConfig);
 
     return AXR_SUCCESS;
@@ -859,14 +903,16 @@ AxrResult axrEngineAssetCreateImageSampler_LinearRepeat(
     const std::string& imageSamplerName,
     AxrImageSampler& imageSampler
 ) {
-    const AxrImageSamplerConfig imageSamplerConfig{
-        .Name = imageSamplerName.c_str(),
+    AxrImageSamplerConfig imageSamplerConfig{
+        .Name = {},
         .MinFilter = AXR_IMAGE_SAMPLER_FILTER_LINEAR,
         .MagFilter = AXR_IMAGE_SAMPLER_FILTER_LINEAR,
         .MipmapFilter = AXR_IMAGE_SAMPLER_FILTER_LINEAR,
         .WrapU = AXR_IMAGE_SAMPLER_WRAP_REPEAT,
         .WrapV = AXR_IMAGE_SAMPLER_WRAP_REPEAT,
     };
+    strncpy_s(imageSamplerConfig.Name, imageSamplerName.c_str(), AXR_MAX_ASSET_NAME_SIZE);
+
     imageSampler = AxrImageSampler(imageSamplerConfig);
 
     return AXR_SUCCESS;
@@ -933,10 +979,12 @@ AxrResult axrEngineAssetCreateImage(
 }
 
 AxrResult axrEngineAssetCreateImage_MissingTexture(const std::string& imageName, AxrImage& image) {
-    const AxrImageConfig imageConfig{
-        .Name = imageName.c_str(),
-        .FilePath = "",
+    AxrImageConfig imageConfig{
+        .Name = {},
+        .FilePath = {},
     };
+    strncpy_s(imageConfig.Name, imageName.c_str(), AXR_MAX_ASSET_NAME_SIZE);
+
     image = AxrImage(imageConfig);
 
     std::vector<stbi_uc> imageData;
@@ -968,10 +1016,13 @@ AxrResult axrEngineAssetCreateImage_MissingTexture(const std::string& imageName,
 AxrResult axrEngineAssetCreateImage_UvTester(const std::string& imageName, AxrImage& image) {
     const std::string& filePath = axrGetEngineAssetsDirectoryPath().append("images/uv-tester.png").generic_string();
 
-    const AxrImageConfig imageConfig{
-        .Name = imageName.c_str(),
-        .FilePath = filePath.c_str(),
+    AxrImageConfig imageConfig{
+        .Name = {},
+        .FilePath = {},
     };
+    strncpy_s(imageConfig.Name, imageName.c_str(), AXR_MAX_ASSET_NAME_SIZE);
+    strncpy_s(imageConfig.FilePath, filePath.c_str(), AXR_MAX_FILE_PATH_SIZE);
+
     image = AxrImage(imageConfig);
 
     return AXR_SUCCESS;

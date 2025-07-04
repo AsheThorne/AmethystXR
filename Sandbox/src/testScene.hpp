@@ -47,10 +47,6 @@ private:
     // Private Variables
     // ----------------------------------------- //
     std::string m_SceneName = "TestScene";
-    std::string m_ModelName = "Cube";
-    std::string m_ImageName = "UvTesterImage";
-    std::string m_MaterialName = "MyMaterial";
-
     axr::Application& m_Application;
 
     axr::Scene m_Scene;

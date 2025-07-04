@@ -171,8 +171,8 @@ namespace axr {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-        const char* ImageName;
-        const char* SamplerName;
+        char ImageName[AXR_MAX_ASSET_NAME_SIZE]{};
+        char ImageSamplerName[AXR_MAX_ASSET_NAME_SIZE]{};
 
         // ----------------------------------------- //
         // Special Functions
@@ -181,19 +181,22 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        EngineAssetMaterial_DefaultMaterial() :
-            ImageName{},
-            SamplerName{} {
+        EngineAssetMaterial_DefaultMaterial() {
         }
 
         /// Constructor
         /// @param imageName The image name
-        /// @param samplerName The image sampler name
+        /// @param imageSamplerName The image sampler name
         EngineAssetMaterial_DefaultMaterial(
             const char* imageName,
-            const char* samplerName
-        ) : ImageName(imageName),
-            SamplerName(samplerName) {
+            const char* imageSamplerName
+        ) {
+            if (imageName != nullptr) {
+                strncpy_s(ImageName, imageName, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (imageSamplerName != nullptr) {
+                strncpy_s(ImageSamplerName, imageSamplerName, AXR_MAX_ASSET_NAME_SIZE);
+            }
         }
 
         // ----------------------------------------- //
@@ -686,8 +689,8 @@ namespace axr {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-        const char* Name;
-        const char* FilePath;
+        char Name[AXR_MAX_ASSET_NAME_SIZE]{};
+        char FilePath[AXR_MAX_FILE_PATH_SIZE]{};
         AxrShaderProperties_T Properties;
 
         // ----------------------------------------- //
@@ -698,8 +701,6 @@ namespace axr {
 
         /// Default Constructor
         ShaderConfig() :
-            Name(""),
-            FilePath(""),
             Properties(nullptr) {
         }
 
@@ -711,9 +712,13 @@ namespace axr {
             const char* name,
             const char* filePath,
             const axr::VertexShaderProperties& vertexShaderProperties
-        ) : Name(name),
-            FilePath(filePath),
-            Properties(reinterpret_cast<AxrShaderProperties_T>(vertexShaderProperties.cloneRaw())) {
+        ) : Properties(reinterpret_cast<AxrShaderProperties_T>(vertexShaderProperties.cloneRaw())) {
+            if (name != nullptr) {
+                strncpy_s(Name, name, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (filePath != nullptr) {
+                strncpy_s(FilePath, filePath, AXR_MAX_FILE_PATH_SIZE);
+            }
         }
 
         /// Constructor
@@ -724,16 +729,24 @@ namespace axr {
             const char* name,
             const char* filePath,
             const axr::FragmentShaderProperties& fragmentShaderProperties
-        ) : Name(name),
-            FilePath(filePath),
-            Properties(reinterpret_cast<AxrShaderProperties_T>(fragmentShaderProperties.cloneRaw())) {
+        ) : Properties(reinterpret_cast<AxrShaderProperties_T>(fragmentShaderProperties.cloneRaw())) {
+            if (name != nullptr) {
+                strncpy_s(Name, name, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (filePath != nullptr) {
+                strncpy_s(FilePath, filePath, AXR_MAX_FILE_PATH_SIZE);
+            }
         }
 
         /// Copy Constructor
         /// @param src Source ShaderConfig to copy from
         ShaderConfig(const ShaderConfig& src) {
-            Name = src.Name;
-            FilePath = src.FilePath;
+            if (src.Name != nullptr) {
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (src.FilePath != nullptr) {
+                strncpy_s(FilePath, src.FilePath, AXR_MAX_FILE_PATH_SIZE);
+            }
             if (src.Properties != nullptr) {
                 Properties = axrShaderPropertiesClone(src.Properties);
             } else {
@@ -744,12 +757,17 @@ namespace axr {
         /// Move Constructor
         /// @param src Source ShaderConfig to move from
         ShaderConfig(ShaderConfig&& src) noexcept {
-            Name = src.Name;
-            FilePath = src.FilePath;
+            if (src.Name != nullptr) {
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (src.FilePath != nullptr) {
+                strncpy_s(FilePath, src.FilePath, AXR_MAX_FILE_PATH_SIZE);
+            }
             Properties = src.Properties;
 
-            src.Name = "";
-            src.FilePath = "";
+            memset(src.Name, 0, sizeof(src.Name));
+            memset(src.FilePath, 0, sizeof(src.FilePath));
+
             src.Properties = nullptr;
         }
 
@@ -768,8 +786,12 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                Name = src.Name;
-                FilePath = src.FilePath;
+                if (src.Name != nullptr) {
+                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                }
+                if (src.FilePath != nullptr) {
+                    strncpy_s(FilePath, src.FilePath, AXR_MAX_FILE_PATH_SIZE);
+                }
                 if (src.Properties != nullptr) {
                     Properties = axrShaderPropertiesClone(src.Properties);
                 } else {
@@ -786,12 +808,16 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                Name = src.Name;
-                FilePath = src.FilePath;
+                if (src.Name != nullptr) {
+                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                }
+                if (src.FilePath != nullptr) {
+                    strncpy_s(FilePath, src.FilePath, AXR_MAX_FILE_PATH_SIZE);
+                }
                 Properties = src.Properties;
 
-                src.Name = "";
-                src.FilePath = "";
+                memset(src.Name, 0, sizeof(src.Name));
+                memset(src.FilePath, 0, sizeof(src.FilePath));
                 src.Properties = nullptr;
             }
 
@@ -831,8 +857,8 @@ namespace axr {
                 axrShaderPropertiesDestroy(&Properties);
             }
 
-            Name = "";
-            FilePath = "";
+            memset(Name, 0, sizeof(Name));
+            memset(FilePath, 0, sizeof(FilePath));
         }
     };
 
@@ -975,10 +1001,14 @@ namespace axr {
         void addUniformBufferLink(const uint32_t binding, const char* bufferName) {
             resizeBufferLinks(BufferLinkCount + 1);
 
-            const AxrShaderUniformBufferLink bufferLink{
+            AxrShaderUniformBufferLink bufferLink{
                 .Binding = binding,
-                .BufferName = bufferName
+                .BufferName = {},
             };
+            if (bufferName != nullptr) {
+                strncpy_s(bufferLink.BufferName, bufferName, AXR_MAX_ASSET_NAME_SIZE);
+            }
+
             BufferLinks[BufferLinkCount - 1] = reinterpret_cast<AxrShaderBufferLink_T>(
                 axrShaderUniformBufferLinkClone(&bufferLink)
             );
@@ -987,15 +1017,22 @@ namespace axr {
         /// Add an image sampler buffer link
         /// @param binding Image sampler buffer binding
         /// @param imageName Image name
-        /// @param samplerName Image sampler name
-        void addImageSamplerBufferLink(const uint32_t binding, const char* imageName, const char* samplerName) {
+        /// @param imageSamplerName Image sampler name
+        void addImageSamplerBufferLink(const uint32_t binding, const char* imageName, const char* imageSamplerName) {
             resizeBufferLinks(BufferLinkCount + 1);
 
-            const AxrShaderImageSamplerBufferLink bufferLink{
+            AxrShaderImageSamplerBufferLink bufferLink{
                 .Binding = binding,
-                .ImageName = imageName,
-                .SamplerName = samplerName
+                .ImageName = {},
+                .ImageSamplerName = {},
             };
+            if (imageName != nullptr) {
+                strncpy_s(bufferLink.ImageName, imageName, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (imageSamplerName != nullptr) {
+                strncpy_s(bufferLink.ImageSamplerName, imageSamplerName, AXR_MAX_ASSET_NAME_SIZE);
+            }
+
             BufferLinks[BufferLinkCount - 1] = reinterpret_cast<AxrShaderBufferLink_T>(
                 axrShaderImageSamplerBufferLinkClone(&bufferLink)
             );
@@ -1057,11 +1094,11 @@ namespace axr {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-        const char* Name;
-        const char* VertexShaderName;
-        const char* FragmentShaderName;
+        char Name[AXR_MAX_ASSET_NAME_SIZE]{};
+        char VertexShaderName[AXR_MAX_ASSET_NAME_SIZE]{};
+        char FragmentShaderName[AXR_MAX_ASSET_NAME_SIZE]{};
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-        const char* PushConstantBufferName;
+        char PushConstantBufferName[AXR_MAX_ASSET_NAME_SIZE]{};
 #endif
         AxrShaderValues_T VertexShaderValues;
         AxrShaderValues_T FragmentShaderValues;
@@ -1074,12 +1111,6 @@ namespace axr {
 
         /// Default Constructor
         MaterialConfig() :
-            Name(""),
-            VertexShaderName(""),
-            FragmentShaderName(""),
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            PushConstantBufferName(""),
-#endif
             VertexShaderValues(nullptr),
             FragmentShaderValues(nullptr) {
         }
@@ -1096,14 +1127,17 @@ namespace axr {
             const char* fragmentShaderName,
             const axr::ShaderValues& vertexShaderValues,
             const axr::ShaderValues& fragmentShaderValues
-        ) : Name(name),
-            VertexShaderName(vertexShaderName),
-            FragmentShaderName(fragmentShaderName),
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            PushConstantBufferName(""),
-#endif
-            VertexShaderValues(vertexShaderValues.cloneRaw()),
+        ) : VertexShaderValues(vertexShaderValues.cloneRaw()),
             FragmentShaderValues(fragmentShaderValues.cloneRaw()) {
+            if (name != nullptr) {
+                strncpy_s(Name, name, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (vertexShaderName != nullptr) {
+                strncpy_s(VertexShaderName, vertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (fragmentShaderName != nullptr) {
+                strncpy_s(FragmentShaderName, fragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
+            }
         }
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
@@ -1121,23 +1155,39 @@ namespace axr {
             const char* pushConstantBufferName,
             const axr::ShaderValues& vertexShaderValues,
             const axr::ShaderValues& fragmentShaderValues
-        ) : Name(name),
-            VertexShaderName(vertexShaderName),
-            FragmentShaderName(fragmentShaderName),
-            PushConstantBufferName(pushConstantBufferName),
-            VertexShaderValues(vertexShaderValues.cloneRaw()),
+        ) : VertexShaderValues(vertexShaderValues.cloneRaw()),
             FragmentShaderValues(fragmentShaderValues.cloneRaw()) {
+            if (name != nullptr) {
+                strncpy_s(Name, name, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (vertexShaderName != nullptr) {
+                strncpy_s(VertexShaderName, vertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (fragmentShaderName != nullptr) {
+                strncpy_s(FragmentShaderName, fragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (pushConstantBufferName != nullptr) {
+                strncpy_s(PushConstantBufferName, pushConstantBufferName, AXR_MAX_ASSET_NAME_SIZE);
+            }
         }
 #endif
 
         /// Copy Constructor
         /// @param src Source MaterialConfig to copy from
         MaterialConfig(const axr::MaterialConfig& src) {
-            Name = src.Name;
-            VertexShaderName = src.VertexShaderName;
-            FragmentShaderName = src.FragmentShaderName;
+            if (src.Name != nullptr) {
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (src.VertexShaderName != nullptr) {
+                strncpy_s(VertexShaderName, src.VertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (src.FragmentShaderName != nullptr) {
+                strncpy_s(FragmentShaderName, src.FragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
+            }
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            PushConstantBufferName = src.PushConstantBufferName;
+            if (src.PushConstantBufferName != nullptr) {
+                strncpy_s(PushConstantBufferName, src.PushConstantBufferName, AXR_MAX_ASSET_NAME_SIZE);
+            }
 #endif
 
             if (src.VertexShaderValues != nullptr) {
@@ -1156,20 +1206,29 @@ namespace axr {
         /// Move Constructor
         /// @param src Source MaterialConfig to move from
         MaterialConfig(MaterialConfig&& src) noexcept {
-            Name = src.Name;
-            VertexShaderName = src.VertexShaderName;
-            FragmentShaderName = src.FragmentShaderName;
+            if (src.Name != nullptr) {
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (src.VertexShaderName != nullptr) {
+                strncpy_s(VertexShaderName, src.VertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (src.FragmentShaderName != nullptr) {
+                strncpy_s(FragmentShaderName, src.FragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
+            }
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            PushConstantBufferName = src.PushConstantBufferName;
+            if (src.PushConstantBufferName != nullptr) {
+                strncpy_s(PushConstantBufferName, src.PushConstantBufferName, AXR_MAX_ASSET_NAME_SIZE);
+            }
 #endif
             VertexShaderValues = src.VertexShaderValues;
             FragmentShaderValues = src.FragmentShaderValues;
 
-            src.Name = "";
-            src.VertexShaderName = "";
-            src.FragmentShaderName = "";
+
+            memset(src.Name, 0, sizeof(src.Name));
+            memset(src.VertexShaderName, 0, sizeof(src.VertexShaderName));
+            memset(src.FragmentShaderName, 0, sizeof(src.FragmentShaderName));
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            src.PushConstantBufferName = "";
+            memset(src.PushConstantBufferName, 0, sizeof(src.PushConstantBufferName));
 #endif
             src.VertexShaderValues = nullptr;
             src.FragmentShaderValues = nullptr;
@@ -1190,11 +1249,19 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                Name = src.Name;
-                VertexShaderName = src.VertexShaderName;
-                FragmentShaderName = src.FragmentShaderName;
+                if (src.Name != nullptr) {
+                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                }
+                if (src.VertexShaderName != nullptr) {
+                    strncpy_s(VertexShaderName, src.VertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
+                }
+                if (src.FragmentShaderName != nullptr) {
+                    strncpy_s(FragmentShaderName, src.FragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
+                }
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-                PushConstantBufferName = src.PushConstantBufferName;
+                if (src.PushConstantBufferName != nullptr) {
+                    strncpy_s(PushConstantBufferName, src.PushConstantBufferName, AXR_MAX_ASSET_NAME_SIZE);
+                }
 #endif
 
                 if (src.VertexShaderValues != nullptr) {
@@ -1219,20 +1286,28 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                Name = src.Name;
-                VertexShaderName = src.VertexShaderName;
-                FragmentShaderName = src.FragmentShaderName;
+                if (src.Name != nullptr) {
+                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                }
+                if (src.VertexShaderName != nullptr) {
+                    strncpy_s(VertexShaderName, src.VertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
+                }
+                if (src.FragmentShaderName != nullptr) {
+                    strncpy_s(FragmentShaderName, src.FragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
+                }
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-                PushConstantBufferName = src.PushConstantBufferName;
+                if (src.PushConstantBufferName != nullptr) {
+                    strncpy_s(PushConstantBufferName, src.PushConstantBufferName, AXR_MAX_ASSET_NAME_SIZE);
+                }
 #endif
                 VertexShaderValues = src.VertexShaderValues;
                 FragmentShaderValues = src.FragmentShaderValues;
 
-                src.Name = "";
-                src.VertexShaderName = "";
-                src.FragmentShaderName = "";
+                memset(src.Name, 0, sizeof(src.Name));
+                memset(src.VertexShaderName, 0, sizeof(src.VertexShaderName));
+                memset(src.FragmentShaderName, 0, sizeof(src.FragmentShaderName));
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-                src.PushConstantBufferName = "";
+                memset(src.PushConstantBufferName, 0, sizeof(src.PushConstantBufferName));
 #endif
                 src.VertexShaderValues = nullptr;
                 src.FragmentShaderValues = nullptr;
@@ -1277,11 +1352,11 @@ namespace axr {
                 axrShaderValuesDestroy(&FragmentShaderValues);
             }
 
-            Name = "";
-            VertexShaderName = "";
-            FragmentShaderName = "";
+            memset(Name, 0, sizeof(Name));
+            memset(VertexShaderName, 0, sizeof(VertexShaderName));
+            memset(FragmentShaderName, 0, sizeof(FragmentShaderName));
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            PushConstantBufferName = "";
+            memset(PushConstantBufferName, 0, sizeof(PushConstantBufferName));
 #endif
         }
     };
@@ -1746,8 +1821,8 @@ namespace axr {
         // Public Variables
         // ----------------------------------------- //
 
-        const char* Name;
-        const char* FilePath;
+        char Name[AXR_MAX_ASSET_NAME_SIZE]{};
+        char FilePath[AXR_MAX_FILE_PATH_SIZE]{};
 
         // ----------------------------------------- //
         // Special Functions
@@ -1756,34 +1831,44 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        ModelConfig():
-            Name(""),
-            FilePath(nullptr) {
+        ModelConfig() {
         }
 
         /// Constructor
         /// @param name Name of the model
         /// @param filePath Filepath of the model
-        ModelConfig(const char* name, const char* filePath):
-            Name(name),
-            FilePath(filePath) {
+        ModelConfig(const char* name, const char* filePath) {
+            if (name != nullptr) {
+                strncpy_s(Name, name, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (filePath != nullptr) {
+                strncpy_s(FilePath, filePath, AXR_MAX_FILE_PATH_SIZE);
+            }
         }
 
         /// Copy Constructor
         /// @param src Source ModelConfig to copy from
         ModelConfig(const ModelConfig& src) {
-            Name = src.Name;
-            FilePath = src.FilePath;
+            if (src.Name != nullptr) {
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (src.FilePath != nullptr) {
+                strncpy_s(FilePath, src.FilePath, AXR_MAX_FILE_PATH_SIZE);
+            }
         }
 
         /// Move Constructor
         /// @param src Source ModelConfig to move from
         ModelConfig(ModelConfig&& src) noexcept {
-            Name = src.Name;
-            FilePath = src.FilePath;
+            if (src.Name != nullptr) {
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (src.FilePath != nullptr) {
+                strncpy_s(FilePath, src.FilePath, AXR_MAX_FILE_PATH_SIZE);
+            }
 
-            src.Name = "";
-            src.FilePath = nullptr;
+            memset(src.Name, 0, sizeof(src.Name));
+            memset(src.FilePath, 0, sizeof(src.FilePath));
         }
 
         // ---- Destructor ----
@@ -1801,8 +1886,12 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                Name = src.Name;
-                FilePath = src.FilePath;
+                if (src.Name != nullptr) {
+                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                }
+                if (src.FilePath != nullptr) {
+                    strncpy_s(FilePath, src.FilePath, AXR_MAX_FILE_PATH_SIZE);
+                }
             }
 
             return *this;
@@ -1814,11 +1903,15 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                Name = src.Name;
-                FilePath = src.FilePath;
+                if (src.Name != nullptr) {
+                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                }
+                if (src.FilePath != nullptr) {
+                    strncpy_s(FilePath, src.FilePath, AXR_MAX_FILE_PATH_SIZE);
+                }
 
-                src.Name = "";
-                src.FilePath = nullptr;
+                memset(src.Name, 0, sizeof(src.Name));
+                memset(src.FilePath, 0, sizeof(src.FilePath));
             }
 
             return *this;
@@ -1847,8 +1940,8 @@ namespace axr {
 
         /// Clean up this class
         void cleanup() {
-            Name = "";
-            FilePath = nullptr;
+            memset(Name, 0, sizeof(Name));
+            memset(FilePath, 0, sizeof(FilePath));
         }
     };
 
@@ -1911,7 +2004,7 @@ namespace axr {
         // Public Variables
         // ----------------------------------------- //
 
-        const char* Name;
+        char Name[AXR_MAX_ASSET_NAME_SIZE]{};
         uint64_t DataSize;
         void* Data;
 
@@ -1923,7 +2016,6 @@ namespace axr {
 
         /// Default Constructor
         UniformBufferConfig():
-            Name(""),
             DataSize(0),
             Data(nullptr) {
         }
@@ -1933,15 +2025,19 @@ namespace axr {
         /// @param dataSize Data size
         /// @param data Data
         UniformBufferConfig(const char* name, const uint64_t dataSize, const void* data):
-            Name(name),
             DataSize(dataSize) {
+            if (name != nullptr) {
+                strncpy_s(Name, name, AXR_MAX_ASSET_NAME_SIZE);
+            }
             Data = axrUniformBufferCloneData(dataSize, data);
         }
 
         /// Copy Constructor
         /// @param src Source UniformBufferConfig to copy from
         UniformBufferConfig(const UniformBufferConfig& src) {
-            Name = src.Name;
+            if (src.Name != nullptr) {
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            }
             DataSize = src.DataSize;
             Data = axrUniformBufferCloneData(src.DataSize, src.Data);
         }
@@ -1949,11 +2045,13 @@ namespace axr {
         /// Move Constructor
         /// @param src Source UniformBufferConfig to move from
         UniformBufferConfig(UniformBufferConfig&& src) noexcept {
-            Name = src.Name;
+            if (src.Name != nullptr) {
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            }
             DataSize = src.DataSize;
             Data = src.Data;
 
-            src.Name = "";
+            memset(src.Name, 0, sizeof(src.Name));
             src.DataSize = 0;
             src.Data = nullptr;
         }
@@ -1973,7 +2071,9 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                Name = src.Name;
+                if (src.Name != nullptr) {
+                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                }
                 DataSize = src.DataSize;
                 Data = axrUniformBufferCloneData(src.DataSize, src.Data);
             }
@@ -1987,11 +2087,13 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                Name = src.Name;
+                if (src.Name != nullptr) {
+                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                }
                 DataSize = src.DataSize;
                 Data = src.Data;
 
-                src.Name = "";
+                memset(src.Name, 0, sizeof(src.Name));
                 src.DataSize = 0;
                 src.Data = nullptr;
             }
@@ -2022,7 +2124,7 @@ namespace axr {
 
         /// Clean up this class
         void cleanup() {
-            Name = "";
+            memset(Name, 0, sizeof(Name));
             axrUniformBufferDestroyData(&DataSize, &Data);
         }
     };
@@ -2044,7 +2146,7 @@ namespace axr {
         // Public Variables
         // ----------------------------------------- //
 
-        const char* Name;
+        char Name[AXR_MAX_ASSET_NAME_SIZE]{};
         uint32_t DataSize;
         void* Data;
 
@@ -2056,7 +2158,6 @@ namespace axr {
 
         /// Default Constructor
         PushConstantBufferConfig():
-            Name(""),
             DataSize(0),
             Data(nullptr) {
         }
@@ -2066,15 +2167,19 @@ namespace axr {
         /// @param dataSize Data size
         /// @param data Data
         PushConstantBufferConfig(const char* name, const uint32_t dataSize, const void* data):
-            Name(name),
             DataSize(dataSize) {
+            if (name != nullptr) {
+                strncpy_s(Name, name, AXR_MAX_ASSET_NAME_SIZE);
+            }
             Data = axrPushConstantBufferCloneData(dataSize, data);
         }
 
         /// Copy Constructor
         /// @param src Source PushConstantBufferConfig to copy from
         PushConstantBufferConfig(const PushConstantBufferConfig& src) {
-            Name = src.Name;
+            if (src.Name != nullptr) {
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            }
             DataSize = src.DataSize;
             Data = axrPushConstantBufferCloneData(src.DataSize, src.Data);
         }
@@ -2082,11 +2187,13 @@ namespace axr {
         /// Move Constructor
         /// @param src Source PushConstantBufferConfig to move from
         PushConstantBufferConfig(PushConstantBufferConfig&& src) noexcept {
-            Name = src.Name;
+            if (src.Name != nullptr) {
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            }
             DataSize = src.DataSize;
             Data = src.Data;
 
-            src.Name = "";
+            memset(src.Name, 0, sizeof(src.Name));
             src.DataSize = 0;
             src.Data = nullptr;
         }
@@ -2106,7 +2213,9 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                Name = src.Name;
+                if (src.Name != nullptr) {
+                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                }
                 DataSize = src.DataSize;
                 Data = axrPushConstantBufferCloneData(src.DataSize, src.Data);
             }
@@ -2120,11 +2229,13 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                Name = src.Name;
+                if (src.Name != nullptr) {
+                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                }
                 DataSize = src.DataSize;
                 Data = src.Data;
 
-                src.Name = "";
+                memset(src.Name, 0, sizeof(src.Name));
                 src.DataSize = 0;
                 src.Data = nullptr;
             }
@@ -2155,7 +2266,7 @@ namespace axr {
 
         /// Clean up this class
         void cleanup() {
-            Name = "";
+            memset(Name, 0, sizeof(Name));
             axrPushConstantBufferDestroyData(&DataSize, &Data);
         }
     };
@@ -2200,7 +2311,7 @@ namespace axr {
         // Public Variables
         // ----------------------------------------- //
 
-        const char* Name;
+        char Name[AXR_MAX_ASSET_NAME_SIZE]{};
         axr::ImageSamplerFilterEnum MinFilter;
         axr::ImageSamplerFilterEnum MagFilter;
         axr::ImageSamplerFilterEnum MipmapFilter;
@@ -2215,7 +2326,6 @@ namespace axr {
 
         /// Default Constructor
         ImageSamplerConfig():
-            Name(""),
             MinFilter(axr::ImageSamplerFilterEnum::Undefined),
             MagFilter(axr::ImageSamplerFilterEnum::Undefined),
             MipmapFilter(axr::ImageSamplerFilterEnum::Undefined),
@@ -2238,18 +2348,22 @@ namespace axr {
             const axr::ImageSamplerWrapEnum wrapU,
             const axr::ImageSamplerWrapEnum wrapV
         ):
-            Name(name),
             MinFilter(minFilter),
             MagFilter(magFilter),
             MipmapFilter(mipmapFilter),
             WrapU(wrapU),
             WrapV(wrapV) {
+            if (name != nullptr) {
+                strncpy_s(Name, name, AXR_MAX_ASSET_NAME_SIZE);
+            }
         }
 
         /// Copy Constructor
         /// @param src Source ImageSamplerConfig to copy from
         ImageSamplerConfig(const ImageSamplerConfig& src) {
-            Name = src.Name;
+            if (src.Name != nullptr) {
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            }
             MinFilter = src.MinFilter;
             MagFilter = src.MagFilter;
             MipmapFilter = src.MipmapFilter;
@@ -2260,14 +2374,16 @@ namespace axr {
         /// Move Constructor
         /// @param src Source ImageSamplerConfig to move from
         ImageSamplerConfig(ImageSamplerConfig&& src) noexcept {
-            Name = src.Name;
+            if (src.Name != nullptr) {
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            }
             MinFilter = src.MinFilter;
             MagFilter = src.MagFilter;
             MipmapFilter = src.MipmapFilter;
             WrapU = src.WrapU;
             WrapV = src.WrapV;
 
-            src.Name = "";
+            memset(src.Name, 0, sizeof(src.Name));
             MinFilter = axr::ImageSamplerFilterEnum::Undefined;
             MagFilter = axr::ImageSamplerFilterEnum::Undefined;
             MipmapFilter = axr::ImageSamplerFilterEnum::Undefined;
@@ -2290,7 +2406,9 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                Name = src.Name;
+                if (src.Name != nullptr) {
+                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                }
                 MinFilter = src.MinFilter;
                 MagFilter = src.MagFilter;
                 MipmapFilter = src.MipmapFilter;
@@ -2307,14 +2425,16 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                Name = src.Name;
+                if (src.Name != nullptr) {
+                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                }
                 MinFilter = src.MinFilter;
                 MagFilter = src.MagFilter;
                 MipmapFilter = src.MipmapFilter;
                 WrapU = src.WrapU;
                 WrapV = src.WrapV;
 
-                src.Name = "";
+                memset(src.Name, 0, sizeof(src.Name));
                 MinFilter = axr::ImageSamplerFilterEnum::Undefined;
                 MagFilter = axr::ImageSamplerFilterEnum::Undefined;
                 MipmapFilter = axr::ImageSamplerFilterEnum::Undefined;
@@ -2348,7 +2468,7 @@ namespace axr {
 
         /// Clean up this class
         void cleanup() {
-            Name = "";
+            memset(Name, 0, sizeof(Name));
             MinFilter = axr::ImageSamplerFilterEnum::Undefined;
             MagFilter = axr::ImageSamplerFilterEnum::Undefined;
             MipmapFilter = axr::ImageSamplerFilterEnum::Undefined;
@@ -2425,8 +2545,8 @@ namespace axr {
         // Public Variables
         // ----------------------------------------- //
 
-        const char* Name;
-        const char* FilePath;
+        char Name[AXR_MAX_ASSET_NAME_SIZE]{};
+        char FilePath[AXR_MAX_FILE_PATH_SIZE]{};
 
         // ----------------------------------------- //
         // Special Functions
@@ -2435,9 +2555,7 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        ImageConfig():
-            Name(""),
-            FilePath("") {
+        ImageConfig() {
         }
 
         /// Constructor
@@ -2446,26 +2564,38 @@ namespace axr {
         ImageConfig(
             const char* name,
             const char* filePath
-        ):
-            Name(name),
-            FilePath(filePath) {
+        ) {
+            if (name != nullptr) {
+                strncpy_s(Name, name, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (filePath != nullptr) {
+                strncpy_s(FilePath, filePath, AXR_MAX_FILE_PATH_SIZE);
+            }
         }
 
         /// Copy Constructor
         /// @param src Source ImageConfig to copy from
         ImageConfig(const ImageConfig& src) {
-            Name = src.Name;
-            FilePath = src.FilePath;
+            if (src.Name != nullptr) {
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (src.FilePath != nullptr) {
+                strncpy_s(FilePath, src.FilePath, AXR_MAX_FILE_PATH_SIZE);
+            }
         }
 
         /// Move Constructor
         /// @param src Source ImageConfig to move from
         ImageConfig(ImageConfig&& src) noexcept {
-            Name = src.Name;
-            FilePath = src.FilePath;
+            if (src.Name != nullptr) {
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (src.FilePath != nullptr) {
+                strncpy_s(FilePath, src.FilePath, AXR_MAX_FILE_PATH_SIZE);
+            }
 
-            src.Name = "";
-            src.FilePath = "";
+            memset(src.Name, 0, sizeof(src.Name));
+            memset(src.FilePath, 0, sizeof(src.FilePath));
         }
 
         // ---- Destructor ----
@@ -2483,8 +2613,12 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                Name = src.Name;
-                FilePath = src.FilePath;
+                if (src.Name != nullptr) {
+                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                }
+                if (src.FilePath != nullptr) {
+                    strncpy_s(FilePath, src.FilePath, AXR_MAX_FILE_PATH_SIZE);
+                }
             }
 
             return *this;
@@ -2496,11 +2630,15 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                Name = src.Name;
-                FilePath = src.FilePath;
+                if (src.Name != nullptr) {
+                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                }
+                if (src.FilePath != nullptr) {
+                    strncpy_s(FilePath, src.FilePath, AXR_MAX_FILE_PATH_SIZE);
+                }
 
-                src.Name = "";
-                src.FilePath = "";
+                memset(src.Name, 0, sizeof(src.Name));
+                memset(src.FilePath, 0, sizeof(src.FilePath));
             }
 
             return *this;
@@ -2529,8 +2667,8 @@ namespace axr {
 
         /// Clean up this class
         void cleanup() {
-            Name = "";
-            FilePath = "";
+            memset(Name, 0, sizeof(Name));
+            memset(FilePath, 0, sizeof(FilePath));
         }
     };
 
@@ -2665,10 +2803,13 @@ namespace axr {
             const char* materialName,
             const axr::EngineAssetMaterial_DefaultMaterial materialValues
         ) const {
+            char materialNameBuffer[AXR_MAX_ASSET_NAME_SIZE]{};
+            strncpy_s(materialNameBuffer, materialName, AXR_MAX_ASSET_NAME_SIZE);
+
             return static_cast<axr::Result>(
                 axrAssetCollectionCreateEngineAssetMaterial_DefaultMaterial(
                     m_AssetCollection,
-                    materialName,
+                    materialNameBuffer,
                     *materialValues.toRaw()
                 )
             );
@@ -2696,9 +2837,12 @@ namespace axr {
             const char* modelName,
             axr::EngineAssetEnum engineAssetEnum
         ) const {
+            char modelNameBuffer[AXR_MAX_ASSET_NAME_SIZE]{};
+            strncpy_s(modelNameBuffer, modelName, AXR_MAX_ASSET_NAME_SIZE);
+
             return static_cast<axr::Result>(axrAssetCollectionCreateEngineAssetModel(
                 m_AssetCollection,
-                modelName,
+                modelNameBuffer,
                 static_cast<AxrEngineAssetEnum>(engineAssetEnum)
             ));
         }
@@ -2755,9 +2899,12 @@ namespace axr {
             const char* imageName,
             axr::EngineAssetEnum engineAssetEnum
         ) const {
+            char imageNameBuffer[AXR_MAX_ASSET_NAME_SIZE]{};
+            strncpy_s(imageNameBuffer, imageName, AXR_MAX_ASSET_NAME_SIZE);
+
             return static_cast<axr::Result>(axrAssetCollectionCreateEngineAssetImage(
                 m_AssetCollection,
-                imageName,
+                imageNameBuffer,
                 static_cast<AxrEngineAssetEnum>(engineAssetEnum)
             ));
         }
@@ -2796,7 +2943,7 @@ namespace axr {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-        char* Name;
+        char Name[AXR_MAX_ASSET_NAME_SIZE]{};
         axr::ImageSamplerFilterEnum MinFilter;
         axr::ImageSamplerFilterEnum MagFilter;
         axr::ImageSamplerFilterEnum MipmapFilter;
@@ -2810,7 +2957,6 @@ namespace axr {
 
         /// Default Constructor
         ModelFileImageSamplerInfo() :
-            Name(nullptr),
             MinFilter(axr::ImageSamplerFilterEnum::Undefined),
             MagFilter(axr::ImageSamplerFilterEnum::Undefined),
             MipmapFilter(axr::ImageSamplerFilterEnum::Undefined),
@@ -2821,14 +2967,16 @@ namespace axr {
         /// Constructor
         /// @param src Source ModelFileImageSamplerInfo
         explicit ModelFileImageSamplerInfo(AxrModelFileImageSamplerInfo&& src) {
-            Name = src.Name;
+            if (src.Name != nullptr) {
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            }
             MinFilter = static_cast<axr::ImageSamplerFilterEnum>(src.MinFilter);
             MagFilter = static_cast<axr::ImageSamplerFilterEnum>(src.MagFilter);
             MipmapFilter = static_cast<axr::ImageSamplerFilterEnum>(src.MipmapFilter);
             WrapU = static_cast<axr::ImageSamplerWrapEnum>(src.WrapU);
             WrapV = static_cast<axr::ImageSamplerWrapEnum>(src.WrapV);
 
-            src.Name = nullptr;
+            memset(src.Name, 0, sizeof(src.Name));
             src.MinFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
             src.MagFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
             src.MipmapFilter = AXR_IMAGE_SAMPLER_FILTER_UNDEFINED;
@@ -2845,14 +2993,16 @@ namespace axr {
         /// Move Constructor
         /// @param src Source ModelFileImageSamplerInfo to move from
         ModelFileImageSamplerInfo(ModelFileImageSamplerInfo&& src) noexcept {
-            Name = src.Name;
+            if (src.Name != nullptr) {
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            }
             MinFilter = src.MinFilter;
             MagFilter = src.MagFilter;
             MipmapFilter = src.MipmapFilter;
             WrapU = src.WrapU;
             WrapV = src.WrapV;
 
-            src.Name = nullptr;
+            memset(src.Name, 0, sizeof(src.Name));
             src.MinFilter = axr::ImageSamplerFilterEnum::Undefined;
             src.MagFilter = axr::ImageSamplerFilterEnum::Undefined;
             src.MipmapFilter = axr::ImageSamplerFilterEnum::Undefined;
@@ -2887,14 +3037,16 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                Name = src.Name;
+                if (src.Name != nullptr) {
+                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                }
                 MinFilter = src.MinFilter;
                 MagFilter = src.MagFilter;
                 MipmapFilter = src.MipmapFilter;
                 WrapU = src.WrapU;
                 WrapV = src.WrapV;
 
-                src.Name = nullptr;
+                memset(src.Name, 0, sizeof(src.Name));
                 src.MinFilter = axr::ImageSamplerFilterEnum::Undefined;
                 src.MagFilter = axr::ImageSamplerFilterEnum::Undefined;
                 src.MipmapFilter = axr::ImageSamplerFilterEnum::Undefined;
@@ -2942,8 +3094,8 @@ namespace axr {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-        char* Name;
-        char* FilePath;
+        char Name[AXR_MAX_ASSET_NAME_SIZE]{};
+        char FilePath[AXR_MAX_FILE_PATH_SIZE]{};
 
         // ----------------------------------------- //
         // Special Functions
@@ -2952,19 +3104,21 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        ModelFileImageInfo() :
-            Name(nullptr),
-            FilePath(nullptr) {
+        ModelFileImageInfo() {
         }
 
         /// Constructor
         /// @param src Source ModelFileImageInfo
         explicit ModelFileImageInfo(AxrModelFileImageInfo&& src) {
-            Name = src.Name;
-            FilePath = src.FilePath;
+            if (src.Name != nullptr) {
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (src.FilePath != nullptr) {
+                strncpy_s(FilePath, src.FilePath, AXR_MAX_FILE_PATH_SIZE);
+            }
 
-            src.Name = nullptr;
-            src.FilePath = nullptr;
+            memset(src.Name, 0, sizeof(src.Name));
+            memset(src.FilePath, 0, sizeof(src.FilePath));
         }
 
         /// Copy Constructor
@@ -2976,11 +3130,15 @@ namespace axr {
         /// Move Constructor
         /// @param src Source ModelFileImageInfo to move from
         ModelFileImageInfo(ModelFileImageInfo&& src) noexcept {
-            Name = src.Name;
-            FilePath = src.FilePath;
+            if (src.Name != nullptr) {
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (src.FilePath != nullptr) {
+                strncpy_s(FilePath, src.FilePath, AXR_MAX_FILE_PATH_SIZE);
+            }
 
-            src.Name = nullptr;
-            src.FilePath = nullptr;
+            memset(src.Name, 0, sizeof(src.Name));
+            memset(src.FilePath, 0, sizeof(src.FilePath));
         }
 
         // ---- Destructor ----
@@ -3010,11 +3168,15 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                Name = src.Name;
-                FilePath = src.FilePath;
+                if (src.Name != nullptr) {
+                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                }
+                if (src.FilePath != nullptr) {
+                    strncpy_s(FilePath, src.FilePath, AXR_MAX_FILE_PATH_SIZE);
+                }
 
-                src.Name = nullptr;
-                src.FilePath = nullptr;
+                memset(src.Name, 0, sizeof(src.Name));
+                memset(src.FilePath, 0, sizeof(src.FilePath));
             }
 
             return *this;
@@ -3057,7 +3219,7 @@ namespace axr {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-        char* Name;
+        char Name[AXR_MAX_ASSET_NAME_SIZE]{};
         int32_t ColorImageIndex;
         int32_t ColorImageSamplerIndex;
         glm::vec4 ColorFactor;
@@ -3070,7 +3232,6 @@ namespace axr {
 
         /// Default Constructor
         ModelFileMaterialInfo() :
-            Name(nullptr),
             ColorImageIndex(-1),
             ColorImageSamplerIndex(-1),
             ColorFactor({}) {
@@ -3079,12 +3240,14 @@ namespace axr {
         /// Constructor
         /// @param src Source ModelFileMaterialInfo
         explicit ModelFileMaterialInfo(AxrModelFileMaterialInfo&& src) {
-            Name = src.Name;
+            if (src.Name != nullptr) {
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            }
             ColorImageIndex = src.ColorImageIndex;
             ColorImageSamplerIndex = src.ColorImageSamplerIndex;
             ColorFactor = src.ColorFactor;
 
-            src.Name = nullptr;
+            memset(src.Name, 0, sizeof(src.Name));
             src.ColorImageIndex = -1;
             src.ColorImageSamplerIndex = -1;
             src.ColorFactor = {};
@@ -3099,12 +3262,14 @@ namespace axr {
         /// Move Constructor
         /// @param src Source ModelFileMaterialInfo to move from
         ModelFileMaterialInfo(ModelFileMaterialInfo&& src) noexcept {
-            Name = src.Name;
+            if (src.Name != nullptr) {
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            }
             ColorImageIndex = src.ColorImageIndex;
             ColorImageSamplerIndex = src.ColorImageSamplerIndex;
             ColorFactor = src.ColorFactor;
 
-            src.Name = nullptr;
+            memset(src.Name, 0, sizeof(src.Name));
             src.ColorImageIndex = -1;
             src.ColorImageSamplerIndex = -1;
             src.ColorFactor = {};
@@ -3137,12 +3302,14 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                Name = src.Name;
+                if (src.Name != nullptr) {
+                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                }
                 ColorImageIndex = src.ColorImageIndex;
                 ColorImageSamplerIndex = src.ColorImageSamplerIndex;
                 ColorFactor = src.ColorFactor;
 
-                src.Name = nullptr;
+                memset(src.Name, 0, sizeof(src.Name));
                 src.ColorImageIndex = -1;
                 src.ColorImageSamplerIndex = -1;
                 src.ColorFactor = {};

@@ -17,7 +17,7 @@
 
 /// Config for the AxrApplication
 struct AxrApplicationConfig {
-    const char* ApplicationName;
+    char ApplicationName[AXR_MAX_APPLICATION_NAME_SIZE];
     uint32_t ApplicationVersion;
     AxrGraphicsSystemConfig GraphicsSystemConfig;
     const AxrWindowSystemConfig* WindowSystemConfig;
@@ -82,7 +82,7 @@ extern "C" {
     /// @param app The AxrApplication to use
     /// @param sceneName Name of the scene
     /// @returns AXR_SUCCESS if the function succeeded
-    AXR_API AxrResult axrApplicationCreateScene(AxrApplication_T app, const char* sceneName);
+    AXR_API AxrResult axrApplicationCreateScene(AxrApplication_T app, char sceneName[AXR_MAX_SCENE_NAME_SIZE]);
     /// Find the named scene
     /// @param app The AxrApplication to use
     /// @param sceneName Name of the scene

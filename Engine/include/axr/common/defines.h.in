@@ -23,3 +23,11 @@
 // AXR Engine Data
 // ----------------------------------------- //
 #define AXR_ENGINE_VERSION AXR_MAKE_VERSION(@AXR_Engine_VERSION_MAJOR@, @AXR_Engine_VERSION_MINOR@, @AXR_Engine_VERSION_PATCH@)
+
+// ---- Max String Sizes ----
+
+#define AXR_MAX_APPLICATION_NAME_SIZE 128
+#define AXR_MAX_ENGINE_NAME_SIZE 128
+#define AXR_MAX_SCENE_NAME_SIZE 128
+#define AXR_MAX_ASSET_NAME_SIZE 128
+#define AXR_MAX_FILE_PATH_SIZE 256

@@ -34,19 +34,19 @@ struct AxrTransformComponent {
 
 /// Entity model component
 struct AxrModelComponent {
-    const char* ModelName;
+    char ModelName[AXR_MAX_ASSET_NAME_SIZE];
     uint32_t MeshCount;
 
     struct Mesh {
         uint32_t SubmeshCount;
 
         struct Submesh {
-            const char* MaterialName;
+            char MaterialName[AXR_MAX_ASSET_NAME_SIZE];
         } * Submeshes;
     } * Meshes;
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    const char* PushConstantBufferName;
+    char PushConstantBufferName[AXR_MAX_ASSET_NAME_SIZE];
 #endif
 };
 

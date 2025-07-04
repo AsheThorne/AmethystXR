@@ -87,8 +87,8 @@ struct AxrEngineAssetPushConstantBuffer_ModelMatrix {
 
 /// Engine asset material named 'Default Material' values
 struct AxrEngineAssetMaterial_DefaultMaterial {
-    const char* ImageName;
-    const char* SamplerName;
+    char ImageName[AXR_MAX_ASSET_NAME_SIZE];
+    char ImageSamplerName[AXR_MAX_ASSET_NAME_SIZE];
 };
 
 // ----------------------------------------- //
@@ -363,8 +363,8 @@ extern "C" {
 
 /// Shader Config
 struct AxrShaderConfig {
-    const char* Name;
-    const char* FilePath;
+    char Name[AXR_MAX_ASSET_NAME_SIZE];
+    char FilePath[AXR_MAX_FILE_PATH_SIZE];
     AxrShaderProperties_T Properties;
 };
 
@@ -424,7 +424,7 @@ typedef const AxrShaderBufferLinkStructure* AxrShaderBufferLinkConst_T;
 struct AxrShaderUniformBufferLink {
     const AxrShaderBufferLinkEnum Type = AXR_SHADER_BUFFER_LINK_UNIFORM_BUFFER;
     uint32_t Binding;
-    const char* BufferName;
+    char BufferName[AXR_MAX_ASSET_NAME_SIZE];
 };
 
 /// AxrShaderUniformBufferLink Handle Type
@@ -436,8 +436,8 @@ typedef const AxrShaderUniformBufferLink* AxrShaderUniformBufferLinkConst_T;
 struct AxrShaderImageSamplerBufferLink {
     const AxrShaderBufferLinkEnum Type = AXR_SHADER_BUFFER_LINK_IMAGE_SAMPLER_BUFFER;
     uint32_t Binding;
-    const char* ImageName;
-    const char* SamplerName;
+    char ImageName[AXR_MAX_ASSET_NAME_SIZE];
+    char ImageSamplerName[AXR_MAX_ASSET_NAME_SIZE];
 };
 
 /// AxrShaderImageSamplerBufferLink Handle Type
@@ -515,11 +515,11 @@ extern "C" {
 
 /// Material Config
 struct AxrMaterialConfig {
-    const char* Name;
-    const char* VertexShaderName;
-    const char* FragmentShaderName;
+    char Name[AXR_MAX_ASSET_NAME_SIZE];
+    char VertexShaderName[AXR_MAX_ASSET_NAME_SIZE];
+    char FragmentShaderName[AXR_MAX_ASSET_NAME_SIZE];
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    const char* PushConstantBufferName;
+    char PushConstantBufferName[AXR_MAX_ASSET_NAME_SIZE];
 #endif
     AxrShaderValues_T VertexShaderValues;
     AxrShaderValues_T FragmentShaderValues;
@@ -579,8 +579,8 @@ struct AxrMesh {
 
 /// Model Config
 struct AxrModelConfig {
-    const char* Name;
-    const char* FilePath;
+    char Name[AXR_MAX_ASSET_NAME_SIZE];
+    char FilePath[AXR_MAX_FILE_PATH_SIZE];
 };
 
 // ----------------------------------------- //
@@ -658,7 +658,7 @@ extern "C" {
 
 /// Uniform Buffer Config
 struct AxrUniformBufferConfig {
-    const char* Name;
+    char Name[AXR_MAX_ASSET_NAME_SIZE];
     uint64_t DataSize;
     void* Data;
 };
@@ -666,7 +666,7 @@ struct AxrUniformBufferConfig {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 /// Push Constant Buffer Config
 struct AxrPushConstantBufferConfig {
-    const char* Name;
+    char Name[AXR_MAX_ASSET_NAME_SIZE];
     uint32_t DataSize;
     void* Data;
 };
@@ -754,7 +754,7 @@ enum AxrImageSamplerWrapEnum {
 // ----------------------------------------- //
 
 struct AxrImageSamplerConfig {
-    const char* Name;
+    char Name[AXR_MAX_ASSET_NAME_SIZE];
     AxrImageSamplerFilterEnum MinFilter;
     AxrImageSamplerFilterEnum MagFilter;
     AxrImageSamplerFilterEnum MipmapFilter;
@@ -804,8 +804,8 @@ enum AxrImageColorChannelsEnum {
 
 /// Image Config
 struct AxrImageConfig {
-    const char* Name;
-    const char* FilePath;
+    char Name[AXR_MAX_ASSET_NAME_SIZE];
+    char FilePath[AXR_MAX_FILE_PATH_SIZE];
 };
 
 // ----------------------------------------- //
@@ -896,7 +896,7 @@ extern "C" {
     /// @returns AXR_SUCCESS if the function succeeded
     AXR_API AxrResult axrAssetCollectionCreateEngineAssetMaterial_DefaultMaterial(
         AxrAssetCollection_T assetCollection,
-        const char* materialName,
+        char materialName[AXR_MAX_ASSET_NAME_SIZE],
         AxrEngineAssetMaterial_DefaultMaterial materialValues
     );
 
@@ -918,7 +918,7 @@ extern "C" {
     /// @returns AXR_SUCCESS if the function succeeded
     AXR_API AxrResult axrAssetCollectionCreateEngineAssetModel(
         AxrAssetCollection_T assetCollection,
-        const char* modelName,
+        char modelName[AXR_MAX_ASSET_NAME_SIZE],
         AxrEngineAssetEnum engineAssetEnum
     );
 
@@ -964,7 +964,7 @@ extern "C" {
     /// @returns AXR_SUCCESS if the function succeeded
     AXR_API AxrResult axrAssetCollectionCreateEngineAssetImage(
         AxrAssetCollection_T assetCollection,
-        const char* imageName,
+        char imageName[AXR_MAX_ASSET_NAME_SIZE],
         AxrEngineAssetEnum engineAssetEnum
     );
 
@@ -990,7 +990,7 @@ extern "C" {
 
 /// Model file image sampler info
 struct AxrModelFileImageSamplerInfo {
-    char* Name;
+    char Name[AXR_MAX_ASSET_NAME_SIZE];
     AxrImageSamplerFilterEnum MinFilter;
     AxrImageSamplerFilterEnum MagFilter;
     AxrImageSamplerFilterEnum MipmapFilter;
@@ -1000,13 +1000,13 @@ struct AxrModelFileImageSamplerInfo {
 
 /// Model file image info
 struct AxrModelFileImageInfo {
-    char* Name;
-    char* FilePath;
+    char Name[AXR_MAX_ASSET_NAME_SIZE];
+    char FilePath[AXR_MAX_FILE_PATH_SIZE];
 };
 
 /// Model file material info
 struct AxrModelFileMaterialInfo {
-    char* Name;
+    char Name[AXR_MAX_ASSET_NAME_SIZE];
     int32_t ColorImageIndex;
     int32_t ColorImageSamplerIndex;
     glm::vec4 ColorFactor;

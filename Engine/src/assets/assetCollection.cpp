@@ -61,7 +61,7 @@ AxrResult axrAssetCollectionCreateMaterial(
 
 AxrResult axrAssetCollectionCreateEngineAssetMaterial_DefaultMaterial(
     const AxrAssetCollection_T assetCollection,
-    const char* materialName,
+    char materialName[AXR_MAX_ASSET_NAME_SIZE],
     const AxrEngineAssetMaterial_DefaultMaterial materialValues
 ) {
     if (assetCollection == nullptr) {
@@ -69,7 +69,7 @@ AxrResult axrAssetCollectionCreateEngineAssetMaterial_DefaultMaterial(
         return AXR_ERROR;
     }
 
-    return assetCollection->createMaterial(materialName, materialValues);
+    return assetCollection->createMaterial(materialName == nullptr ? "" : materialName, materialValues);
 }
 
 AxrResult axrAssetCollectionCreateModel(
@@ -91,7 +91,7 @@ AxrResult axrAssetCollectionCreateModel(
 
 AxrResult axrAssetCollectionCreateEngineAssetModel(
     const AxrAssetCollection_T assetCollection,
-    const char* modelName,
+    char modelName[AXR_MAX_ASSET_NAME_SIZE],
     const AxrEngineAssetEnum engineAssetEnum
 ) {
     if (assetCollection == nullptr) {
@@ -99,7 +99,7 @@ AxrResult axrAssetCollectionCreateEngineAssetModel(
         return AXR_ERROR;
     }
 
-    return assetCollection->createModel(modelName, engineAssetEnum);
+    return assetCollection->createModel(modelName == nullptr ? "" : modelName, engineAssetEnum);
 }
 
 AxrResult axrAssetCollectionCreateUniformBuffer(
@@ -157,7 +157,7 @@ AxrResult axrAssetCollectionCreateImage(
 
 AxrResult axrAssetCollectionCreateEngineAssetImage(
     const AxrAssetCollection_T assetCollection,
-    const char* imageName,
+    char imageName[AXR_MAX_ASSET_NAME_SIZE],
     const AxrEngineAssetEnum engineAssetEnum
 ) {
     if (assetCollection == nullptr) {
@@ -165,7 +165,7 @@ AxrResult axrAssetCollectionCreateEngineAssetImage(
         return AXR_ERROR;
     }
 
-    return assetCollection->createImage(imageName, engineAssetEnum);
+    return assetCollection->createImage(imageName == nullptr ? "" : imageName, engineAssetEnum);
 }
 
 AxrResult axrAssetCollectionCreateImageSampler(
@@ -700,7 +700,10 @@ AxrResult AxrAssetCollection::createImageSampler(const AxrEngineAssetEnum engine
     }
 
     if (m_ImageSamplers.contains(imageSamplerName)) {
-        axrLogError("Unable to create image sampler. An image sampler named: {0} already exists.", imageSamplerName.c_str());
+        axrLogError(
+            "Unable to create image sampler. An image sampler named: {0} already exists.",
+            imageSamplerName.c_str()
+        );
         return AXR_ERROR;
     }
 

@@ -32,7 +32,7 @@ public:
 
     /// Xr System Config
     struct Config {
-        const char* ApplicationName;
+        std::string ApplicationName;
         uint32_t ApplicationVersion;
         AxrGraphicsApiEnum GraphicsApi;
         AxrXrReferenceSpaceEnum StageReferenceSpace;
@@ -249,7 +249,7 @@ private:
     bool m_IsValid = false;
 
     // ---- Config Variables ----
-    const char* m_ApplicationName = "";
+    std::string m_ApplicationName = "";
     uint32_t m_ApplicationVersion = 0;
     AxrGraphicsApiEnum m_GraphicsApi = AXR_GRAPHICS_API_UNDEFINED;
     AxrXrReferenceSpaceEnum m_StageReferenceSpaceType = AXR_XR_REFERENCE_SPACE_UNDEFINED;
