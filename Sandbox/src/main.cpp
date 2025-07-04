@@ -24,6 +24,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 #ifndef NDEBUG
     vulkanApiConfig.addApiLayerCoreValidation();
     vulkanApiConfig.addExtensionDebugUtils(
+        false,
         // axr::VulkanDebugUtilsSeverityFlagBits::VerboseBit |
         // axr::VulkanDebugUtilsSeverityFlagBits::InfoBit |
         axr::VulkanDebugUtilsSeverityFlagBits::WarningBit |
@@ -55,6 +56,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 #ifndef NDEBUG
     xrSystemConfig.addApiLayerCoreValidation();
     xrSystemConfig.addExtensionDebugUtils(
+        false,
         // axr::XrDebugUtilsSeverityFlagBits::VerboseBit |
         // axr::XrDebugUtilsSeverityFlagBits::InfoBit |
         axr::XrDebugUtilsSeverityFlagBits::WarningBit |

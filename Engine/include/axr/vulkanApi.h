@@ -100,6 +100,7 @@ typedef VkDebugUtilsMessageTypeFlagsEXT AxrVulkanDebugUtilsTypeFlags_T;
 struct AxrVulkanExtensionStructure {
     AxrVulkanExtensionTypeEnum Type = AXR_VULKAN_EXTENSION_TYPE_UNDEFINED;
     AxrVulkanExtensionLevelEnum Level = AXR_VULKAN_EXTENSION_LEVEL_UNDEFINED;
+    bool IsRequired = false;
 };
 
 /// AxrVulkanExtensionStructure Handle Type
@@ -111,6 +112,7 @@ typedef const AxrVulkanExtensionStructure* AxrVulkanExtensionConst_T;
 struct AxrVulkanExtensionDebugUtils {
     const AxrVulkanExtensionTypeEnum Type = AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS;
     const AxrVulkanExtensionLevelEnum Level = AXR_VULKAN_EXTENSION_LEVEL_INSTANCE;
+    bool IsRequired = false;
     AxrVulkanDebugUtilsSeverityFlags_T SeverityFlags;
     AxrVulkanDebugUtilsTypeFlags_T TypeFlags;
 };
@@ -119,18 +121,21 @@ struct AxrVulkanExtensionDebugUtils {
 struct AxrVulkanExtensionSwapchain {
     const AxrVulkanExtensionTypeEnum Type = AXR_VULKAN_EXTENSION_TYPE_SWAPCHAIN;
     const AxrVulkanExtensionLevelEnum Level = AXR_VULKAN_EXTENSION_LEVEL_DEVICE;
+    bool IsRequired = false;
 };
 
 /// Vulkan Extension Surface
 struct AxrVulkanExtensionSurface {
     const AxrVulkanExtensionTypeEnum Type = AXR_VULKAN_EXTENSION_TYPE_SURFACE;
     const AxrVulkanExtensionLevelEnum Level = AXR_VULKAN_EXTENSION_LEVEL_INSTANCE;
+    bool IsRequired = false;
 };
 #ifdef AXR_USE_PLATFORM_WIN32
 /// Vulkan Extension Win32 Surface
 struct AxrVulkanExtensionWin32Surface {
     const AxrVulkanExtensionTypeEnum Type = AXR_VULKAN_EXTENSION_TYPE_WIN32_SURFACE;
     const AxrVulkanExtensionLevelEnum Level = AXR_VULKAN_EXTENSION_LEVEL_INSTANCE;
+    bool IsRequired = false;
 };
 #endif
 

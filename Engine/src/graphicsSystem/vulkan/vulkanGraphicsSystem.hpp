@@ -191,10 +191,14 @@ private:
 
     /// Remove api layers from m_ApiLayers that aren't supported by the m_Instance
     void removeUnsupportedApiLayers();
-    /// Remove instance level extensions from m_Extensions that aren't supported by the m_Instance 
-    void removeUnsupportedInstanceExtensions();
-    /// Remove device level extensions from m_Extensions that aren't supported by the m_PhysicalDevice 
-    void removeUnsupportedDeviceExtensions();
+    /// Remove instance level extensions from m_Extensions that aren't supported by the m_Instance
+    /// @returns AXR_SUCCESS if we can continue.
+    /// @returns AXR_ERROR if there was a required extension that wasn't supported.
+    [[nodiscard]] AxrResult removeUnsupportedInstanceExtensions();
+    /// Remove device level extensions from m_Extensions that aren't supported by the m_PhysicalDevice
+    /// @returns AXR_SUCCESS if we can continue.
+    /// @returns AXR_ERROR if there was a required extension that wasn't supported.
+    [[nodiscard]] AxrResult removeUnsupportedDeviceExtensions();
 
     /// Get a collection of all api layer names to use
     /// @returns A collection of api layer names

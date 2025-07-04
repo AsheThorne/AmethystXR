@@ -258,7 +258,7 @@ private:
 
     // ---- Data ----
     XrInstance m_Instance = XR_NULL_HANDLE;
-    XrDebugUtilsMessengerEXT m_DebugUtilsMessenger= XR_NULL_HANDLE;
+    XrDebugUtilsMessengerEXT m_DebugUtilsMessenger = XR_NULL_HANDLE;
     XrSystemId m_SystemId = XR_NULL_SYSTEM_ID;
     std::vector<XrViewConfigurationType> m_SupportedViewConfigurationTypes;
     XrViewConfigurationType m_ViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_MAX_ENUM;
@@ -340,8 +340,10 @@ private:
 
     /// Remove api layers from m_ApiLayers that aren't supported by the instance
     void removeUnsupportedApiLayers();
-    /// Remove extensions from m_Extensions that aren't supported by the instance 
-    void removeUnsupportedExtensions();
+    /// Remove extensions from m_Extensions that aren't supported by the instance
+    /// @returns AXR_SUCCESS if we can continue.
+    /// @returns AXR_ERROR if there was a required extension that wasn't supported.
+    [[nodiscard]] AxrResult removeUnsupportedExtensions();
 
     // ---- Debug Utils ----
 

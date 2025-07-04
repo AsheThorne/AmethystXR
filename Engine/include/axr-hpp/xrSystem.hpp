@@ -203,29 +203,33 @@ namespace axr {
 
         /// Add the Core Validation api layer
         void addApiLayerCoreValidation() {
-            const auto apiLayer = new AxrXrApiLayerCoreValidation();
+            const auto apiLayer = new AxrXrApiLayerCoreValidation{};
             addApiLayer(reinterpret_cast<AxrXrApiLayer_T>(apiLayer));
         }
 
         /// Add the Debug Utils extension
+        /// @param isRequired True if this extension is required
         /// @param severityFlags The debug severity flags to log
         /// @param typeFlags The debug type flags to log
         void addExtensionDebugUtils(
+            const bool isRequired,
             const axr::XrDebugUtilsSeverityFlags_T severityFlags,
             const axr::XrDebugUtilsTypeFlags_T typeFlags
         ) {
-            const auto extension = new AxrXrExtensionDebugUtils(
-                {
-                    .SeverityFlags = static_cast<AxrXrDebugUtilsSeverityFlags_T>(severityFlags),
-                    .TypeFlags = static_cast<AxrXrDebugUtilsTypeFlags_T>(typeFlags)
-                }
-            );
+            const auto extension = new AxrXrExtensionDebugUtils{
+                .IsRequired = isRequired,
+                .SeverityFlags = static_cast<AxrXrDebugUtilsSeverityFlags_T>(severityFlags),
+                .TypeFlags = static_cast<AxrXrDebugUtilsTypeFlags_T>(typeFlags)
+            };
             addExtension(reinterpret_cast<AxrXrExtension_T>(extension));
         }
 
         /// Add the Vulkan Enable extension
-        void addExtensionVulkanEnable() {
-            const auto extension = new AxrXrExtensionVulkanEnable();
+        /// @param isRequired True if this extension is required
+        void addExtensionVulkanEnable(const bool isRequired) {
+            const auto extension = new AxrXrExtensionVulkanEnable{
+                .IsRequired = isRequired,
+            };
             addExtension(reinterpret_cast<AxrXrExtension_T>(extension));
         }
 

@@ -94,6 +94,7 @@ typedef XrDebugUtilsMessageTypeFlagsEXT AxrXrDebugUtilsTypeFlags_T;
 /// Xr Extension Base Structure
 struct AxrXrExtensionStructure {
     AxrXrExtensionTypeEnum Type = AXR_XR_EXTENSION_TYPE_UNDEFINED;
+    bool IsRequired = false;
 };
 
 /// AxrXrExtensionStructure Handle Type
@@ -104,6 +105,7 @@ typedef const AxrXrExtensionStructure* AxrXrExtensionConst_T;
 /// Xr Extension Debug Utils
 struct AxrXrExtensionDebugUtils {
     const AxrXrExtensionTypeEnum Type = AXR_XR_EXTENSION_TYPE_DEBUG_UTILS;
+    bool IsRequired = false;
     AxrXrDebugUtilsSeverityFlags_T SeverityFlags;
     AxrXrDebugUtilsTypeFlags_T TypeFlags;
 };
@@ -111,6 +113,7 @@ struct AxrXrExtensionDebugUtils {
 /// Xr Extension Vulkan Enable
 struct AxrXrExtensionVulkanEnable {
     const AxrXrExtensionTypeEnum Type = AXR_XR_EXTENSION_TYPE_VULKAN_ENABLE;
+    bool IsRequired = false;
 };
 
 // ---------------------------------------------------------------------------------- //

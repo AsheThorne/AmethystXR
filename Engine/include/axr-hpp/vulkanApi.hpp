@@ -259,42 +259,52 @@ namespace axr {
 
         /// Add the Core Validation api layer
         void addApiLayerCoreValidation() {
-            const auto apiLayer = new AxrVulkanApiLayerCoreValidation();
+            const auto apiLayer = new AxrVulkanApiLayerCoreValidation{};
             addApiLayer(reinterpret_cast<AxrVulkanApiLayer_T>(apiLayer));
         }
 
         /// Add the Debug Utils extension
+        /// @param isRequired True if this extension is required
         /// @param severityFlags The debug severity flags to log
         /// @param typeFlags The debug type flags to log
         void addExtensionDebugUtils(
+            const bool isRequired,
             const axr::VulkanDebugUtilsSeverityFlags_T severityFlags,
             const axr::VulkanDebugUtilsTypeFlags_T typeFlags
         ) {
-            const auto extension = new AxrVulkanExtensionDebugUtils(
-                {
-                    .SeverityFlags = static_cast<AxrVulkanDebugUtilsSeverityFlags_T>(severityFlags),
-                    .TypeFlags = static_cast<AxrVulkanDebugUtilsTypeFlags_T>(typeFlags)
-                }
-            );
+            const auto extension = new AxrVulkanExtensionDebugUtils{
+                .IsRequired = isRequired,
+                .SeverityFlags = static_cast<AxrVulkanDebugUtilsSeverityFlags_T>(severityFlags),
+                .TypeFlags = static_cast<AxrVulkanDebugUtilsTypeFlags_T>(typeFlags)
+            };
             addExtension(reinterpret_cast<AxrVulkanExtension_T>(extension));
         }
 
         /// Add the Swapchain extension
-        void addExtensionSwapchain() {
-            const auto extension = new AxrVulkanExtensionSwapchain();
+        /// @param isRequired True if this extension is required
+        void addExtensionSwapchain(const bool isRequired) {
+            const auto extension = new AxrVulkanExtensionSwapchain{
+                .IsRequired = isRequired,
+            };
             addExtension(reinterpret_cast<AxrVulkanExtension_T>(extension));
         }
 
         /// Add the Surface extension
-        void addExtensionSurface() {
-            const auto extension = new AxrVulkanExtensionSurface();
+        /// @param isRequired True if this extension is required
+        void addExtensionSurface(const bool isRequired) {
+            const auto extension = new AxrVulkanExtensionSurface{
+                .IsRequired = isRequired,
+            };
             addExtension(reinterpret_cast<AxrVulkanExtension_T>(extension));
         }
 
 #ifdef AXR_USE_PLATFORM_WIN32
         /// Add the Win32 Surface extension
-        void addExtensionWin32Surface() {
-            const auto extension = new AxrVulkanExtensionWin32Surface();
+        /// @param isRequired True if this extension is required
+        void addExtensionWin32Surface(const bool isRequired) {
+            const auto extension = new AxrVulkanExtensionWin32Surface{
+                .IsRequired = isRequired,
+            };
             addExtension(reinterpret_cast<AxrVulkanExtension_T>(extension));
         }
 #endif

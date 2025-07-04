@@ -882,7 +882,8 @@ AxrResult AxrXrSystem::createInstance() {
     // ----------------------------------------- //
 
     removeUnsupportedApiLayers();
-    removeUnsupportedExtensions();
+    const AxrResult axrResult = removeUnsupportedExtensions();
+    if (AXR_FAILED(axrResult)) return axrResult;
 
     const std::vector<const char*> layers = getAllApiLayerNames();
     const std::vector<const char*> extensions = getAllExtensionNames();
@@ -1021,7 +1022,9 @@ std::vector<const char*> AxrXrSystem::getAllExtensionNames() const {
 
 void AxrXrSystem::addRequiredExtensions() {
     if (m_GraphicsApi == AXR_GRAPHICS_API_VULKAN) {
-        auto vulkanExtension = AxrXrExtensionVulkanEnable{};
+        auto vulkanExtension = AxrXrExtensionVulkanEnable{
+            .IsRequired = true,
+        };
         m_Extensions.add(reinterpret_cast<AxrXrExtension_T>(&vulkanExtension));
     }
 }
@@ -1125,23 +1128,23 @@ void AxrXrSystem::removeUnsupportedApiLayers() {
     }
 }
 
-void AxrXrSystem::removeUnsupportedExtensions() {
+AxrResult AxrXrSystem::removeUnsupportedExtensions() {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
 
     if (m_Instance != VK_NULL_HANDLE) {
         axrLogWarningLocation("Instance already exists. It's too late to remove instance extensions.");
-        return;
+        return AXR_ERROR;
     }
 
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //
+    AxrResult axrResult = AXR_SUCCESS;
 
     const std::vector<std::string> supportedExtensions = getSupportedExtensions();
 
-    // TODO: Some extensions may be required and this function should fail if it doesn't have it.
     for (auto it = m_Extensions.begin(); it != m_Extensions.end();) {
         if (*it == nullptr) {
             ++it;
@@ -1149,7 +1152,16 @@ void AxrXrSystem::removeUnsupportedExtensions() {
         }
 
         if (!axrContainsString(axrGetXrExtensionName((*it)->Type), supportedExtensions)) {
-            axrLogWarning("Unsupported instance extension: {0}", axrGetXrExtensionName((*it)->Type));
+            if ((*it)->IsRequired) {
+                axrLogErrorLocation(
+                    "Unsupported required extension: {0}.",
+                    axrGetXrExtensionName((*it)->Type)
+                );
+                axrResult = AXR_ERROR;
+                continue;
+            }
+
+            axrLogWarning("Unsupported extension: {0}.", axrGetXrExtensionName((*it)->Type));
 
             delete *it;
             it = m_Extensions.erase(it);
@@ -1157,6 +1169,8 @@ void AxrXrSystem::removeUnsupportedExtensions() {
             ++it;
         }
     }
+
+    return axrResult;
 }
 
 XrDebugUtilsMessengerCreateInfoEXT AxrXrSystem::createDebugUtilsCreateInfo() const {

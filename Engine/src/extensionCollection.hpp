@@ -104,7 +104,7 @@ public:
     /// @param extensionType Extension type to check
     /// @returns True if the given extension type exists 
     [[nodiscard]] bool exists(const ExtensionTypeEnum extensionType) const {
-        for (const Extension extension : m_Extensions) {
+        for (const Extension& extension : m_Extensions) {
             if (extension != nullptr && extension->Type == extensionType) return true;
         }
 

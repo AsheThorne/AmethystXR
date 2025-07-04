@@ -50,11 +50,15 @@ AxrVulkanWindowGraphics::~AxrVulkanWindowGraphics() {
 void AxrVulkanWindowGraphics::addRequiredInstanceExtensions(
     AxrExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum>& extensions
 ) const {
-    auto surfaceExtension = AxrVulkanExtensionSurface{};
+    auto surfaceExtension = AxrVulkanExtensionSurface{
+        .IsRequired = true,
+    };
     extensions.add(reinterpret_cast<AxrVulkanExtension_T>(&surfaceExtension));
 
 #ifdef AXR_USE_PLATFORM_WIN32
-    auto win32SurfaceExtension = AxrVulkanExtensionWin32Surface{};
+    auto win32SurfaceExtension = AxrVulkanExtensionWin32Surface{
+        .IsRequired = true,
+    };
     extensions.add(reinterpret_cast<AxrVulkanExtension_T>(&win32SurfaceExtension));
 #endif
 }
@@ -62,7 +66,9 @@ void AxrVulkanWindowGraphics::addRequiredInstanceExtensions(
 void AxrVulkanWindowGraphics::addRequiredDeviceExtensions(
     AxrExtensionCollection<AxrVulkanExtension_T, AxrVulkanExtensionTypeEnum>& extensions
 ) const {
-    auto swapchainExtension = AxrVulkanExtensionSwapchain{};
+    auto swapchainExtension = AxrVulkanExtensionSwapchain{
+        .IsRequired = true,
+    };
     extensions.add(reinterpret_cast<AxrVulkanExtension_T>(&swapchainExtension));
 }
 
