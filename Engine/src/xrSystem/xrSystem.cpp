@@ -34,6 +34,15 @@ bool axrXrSystemIsXrSessionRunning(const AxrXrSystemConst_T xrSystem) {
     return xrSystem->isXrSessionRunning();
 }
 
+void axrXrSystemSetClippingPlane(const AxrXrSystem_T xrSystem, const float nearPlane, const float farPlane) {
+    if (xrSystem == nullptr) {
+        axrLogErrorLocation("`xrSystem` is null.");
+        return;
+    }
+
+    xrSystem->setClippingPlane(nearPlane, farPlane);
+}
+
 AxrResult axrXrSystemStartXrSession(const AxrXrSystem_T xrSystem) {
     if (xrSystem == nullptr) {
         axrLogErrorLocation("`xrSystem` is null.");
@@ -100,6 +109,11 @@ bool AxrXrSystem::isValid() const {
 
 bool AxrXrSystem::isXrSessionRunning() const {
     return m_IsSessionRunning;
+}
+
+void AxrXrSystem::setClippingPlane(const float nearPlane, const float farPlane) {
+    m_NearClippingPlane = nearPlane;
+    m_FarClippingPlane = farPlane;
 }
 
 AxrResult AxrXrSystem::startXrSession() {
@@ -277,6 +291,14 @@ XrEnvironmentBlendMode AxrXrSystem::getEnvironmentBlendMode() const {
 
 std::vector<XrViewConfigurationView> AxrXrSystem::getViewConfigurations() const {
     return m_ViewConfigurations;
+}
+
+float AxrXrSystem::getNearClippingPlane() const {
+    return m_NearClippingPlane;
+}
+
+float AxrXrSystem::getFarClippingPlane() const {
+    return m_FarClippingPlane;
 }
 
 AxrResult AxrXrSystem::createSwapchain(

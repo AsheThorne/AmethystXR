@@ -167,6 +167,11 @@ extern "C" {
     /// @param xrSystem The xr system to use
     /// @returns True if the xr session is running
     AXR_API bool axrXrSystemIsXrSessionRunning(AxrXrSystemConst_T xrSystem);
+    /// Set the xr rendering clipping planes
+    /// @param xrSystem The xr system to use
+    /// @param nearPlane Near clipping plane
+    /// @param farPlane Far clipping plane
+    AXR_API void axrXrSystemSetClippingPlane(AxrXrSystem_T xrSystem, float nearPlane, float farPlane);
     /// Start the xr session
     /// @param xrSystem The xr system to use
     /// @returns AXR_SUCCESS if the function succeeded

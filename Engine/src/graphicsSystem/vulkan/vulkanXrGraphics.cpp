@@ -358,9 +358,8 @@ void AxrVulkanXrGraphics::getRenderingMatrices(
 
     projectionMatrix = createProjectionMatrix(
         m_FrameRenderData.CompositionLayerViews[viewIndex].fov,
-        // TODO: Make this adjustable by the application
-        0.01f,
-        1000.0f
+        m_XrSystem.getNearClippingPlane(),
+        m_XrSystem.getFarClippingPlane()
     );
 }
 

@@ -94,6 +94,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
     axr::XrSystem xrSystem = app.getXrSystem();
     if (xrSystem.isValid()) {
+        xrSystem.setClippingPlane(0.01f, 1000.0f);
         if (AXR_FAILED(xrSystem.startXrSession())) return -1;
     }
 

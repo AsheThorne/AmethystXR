@@ -101,6 +101,11 @@ public:
     /// @returns True if the xr session is running
     [[nodiscard]] bool isXrSessionRunning() const;
 
+    /// Set the xr rendering clipping planes
+    /// @param nearPlane Near clipping plane
+    /// @param farPlane Far clipping plane
+    void setClippingPlane(float nearPlane, float farPlane);
+
     /// Start the xr session
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult startXrSession();
@@ -131,6 +136,13 @@ public:
     /// Get the xr views
     /// @returns The xr views
     [[nodiscard]] std::vector<XrViewConfigurationView> getViewConfigurations() const;
+
+    /// Get the near clipping plane
+    /// @returns The near clipping plane
+    [[nodiscard]] float getNearClippingPlane() const;
+    /// Get the far clipping plane
+    /// @returns The far clipping plane
+    [[nodiscard]] float getFarClippingPlane() const;
 
     /// Create an xr swapchain
     /// @param usageFlags Usage flags
@@ -258,6 +270,8 @@ private:
     XrSession m_Session = XR_NULL_HANDLE;
     XrSessionState m_SessionState = XR_SESSION_STATE_UNKNOWN;
     XrSpace m_StageReferenceSpace = XR_NULL_HANDLE;
+    float m_NearClippingPlane = 0.01f;
+    float m_FarClippingPlane = 1000.0f;
 
     // ----------------------------------------- //
     // Private Functions

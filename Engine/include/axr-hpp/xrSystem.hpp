@@ -369,6 +369,13 @@ namespace axr {
             return axrXrSystemIsXrSessionRunning(m_XrSystem);
         }
 
+        /// Set the xr rendering clipping planes
+        /// @param nearPlane Near clipping plane
+        /// @param farPlane Far clipping plane
+        void setClippingPlane(const float nearPlane, const float farPlane) const {
+            axrXrSystemSetClippingPlane(m_XrSystem, nearPlane, farPlane);
+        }
+
         /// Start the xr session
         /// @returns AXR_SUCCESS if the function succeeded
         [[nodiscard]] axr::Result startXrSession() const {
