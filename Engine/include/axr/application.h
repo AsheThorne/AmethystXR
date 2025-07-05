@@ -10,6 +10,7 @@
 #include "axr/assets.h"
 #include "axr/scene.h"
 #include "axr/xrSystem.h"
+#include "axr/inputSystem.h"
 
 // ----------------------------------------- //
 // Structs
@@ -69,6 +70,10 @@ extern "C" {
     /// @param app The AxrApplication to use
     /// @returns A handle to the graphics system
     AXR_API AxrGraphicsSystem_T axrApplicationGetGraphicsSystem(AxrApplication_T app);
+    /// Get the axrApplication input system
+    /// @param app The AxrApplication to use
+    /// @returns A handle to the input system
+    AXR_API AxrInputSystem_T axrApplicationGetInputSystem(AxrApplication_T app);
     /// Get the axrApplication global asset collection
     /// @param app The AxrApplication to use
     /// @returns A handle to the global asset collection

@@ -9,6 +9,7 @@
 #include "assets.hpp"
 #include "scene.hpp"
 #include "xrSystem.hpp"
+#include "inputSystem.hpp"
 
 namespace axr {
     // ----------------------------------------- //
@@ -161,6 +162,12 @@ namespace axr {
         /// @returns A handle to the graphics system
         [[nodiscard]] axr::GraphicsSystem getGraphicsSystem() const {
             return axrApplicationGetGraphicsSystem(m_Application);
+        }
+
+        /// Get the input system
+        /// @returns A handle to the input system
+        [[nodiscard]] axr::InputSystem getInputSystem() const {
+            return axrApplicationGetInputSystem(m_Application);
         }
 
         /// Get the global asset collection

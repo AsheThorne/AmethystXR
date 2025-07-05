@@ -73,7 +73,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         AXR_MAKE_VERSION(1, 0, 0),
         graphicsSystemConfig,
         &windowSystemConfig,
-        &xrSystemConfig
+        nullptr
+        // &xrSystemConfig
     );
 
     auto app = axr::Application(appConfig);

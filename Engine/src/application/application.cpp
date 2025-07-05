@@ -84,6 +84,15 @@ AxrGraphicsSystem_T axrApplicationGetGraphicsSystem(const AxrApplication_T app) 
     return app->getGraphicsSystem();
 }
 
+AxrInputSystem_T axrApplicationGetInputSystem(const AxrApplication_T app) {
+    if (app == nullptr) {
+        axrLogErrorLocation("`app` is null.");
+        return nullptr;
+    }
+
+    return app->getInputSystem();
+}
+
 AxrAssetCollection_T axrApplicationGetGlobalAssetCollection(const AxrApplication_T app) {
     if (app == nullptr) {
         axrLogErrorLocation("`app` is null.");
@@ -192,11 +201,13 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
             );
         }()
     ),
+    m_InputSystem(),
     m_DeltaTime(0) {
 }
 
 AxrApplication::~AxrApplication() {
     m_GraphicsSystem.resetSetup();
+    m_InputSystem.resetSetup();
     m_WindowSystem.resetSetup();
     m_XrSystem.resetSetup();
     m_GlobalAssetCollection.cleanup();
@@ -219,6 +230,9 @@ AxrResult AxrApplication::setup() {
         axrResult = m_XrSystem.setup();
         if (AXR_FAILED(axrResult)) return axrResult;
     }
+
+    axrResult = m_InputSystem.setup();
+    if (AXR_FAILED(axrResult)) return axrResult;
 
     axrResult = m_GraphicsSystem.setup();
     if (AXR_FAILED(axrResult)) return axrResult;
@@ -266,6 +280,10 @@ AxrXrSystem_T AxrApplication::getXrSystem() {
 
 AxrGraphicsSystem_T AxrApplication::getGraphicsSystem() {
     return &m_GraphicsSystem;
+}
+
+AxrInputSystem_T AxrApplication::getInputSystem() {
+    return &m_InputSystem;
 }
 
 AxrAssetCollection_T AxrApplication::getGlobalAssetCollection() {

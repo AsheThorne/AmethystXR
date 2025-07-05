@@ -9,6 +9,7 @@
 #include "../assets/assetCollection.hpp"
 #include "../scene/scene.hpp"
 #include "../xrSystem/xrSystem.hpp"
+#include "../inputSystem/inputSystem.hpp"
 
 /// AmethystXr Application
 class AxrApplication {
@@ -65,6 +66,9 @@ public:
     /// Get the graphics system
     /// @returns A handle to the graphics system
     [[nodiscard]] AxrGraphicsSystem_T getGraphicsSystem();
+    /// Get the input system
+    /// @returns A handle to the input system
+    [[nodiscard]] AxrInputSystem_T getInputSystem();
     /// Get the global asset collection
     /// @returns A handle to the global asset collection
     [[nodiscard]] AxrAssetCollection_T getGlobalAssetCollection();
@@ -101,6 +105,7 @@ private:
     AxrGraphicsSystem m_GraphicsSystem;
     AxrWindowSystem m_WindowSystem;
     AxrXrSystem m_XrSystem;
+    AxrInputSystem m_InputSystem;
     AxrAssetCollection m_GlobalAssetCollection;
     std::unordered_map<std::string, AxrScene> m_Scenes;
     float m_DeltaTime;
