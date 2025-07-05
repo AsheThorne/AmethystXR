@@ -23,6 +23,12 @@
 #include <stb_image.h>
 
 // ----------------------------------------- //
+// GLM Headers
+// ----------------------------------------- //
+#include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
+
+// ----------------------------------------- //
 // External Functions
 // ----------------------------------------- //
 
@@ -449,13 +455,52 @@ AxrResult axrLoadModel_glTF(const std::filesystem::path& path, std::vector<AxrMe
     meshes.resize(model.meshes.size());
     for (size_t meshIndex = 0; meshIndex < model.meshes.size(); ++meshIndex) {
         meshes[meshIndex].Submeshes.resize(model.meshes[meshIndex].primitives.size());
-        glm::vec3 scaleFactor = glm::vec3(1.0f);
+        glm::mat4 modelMatrix = glm::mat4(1.0f);
 
         // Apply node transformations
         for (const tinygltf::Node& node : model.nodes) {
-            if (node.mesh == meshIndex && !node.scale.empty()) {
-                // TODO: Apply other transforms too
-                scaleFactor *= glm::vec3(node.scale[0], node.scale[1], node.scale[2]);
+            // TODO: We need to get the model matrix of every parent too for the global model matrix.
+            //  But we need a more complex model to test it with.
+            if (node.mesh == meshIndex) {
+                if (!node.matrix.empty()) {
+                    // If a matrix is defined, then the individual components won't be.
+                    // Ref: https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#transformations
+                    modelMatrix = glm::mat4(
+                        {node.matrix[0], node.matrix[1], node.matrix[2], node.matrix[3]},
+                        {node.matrix[4], node.matrix[5], node.matrix[6], node.matrix[7]},
+                        {node.matrix[8], node.matrix[9], node.matrix[10], node.matrix[11]},
+                        {node.matrix[12], node.matrix[13], node.matrix[14], node.matrix[15]}
+                    );
+                } else {
+                    glm::mat4 scaleMatrix = glm::mat4(1.0f);
+                    glm::mat4 translateMatrix = glm::mat4(1.0f);
+                    glm::mat4 rotationMatrix = glm::mat4(1.0f);
+
+                    if (!node.scale.empty()) {
+                        scaleMatrix = glm::scale(
+                            glm::mat4(1.0f),
+                            glm::vec3(node.scale[0], node.scale[1], node.scale[2])
+                        );
+                    }
+                    if (!node.translation.empty()) {
+                        translateMatrix = glm::translate(
+                            glm::mat4(1.0f),
+                            glm::vec3(node.translation[0], node.translation[1], node.translation[2])
+                        );
+                    }
+                    if (!node.rotation.empty()) {
+                        rotationMatrix = glm::toMat4(
+                            glm::quat(
+                                static_cast<float>(node.rotation[3]),
+                                static_cast<float>(node.rotation[0]),
+                                static_cast<float>(node.rotation[1]),
+                                static_cast<float>(node.rotation[2])
+                            )
+                        );
+                    }
+
+                    modelMatrix = translateMatrix * rotationMatrix * scaleMatrix;
+                }
             }
         }
 
@@ -499,7 +544,7 @@ AxrResult axrLoadModel_glTF(const std::filesystem::path& path, std::vector<AxrMe
             //  And so we can have multiple texcoords and colors. like COLOR_0, COLOR_1, TEXCOORD_0 and TEXCOORD_1.
             submesh.Vertices.resize(vertexPositions.size());
             for (size_t j = 0; j < vertexPositions.size(); ++j) {
-                submesh.Vertices[j].Position = vertexPositions[j] * scaleFactor;
+                submesh.Vertices[j].Position = modelMatrix * glm::vec4(vertexPositions[j], 1.0f);
                 submesh.Vertices[j].Color = vertexColors[j];
                 submesh.Vertices[j].TexCoords = vertexTexCoords[j];
             }
