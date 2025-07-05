@@ -137,7 +137,6 @@ AxrResult AxrVulkanSceneData::loadScene() {
 }
 
 void AxrVulkanSceneData::unloadScene() {
-    // TODO: See if we can wait for all the scene specific fences to be finished instead of doing this.
     const vk::Result vkResult = m_Device.waitIdle(*m_DispatchHandle);
     axrLogVkResult(vkResult, "m_Device.waitIdle");
 
@@ -201,7 +200,6 @@ AxrResult AxrVulkanSceneData::loadWindowData(const LoadWindowDataConfig& config)
 void AxrVulkanSceneData::unloadWindowData() {
     m_IsWindowDataLoaded = false;
 
-    // TODO: See if we can wait for all the scene specific fences to be finished instead of doing this.
     const vk::Result vkResult = m_Device.waitIdle(*m_DispatchHandle);
     axrLogVkResult(vkResult, "m_Device.waitIdle");
 
@@ -243,7 +241,6 @@ AxrResult AxrVulkanSceneData::loadXrSessionData(const LoadXrSessionDataConfig& c
 void AxrVulkanSceneData::unloadXrSessionData() {
     m_IsXrSessionDataLoaded = false;
 
-    // TODO: See if we can wait for all the scene specific fences to be finished instead of doing this.
     const vk::Result vkResult = m_Device.waitIdle(*m_DispatchHandle);
     axrLogVkResult(vkResult, "m_Device.waitIdle");
 
