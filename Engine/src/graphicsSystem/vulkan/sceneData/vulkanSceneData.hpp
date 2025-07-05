@@ -44,6 +44,19 @@ public:
         vk::DispatchLoaderDynamic* DispatchHandle;
     };
 
+    /// Load window data config
+    struct LoadWindowDataConfig {
+        vk::RenderPass RenderPass = VK_NULL_HANDLE;
+        vk::SampleCountFlagBits MsaaSampleCount = vk::SampleCountFlagBits::e1;
+    };
+
+    /// Load xr session data config
+    struct LoadXrSessionDataConfig {
+        vk::RenderPass RenderPass = VK_NULL_HANDLE;
+        vk::SampleCountFlagBits MsaaSampleCount = vk::SampleCountFlagBits::e1;
+        uint32_t ViewCount = 0;
+    };
+
     /// Push constant references for rendering
     struct PushConstantForRendering {
         const vk::ShaderStageFlags* ShaderStages = nullptr;
@@ -117,23 +130,16 @@ public:
     void unloadScene();
 
     /// Load the window specific scene data
-    /// @param renderPass Render pass to use
-    /// @param msaaSampleCount Msaa sample count
+    /// @param config Load window data config
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult loadWindowData(vk::RenderPass renderPass, vk::SampleCountFlagBits msaaSampleCount);
+    [[nodiscard]] AxrResult loadWindowData(const LoadWindowDataConfig& config);
     /// Unload the window specific scene data
     void unloadWindowData();
 
     /// Load the xr session specific scene data
-    /// @param renderPass Render pass to use
-    /// @param msaaSampleCount Msaa sample count
-    /// @param viewCount The number of views for the xr device
+    /// @param config Load xr session data config
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult loadXrSessionData(
-        vk::RenderPass renderPass,
-        vk::SampleCountFlagBits msaaSampleCount,
-        uint32_t viewCount
-    );
+    [[nodiscard]] AxrResult loadXrSessionData(const LoadXrSessionDataConfig& config);
     /// Unload the xr session specific scene data
     void unloadXrSessionData();
 
@@ -189,18 +195,13 @@ private:
 
     // ---- Window data ----
     bool m_IsWindowDataLoaded;
-    // TODO: Do we need to double up on this data? it was saved in the loadedScenesCollection too
-    vk::RenderPass m_WindowRenderPass;
-    vk::SampleCountFlagBits m_WindowMsaaSampleCount;
+    LoadWindowDataConfig m_LoadWindowDataConfig;
     /// Window specific engine defined uniform buffers
     std::unordered_map<std::string, AxrVulkanUniformBufferData> m_WindowUniformBufferData;
 
     // ---- Xr session data ----
     bool m_IsXrSessionDataLoaded;
-    // TODO: Do we need to double up on this data? it was saved in the loadedScenesCollection too
-    vk::RenderPass m_XrSessionRenderPass;
-    vk::SampleCountFlagBits m_XrSessionMsaaSampleCount;
-    uint32_t m_XrSessionViewCount;
+    LoadXrSessionDataConfig m_LoadXrSessionDataConfig;
     /// Xr session specific engine defined uniform buffers.
     /// There's one uniform buffer per view.
     std::unordered_map<std::string, std::array<AxrVulkanUniformBufferData, AXR_MAX_XR_VIEWS>>
@@ -304,16 +305,14 @@ private:
     [[nodiscard]] const AxrVulkanUniformBufferData* findWindowUniformBufferData_shared(const std::string& name) const;
 
     /// Create all xr session uniform buffer data
-    /// @param viewCount The number of views for the xr device
     /// @results AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createAllXrSessionUniformBufferData(uint32_t viewCount);
+    [[nodiscard]] AxrResult createAllXrSessionUniformBufferData();
     /// Destroy all xr session uniform buffer data
     void destroyAllXrSessionUniformBufferData();
 
     /// Initialize all the xr session uniform buffer data
-    /// @param viewCount The number of views for the xr device
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult initializeAllXrSessionUniformBufferData(uint32_t viewCount);
+    [[nodiscard]] AxrResult initializeAllXrSessionUniformBufferData();
 
     /// Find the named xr session uniform buffer data, including the global data in the search
     /// @param name The name of the xr session uniform buffer
@@ -448,26 +447,14 @@ private:
     [[nodiscard]] AxrResult initializeMaterialData(const AxrMaterial& material);
 
     /// Create all window specific material data
-    /// @param renderPass Render pass to use
-    /// @param msaaSampleCount Msaa sample count
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createAllWindowMaterialData(
-        vk::RenderPass renderPass,
-        vk::SampleCountFlagBits msaaSampleCount
-    );
+    [[nodiscard]] AxrResult createAllWindowMaterialData();
     /// Destroy all window specific material data
     void destroyAllWindowMaterialData();
 
     /// Create all xr session specific material data
-    /// @param renderPass Render pass to use
-    /// @param msaaSampleCount Msaa sample count
-    /// @param viewCount The number of views for the xr device
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createAllXrSessionMaterialData(
-        vk::RenderPass renderPass,
-        vk::SampleCountFlagBits msaaSampleCount,
-        uint32_t viewCount
-    );
+    [[nodiscard]] AxrResult createAllXrSessionMaterialData();
     /// Destroy all xr session specific material data
     void destroyAllXrSessionMaterialData();
 

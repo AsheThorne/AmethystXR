@@ -150,16 +150,8 @@ private:
 
     bool m_IsSetup;
     std::string m_GlobalSceneName = "AXR:SceneGlobal";
-
-    // ---- Setup Window Config ----
-    vk::RenderPass m_WindowRenderPass;
-    vk::SampleCountFlagBits m_WindowMsaaSampleCount;
-
-    // TODO: Should this be in a struct? then we can use it in setupXrSessionData() too
-    // ---- Setup Xr Session Config ----
-    vk::RenderPass m_XrSessionRenderPass;
-    vk::SampleCountFlagBits m_XrSessionMsaaSampleCount;
-    uint32_t m_XrSessionViewCount;
+    AxrVulkanSceneData::LoadWindowDataConfig m_LoadWindowDataConfig;
+    AxrVulkanSceneData::LoadXrSessionDataConfig m_LoadXrSessionDataConfig;
 
     std::pair<AxrScene_T, AxrVulkanSceneData*> m_ActiveScene;
     std::vector<std::pair<AxrScene_T, AxrVulkanSceneData*>> m_LoadedScenes;

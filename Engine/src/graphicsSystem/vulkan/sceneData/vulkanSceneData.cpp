@@ -30,12 +30,7 @@ AxrVulkanSceneData::AxrVulkanSceneData(const Config& config):
     m_MaxSamplerAnisotropy(config.MaxSamplerAnisotropy),
     m_DispatchHandle(config.DispatchHandle),
     m_IsWindowDataLoaded(false),
-    m_WindowRenderPass(VK_NULL_HANDLE),
-    m_WindowMsaaSampleCount(vk::SampleCountFlagBits::e1),
-    m_IsXrSessionDataLoaded(false),
-    m_XrSessionRenderPass(VK_NULL_HANDLE),
-    m_XrSessionMsaaSampleCount(vk::SampleCountFlagBits::e1),
-    m_XrSessionViewCount(0) {
+    m_IsXrSessionDataLoaded(false) {
 }
 
 AxrVulkanSceneData::~AxrVulkanSceneData() {
@@ -175,11 +170,10 @@ void AxrVulkanSceneData::unloadScene() {
     }
 }
 
-AxrResult AxrVulkanSceneData::loadWindowData(
-    const vk::RenderPass renderPass,
-    const vk::SampleCountFlagBits msaaSampleCount
-) {
+AxrResult AxrVulkanSceneData::loadWindowData(const LoadWindowDataConfig& config) {
     AxrResult axrResult = AXR_SUCCESS;
+
+    m_LoadWindowDataConfig = config;
 
     axrResult = createAllWindowUniformBufferData();
     if (AXR_FAILED(axrResult)) {
@@ -187,14 +181,12 @@ AxrResult AxrVulkanSceneData::loadWindowData(
         return axrResult;
     }
 
-    axrResult = createAllWindowMaterialData(renderPass, msaaSampleCount);
+    axrResult = createAllWindowMaterialData();
     if (AXR_FAILED(axrResult)) {
         unloadWindowData();
         return axrResult;
     }
 
-    m_WindowRenderPass = renderPass;
-    m_WindowMsaaSampleCount = msaaSampleCount;
     m_IsWindowDataLoaded = true;
 
     axrResult = writeAllDescriptorSets(AXR_PLATFORM_TYPE_WINDOW, 1);
@@ -217,35 +209,29 @@ void AxrVulkanSceneData::unloadWindowData() {
     destroyAllWindowMaterialData();
     destroyAllWindowUniformBufferData();
 
-    m_WindowRenderPass = VK_NULL_HANDLE;
-    m_WindowMsaaSampleCount = vk::SampleCountFlagBits::e1;
+    m_LoadWindowDataConfig = {};
 }
 
-AxrResult AxrVulkanSceneData::loadXrSessionData(
-    const vk::RenderPass renderPass,
-    const vk::SampleCountFlagBits msaaSampleCount,
-    const uint32_t viewCount
-) {
+AxrResult AxrVulkanSceneData::loadXrSessionData(const LoadXrSessionDataConfig& config) {
     AxrResult axrResult = AXR_SUCCESS;
 
-    axrResult = createAllXrSessionUniformBufferData(viewCount);
+    m_LoadXrSessionDataConfig = config;
+
+    axrResult = createAllXrSessionUniformBufferData();
     if (AXR_FAILED(axrResult)) {
         unloadXrSessionData();
         return axrResult;
     }
 
-    axrResult = createAllXrSessionMaterialData(renderPass, msaaSampleCount, viewCount);
+    axrResult = createAllXrSessionMaterialData();
     if (AXR_FAILED(axrResult)) {
         unloadXrSessionData();
         return axrResult;
     }
 
-    m_XrSessionRenderPass = renderPass;
-    m_XrSessionMsaaSampleCount = msaaSampleCount;
-    m_XrSessionViewCount = viewCount;
     m_IsXrSessionDataLoaded = true;
 
-    axrResult = writeAllDescriptorSets(AXR_PLATFORM_TYPE_XR_DEVICE, viewCount);
+    axrResult = writeAllDescriptorSets(AXR_PLATFORM_TYPE_XR_DEVICE, m_LoadXrSessionDataConfig.ViewCount);
     if (AXR_FAILED(axrResult)) {
         unloadXrSessionData();
         return axrResult;
@@ -265,9 +251,7 @@ void AxrVulkanSceneData::unloadXrSessionData() {
     destroyAllXrSessionMaterialData();
     destroyAllXrSessionUniformBufferData();
 
-    m_XrSessionRenderPass = VK_NULL_HANDLE;
-    m_XrSessionMsaaSampleCount = vk::SampleCountFlagBits::e1;
-    m_XrSessionViewCount = 0;
+    m_LoadXrSessionDataConfig = {};
 }
 
 const std::unordered_map<std::string, AxrVulkanSceneData::MaterialForRendering>&
@@ -762,7 +746,7 @@ const AxrVulkanUniformBufferData* AxrVulkanSceneData::findWindowUniformBufferDat
     return nullptr;
 }
 
-AxrResult AxrVulkanSceneData::createAllXrSessionUniformBufferData(const uint32_t viewCount) {
+AxrResult AxrVulkanSceneData::createAllXrSessionUniformBufferData() {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -772,12 +756,12 @@ AxrResult AxrVulkanSceneData::createAllXrSessionUniformBufferData(const uint32_t
         return AXR_ERROR;
     }
 
-    if (viewCount > AXR_MAX_XR_VIEWS) {
+    if (m_LoadXrSessionDataConfig.ViewCount > AXR_MAX_XR_VIEWS) {
         axrLogErrorLocation("View count exceeds the view limit of: {0}.", AXR_MAX_XR_VIEWS);
         return AXR_ERROR;
     }
 
-    if (viewCount < 1) {
+    if (m_LoadXrSessionDataConfig.ViewCount < 1) {
         axrLogErrorLocation("View count must be greater than 0.");
         return AXR_ERROR;
     }
@@ -788,14 +772,14 @@ AxrResult AxrVulkanSceneData::createAllXrSessionUniformBufferData(const uint32_t
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    axrResult = initializeAllXrSessionUniformBufferData(viewCount);
+    axrResult = initializeAllXrSessionUniformBufferData();
     if (AXR_FAILED(axrResult)) {
         destroyAllXrSessionUniformBufferData();
         return axrResult;
     }
 
     for (auto& [name, data] : m_XrSessionUniformBufferData) {
-        for (uint32_t viewIndex = 0; viewIndex < viewCount; ++viewIndex) {
+        for (uint32_t viewIndex = 0; viewIndex < m_LoadXrSessionDataConfig.ViewCount; ++viewIndex) {
             axrResult = data[viewIndex].createData();
             if (AXR_FAILED(axrResult)) {
                 break;
@@ -818,7 +802,7 @@ void AxrVulkanSceneData::destroyAllXrSessionUniformBufferData() {
     destroyUniformBufferData(m_XrSessionUniformBufferData);
 }
 
-AxrResult AxrVulkanSceneData::initializeAllXrSessionUniformBufferData(const uint32_t viewCount) {
+AxrResult AxrVulkanSceneData::initializeAllXrSessionUniformBufferData() {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -833,12 +817,12 @@ AxrResult AxrVulkanSceneData::initializeAllXrSessionUniformBufferData(const uint
         return AXR_ERROR;
     }
 
-    if (viewCount > AXR_MAX_XR_VIEWS) {
+    if (m_LoadXrSessionDataConfig.ViewCount > AXR_MAX_XR_VIEWS) {
         axrLogErrorLocation("View count exceeds the view limit of: {0}.", AXR_MAX_XR_VIEWS);
         return AXR_ERROR;
     }
 
-    if (viewCount < 1) {
+    if (m_LoadXrSessionDataConfig.ViewCount < 1) {
         axrLogErrorLocation("View count must be greater than 0.");
         return AXR_ERROR;
     }
@@ -852,7 +836,7 @@ AxrResult AxrVulkanSceneData::initializeAllXrSessionUniformBufferData(const uint
     if (isThisGlobalSceneData()) {
         std::array<AxrVulkanUniformBufferData, AXR_MAX_XR_VIEWS> uniformBuffers;
 
-        for (uint32_t viewIndex = 0; viewIndex < viewCount; ++viewIndex) {
+        for (uint32_t viewIndex = 0; viewIndex < m_LoadXrSessionDataConfig.ViewCount; ++viewIndex) {
             AxrVulkanUniformBufferData uniformBufferData;
             axrResult = initializeUniformBufferData(
                 nullptr,
@@ -1648,14 +1632,26 @@ AxrResult AxrVulkanSceneData::initializeMaterialData(const AxrMaterial& material
     return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanSceneData::createAllWindowMaterialData(
-    const vk::RenderPass renderPass,
-    const vk::SampleCountFlagBits msaaSampleCount
-) {
+AxrResult AxrVulkanSceneData::createAllWindowMaterialData() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_LoadWindowDataConfig.RenderPass == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Window render pass is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
     AxrResult axrResult = AXR_SUCCESS;
 
     for (auto& [name, data] : m_MaterialData) {
-        axrResult = data.createWindowData(renderPass, msaaSampleCount);
+        axrResult = data.createWindowData(
+            m_LoadWindowDataConfig.RenderPass,
+            m_LoadWindowDataConfig.MsaaSampleCount
+        );
         if (AXR_FAILED(axrResult)) {
             break;
         }
@@ -1675,15 +1671,32 @@ void AxrVulkanSceneData::destroyAllWindowMaterialData() {
     }
 }
 
-AxrResult AxrVulkanSceneData::createAllXrSessionMaterialData(
-    const vk::RenderPass renderPass,
-    const vk::SampleCountFlagBits msaaSampleCount,
-    const uint32_t viewCount
-) {
+AxrResult AxrVulkanSceneData::createAllXrSessionMaterialData() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_LoadXrSessionDataConfig.RenderPass == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Xr session render pass is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_LoadXrSessionDataConfig.ViewCount == 0) {
+        axrLogErrorLocation("Xr session view count is 0.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
     AxrResult axrResult = AXR_SUCCESS;
 
     for (auto& [name, data] : m_MaterialData) {
-        axrResult = data.createXrSessionData(renderPass, msaaSampleCount, viewCount);
+        axrResult = data.createXrSessionData(
+            m_LoadXrSessionDataConfig.RenderPass,
+            m_LoadXrSessionDataConfig.MsaaSampleCount,
+            m_LoadXrSessionDataConfig.ViewCount
+        );
         if (AXR_FAILED(axrResult)) {
             break;
         }
@@ -1761,17 +1774,22 @@ void AxrVulkanSceneData::onMaterialCreatedCallback(const AxrMaterialConst_T mate
 
     if (AXR_SUCCEEDED(axrResult)) {
         if (isPlatformLoaded(AXR_PLATFORM_TYPE_WINDOW)) {
-            axrResult = materialData.createWindowData(m_WindowRenderPass, m_WindowMsaaSampleCount);
+            axrResult = materialData.createWindowData(
+                m_LoadWindowDataConfig.RenderPass,
+                m_LoadWindowDataConfig.MsaaSampleCount
+            );
         }
 
         if (isPlatformLoaded(AXR_PLATFORM_TYPE_XR_DEVICE)) {
             axrResult = materialData.createXrSessionData(
-                m_XrSessionRenderPass,
-                m_XrSessionMsaaSampleCount,
-                m_XrSessionViewCount
+                m_LoadXrSessionDataConfig.RenderPass,
+                m_LoadXrSessionDataConfig.MsaaSampleCount,
+                m_LoadXrSessionDataConfig.ViewCount
             );
         }
     }
+
+    // TODO: I think we need to write the new descriptor sets too
 
     if (AXR_FAILED(axrResult)) {
         materialData.destroyXrSessionData();
