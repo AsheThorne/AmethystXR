@@ -63,4 +63,6 @@
 ### Window Graphics
 
 - [ ] Duplicate Xr session view to window
-- [ ] Pass the oldSwapchain param in vk::SwapchainCreateInfoKHR when recreating the swapchain 
+- [ ] Pass the oldSwapchain param in vk::SwapchainCreateInfoKHR when recreating the swapchain.
+
+  https://docs.vulkan.org/spec/latest/chapters/VK_KHR_surface/wsi.html#wsi-swapchain
