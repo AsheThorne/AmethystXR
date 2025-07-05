@@ -901,8 +901,6 @@ AxrResult AxrVulkanWindowGraphics::createSwapchain(const vk::SurfaceCapabilities
         vk::CompositeAlphaFlagBitsKHR::eOpaque,
         m_SwapchainPresentationMode,
         vk::True,
-        // TODO: Add old swapchain if it's being recreated
-        // oldSwapchain
         VK_NULL_HANDLE
     );
 

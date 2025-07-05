@@ -705,9 +705,6 @@ AxrResult AxrVulkanImage::copyBufferToImage(
         *m_DispatchHandle
     );
 
-    // TODO: Generating mip maps at runtime isn't recommended.
-    //  We should only do this as a last resort if the application requests it and if the image doesn't already have baked in mipmaps.
-    //  We don't even load mipmaps from images yet so this is our only option for now.
     generateMipmaps(
         commandBuffer,
         image,
