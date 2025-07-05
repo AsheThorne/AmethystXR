@@ -20,7 +20,8 @@ AxrVulkanImage::AxrVulkanImage():
     m_ImageView(VK_NULL_HANDLE),
     m_ImageMemory(VK_NULL_HANDLE),
     m_ImageAspectFlags(vk::ImageAspectFlags()),
-    m_MipLevelCount(0) {
+    m_MipLevelCount(0),
+    m_ImageFormat(vk::Format::eUndefined) {
 }
 
 AxrVulkanImage::AxrVulkanImage(const Config& config):
@@ -33,7 +34,8 @@ AxrVulkanImage::AxrVulkanImage(const Config& config):
     m_ImageView(VK_NULL_HANDLE),
     m_ImageMemory(VK_NULL_HANDLE),
     m_ImageAspectFlags(vk::ImageAspectFlags()),
-    m_MipLevelCount(0) {
+    m_MipLevelCount(0),
+    m_ImageFormat(vk::Format::eUndefined) {
 }
 
 AxrVulkanImage::AxrVulkanImage(AxrVulkanImage&& src) noexcept {
@@ -47,6 +49,7 @@ AxrVulkanImage::AxrVulkanImage(AxrVulkanImage&& src) noexcept {
     m_ImageMemory = src.m_ImageMemory;
     m_ImageAspectFlags = src.m_ImageAspectFlags;
     m_MipLevelCount = src.m_MipLevelCount;
+    m_ImageFormat = src.m_ImageFormat;
 
     src.m_PhysicalDevice = VK_NULL_HANDLE;
     src.m_Device = VK_NULL_HANDLE;
@@ -58,6 +61,7 @@ AxrVulkanImage::AxrVulkanImage(AxrVulkanImage&& src) noexcept {
     src.m_ImageMemory = VK_NULL_HANDLE;
     src.m_ImageAspectFlags = vk::ImageAspectFlags();
     src.m_MipLevelCount = 0;
+    src.m_ImageFormat = vk::Format::eUndefined;
 }
 
 AxrVulkanImage::~AxrVulkanImage() {
@@ -78,6 +82,7 @@ AxrVulkanImage& AxrVulkanImage::operator=(AxrVulkanImage&& src) noexcept {
         m_ImageMemory = src.m_ImageMemory;
         m_ImageAspectFlags = src.m_ImageAspectFlags;
         m_MipLevelCount = src.m_MipLevelCount;
+        m_ImageFormat = src.m_ImageFormat;
 
         src.m_PhysicalDevice = VK_NULL_HANDLE;
         src.m_Device = VK_NULL_HANDLE;
@@ -89,6 +94,7 @@ AxrVulkanImage& AxrVulkanImage::operator=(AxrVulkanImage&& src) noexcept {
         src.m_ImageMemory = VK_NULL_HANDLE;
         src.m_ImageAspectFlags = vk::ImageAspectFlags();
         src.m_MipLevelCount = 0;
+        src.m_ImageFormat = vk::Format::eUndefined;
     }
 
     return *this;
@@ -99,7 +105,8 @@ AxrVulkanImage& AxrVulkanImage::operator=(AxrVulkanImage&& src) noexcept {
 bool AxrVulkanImage::isEmpty() const {
     return m_Image == VK_NULL_HANDLE &&
         m_ImageView == VK_NULL_HANDLE &&
-        m_ImageMemory == VK_NULL_HANDLE;
+        m_ImageMemory == VK_NULL_HANDLE &&
+        m_ImageFormat == vk::Format::eUndefined;
 }
 
 const vk::Image& AxrVulkanImage::getImage() const {
@@ -112,6 +119,10 @@ const vk::ImageView& AxrVulkanImage::getImageView() const {
 
 uint32_t AxrVulkanImage::getMipLevelCount() const {
     return m_MipLevelCount;
+}
+
+vk::Format AxrVulkanImage::getImageFormat() const {
+    return m_ImageFormat;
 }
 
 AxrResult AxrVulkanImage::createImage(const AxrImageConst_T image) {
@@ -169,7 +180,7 @@ AxrResult AxrVulkanImage::createImage(const AxrImageConst_T image) {
     }
 
     m_MipLevelCount = countImageMipLevels(image->getWidth(), image->getHeight());
-    constexpr vk::Format imageFormat = vk::Format::eR8G8B8A8Srgb;
+    m_ImageFormat = vk::Format::eR8G8B8A8Srgb;
     vk::ImageUsageFlags imageUsageFlags = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
     if (m_MipLevelCount > 1) {
         imageUsageFlags |= vk::ImageUsageFlagBits::eTransferSrc;
@@ -181,7 +192,7 @@ AxrResult AxrVulkanImage::createImage(const AxrImageConst_T image) {
         vk::Extent2D(image->getWidth(), image->getHeight()),
         m_MipLevelCount,
         vk::SampleCountFlagBits::e1,
-        imageFormat,
+        m_ImageFormat,
         vk::ImageTiling::eOptimal,
         imageUsageFlags,
         vk::MemoryPropertyFlagBits::eDeviceLocal,
@@ -200,7 +211,7 @@ AxrResult AxrVulkanImage::createImage(const AxrImageConst_T image) {
         m_Image,
         image->getWidth(),
         image->getHeight(),
-        imageFormat,
+        m_ImageFormat,
         m_MipLevelCount
     );
     // We're done with the buffer now
@@ -216,7 +227,7 @@ AxrResult AxrVulkanImage::createImage(const AxrImageConst_T image) {
     axrResult = createImageView(
         m_Device,
         m_Image,
-        imageFormat,
+        m_ImageFormat,
         m_ImageAspectFlags,
         m_MipLevelCount,
         m_ImageView,
@@ -254,6 +265,7 @@ AxrResult AxrVulkanImage::createImage(
 
     AxrResult axrResult = AXR_SUCCESS;
     m_MipLevelCount = 1;
+    m_ImageFormat = format;
 
     axrResult = createImage(
         m_Device,
@@ -261,7 +273,7 @@ AxrResult AxrVulkanImage::createImage(
         extent,
         m_MipLevelCount,
         sampleCount,
-        format,
+        m_ImageFormat,
         imageTiling,
         imageUsage,
         memoryProperties,
@@ -279,7 +291,7 @@ AxrResult AxrVulkanImage::createImage(
     axrResult = createImageView(
         m_Device,
         m_Image,
-        format,
+        m_ImageFormat,
         m_ImageAspectFlags,
         m_MipLevelCount,
         m_ImageView,
@@ -304,6 +316,7 @@ void AxrVulkanImage::destroyImage() {
         return;
     }
 
+    m_ImageFormat = vk::Format::eUndefined;
     m_MipLevelCount = 0;
     m_ImageAspectFlags = vk::ImageAspectFlags();
     destroyImageView(m_Device, m_ImageView, *m_DispatchHandle);
@@ -761,18 +774,17 @@ void AxrVulkanImage::generateMipmaps(
     // Process
     // ----------------------------------------- //
 
-    vk::Filter blitFilter = vk::Filter::eNearest;
+    vk::Filter blitFilter = vk::Filter::eLinear;
 
-    // TODO: Do we need to do this check any time we want to use linear filter? like with image sampling??
-    // If linear filter is supported, use that instead
-    if (axrAreFormatFeaturesSupported(
+    // If linear filter isn't supported, use nearest
+    if (!axrAreFormatFeaturesSupported(
         imageFormat,
         vk::ImageTiling::eOptimal,
-        vk::FormatFeatureFlagBits::eSampledImageFilterLinear,
+        vk::FormatFeatureFlagBits::eBlitSrc | vk::FormatFeatureFlagBits::eSampledImageFilterLinear,
         m_PhysicalDevice,
         *m_DispatchHandle
     )) {
-        blitFilter = vk::Filter::eLinear;
+        blitFilter = vk::Filter::eNearest;
     }
 
     vk::ImageMemoryBarrier imageMemoryBarrier(

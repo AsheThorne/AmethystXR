@@ -64,6 +64,10 @@ const vk::ImageView& AxrVulkanImageData::getImageView() const {
     return m_Image.getImageView();
 }
 
+vk::Format AxrVulkanImageData::getImageFormat() const {
+    return m_Image.getImageFormat();
+}
+
 bool AxrVulkanImageData::doesDataExist() const {
     return !m_Image.isEmpty();
 }

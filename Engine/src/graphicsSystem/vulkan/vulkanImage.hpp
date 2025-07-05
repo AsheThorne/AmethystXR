@@ -76,6 +76,9 @@ public:
     /// Get the image mip level count
     /// @returns The image mip level count
     [[nodiscard]] uint32_t getMipLevelCount() const;
+    /// Get the image format
+    /// @returns The image format
+    [[nodiscard]] vk::Format getImageFormat() const;
 
     /// Create vulkan image resources for the given AxrImage
     /// @param image Source image
@@ -208,6 +211,7 @@ private:
     vk::DeviceMemory m_ImageMemory;
     vk::ImageAspectFlags m_ImageAspectFlags;
     uint32_t m_MipLevelCount;
+    vk::Format m_ImageFormat;
 
     // ----------------------------------------- //
     // Private Functions

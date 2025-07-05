@@ -75,6 +75,9 @@ public:
     /// Get the image view
     /// @returns The image view
     [[nodiscard]] const vk::ImageView& getImageView() const;
+    /// Get the image format
+    /// @returns The image format
+    [[nodiscard]] vk::Format getImageFormat() const;
 
     /// Check if the data exists
     /// @returns True if the data exists

@@ -1307,6 +1307,7 @@ AxrResult AxrVulkanSceneData::initializeImageSamplerData(const AxrImageSampler& 
 
     const AxrVulkanImageSamplerData::Config imageSamplerDataConfig{
         .ImageSamplerHandle = &imageSampler,
+        .PhysicalDevice = m_PhysicalDevice,
         .Device = m_Device,
         .MaxSamplerAnisotropy = m_MaxSamplerAnisotropy,
         .DispatchHandle = m_DispatchHandle,
@@ -1979,7 +1980,7 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
             }
 
             descriptorImageInfos.emplace_back(
-                foundImageSamplerData->getSampler(),
+                foundImageSamplerData->getSampler(foundImageData->getImageFormat()),
                 foundImageData->getImageView(),
                 vk::ImageLayout::eShaderReadOnlyOptimal
             );
