@@ -11,7 +11,7 @@
 
 AxrWin32WindowSystem::AxrWin32WindowSystem(const Config& config) :
     m_ApplicationName(config.ApplicationName),
-    m_InputSystem(config.InputSystem),
+    m_IOActionsSystem(config.IOActionsSystem),
     m_Width(config.Width),
     m_Height(config.Height),
     m_OnWindowResizedCallback(config.OnWindowResizedCallback),
@@ -207,7 +207,7 @@ LRESULT AxrWin32WindowSystem::processWindowMessage(
 
         if (wasHandled) return processEventResult;
 
-        processEventResult = windowSystemHandle->m_InputSystem->processWin32Message(
+        processEventResult = windowSystemHandle->m_IOActionsSystem->processWin32Message(
             windowHandle,
             uMsg,
             wParam,

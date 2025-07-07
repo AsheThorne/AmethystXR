@@ -84,13 +84,13 @@ AxrGraphicsSystem_T axrApplicationGetGraphicsSystem(const AxrApplication_T app) 
     return app->getGraphicsSystem();
 }
 
-AxrInputSystem_T axrApplicationGetInputSystem(const AxrApplication_T app) {
+AxrIOActionsSystem_T axrApplicationGetIOActionsSystem(const AxrApplication_T app) {
     if (app == nullptr) {
         axrLogErrorLocation("`app` is null.");
         return nullptr;
     }
 
-    return app->getInputSystem();
+    return app->getIOActionsSystem();
 }
 
 AxrAssetCollection_T axrApplicationGetGlobalAssetCollection(const AxrApplication_T app) {
@@ -175,7 +175,7 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
             return AxrWindowSystem(
                 AxrWindowSystem::Config{
                     .ApplicationName = config.ApplicationName,
-                    .InputSystem = &m_InputSystem,
+                    .IOActionsSystem = &m_IOActionsSystem,
                     .Width = config.WindowSystemConfig->Width,
                     .Height = config.WindowSystemConfig->Height,
                 }
@@ -202,13 +202,13 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
             );
         }()
     ),
-    m_InputSystem(),
+    m_IOActionsSystem(),
     m_DeltaTime(0) {
 }
 
 AxrApplication::~AxrApplication() {
     m_GraphicsSystem.resetSetup();
-    m_InputSystem.resetSetup();
+    m_IOActionsSystem.resetSetup();
     m_WindowSystem.resetSetup();
     m_XrSystem.resetSetup();
     m_GlobalAssetCollection.cleanup();
@@ -232,7 +232,7 @@ AxrResult AxrApplication::setup() {
         if (AXR_FAILED(axrResult)) return axrResult;
     }
 
-    axrResult = m_InputSystem.setup();
+    axrResult = m_IOActionsSystem.setup();
     if (AXR_FAILED(axrResult)) return axrResult;
 
     axrResult = m_GraphicsSystem.setup();
@@ -283,8 +283,8 @@ AxrGraphicsSystem_T AxrApplication::getGraphicsSystem() {
     return &m_GraphicsSystem;
 }
 
-AxrInputSystem_T AxrApplication::getInputSystem() {
-    return &m_InputSystem;
+AxrIOActionsSystem_T AxrApplication::getIOActionsSystem() {
+    return &m_IOActionsSystem;
 }
 
 AxrAssetCollection_T AxrApplication::getGlobalAssetCollection() {

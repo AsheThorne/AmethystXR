@@ -5,7 +5,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/common.h"
-#include "../../inputSystem/inputSystem.hpp"
+#include "../../ioActionsSystem/ioActionsSystem.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -37,7 +37,7 @@ public:
     /// Win32 Window System Config
     struct Config {
         std::string ApplicationName;
-        AxrInputSystem_T InputSystem;
+        AxrIOActionsSystem_T IOActionsSystem;
         uint32_t Width;
         uint32_t Height;
         OnWindowResizedCallback_T OnWindowResizedCallback;
@@ -111,7 +111,7 @@ private:
 
     // ---- Config Variables ----
     std::string m_ApplicationName;
-    AxrInputSystem_T m_InputSystem;
+    AxrIOActionsSystem_T m_IOActionsSystem;
     uint32_t m_Width;
     uint32_t m_Height;
     OnWindowResizedCallback_T m_OnWindowResizedCallback;

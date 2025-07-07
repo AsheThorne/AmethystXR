@@ -3,7 +3,7 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/inputSystem.h"
+#include "axr/ioActionsSystem.h"
 #include "axr/common/enums.h"
 
 // ----------------------------------------- //
@@ -25,8 +25,8 @@
 #include <windows.h>
 #endif
 
-/// Axr input system
-class AxrInputSystem {
+/// Axr Input/Output Actions System
+class AxrIOActionsSystem {
 public:
     // ----------------------------------------- //
     // Special Functions
@@ -35,33 +35,33 @@ public:
     // ---- Constructors ----
 
     /// Constructor
-    AxrInputSystem();
+    AxrIOActionsSystem();
     /// Copy Constructor
-    /// @param src Source AxrInputSystem to copy from
-    AxrInputSystem(const AxrInputSystem& src) = delete;
+    /// @param src Source AxrIOActionsSystem to copy from
+    AxrIOActionsSystem(const AxrIOActionsSystem& src) = delete;
     /// Move Constructor
-    /// @param src Source AxrInputSystem to move from
-    AxrInputSystem(AxrInputSystem&& src) noexcept = delete;
+    /// @param src Source AxrIOActionsSystem to move from
+    AxrIOActionsSystem(AxrIOActionsSystem&& src) noexcept = delete;
 
     // ---- Destructor ----
 
     /// Destructor
-    ~AxrInputSystem();
+    ~AxrIOActionsSystem();
 
     // ---- Operator Overloads ----
 
     /// Copy Assignment Operator
-    /// @param src Source AxrInputSystem to copy from
-    AxrInputSystem& operator=(const AxrInputSystem& src) = delete;
+    /// @param src Source AxrIOActionsSystem to copy from
+    AxrIOActionsSystem& operator=(const AxrIOActionsSystem& src) = delete;
     /// Move Assignment Operator
-    /// @param src Source AxrInputSystem to move from
-    AxrInputSystem& operator=(AxrInputSystem&& src) noexcept = delete;
+    /// @param src Source AxrIOActionsSystem to move from
+    AxrIOActionsSystem& operator=(AxrIOActionsSystem&& src) noexcept = delete;
 
     // ----------------------------------------- //
     // Public Functions
     // ----------------------------------------- //
 
-    /// Set up the input system
+    /// Set up the input/output actions system
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setup();
     /// Reset setup()

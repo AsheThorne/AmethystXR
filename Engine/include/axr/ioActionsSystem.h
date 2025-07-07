@@ -56,10 +56,10 @@ enum AxrVec2InputActionEnum {
 // Forward Declared Handles
 // ----------------------------------------- //
 
-/// AxrInputSystem Handle
-typedef class AxrInputSystem* AxrInputSystem_T;
-/// const AxrInputSystem Handle
-typedef const AxrInputSystem* AxrInputSystemConst_T;
+/// AxrIOActionsSystem Handle
+typedef class AxrIOActionsSystem* AxrIOActionsSystem_T;
+/// const AxrIOActionsSystem Handle
+typedef const AxrIOActionsSystem* AxrIOActionsSystemConst_T;
 
 // ----------------------------------------- //
 // External Function Definitions

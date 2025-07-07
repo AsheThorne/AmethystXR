@@ -3,7 +3,7 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/inputSystem.h"
+#include "axr/ioActionsSystem.h"
 
 namespace axr {
     // ----------------------------------------- //
@@ -54,11 +54,11 @@ namespace axr {
     };
 
     // ----------------------------------------- //
-    // Input System Definition
+    // Input/Output Actions System Definition
     // ----------------------------------------- //
 
-    /// Input System
-    class InputSystem {
+    /// Input/Output Actions System
+    class IOActionsSystem {
     public:
         // ----------------------------------------- //
         // Special Functions
@@ -67,9 +67,9 @@ namespace axr {
         // ---- Constructors ----
 
         /// Constructor
-        /// @param inputSystem Input system handle
-        InputSystem(const AxrInputSystem_T inputSystem):
-            m_InputSystem(inputSystem) {
+        /// @param ioActionsSystem Input/Output actions system handle
+        IOActionsSystem(const AxrIOActionsSystem_T ioActionsSystem):
+            m_IOActionsSystem(ioActionsSystem) {
         }
 
         // ----------------------------------------- //
@@ -80,6 +80,6 @@ namespace axr {
         // ----------------------------------------- //
         // Private Variables
         // ----------------------------------------- //
-        AxrInputSystem_T m_InputSystem;
+        AxrIOActionsSystem_T m_IOActionsSystem;
     };
 }

@@ -1,7 +1,7 @@
 ﻿// ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "inputSystem.hpp"
+#include "ioActionsSystem.hpp"
 #include "axr/logger.h"
 
 // ----------------------------------------- //
@@ -26,18 +26,18 @@
 
 // ---- Special Functions ----
 
-AxrInputSystem::AxrInputSystem():
+AxrIOActionsSystem::AxrIOActionsSystem():
     m_DoubleClickTime(0),
     m_LastAbsoluteCursorPosition(0.0f) {
 }
 
-AxrInputSystem::~AxrInputSystem() {
+AxrIOActionsSystem::~AxrIOActionsSystem() {
     resetSetup();
 }
 
 // ---- Public Functions ----
 
-AxrResult AxrInputSystem::setup() {
+AxrResult AxrIOActionsSystem::setup() {
     AxrResult axrResult = AXR_SUCCESS;
 
 #ifdef AXR_USE_PLATFORM_WIN32
@@ -48,7 +48,7 @@ AxrResult AxrInputSystem::setup() {
     return AXR_SUCCESS;
 }
 
-void AxrInputSystem::resetSetup() {
+void AxrIOActionsSystem::resetSetup() {
     clearInputActions();
 
 #ifdef AXR_USE_PLATFORM_WIN32
@@ -57,7 +57,7 @@ void AxrInputSystem::resetSetup() {
 }
 
 #ifdef AXR_USE_PLATFORM_WIN32
-LRESULT AxrInputSystem::processWin32Message(
+LRESULT AxrIOActionsSystem::processWin32Message(
     const HWND windowHandle,
     const UINT uMsg,
     const WPARAM wParam,
@@ -101,7 +101,7 @@ LRESULT AxrInputSystem::processWin32Message(
 
 // ---- Private Functions ----
 
-void AxrInputSystem::triggerBoolInputAction(const AxrBoolInputActionEnum inputActionEnum, const bool value) {
+void AxrIOActionsSystem::triggerBoolInputAction(const AxrBoolInputActionEnum inputActionEnum, const bool value) {
     if (value) {
         m_ActiveBoolInputActions.insert(inputActionEnum);
     } else {
@@ -112,17 +112,17 @@ void AxrInputSystem::triggerBoolInputAction(const AxrBoolInputActionEnum inputAc
     // TODO...
 }
 
-void AxrInputSystem::triggerFloatInputAction(const AxrFloatInputActionEnum inputActionEnum, const float value) {
+void AxrIOActionsSystem::triggerFloatInputAction(const AxrFloatInputActionEnum inputActionEnum, const float value) {
     axrLogInfo("Float: {0}, {1}", static_cast<uint32_t>(inputActionEnum), value);
     // TODO...
 }
 
-void AxrInputSystem::triggerVec2InputAction(const AxrVec2InputActionEnum inputActionEnum, const glm::vec2 value) {
+void AxrIOActionsSystem::triggerVec2InputAction(const AxrVec2InputActionEnum inputActionEnum, const glm::vec2 value) {
     axrLogInfo("Vec2: {0}, x: {1} y: {2}", static_cast<uint32_t>(inputActionEnum), value.x, value.y);
     // TODO...
 }
 
-void AxrInputSystem::clearInputActions() {
+void AxrIOActionsSystem::clearInputActions() {
     m_ActiveBoolInputActions.clear();
     m_MouseClickLStartTime = std::chrono::time_point<std::chrono::steady_clock>::min();
     m_MouseClickRStartTime = std::chrono::time_point<std::chrono::steady_clock>::min();
@@ -133,7 +133,7 @@ void AxrInputSystem::clearInputActions() {
 }
 
 #ifdef AXR_USE_PLATFORM_WIN32
-AxrResult AxrInputSystem::setupWin32Inputs() {
+AxrResult AxrIOActionsSystem::setupWin32Inputs() {
     const AxrResult axrResult = registerWin32RawInputs();
     if (AXR_FAILED(axrResult)) return axrResult;
 
@@ -142,11 +142,11 @@ AxrResult AxrInputSystem::setupWin32Inputs() {
     return AXR_SUCCESS;
 }
 
-void AxrInputSystem::resetSetupWin32Inputs() {
+void AxrIOActionsSystem::resetSetupWin32Inputs() {
     m_DoubleClickTime = 0;
 }
 
-AxrResult AxrInputSystem::registerWin32RawInputs() const {
+AxrResult AxrIOActionsSystem::registerWin32RawInputs() const {
     const std::vector rawInputDevices{
         // Mouse 
         RAWINPUTDEVICE{
@@ -174,7 +174,7 @@ AxrResult AxrInputSystem::registerWin32RawInputs() const {
     return AXR_SUCCESS;
 }
 
-LRESULT AxrInputSystem::processWin32MouseInput(const HWND windowHandle, RAWINPUT* rawInput, bool& wasHandled) {
+LRESULT AxrIOActionsSystem::processWin32MouseInput(const HWND windowHandle, RAWINPUT* rawInput, bool& wasHandled) {
     // Only process mouse inputs if the mouse is within the client area 
     POINT currentCursorPosition{};
     RECT clientRect;
@@ -198,7 +198,7 @@ LRESULT AxrInputSystem::processWin32MouseInput(const HWND windowHandle, RAWINPUT
     return 0;
 }
 
-void AxrInputSystem::processWin32MouseMovedInput(const HWND windowHandle, const RAWINPUT* rawInput) {
+void AxrIOActionsSystem::processWin32MouseMovedInput(const HWND windowHandle, const RAWINPUT* rawInput) {
     // If the mouse device itself sends absolute movement data
     // NOTE: This has never been tested. Need a mouse that uses absolute positioning
     if (rawInput->data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE) {
@@ -281,7 +281,7 @@ void AxrInputSystem::processWin32MouseMovedInput(const HWND windowHandle, const 
     }
 }
 
-void AxrInputSystem::processWin32MouseDownInput(const RAWINPUT* rawInput) {
+void AxrIOActionsSystem::processWin32MouseDownInput(const RAWINPUT* rawInput) {
     if (rawInput->data.mouse.usButtonFlags & RI_MOUSE_LEFT_BUTTON_DOWN) {
         const auto timeSinceLastClick = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::high_resolution_clock::now() - m_MouseClickLStartTime
@@ -344,7 +344,7 @@ void AxrInputSystem::processWin32MouseDownInput(const RAWINPUT* rawInput) {
     }
 }
 
-void AxrInputSystem::processWin32MouseUpInput(const RAWINPUT* rawInput) {
+void AxrIOActionsSystem::processWin32MouseUpInput(const RAWINPUT* rawInput) {
     if (rawInput->data.mouse.usButtonFlags & RI_MOUSE_LEFT_BUTTON_UP) {
         // If the left mouse button was doubled clicked, trigger the double-clicked up event.
         // Otherwise, trigger the normal mouse up event
@@ -392,7 +392,7 @@ void AxrInputSystem::processWin32MouseUpInput(const RAWINPUT* rawInput) {
     }
 }
 
-void AxrInputSystem::processWin32MouseScrollInput(const RAWINPUT* rawInput) {
+void AxrIOActionsSystem::processWin32MouseScrollInput(const RAWINPUT* rawInput) {
     // Vertical Scroll Wheel
     if (rawInput->data.mouse.usButtonFlags & RI_MOUSE_WHEEL) {
         const auto wheelDelta = static_cast<short>(rawInput->data.mouse.usButtonData);
