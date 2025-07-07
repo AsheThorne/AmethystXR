@@ -6,6 +6,7 @@
 #include "axr/common.h"
 #include "axr/windowSystem.h"
 #include "win32/win32WindowSystem.hpp"
+#include "axr/inputSystem.h"
 
 /// Axr Window System
 class AxrWindowSystem {
@@ -17,6 +18,7 @@ public:
     /// Window System Config
     struct Config {
         std::string ApplicationName;
+        AxrInputSystem_T InputSystem;
         uint32_t Width;
         uint32_t Height;
     };

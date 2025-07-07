@@ -62,6 +62,7 @@ AxrWindowSystem::AxrWindowSystem(const Config& config):
     m_Win32WindowSystem = new AxrWin32WindowSystem(
         AxrWin32WindowSystem::Config{
             .ApplicationName = config.ApplicationName,
+            .InputSystem = config.InputSystem,
             .Width = config.Width,
             .Height = config.Height,
             .OnWindowResizedCallback = windowResizedCallback

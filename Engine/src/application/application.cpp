@@ -167,7 +167,7 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
         }
     ),
     m_WindowSystem(
-        [config]() -> AxrWindowSystem {
+        [&]() -> AxrWindowSystem {
             if (config.WindowSystemConfig == nullptr) {
                 return AxrWindowSystem(nullptr);
             }
@@ -175,6 +175,7 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
             return AxrWindowSystem(
                 AxrWindowSystem::Config{
                     .ApplicationName = config.ApplicationName,
+                    .InputSystem = &m_InputSystem,
                     .Width = config.WindowSystemConfig->Width,
                     .Height = config.WindowSystemConfig->Height,
                 }

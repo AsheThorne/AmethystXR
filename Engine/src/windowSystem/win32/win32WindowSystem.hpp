@@ -5,6 +5,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/common.h"
+#include "../../inputSystem/inputSystem.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -28,7 +29,7 @@ public:
     /// @param 1: New window width 
     /// @param 2: New window height
     using OnWindowResizedCallback_T = AxrCallback<void(uint32_t, uint32_t)>;
-    
+
     // ----------------------------------------- //
     // Structs
     // ----------------------------------------- //
@@ -36,6 +37,7 @@ public:
     /// Win32 Window System Config
     struct Config {
         std::string ApplicationName;
+        AxrInputSystem_T InputSystem;
         uint32_t Width;
         uint32_t Height;
         OnWindowResizedCallback_T OnWindowResizedCallback;
@@ -109,6 +111,7 @@ private:
 
     // ---- Config Variables ----
     std::string m_ApplicationName;
+    AxrInputSystem_T m_InputSystem;
     uint32_t m_Width;
     uint32_t m_Height;
     OnWindowResizedCallback_T m_OnWindowResizedCallback;

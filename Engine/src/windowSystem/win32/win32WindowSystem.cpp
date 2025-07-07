@@ -11,10 +11,11 @@
 
 AxrWin32WindowSystem::AxrWin32WindowSystem(const Config& config) :
     m_ApplicationName(config.ApplicationName),
+    m_InputSystem(config.InputSystem),
     m_Width(config.Width),
     m_Height(config.Height),
     m_OnWindowResizedCallback(config.OnWindowResizedCallback),
-    m_WindowClassName(axrToWString((std::string(config.ApplicationName) + "_Class").c_str())),
+    m_WindowClassName(axrToWString(config.ApplicationName + "_Class")),
     m_Instance(nullptr),
     m_WindowHandle(nullptr) {
 }
@@ -196,7 +197,17 @@ LRESULT AxrWin32WindowSystem::processWindowMessage(
     if (windowSystemHandle->isWindowOpen()) {
         bool wasHandled = false;
 
-        const LRESULT processEventResult = windowSystemHandle->processWindowMessageInternal(
+        LRESULT processEventResult = windowSystemHandle->processWindowMessageInternal(
+            windowHandle,
+            uMsg,
+            wParam,
+            lParam,
+            wasHandled
+        );
+
+        if (wasHandled) return processEventResult;
+
+        processEventResult = windowSystemHandle->m_InputSystem->processWin32Message(
             windowHandle,
             uMsg,
             wParam,
