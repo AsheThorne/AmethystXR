@@ -7,6 +7,7 @@
 // ----------------------------------------- //
 // C/C++ Headers
 // ----------------------------------------- //
+#include <ranges>
 #include <vector>
 
 #ifdef AXR_USE_PLATFORM_WIN32
@@ -26,9 +27,30 @@
 
 // ---- Special Functions ----
 
-AxrIOActionsSystem::AxrIOActionsSystem():
+AxrIOActionsSystem::AxrIOActionsSystem(const Config& config):
     m_DoubleClickTime(0),
     m_LastAbsoluteCursorPosition(0.0f) {
+    if (config.ActionSets != nullptr) {
+        for (uint32_t i = 0; i < config.ActionSetCount; ++i) {
+            m_ActionSets.insert(
+                std::pair(
+                    config.ActionSets[i].Name,
+                    AxrIOActionSet(
+                        AxrIOActionSet::Config{
+                            .Name = config.ActionSets[i].Name,
+                            .LocalizedName = config.ActionSets[i].LocalizedName,
+                            .BoolInputActionCount = config.ActionSets[i].BoolInputActionCount,
+                            .BoolInputActions = config.ActionSets[i].BoolInputActions,
+                            .FloatInputActionCount = config.ActionSets[i].FloatInputActionCount,
+                            .FloatInputActions = config.ActionSets[i].FloatInputActions,
+                            .Vec2InputActionCount = config.ActionSets[i].Vec2InputActionCount,
+                            .Vec2InputActions = config.ActionSets[i].Vec2InputActions,
+                        }
+                    )
+                )
+            );
+        }
+    }
 }
 
 AxrIOActionsSystem::~AxrIOActionsSystem() {
@@ -57,6 +79,7 @@ void AxrIOActionsSystem::resetSetup() {
 }
 
 #ifdef AXR_USE_PLATFORM_WIN32
+// ReSharper disable once CppDFAConstantFunctionResult
 LRESULT AxrIOActionsSystem::processWin32Message(
     const HWND windowHandle,
     const UINT uMsg,
@@ -108,18 +131,87 @@ void AxrIOActionsSystem::triggerBoolInputAction(const AxrBoolInputActionEnum inp
         m_ActiveBoolInputActions.erase(inputActionEnum);
     }
 
-    axrLogInfo("Bool: {0}, {1}", static_cast<uint32_t>(inputActionEnum), value);
-    // TODO...
+    uint32_t highestPriority = 0;
+    std::vector<AxrBoolInputAction*> inputActionsToTrigger;
+
+    for (AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+        if (actionSet.isEnabled()) {
+            // Only trigger actions on sets of the highest priority
+            const uint32_t priority = actionSet.getPriority();
+            if (priority > highestPriority) {
+                inputActionsToTrigger.clear();
+                highestPriority = priority;
+            }
+
+            if (priority != highestPriority) continue;
+
+            for (AxrBoolInputAction& inputAction : actionSet.getBoolInputActions() | std::ranges::views::values) {
+                if (inputAction.containsBinding(inputActionEnum)) {
+                    inputActionsToTrigger.push_back(&inputAction);
+                }
+            }
+        }
+    }
+
+    for (AxrBoolInputAction* inputAction : inputActionsToTrigger) {
+        inputAction->trigger(value);
+    }
 }
 
 void AxrIOActionsSystem::triggerFloatInputAction(const AxrFloatInputActionEnum inputActionEnum, const float value) {
-    axrLogInfo("Float: {0}, {1}", static_cast<uint32_t>(inputActionEnum), value);
-    // TODO...
+    uint32_t highestPriority = 0;
+    std::vector<AxrFloatInputAction*> inputActionsToTrigger;
+
+    for (AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+        if (actionSet.isEnabled()) {
+            // Only trigger actions on sets of the highest priority
+            const uint32_t priority = actionSet.getPriority();
+            if (priority > highestPriority) {
+                inputActionsToTrigger.clear();
+                highestPriority = priority;
+            }
+
+            if (priority != highestPriority) continue;
+
+            for (AxrFloatInputAction& inputAction : actionSet.getFloatInputActions() | std::ranges::views::values) {
+                if (inputAction.containsBinding(inputActionEnum)) {
+                    inputActionsToTrigger.push_back(&inputAction);
+                }
+            }
+        }
+    }
+
+    for (AxrFloatInputAction* inputAction : inputActionsToTrigger) {
+        inputAction->trigger(value);
+    }
 }
 
 void AxrIOActionsSystem::triggerVec2InputAction(const AxrVec2InputActionEnum inputActionEnum, const glm::vec2 value) {
-    axrLogInfo("Vec2: {0}, x: {1} y: {2}", static_cast<uint32_t>(inputActionEnum), value.x, value.y);
-    // TODO...
+    uint32_t highestPriority = 0;
+    std::vector<AxrVec2InputAction*> inputActionsToTrigger;
+
+    for (AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+        if (actionSet.isEnabled()) {
+            // Only trigger actions on sets of the highest priority
+            const uint32_t priority = actionSet.getPriority();
+            if (priority > highestPriority) {
+                inputActionsToTrigger.clear();
+                highestPriority = priority;
+            }
+
+            if (priority != highestPriority) continue;
+
+            for (AxrVec2InputAction& inputAction : actionSet.getVec2InputActions() | std::ranges::views::values) {
+                if (inputAction.containsBinding(inputActionEnum)) {
+                    inputActionsToTrigger.push_back(&inputAction);
+                }
+            }
+        }
+    }
+
+    for (AxrVec2InputAction* inputAction : inputActionsToTrigger) {
+        inputAction->trigger(value);
+    }
 }
 
 void AxrIOActionsSystem::clearInputActions() {
@@ -174,7 +266,8 @@ AxrResult AxrIOActionsSystem::registerWin32RawInputs() const {
     return AXR_SUCCESS;
 }
 
-LRESULT AxrIOActionsSystem::processWin32MouseInput(const HWND windowHandle, RAWINPUT* rawInput, bool& wasHandled) {
+// ReSharper disable once CppDFAConstantFunctionResult
+LRESULT AxrIOActionsSystem::processWin32MouseInput(const HWND windowHandle, const RAWINPUT* rawInput, bool& wasHandled) {
     // Only process mouse inputs if the mouse is within the client area 
     POINT currentCursorPosition{};
     RECT clientRect;

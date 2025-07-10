@@ -24,6 +24,7 @@ namespace axr {
         char ApplicationName[AXR_MAX_APPLICATION_NAME_SIZE]{};
         uint32_t ApplicationVersion;
         axr::GraphicsSystemConfig GraphicsSystemConfig;
+        axr::IOActionsSystemConfig IOActionsSystemConfig;
         const axr::WindowSystemConfig* WindowSystemConfig;
         const axr::XrSystemConfig* XrSystemConfig;
 
@@ -37,6 +38,7 @@ namespace axr {
         ApplicationConfig() :
             ApplicationVersion(0),
             GraphicsSystemConfig({}),
+            IOActionsSystemConfig({}),
             WindowSystemConfig(nullptr),
             XrSystemConfig(nullptr) {
         }
@@ -45,16 +47,19 @@ namespace axr {
         /// @param applicationName The application name
         /// @param applicationVersion The application version
         /// @param graphicsSystemConfig The graphics system config
+        /// @param ioActionsSystemConfig The input/output system config
         /// @param windowSystemConfig The window system config
         /// @param xrSystemConfig The xr system config
         ApplicationConfig(
             const char* applicationName,
             const uint32_t applicationVersion,
             const axr::GraphicsSystemConfig& graphicsSystemConfig,
+            const axr::IOActionsSystemConfig& ioActionsSystemConfig,
             const axr::WindowSystemConfig* windowSystemConfig,
             const axr::XrSystemConfig* xrSystemConfig
         ) : ApplicationVersion(applicationVersion),
             GraphicsSystemConfig(graphicsSystemConfig),
+            IOActionsSystemConfig(ioActionsSystemConfig),
             WindowSystemConfig(windowSystemConfig),
             XrSystemConfig(xrSystemConfig) {
             if (applicationName != nullptr) {

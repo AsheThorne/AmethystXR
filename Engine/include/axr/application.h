@@ -21,6 +21,7 @@ struct AxrApplicationConfig {
     char ApplicationName[AXR_MAX_APPLICATION_NAME_SIZE];
     uint32_t ApplicationVersion;
     AxrGraphicsSystemConfig GraphicsSystemConfig;
+    AxrIOActionsSystemConfig IOActionsSystemConfig;
     const AxrWindowSystemConfig* WindowSystemConfig;
     const AxrXrSystemConfig* XrSystemConfig;
 };

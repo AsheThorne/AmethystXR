@@ -125,6 +125,10 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/xrSystem/xrExtensionFunctions.hpp
     # ---- Input/Output Actions System ----
     ${AXR_SRC_DIR}/ioActionsSystem/ioActionsSystem.hpp
+    ${AXR_SRC_DIR}/ioActionsSystem/boolInputAction.hpp
+    ${AXR_SRC_DIR}/ioActionsSystem/floatInputAction.hpp
+    ${AXR_SRC_DIR}/ioActionsSystem/vec2InputAction.hpp
+    ${AXR_SRC_DIR}/ioActionsSystem/ioActionSet.hpp
 )
 
 # ---------------------------------------------
@@ -187,6 +191,10 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/xrSystem/xrExtensionFunctions.cpp
     # ---- Input/Output Actions System ----
     ${AXR_SRC_DIR}/ioActionsSystem/ioActionsSystem.cpp
+    ${AXR_SRC_DIR}/ioActionsSystem/boolInputAction.cpp
+    ${AXR_SRC_DIR}/ioActionsSystem/floatInputAction.cpp
+    ${AXR_SRC_DIR}/ioActionsSystem/vec2InputAction.cpp
+    ${AXR_SRC_DIR}/ioActionsSystem/ioActionSet.cpp
 )
 
 # ---------------------------------------------

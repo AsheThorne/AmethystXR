@@ -202,7 +202,12 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
             );
         }()
     ),
-    m_IOActionsSystem(),
+    m_IOActionsSystem(
+        AxrIOActionsSystem::Config{
+            .ActionSetCount = config.IOActionsSystemConfig.IOActionSetCount,
+            .ActionSets = config.IOActionsSystemConfig.IOActionSets,
+        }
+    ),
     m_DeltaTime(0) {
 }
 
@@ -329,7 +334,7 @@ AxrScene_T AxrApplication::findScene(const std::string& sceneName) {
 }
 
 AxrResult AxrApplication::loadScene(const std::string& sceneName) {
-    AxrScene_T foundScene = findScene(sceneName);
+    const AxrScene_T foundScene = findScene(sceneName);
     if (foundScene == nullptr) {
         axrLogErrorLocation("Failed to find scene with the name: {0}.", sceneName.c_str());
         return AXR_ERROR;

@@ -5,13 +5,15 @@
 // ----------------------------------------- //
 #include "axr/ioActionsSystem.h"
 #include "axr/common/enums.h"
+#include "ioActionSet.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
 // ----------------------------------------- //
 #include <cstdint>
 #include <chrono>
-#include "unordered_set"
+#include <unordered_set>
+#include <unordered_map>
 
 // ----------------------------------------- //
 // GLM Headers
@@ -29,13 +31,24 @@
 class AxrIOActionsSystem {
 public:
     // ----------------------------------------- //
+    // Structs
+    // ----------------------------------------- //
+
+    /// AxrIOActionsSystem config
+    struct Config {
+        uint32_t ActionSetCount;
+        AxrIOActionSetConfig* ActionSets;
+    };
+
+    // ----------------------------------------- //
     // Special Functions
     // ----------------------------------------- //
 
     // ---- Constructors ----
 
     /// Constructor
-    AxrIOActionsSystem();
+    /// @param config AxrIOActionsSystem config
+    AxrIOActionsSystem(const Config& config);
     /// Copy Constructor
     /// @param src Source AxrIOActionsSystem to copy from
     AxrIOActionsSystem(const AxrIOActionsSystem& src) = delete;
@@ -90,6 +103,7 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
+    std::unordered_map<std::string, AxrIOActionSet> m_ActionSets;
     uint32_t m_DoubleClickTime;
     std::unordered_set<AxrBoolInputActionEnum> m_ActiveBoolInputActions;
     std::chrono::time_point<std::chrono::steady_clock> m_MouseClickLStartTime;
@@ -137,7 +151,7 @@ private:
     /// @param rawInput Raw input data
     /// @param wasHandled Output of whether the given message was handled
     /// @returns Message result (can represent something different depending on the message)
-    [[nodiscard]] LRESULT processWin32MouseInput(HWND windowHandle, RAWINPUT* rawInput, bool& wasHandled);
+    [[nodiscard]] LRESULT processWin32MouseInput(HWND windowHandle, const RAWINPUT* rawInput, bool& wasHandled);
     /// Process win32 mouse moved input
     /// @param windowHandle Window handle
     /// @param rawInput Raw input data

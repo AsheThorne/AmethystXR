@@ -46,6 +46,35 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         axr::SamplerAnisotropyQualityEnum::High
     );
 
+    axr::IOActionsSystemConfig ioActionsSystemConfig(
+        std::vector{
+            axr::IOActionSetConfig(
+                "Test",
+                "Test",
+                std::vector{
+                    axr::BoolInputActionConfig(
+                        "Click",
+                        "Click",
+                        std::vector{
+                            axr::BoolInputActionEnum::MouseClickL,
+                            axr::BoolInputActionEnum::MouseClickR,
+                        }
+                    ),
+                    axr::BoolInputActionConfig(
+                        "DoubleClick",
+                        "DoubleClick",
+                        std::vector{
+                            axr::BoolInputActionEnum::MouseDoubleClickL,
+                            axr::BoolInputActionEnum::MouseDoubleClickR,
+                        }
+                    ),
+                },
+                {},
+                {}
+            )
+        }
+    );
+
     const axr::WindowSystemConfig windowSystemConfig(
         800,
         600
@@ -72,6 +101,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         applicationName.c_str(),
         AXR_MAKE_VERSION(1, 0, 0),
         graphicsSystemConfig,
+        ioActionsSystemConfig,
         &windowSystemConfig,
         nullptr
         // &xrSystemConfig
