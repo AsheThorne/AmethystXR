@@ -53,19 +53,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
                 "Test",
                 std::vector{
                     axr::BoolInputActionConfig(
-                        "Click",
-                        "Click",
+                        "Key",
+                        "Key",
                         std::vector{
-                            axr::BoolInputActionEnum::MouseClickL,
-                            axr::BoolInputActionEnum::MouseClickR,
-                        }
-                    ),
-                    axr::BoolInputActionConfig(
-                        "DoubleClick",
-                        "DoubleClick",
-                        std::vector{
-                            axr::BoolInputActionEnum::MouseDoubleClickL,
-                            axr::BoolInputActionEnum::MouseDoubleClickR,
+                            axr::BoolInputActionEnum::KeyboardG,
+                            axr::BoolInputActionEnum::Keyboard4,
                         }
                     ),
                 },
@@ -152,10 +144,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
     axr::IOActionSystem ioActionSystem = app.getIOActionSystem();
     axr::IOActionSet ioActionSet = ioActionSystem.getIOActionSet("Test");
-    axr::BoolInputAction clickAction = ioActionSet.getBoolInputAction("Click");
-    axr::BoolInputAction doubleClickAction = ioActionSet.getBoolInputAction("DoubleClick");
-    axr::Vec2InputAction mouseMovedAction = ioActionSet.getVec2InputAction("MouseMoved");
-    axr::FloatInputAction mouseWheelAction = ioActionSet.getFloatInputAction("MouseWheel");
+    axr::BoolInputAction keyAction = ioActionSet.getBoolInputAction("Key");
 
     while (app.isRunning()) {
         app.processEvents();
@@ -168,20 +157,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
             }
         }
 
-        if (clickAction.wasValueSetThisFrame()) {
-            axr::logWarning("Click: {0}", clickAction.getValue());
-        }
-
-        if (doubleClickAction.wasValueSetThisFrame()) {
-            axr::logWarning("Double Click: {0}", doubleClickAction.getValue());
-        }
-
-        if (mouseMovedAction.wasValueSetThisFrame()) {
-            axr::logWarning("MouseMoved: {0}:{1}", mouseMovedAction.getValue().x, mouseMovedAction.getValue().y);
-        }
-
-        if (mouseWheelAction.wasValueSetThisFrame()) {
-            axr::logWarning("Mouse Wheel: {0}", mouseWheelAction.getValue());
+        if (keyAction.wasValueSetThisFrame()) {
+            axr::logWarning("Click: {0}", keyAction.getValue());
         }
 
         scene.update();

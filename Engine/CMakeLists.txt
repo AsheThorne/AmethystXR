@@ -131,6 +131,7 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/ioActionSystem/floatInputAction.hpp
     ${AXR_SRC_DIR}/ioActionSystem/vec2InputAction.hpp
     ${AXR_SRC_DIR}/ioActionSystem/ioActionSet.hpp
+    ${AXR_SRC_DIR}/ioActionSystem/ioActionUtils.hpp
 )
 
 # ---------------------------------------------
@@ -197,6 +198,7 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/ioActionSystem/floatInputAction.cpp
     ${AXR_SRC_DIR}/ioActionSystem/vec2InputAction.cpp
     ${AXR_SRC_DIR}/ioActionSystem/ioActionSet.cpp
+    ${AXR_SRC_DIR}/ioActionSystem/ioActionUtils.cpp
 )
 
 # ---------------------------------------------

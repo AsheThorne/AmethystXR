@@ -3,6 +3,7 @@
 // ----------------------------------------- //
 #include "ioActionSystem.hpp"
 #include "axr/logger.h"
+#include "ioActionUtils.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -139,6 +140,20 @@ LRESULT AxrIOActionSystem::processWin32Message(
                 if (wasHandled) {
                     return result;
                 }
+            }
+            break;
+        }
+        case WM_KEYDOWN: {
+            const LRESULT result = processWin32KeyDown(wParam, wasHandled);
+            if (wasHandled) {
+                return result;
+            }
+            break;
+        }
+        case WM_KEYUP: {
+            const LRESULT result = processWin32KeyUp(wParam, wasHandled);
+            if (wasHandled) {
+                return result;
             }
             break;
         }
@@ -533,5 +548,25 @@ void AxrIOActionSystem::processWin32MouseScrollInput(const RAWINPUT* rawInput) {
 
         triggerFloatInputAction(AXR_FLOAT_INPUT_ACTION_MOUSE_WHEEL_HORIZONTAL, scrollDelta);
     }
+}
+
+LRESULT AxrIOActionSystem::processWin32KeyDown(const WPARAM wParam, bool& wasHandled) {
+    triggerBoolInputAction(
+        axrWParamToBoolInputActionEnum(wParam),
+        true
+    );
+
+    wasHandled = true;
+    return 0;
+}
+
+LRESULT AxrIOActionSystem::processWin32KeyUp(const WPARAM wParam, bool& wasHandled) {
+    triggerBoolInputAction(
+        axrWParamToBoolInputActionEnum(wParam),
+        false
+    );
+
+    wasHandled = true;
+    return 0;
 }
 #endif

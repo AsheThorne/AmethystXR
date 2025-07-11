@@ -172,5 +172,16 @@ private:
     /// Process win32 mouse scroll input
     /// @param rawInput Raw input data
     void processWin32MouseScrollInput(const RAWINPUT* rawInput);
+
+    /// Process win32 key down input
+    /// @param wParam wParam
+    /// @param wasHandled Output of whether the given message was handled
+    /// @returns Message result (can represent something different depending on the message)
+    [[nodiscard]] LRESULT processWin32KeyDown(WPARAM wParam, bool& wasHandled);
+    /// Process win32 key down input
+    /// @param wParam wParam
+    /// @param wasHandled Output of whether the given message was handled
+    /// @returns Message result (can represent something different depending on the message)
+    [[nodiscard]] LRESULT processWin32KeyUp(WPARAM wParam, bool& wasHandled);
 #endif
 };
