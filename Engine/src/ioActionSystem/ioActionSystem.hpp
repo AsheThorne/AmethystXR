@@ -15,11 +15,6 @@
 #include <unordered_set>
 #include <unordered_map>
 
-// ----------------------------------------- //
-// GLM Headers
-// ----------------------------------------- //
-#include <glm/glm.hpp>
-
 #ifdef AXR_USE_PLATFORM_WIN32
 // ----------------------------------------- //
 // Win32 Headers
@@ -123,7 +118,7 @@ private:
     std::chrono::time_point<std::chrono::steady_clock> m_MouseClickMStartTime;
     std::chrono::time_point<std::chrono::steady_clock> m_MouseClickX1StartTime;
     std::chrono::time_point<std::chrono::steady_clock> m_MouseClickX2StartTime;
-    glm::vec2 m_LastAbsoluteCursorPosition;
+    AxrVec2 m_LastAbsoluteCursorPosition;
 
     // ----------------------------------------- //
     // Private Functions
@@ -140,7 +135,7 @@ private:
     /// Trigger a vec2 input action
     /// @param inputActionEnum Vec2 input action
     /// @param value Vec2 value
-    void triggerVec2InputAction(AxrVec2InputActionEnum inputActionEnum, glm::vec2 value);
+    void triggerVec2InputAction(AxrVec2InputActionEnum inputActionEnum, const AxrVec2& value);
 
     /// Clear all input action data
     void clearInputActions();

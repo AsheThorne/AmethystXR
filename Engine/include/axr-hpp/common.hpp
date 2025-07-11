@@ -5,3 +5,4 @@
 #include "common/callback.hpp"
 #include "common/eventHandler.hpp"
 #include "common/utils.hpp"
+#include "common/types.hpp"

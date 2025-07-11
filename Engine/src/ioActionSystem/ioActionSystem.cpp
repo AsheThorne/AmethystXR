@@ -215,7 +215,7 @@ void AxrIOActionSystem::triggerFloatInputAction(const AxrFloatInputActionEnum in
     }
 }
 
-void AxrIOActionSystem::triggerVec2InputAction(const AxrVec2InputActionEnum inputActionEnum, const glm::vec2 value) {
+void AxrIOActionSystem::triggerVec2InputAction(const AxrVec2InputActionEnum inputActionEnum, const AxrVec2& value) {
     uint32_t highestPriority = 0;
     std::vector<AxrVec2InputAction*> inputActionsToTrigger;
 
@@ -250,7 +250,7 @@ void AxrIOActionSystem::clearInputActions() {
     m_MouseClickMStartTime = std::chrono::time_point<std::chrono::steady_clock>::min();
     m_MouseClickX1StartTime = std::chrono::time_point<std::chrono::steady_clock>::min();
     m_MouseClickX2StartTime = std::chrono::time_point<std::chrono::steady_clock>::min();
-    m_LastAbsoluteCursorPosition = glm::vec2(0.0f);
+    m_LastAbsoluteCursorPosition = AxrVec2(0.0f, 0.0f);
 }
 
 #ifdef AXR_USE_PLATFORM_WIN32
@@ -338,10 +338,10 @@ void AxrIOActionSystem::processWin32MouseMovedInput(const HWND windowHandle, con
         }
 
         // These values should be the absolute values in screen space.
-        const glm::ivec2 absolutePosition(
-            MulDiv(rawInput->data.mouse.lLastX, rect.right, USHRT_MAX) + rect.left,
-            MulDiv(rawInput->data.mouse.lLastY, rect.bottom, USHRT_MAX) + rect.top
-        );
+        const POINT absolutePosition{
+            .x = MulDiv(rawInput->data.mouse.lLastX, rect.right, USHRT_MAX) + rect.left,
+            .y = MulDiv(rawInput->data.mouse.lLastY, rect.bottom, USHRT_MAX) + rect.top
+        };
 
         // Convert to client space
         POINT cursorPosition{
@@ -352,20 +352,23 @@ void AxrIOActionSystem::processWin32MouseMovedInput(const HWND windowHandle, con
 
         triggerVec2InputAction(
             AXR_VEC2_INPUT_ACTION_MOUSE_MOVED,
-            glm::vec2(
-                m_LastAbsoluteCursorPosition.x - static_cast<float>(absolutePosition.x),
-                m_LastAbsoluteCursorPosition.y - static_cast<float>(absolutePosition.y)
-            )
+            AxrVec2{
+                .x = m_LastAbsoluteCursorPosition.x - static_cast<float>(absolutePosition.x),
+                .y = m_LastAbsoluteCursorPosition.y - static_cast<float>(absolutePosition.y)
+            }
         );
 
-        m_LastAbsoluteCursorPosition = absolutePosition;
+        m_LastAbsoluteCursorPosition = AxrVec2{
+            .x = static_cast<float>(absolutePosition.x),
+            .y = static_cast<float>(absolutePosition.y)
+        };
 
         triggerVec2InputAction(
             AXR_VEC2_INPUT_ACTION_MOUSE_POSITION,
-            glm::vec2(
-                static_cast<float>(cursorPosition.x),
-                static_cast<float>(cursorPosition.y)
-            )
+            AxrVec2{
+                .x = static_cast<float>(cursorPosition.x),
+                .y = static_cast<float>(cursorPosition.y)
+            }
         );
 
         // TODO: Add ability to lock the cursor to the center of the screen
@@ -379,10 +382,10 @@ void AxrIOActionSystem::processWin32MouseMovedInput(const HWND windowHandle, con
 
         triggerVec2InputAction(
             AXR_VEC2_INPUT_ACTION_MOUSE_MOVED,
-            glm::vec2(
-                static_cast<float>(relativeX),
-                static_cast<float>(relativeY)
-            )
+            AxrVec2{
+                .x = static_cast<float>(relativeX),
+                .y = static_cast<float>(relativeY)
+            }
         );
 
         POINT cursorPosition{};
@@ -391,10 +394,10 @@ void AxrIOActionSystem::processWin32MouseMovedInput(const HWND windowHandle, con
 
             triggerVec2InputAction(
                 AXR_VEC2_INPUT_ACTION_MOUSE_POSITION,
-                glm::vec2(
-                    static_cast<float>(cursorPosition.x),
-                    static_cast<float>(cursorPosition.y)
-                )
+                AxrVec2{
+                    .x = static_cast<float>(cursorPosition.x),
+                    .y = static_cast<float>(cursorPosition.y)
+                }
             );
         }
 

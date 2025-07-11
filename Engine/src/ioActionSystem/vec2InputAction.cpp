@@ -37,10 +37,10 @@ bool axrVec2InputActionWasValueSetThisFrame(const AxrVec2InputActionConst_T inpu
     return inputAction->wasValueSetThisFrame();
 }
 
-glm::vec2 axrVec2InputActionGetValue(const AxrVec2InputActionConst_T inputAction) {
+AxrVec2 axrVec2InputActionGetValue(const AxrVec2InputActionConst_T inputAction) {
     if (inputAction == nullptr) {
         axrLogErrorLocation("`inputAction` is null");
-        return glm::vec2(0.0f);
+        return {.x = 0.0f, .y = 0.0f};
     }
 
     return inputAction->getValue();
@@ -55,7 +55,7 @@ glm::vec2 axrVec2InputActionGetValue(const AxrVec2InputActionConst_T inputAction
 AxrVec2InputAction::AxrVec2InputAction(const Config& config):
     m_Name(config.Name),
     m_LocalizedName(config.LocalizedName),
-    m_Value(glm::vec2(0.0f)),
+    m_Value(AxrVec2(0.0f, 0.0f)),
     m_WasTriggeredThisFrame(false) {
     if (config.Bindings != nullptr) {
         for (uint32_t i = 0; i < config.BindingCount; ++i) {
@@ -72,7 +72,7 @@ AxrVec2InputAction::AxrVec2InputAction(AxrVec2InputAction&& src) noexcept {
     m_Value = src.m_Value;
     m_WasTriggeredThisFrame = src.m_WasTriggeredThisFrame;
 
-    src.m_Value = glm::vec2(0.0f);
+    src.m_Value = AxrVec2(0.0f, 0.0f);
     src.m_WasTriggeredThisFrame = false;
 }
 
@@ -91,7 +91,7 @@ AxrVec2InputAction& AxrVec2InputAction::operator=(AxrVec2InputAction&& src) noex
         m_Value = src.m_Value;
         m_WasTriggeredThisFrame = src.m_WasTriggeredThisFrame;
 
-        src.m_Value = glm::vec2(0.0f);
+        src.m_Value = AxrVec2(0.0f, 0.0f);
         src.m_WasTriggeredThisFrame = false;
     }
     return *this;
@@ -103,7 +103,7 @@ bool AxrVec2InputAction::wasValueSetThisFrame() const {
     return m_WasTriggeredThisFrame;
 }
 
-glm::vec2 AxrVec2InputAction::getValue() const {
+AxrVec2 AxrVec2InputAction::getValue() const {
     return m_Value;
 }
 
@@ -115,7 +115,7 @@ bool AxrVec2InputAction::containsBinding(const AxrVec2InputActionEnum biding) co
     return m_Bindings.contains(biding);
 }
 
-void AxrVec2InputAction::trigger(const glm::vec2& value) {
+void AxrVec2InputAction::trigger(const AxrVec2& value) {
     m_Value = value;
     m_WasTriggeredThisFrame = true;
 }
@@ -160,6 +160,6 @@ void AxrVec2InputAction::cleanup() {
     m_LocalizedName.clear();
     m_Bindings.clear();
 
-    m_Value = glm::vec2(0.0f);
+    m_Value = AxrVec2(0.0f, 0.0f);
     m_WasTriggeredThisFrame = false;
 }

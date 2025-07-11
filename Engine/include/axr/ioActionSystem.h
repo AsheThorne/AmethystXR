@@ -4,16 +4,12 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/common/defines.h"
+#include "axr/common/types.h"
 
 // ----------------------------------------- //
 // C/C++ Headers
 // ----------------------------------------- //
 #include <cstdint>
-
-// ----------------------------------------- //
-// GLM Headers
-// ----------------------------------------- //
-#include <glm/glm.hpp>
 
 // ----------------------------------------- //
 // Enums
@@ -205,9 +201,7 @@ extern "C" {
     /// Get the current value of this input action
     /// @param inputAction Vec2 input action to use
     /// @returns The current value of this input action
-    // TODO: Fix the C linkage warning here.
-    //  warning C4190: 'axrVec2InputActionGetValue' has C-linkage specified, but returns 'glm::vec<2,float,glm::packed_highp>' which is incompatible with C
-    AXR_API glm::vec2 axrVec2InputActionGetValue(AxrVec2InputActionConst_T inputAction);
+    AXR_API AxrVec2 axrVec2InputActionGetValue(AxrVec2InputActionConst_T inputAction);
 
     // ---- Input/Output Action Set ----
 

@@ -11,11 +11,6 @@
 #include <string>
 #include <unordered_set>
 
-// ----------------------------------------- //
-// GLM Headers
-// ----------------------------------------- //
-#include <glm/glm.hpp>
-
 /// Axr Vec2 Input Action
 class AxrVec2InputAction {
 public:
@@ -71,7 +66,7 @@ public:
 
     /// Get the current value of this input action
     /// @returns The current value of this input action
-    [[nodiscard]] glm::vec2 getValue() const;
+    [[nodiscard]] AxrVec2 getValue() const;
 
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
@@ -87,7 +82,7 @@ public:
 
     /// Trigger the input action
     /// @param value Value to use
-    void trigger(const glm::vec2& value);
+    void trigger(const AxrVec2& value);
 
     // ----------------------------------------- //
     // Public Static Functions
@@ -112,7 +107,7 @@ private:
     std::unordered_set<AxrVec2InputActionEnum> m_Bindings;
 
     // ---- Data ----
-    glm::vec2 m_Value;
+    AxrVec2 m_Value;
     bool m_WasTriggeredThisFrame;
 
     // ----------------------------------------- //

@@ -4,6 +4,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/ioActionSystem.h"
+#include "common/types.hpp"
 
 namespace axr {
     // ----------------------------------------- //
@@ -1364,8 +1365,8 @@ namespace axr {
 
         /// Get the current value of this input action
         /// @returns The current value of this input action
-        [[nodiscard]] glm::vec2 getValue() const {
-            return axrVec2InputActionGetValue(m_Vec2InputAction);
+        [[nodiscard]] axr::Vec2 getValue() const {
+            return axr::Vec2(axrVec2InputActionGetValue(m_Vec2InputAction));
         }
 
     private:

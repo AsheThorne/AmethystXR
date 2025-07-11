@@ -42,6 +42,7 @@ set(AXR_PUBLIC_HEADER_FILES
     ${AXR_INCLUDE_DIR}/axr/common/eventHandler.h
     ${AXR_INCLUDE_DIR}/axr/common/callback.h
     ${AXR_INCLUDE_DIR}/axr/common/utils.h
+    ${AXR_INCLUDE_DIR}/axr/common/types.h
 )
 
 set(AXR_PUBLIC_HEADER_HPP_FILES
@@ -66,6 +67,7 @@ set(AXR_PUBLIC_HEADER_HPP_FILES
     ${AXR_INCLUDE_DIR}/axr-hpp/common/callback.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/common/eventHandler.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/common/utils.hpp
+    ${AXR_INCLUDE_DIR}/axr-hpp/common/types.hpp
 )
 
 set(AXR_HEADER_FILES
