@@ -10,7 +10,7 @@
 #include "axr/assets.h"
 #include "axr/scene.h"
 #include "axr/xrSystem.h"
-#include "axr/ioActionsSystem.h"
+#include "axr/ioActionSystem.h"
 
 // ----------------------------------------- //
 // Structs
@@ -21,7 +21,7 @@ struct AxrApplicationConfig {
     char ApplicationName[AXR_MAX_APPLICATION_NAME_SIZE];
     uint32_t ApplicationVersion;
     AxrGraphicsSystemConfig GraphicsSystemConfig;
-    AxrIOActionsSystemConfig IOActionsSystemConfig;
+    AxrIOActionSystemConfig IOActionSystemConfig;
     const AxrWindowSystemConfig* WindowSystemConfig;
     const AxrXrSystemConfig* XrSystemConfig;
 };
@@ -71,10 +71,10 @@ extern "C" {
     /// @param app The AxrApplication to use
     /// @returns A handle to the graphics system
     AXR_API AxrGraphicsSystem_T axrApplicationGetGraphicsSystem(AxrApplication_T app);
-    /// Get the axrApplication input/output actions system
+    /// Get the axrApplication input/output action system
     /// @param app The AxrApplication to use
-    /// @returns A handle to the input/output actions system
-    AXR_API AxrIOActionsSystem_T axrApplicationGetIOActionsSystem(AxrApplication_T app);
+    /// @returns A handle to the input/output action system
+    AXR_API AxrIOActionSystem_T axrApplicationGetIOActionSystem(AxrApplication_T app);
     /// Get the axrApplication global asset collection
     /// @param app The AxrApplication to use
     /// @returns A handle to the global asset collection

@@ -46,7 +46,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         axr::SamplerAnisotropyQualityEnum::High
     );
 
-    axr::IOActionsSystemConfig ioActionsSystemConfig(
+    axr::IOActionSystemConfig ioActionSystemConfig(
         std::vector{
             axr::IOActionSetConfig(
                 "Test",
@@ -56,7 +56,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
                         "Click",
                         "Click",
                         std::vector{
-                            axr::BoolInputActionEnum::MouseClickL,
+                            axr::BoolInputActionEnum::MouseClickM,
                             axr::BoolInputActionEnum::MouseClickR,
                         }
                     ),
@@ -64,13 +64,31 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
                         "DoubleClick",
                         "DoubleClick",
                         std::vector{
-                            axr::BoolInputActionEnum::MouseDoubleClickL,
+                            axr::BoolInputActionEnum::MouseDoubleClickM,
                             axr::BoolInputActionEnum::MouseDoubleClickR,
                         }
                     ),
                 },
-                {},
-                {}
+                std::vector{
+                    axr::FloatInputActionConfig(
+                        "MouseWheel",
+                        "Mouse Wheel",
+                        std::vector{
+                            // TODO: Combine mouse wheels into a single binding. up is + down is -
+                            axr::FloatInputActionEnum::MouseWheelUp,
+                            axr::FloatInputActionEnum::MouseWheelDown,
+                        }
+                    ),
+                },
+                std::vector{
+                    axr::Vec2InputActionConfig(
+                        "MouseMoved",
+                        "Mouse Moved",
+                        std::vector{
+                            axr::Vec2InputActionEnum::MousePosition,
+                        }
+                    ),
+                }
             )
         }
     );
@@ -101,7 +119,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         applicationName.c_str(),
         AXR_MAKE_VERSION(1, 0, 0),
         graphicsSystemConfig,
-        ioActionsSystemConfig,
+        ioActionSystemConfig,
         &windowSystemConfig,
         nullptr
         // &xrSystemConfig
@@ -134,6 +152,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     axr::GraphicsSystem graphicsSystem = app.getGraphicsSystem();
     graphicsSystem.setClearColor(glm::vec4(0.2f, 0.05f, 0.2f, 1.0f));
 
+    axr::IOActionSystem ioActionSystem = app.getIOActionSystem();
+    axr::IOActionSet ioActionSet = ioActionSystem.getIOActionSet("Test");
+    axr::BoolInputAction clickAction = ioActionSet.getBoolInputAction("Click");
+    axr::BoolInputAction doubleClickAction = ioActionSet.getBoolInputAction("DoubleClick");
+    axr::Vec2InputAction mouseMovedAction = ioActionSet.getVec2InputAction("MouseMoved");
+    axr::FloatInputAction mouseWheelAction = ioActionSet.getFloatInputAction("MouseWheel");
+
     while (app.isRunning()) {
         app.processEvents();
 
@@ -143,6 +168,22 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
             if (!app.isRunning()) {
                 break;
             }
+        }
+
+        if (clickAction.wasValueSetThisFrame()) {
+            axr::logWarning("Click: {0}", clickAction.getValue());
+        }
+
+        if (doubleClickAction.wasValueSetThisFrame()) {
+            axr::logWarning("Double Click: {0}", doubleClickAction.getValue());
+        }
+
+        if (mouseMovedAction.wasValueSetThisFrame()) {
+            axr::logWarning("MouseMoved: {0}:{1}", mouseMovedAction.getValue().x, mouseMovedAction.getValue().y);
+        }
+
+        if (mouseWheelAction.wasValueSetThisFrame()) {
+            axr::logWarning("Mouse Wheel: {0}", mouseWheelAction.getValue());
         }
 
         scene.update();

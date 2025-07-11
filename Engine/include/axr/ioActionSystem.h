@@ -11,6 +11,11 @@
 #include <cstdint>
 
 // ----------------------------------------- //
+// GLM Headers
+// ----------------------------------------- //
+#include <glm/glm.hpp>
+
+// ----------------------------------------- //
 // Enums
 // ----------------------------------------- //
 
@@ -97,8 +102,8 @@ struct AxrIOActionSetConfig {
     AxrVec2InputActionConfig* Vec2InputActions;
 };
 
-/// Input/Output actions system config
-struct AxrIOActionsSystemConfig {
+/// Input/Output action system config
+struct AxrIOActionSystemConfig {
     uint32_t IOActionSetCount;
     AxrIOActionSetConfig* IOActionSets;
     // TODO: Add OpenXR interaction profiles here too
@@ -108,15 +113,37 @@ struct AxrIOActionsSystemConfig {
 // Forward Declared Handles
 // ----------------------------------------- //
 
-/// AxrIOActionsSystem Handle
-typedef class AxrIOActionsSystem* AxrIOActionsSystem_T;
-/// const AxrIOActionsSystem Handle
-typedef const AxrIOActionsSystem* AxrIOActionsSystemConst_T;
+/// AxrBoolInputAction Handle
+typedef class AxrBoolInputAction* AxrBoolInputAction_T;
+/// const AxrBoolInputAction Handle
+typedef const AxrBoolInputAction* AxrBoolInputActionConst_T;
+
+/// AxrFloatInputAction Handle
+typedef class AxrFloatInputAction* AxrFloatInputAction_T;
+/// const AxrFloatInputAction Handle
+typedef const AxrFloatInputAction* AxrFloatInputActionConst_T;
+
+/// AxrVec2InputAction Handle
+typedef class AxrVec2InputAction* AxrVec2InputAction_T;
+/// const AxrVec2InputAction Handle
+typedef const AxrVec2InputAction* AxrVec2InputActionConst_T;
+
+/// AxrIOActionSet Handle
+typedef class AxrIOActionSet* AxrIOActionSet_T;
+/// const AxrIOActionSet Handle
+typedef const AxrIOActionSet* AxrIOActionSetConst_T;
+
+/// AxrIOActionSystem Handle
+typedef class AxrIOActionSystem* AxrIOActionSystem_T;
+/// const AxrIOActionSystem Handle
+typedef const AxrIOActionSystem* AxrIOActionSystemConst_T;
 
 // ----------------------------------------- //
 // External Function Definitions
 // ----------------------------------------- //
 extern "C" {
+    // ---- Configs ----
+
     /// Clone the given bool input action config
     /// @param inputActionConfig Bool input action config to clone
     /// @returns The cloned bool input action
@@ -127,7 +154,9 @@ extern "C" {
     /// Clone the given float input action config
     /// @param inputActionConfig Float input action config to clone
     /// @returns The cloned float input action
-    AXR_API AxrFloatInputActionConfig axrFloatInputActionConfigClone(const AxrFloatInputActionConfig* inputActionConfig);
+    AXR_API AxrFloatInputActionConfig axrFloatInputActionConfigClone(
+        const AxrFloatInputActionConfig* inputActionConfig
+    );
     /// Destroy the given float input action config
     /// @param inputActionConfig Float input action config to destroy
     AXR_API void axrFloatInputActionConfigDestroy(AxrFloatInputActionConfig* inputActionConfig);
@@ -146,4 +175,65 @@ extern "C" {
     /// Destroy the given input/output action set config
     /// @param ioActionSetConfig Input/Output action set config to destroy
     AXR_API void axrIOActionSetConfigDestroy(AxrIOActionSetConfig* ioActionSetConfig);
+
+    // ---- Bool Input Action ----
+
+    /// Check if the value was set this frame
+    /// @param inputAction Bool input action to use
+    /// @returns True if the value was set this frame
+    AXR_API bool axrBoolInputActionWasValueSetThisFrame(AxrBoolInputActionConst_T inputAction);
+    /// Get the current value of this input action
+    /// @param inputAction Bool input action to use
+    /// @returns The current value of this input action
+    AXR_API bool axrBoolInputActionGetValue(AxrBoolInputActionConst_T inputAction);
+
+    // ---- Float Input Action ----
+
+    /// Check if the value was set this frame
+    /// @param inputAction Float input action to use
+    /// @returns True if the value was set this frame
+    AXR_API bool axrFloatInputActionWasValueSetThisFrame(AxrFloatInputActionConst_T inputAction);
+    /// Get the current value of this input action
+    /// @param inputAction Float input action to use
+    /// @returns The current value of this input action
+    AXR_API float axrFloatInputActionGetValue(AxrFloatInputActionConst_T inputAction);
+
+    // ---- Vec2 Input Action ----
+
+    /// Check if the value was set this frame
+    /// @param inputAction Vec2 input action to use
+    /// @returns True if the value was set this frame
+    AXR_API bool axrVec2InputActionWasValueSetThisFrame(AxrVec2InputActionConst_T inputAction);
+    /// Get the current value of this input action
+    /// @param inputAction Vec2 input action to use
+    /// @returns The current value of this input action
+    // TODO: Fix the C linkage warning here.
+    //  warning C4190: 'axrVec2InputActionGetValue' has C-linkage specified, but returns 'glm::vec<2,float,glm::packed_highp>' which is incompatible with C
+    AXR_API glm::vec2 axrVec2InputActionGetValue(AxrVec2InputActionConst_T inputAction);
+
+    // ---- Input/Output Action Set ----
+
+    /// Get the named bool input action
+    /// @param ioActionSet Input/Output action set to use
+    /// @param name Bool input action name
+    /// @returns The bool input action or nullptr if it wasn't found
+    AXR_API AxrBoolInputAction_T axrIOActionSetGetBoolInputAction(AxrIOActionSet_T ioActionSet, const char* name);
+    /// Get the named float input action
+    /// @param ioActionSet Input/Output action set to use
+    /// @param name Float input action name
+    /// @returns The float input action or nullptr if it wasn't found
+    AXR_API AxrFloatInputAction_T axrIOActionSetGetFloatInputAction(AxrIOActionSet_T ioActionSet, const char* name);
+    /// Get the named vec2 input action
+    /// @param ioActionSet Input/Output action set to use
+    /// @param name Vec2 input action name
+    /// @returns The vec2 input action or nullptr if it wasn't found
+    AXR_API AxrVec2InputAction_T axrIOActionSetGetVec2InputAction(AxrIOActionSet_T ioActionSet, const char* name);
+
+    // ---- Input/Output Action System ----
+
+    /// Get the named input/output action set
+    /// @param ioActionSystem Input/Output action system to use
+    /// @param name Input/Output action set name
+    /// @returns The input/output action set or nullptr if it wasn't found
+    AXR_API AxrIOActionSet_T axrIOActionSystemGetIOActionSet(AxrIOActionSystem_T ioActionSystem, const char* name);
 }

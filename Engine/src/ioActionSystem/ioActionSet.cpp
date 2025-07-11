@@ -2,6 +2,9 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "ioActionSet.hpp"
+
+#include <ranges>
+
 #include "axr/logger.h"
 
 // ----------------------------------------- //
@@ -24,6 +27,48 @@ void axrIOActionSetConfigDestroy(AxrIOActionSetConfig* ioActionSetConfig) {
     }
 
     return AxrIOActionSet::destroy(*ioActionSetConfig);
+}
+
+AxrBoolInputAction_T axrIOActionSetGetBoolInputAction(const AxrIOActionSet_T ioActionSet, const char* name) {
+    if (ioActionSet == nullptr) {
+        axrLogErrorLocation("`ioActionSet` is null");
+        return nullptr;
+    }
+
+    if (name == nullptr) {
+        axrLogErrorLocation("`name` is null");
+        return nullptr;
+    }
+
+    return ioActionSet->getBoolInputAction(name);
+}
+
+AxrFloatInputAction_T axrIOActionSetGetFloatInputAction(const AxrIOActionSet_T ioActionSet, const char* name) {
+    if (ioActionSet == nullptr) {
+        axrLogErrorLocation("`ioActionSet` is null");
+        return nullptr;
+    }
+
+    if (name == nullptr) {
+        axrLogErrorLocation("`name` is null");
+        return nullptr;
+    }
+
+    return ioActionSet->getFloatInputAction(name);
+}
+
+AxrVec2InputAction_T axrIOActionSetGetVec2InputAction(const AxrIOActionSet_T ioActionSet, const char* name) {
+    if (ioActionSet == nullptr) {
+        axrLogErrorLocation("`ioActionSet` is null");
+        return nullptr;
+    }
+
+    if (name == nullptr) {
+        axrLogErrorLocation("`name` is null");
+        return nullptr;
+    }
+
+    return ioActionSet->getVec2InputAction(name);
 }
 
 // ----------------------------------------- //
@@ -131,12 +176,51 @@ AxrIOActionSet& AxrIOActionSet::operator=(AxrIOActionSet&& src) noexcept {
 
 // ---- Public Functions ----
 
+AxrBoolInputAction_T AxrIOActionSet::getBoolInputAction(const std::string& name) {
+    const auto foundInputAction = m_BoolInputActions.find(name);
+    if (foundInputAction == m_BoolInputActions.end()) {
+        return nullptr;
+    }
+
+    return &foundInputAction->second;
+}
+
+AxrFloatInputAction_T AxrIOActionSet::getFloatInputAction(const std::string& name) {
+    const auto foundInputAction = m_FloatInputActions.find(name);
+    if (foundInputAction == m_FloatInputActions.end()) {
+        return nullptr;
+    }
+
+    return &foundInputAction->second;
+}
+
+AxrVec2InputAction_T AxrIOActionSet::getVec2InputAction(const std::string& name) {
+    const auto foundInputAction = m_Vec2InputActions.find(name);
+    if (foundInputAction == m_Vec2InputActions.end()) {
+        return nullptr;
+    }
+
+    return &foundInputAction->second;
+}
+
 bool AxrIOActionSet::isEnabled() const {
     return m_IsEnabled;
 }
 
 uint32_t AxrIOActionSet::getPriority() const {
     return m_Priority;
+}
+
+void AxrIOActionSet::newFrameStarted() {
+    for (AxrBoolInputAction& inputAction : m_BoolInputActions | std::ranges::views::values) {
+        inputAction.newFrameStarted();
+    }
+    for (AxrFloatInputAction& inputAction : m_FloatInputActions | std::ranges::views::values) {
+        inputAction.newFrameStarted();
+    }
+    for (AxrVec2InputAction& inputAction : m_Vec2InputActions | std::ranges::views::values) {
+        inputAction.newFrameStarted();
+    }
 }
 
 std::unordered_map<std::string, AxrBoolInputAction>& AxrIOActionSet::getBoolInputActions() {

@@ -10,7 +10,7 @@
 #include "axr-hpp/assets.hpp"
 #include "axr-hpp/scene.hpp"
 #include "axr-hpp/xrSystem.hpp"
-#include "axr-hpp/ioActionsSystem.hpp"
+#include "axr-hpp/ioActionSystem.hpp"
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 #include "axr-hpp/vulkanApi.hpp"

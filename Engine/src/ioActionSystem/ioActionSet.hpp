@@ -3,7 +3,7 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/ioActionsSystem.h"
+#include "axr/ioActionSystem.h"
 #include "boolInputAction.hpp"
 #include "floatInputAction.hpp"
 #include "vec2InputAction.hpp"
@@ -67,6 +67,19 @@ public:
     // Public Functions
     // ----------------------------------------- //
 
+    /// Get the named bool input action
+    /// @param name Bool input action name
+    /// @returns The bool input action or nullptr if it wasn't found
+    [[nodiscard]] AxrBoolInputAction_T getBoolInputAction(const std::string& name);
+    /// Get the named float input action
+    /// @param name Float input action name
+    /// @returns The float input action or nullptr if it wasn't found
+    [[nodiscard]] AxrFloatInputAction_T getFloatInputAction(const std::string& name);
+    /// Get the named vec2 input action
+    /// @param name Vec2 input action name
+    /// @returns The vec2 input action or nullptr if it wasn't found
+    [[nodiscard]] AxrVec2InputAction_T getVec2InputAction(const std::string& name);
+
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
     // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
@@ -77,6 +90,9 @@ public:
     /// Get the set priority level
     /// @returns The set priority level
     [[nodiscard]] uint32_t getPriority() const;
+
+    /// Signal that a new frame has started
+    void newFrameStarted();
 
     /// Get the bool input actions
     /// @returns The bool input actions

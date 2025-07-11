@@ -9,7 +9,7 @@
 #include "axr/assets.h"
 #include "axr/scene.h"
 #include "axr/xrSystem.h"
-#include "axr/ioActionsSystem.h"
+#include "axr/ioActionSystem.h"
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 #include "axr/vulkanApi.h"

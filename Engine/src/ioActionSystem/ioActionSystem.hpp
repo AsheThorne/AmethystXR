@@ -3,7 +3,7 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/ioActionsSystem.h"
+#include "axr/ioActionSystem.h"
 #include "axr/common/enums.h"
 #include "ioActionSet.hpp"
 
@@ -27,14 +27,14 @@
 #include <windows.h>
 #endif
 
-/// Axr Input/Output Actions System
-class AxrIOActionsSystem {
+/// Axr Input/Output Action System
+class AxrIOActionSystem {
 public:
     // ----------------------------------------- //
     // Structs
     // ----------------------------------------- //
 
-    /// AxrIOActionsSystem config
+    /// AxrIOActionSystem config
     struct Config {
         uint32_t ActionSetCount;
         AxrIOActionSetConfig* ActionSets;
@@ -47,38 +47,50 @@ public:
     // ---- Constructors ----
 
     /// Constructor
-    /// @param config AxrIOActionsSystem config
-    AxrIOActionsSystem(const Config& config);
+    /// @param config AxrIOActionSystem config
+    AxrIOActionSystem(const Config& config);
     /// Copy Constructor
-    /// @param src Source AxrIOActionsSystem to copy from
-    AxrIOActionsSystem(const AxrIOActionsSystem& src) = delete;
+    /// @param src Source AxrIOActionSystem to copy from
+    AxrIOActionSystem(const AxrIOActionSystem& src) = delete;
     /// Move Constructor
-    /// @param src Source AxrIOActionsSystem to move from
-    AxrIOActionsSystem(AxrIOActionsSystem&& src) noexcept = delete;
+    /// @param src Source AxrIOActionSystem to move from
+    AxrIOActionSystem(AxrIOActionSystem&& src) noexcept = delete;
 
     // ---- Destructor ----
 
     /// Destructor
-    ~AxrIOActionsSystem();
+    ~AxrIOActionSystem();
 
     // ---- Operator Overloads ----
 
     /// Copy Assignment Operator
-    /// @param src Source AxrIOActionsSystem to copy from
-    AxrIOActionsSystem& operator=(const AxrIOActionsSystem& src) = delete;
+    /// @param src Source AxrIOActionSystem to copy from
+    AxrIOActionSystem& operator=(const AxrIOActionSystem& src) = delete;
     /// Move Assignment Operator
-    /// @param src Source AxrIOActionsSystem to move from
-    AxrIOActionsSystem& operator=(AxrIOActionsSystem&& src) noexcept = delete;
+    /// @param src Source AxrIOActionSystem to move from
+    AxrIOActionSystem& operator=(AxrIOActionSystem&& src) noexcept = delete;
 
     // ----------------------------------------- //
     // Public Functions
     // ----------------------------------------- //
 
-    /// Set up the input/output actions system
+    /// Get the named input/output action set
+    /// @param name Input/Output action set name
+    /// @returns The input/output action set or nullptr if it wasn't found
+    AxrIOActionSet_T getIOActionSet(const std::string& name);
+
+    // ---- For Internal Use ----
+    // These functions are only to be used internally in the AmethystXr engine.
+    // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
+
+    /// Set up the input/output action system
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setup();
     /// Reset setup()
     void resetSetup();
+
+    /// Signal that a new frame has started
+    void newFrameStarted();
 
 #ifdef AXR_USE_PLATFORM_WIN32
     // ---- Win32 Functions ----

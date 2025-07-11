@@ -34,7 +34,7 @@ set(AXR_PUBLIC_HEADER_FILES
     ${AXR_INCLUDE_DIR}/axr/assets.h
     ${AXR_INCLUDE_DIR}/axr/scene.h
     ${AXR_INCLUDE_DIR}/axr/xrSystem.h
-    ${AXR_INCLUDE_DIR}/axr/ioActionsSystem.h
+    ${AXR_INCLUDE_DIR}/axr/ioActionSystem.h
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr/common/defines.h.in
     ${AXR_INCLUDE_DIR}/axr/common/defines.h
@@ -59,7 +59,7 @@ set(AXR_PUBLIC_HEADER_HPP_FILES
     ${AXR_INCLUDE_DIR}/axr-hpp/assets.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/scene.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/xrSystem.hpp
-    ${AXR_INCLUDE_DIR}/axr-hpp/ioActionsSystem.hpp
+    ${AXR_INCLUDE_DIR}/axr-hpp/ioActionSystem.hpp
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr-hpp/common/defines.hpp
     ${AXR_INCLUDE_DIR}/axr-hpp/common/enums.hpp
@@ -123,12 +123,12 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/xrSystem/xrSystem.hpp
     ${AXR_SRC_DIR}/xrSystem/xrUtils.hpp
     ${AXR_SRC_DIR}/xrSystem/xrExtensionFunctions.hpp
-    # ---- Input/Output Actions System ----
-    ${AXR_SRC_DIR}/ioActionsSystem/ioActionsSystem.hpp
-    ${AXR_SRC_DIR}/ioActionsSystem/boolInputAction.hpp
-    ${AXR_SRC_DIR}/ioActionsSystem/floatInputAction.hpp
-    ${AXR_SRC_DIR}/ioActionsSystem/vec2InputAction.hpp
-    ${AXR_SRC_DIR}/ioActionsSystem/ioActionSet.hpp
+    # ---- Input/Output Action System ----
+    ${AXR_SRC_DIR}/ioActionSystem/ioActionSystem.hpp
+    ${AXR_SRC_DIR}/ioActionSystem/boolInputAction.hpp
+    ${AXR_SRC_DIR}/ioActionSystem/floatInputAction.hpp
+    ${AXR_SRC_DIR}/ioActionSystem/vec2InputAction.hpp
+    ${AXR_SRC_DIR}/ioActionSystem/ioActionSet.hpp
 )
 
 # ---------------------------------------------
@@ -189,12 +189,12 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/xrSystem/xrSystem.cpp
     ${AXR_SRC_DIR}/xrSystem/xrUtils.cpp
     ${AXR_SRC_DIR}/xrSystem/xrExtensionFunctions.cpp
-    # ---- Input/Output Actions System ----
-    ${AXR_SRC_DIR}/ioActionsSystem/ioActionsSystem.cpp
-    ${AXR_SRC_DIR}/ioActionsSystem/boolInputAction.cpp
-    ${AXR_SRC_DIR}/ioActionsSystem/floatInputAction.cpp
-    ${AXR_SRC_DIR}/ioActionsSystem/vec2InputAction.cpp
-    ${AXR_SRC_DIR}/ioActionsSystem/ioActionSet.cpp
+    # ---- Input/Output Action System ----
+    ${AXR_SRC_DIR}/ioActionSystem/ioActionSystem.cpp
+    ${AXR_SRC_DIR}/ioActionSystem/boolInputAction.cpp
+    ${AXR_SRC_DIR}/ioActionSystem/floatInputAction.cpp
+    ${AXR_SRC_DIR}/ioActionSystem/vec2InputAction.cpp
+    ${AXR_SRC_DIR}/ioActionSystem/ioActionSet.cpp
 )
 
 # ---------------------------------------------

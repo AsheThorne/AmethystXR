@@ -1,29 +1,47 @@
 ﻿// ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "floatInputAction.hpp"
+#include "boolInputAction.hpp"
 #include "axr/logger.h"
 
 // ----------------------------------------- //
 // External Functions
 // ----------------------------------------- //
 
-AxrFloatInputActionConfig axrFloatInputActionConfigClone(const AxrFloatInputActionConfig* inputActionConfig) {
+AxrBoolInputActionConfig axrBoolInputActionConfigClone(const AxrBoolInputActionConfig* inputActionConfig) {
     if (inputActionConfig == nullptr) {
         axrLogErrorLocation("`inputActionConfig` is null");
         return {};
     }
 
-    return AxrFloatInputAction::clone(*inputActionConfig);
+    return AxrBoolInputAction::clone(*inputActionConfig);
 }
 
-void axrFloatInputActionConfigDestroy(AxrFloatInputActionConfig* inputActionConfig) {
+void axrBoolInputActionConfigDestroy(AxrBoolInputActionConfig* inputActionConfig) {
     if (inputActionConfig == nullptr) {
         axrLogErrorLocation("`inputActionConfig` is null");
         return;
     }
 
-    return AxrFloatInputAction::destroy(*inputActionConfig);
+    return AxrBoolInputAction::destroy(*inputActionConfig);
+}
+
+bool axrBoolInputActionWasValueSetThisFrame(const AxrBoolInputActionConst_T inputAction) {
+    if (inputAction == nullptr) {
+        axrLogErrorLocation("`inputAction` is null");
+        return false;
+    }
+
+    return inputAction->wasValueSetThisFrame();
+}
+
+bool axrBoolInputActionGetValue(const AxrBoolInputActionConst_T inputAction) {
+    if (inputAction == nullptr) {
+        axrLogErrorLocation("`inputAction` is null");
+        return false;
+    }
+
+    return inputAction->getValue();
 }
 
 // ----------------------------------------- //
@@ -32,10 +50,10 @@ void axrFloatInputActionConfigDestroy(AxrFloatInputActionConfig* inputActionConf
 
 // ---- Special Functions ----
 
-AxrFloatInputAction::AxrFloatInputAction(const Config& config):
+AxrBoolInputAction::AxrBoolInputAction(const Config& config):
     m_Name(config.Name),
     m_LocalizedName(config.LocalizedName),
-    m_Value(0.0f),
+    m_Value(false),
     m_WasTriggeredThisFrame(false) {
     if (config.Bindings != nullptr) {
         for (uint32_t i = 0; i < config.BindingCount; ++i) {
@@ -44,7 +62,7 @@ AxrFloatInputAction::AxrFloatInputAction(const Config& config):
     }
 }
 
-AxrFloatInputAction::AxrFloatInputAction(AxrFloatInputAction&& src) noexcept {
+AxrBoolInputAction::AxrBoolInputAction(AxrBoolInputAction&& src) noexcept {
     m_Name = std::move(src.m_Name);
     m_LocalizedName = std::move(src.m_LocalizedName);
     m_Bindings = std::move(src.m_Bindings);
@@ -52,15 +70,15 @@ AxrFloatInputAction::AxrFloatInputAction(AxrFloatInputAction&& src) noexcept {
     m_Value = src.m_Value;
     m_WasTriggeredThisFrame = src.m_WasTriggeredThisFrame;
 
-    src.m_Value = 0.0f;
+    src.m_Value = false;
     src.m_WasTriggeredThisFrame = false;
 }
 
-AxrFloatInputAction::~AxrFloatInputAction() {
+AxrBoolInputAction::~AxrBoolInputAction() {
     cleanup();
 }
 
-AxrFloatInputAction& AxrFloatInputAction::operator=(AxrFloatInputAction&& src) noexcept {
+AxrBoolInputAction& AxrBoolInputAction::operator=(AxrBoolInputAction&& src) noexcept {
     if (this != &src) {
         cleanup();
 
@@ -71,27 +89,39 @@ AxrFloatInputAction& AxrFloatInputAction::operator=(AxrFloatInputAction&& src) n
         m_Value = src.m_Value;
         m_WasTriggeredThisFrame = src.m_WasTriggeredThisFrame;
 
-        src.m_Value = 0.0f;
+        src.m_Value = false;
         src.m_WasTriggeredThisFrame = false;
     }
     return *this;
 }
 
-bool AxrFloatInputAction::containsBinding(const AxrFloatInputActionEnum biding) const {
+// ---- Public Functions ----
+
+bool AxrBoolInputAction::wasValueSetThisFrame() const {
+    return m_WasTriggeredThisFrame;
+}
+
+bool AxrBoolInputAction::getValue() const {
+    return m_Value;
+}
+
+void AxrBoolInputAction::newFrameStarted() {
+    m_WasTriggeredThisFrame = false;
+}
+
+bool AxrBoolInputAction::containsBinding(const AxrBoolInputActionEnum biding) const {
     return m_Bindings.contains(biding);
 }
 
-void AxrFloatInputAction::trigger(const float value) {
+void AxrBoolInputAction::trigger(const bool value) {
     m_Value = value;
     m_WasTriggeredThisFrame = true;
 }
 
-// ---- Public Functions ----
-
 // ---- Public Static Functions ----
 
-AxrFloatInputActionConfig AxrFloatInputAction::clone(const AxrFloatInputActionConfig& inputActionConfig) {
-    AxrFloatInputActionConfig config{
+AxrBoolInputActionConfig AxrBoolInputAction::clone(const AxrBoolInputActionConfig& inputActionConfig) {
+    AxrBoolInputActionConfig config{
         .Name = {},
         .LocalizedName = {},
         .BindingCount = inputActionConfig.BindingCount,
@@ -101,8 +131,9 @@ AxrFloatInputActionConfig AxrFloatInputAction::clone(const AxrFloatInputActionCo
     strncpy_s(config.Name, inputActionConfig.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
     strncpy_s(config.LocalizedName, inputActionConfig.LocalizedName, AXR_MAX_IO_ACTION_NAME_SIZE);
 
+    // TODO: Add this check for any other similar cloning function. like assets
     if (inputActionConfig.BindingCount != 0 && inputActionConfig.Bindings != nullptr) {
-        config.Bindings = new AxrFloatInputActionEnum[inputActionConfig.BindingCount]{};
+        config.Bindings = new AxrBoolInputActionEnum[inputActionConfig.BindingCount]{};
 
         for (uint32_t i = 0; i < inputActionConfig.BindingCount; ++i) {
             config.Bindings[i] = inputActionConfig.Bindings[i];
@@ -112,7 +143,7 @@ AxrFloatInputActionConfig AxrFloatInputAction::clone(const AxrFloatInputActionCo
     return config;
 }
 
-void AxrFloatInputAction::destroy(AxrFloatInputActionConfig& inputActionConfig) {
+void AxrBoolInputAction::destroy(AxrBoolInputActionConfig& inputActionConfig) {
     memset(inputActionConfig.Name, 0, sizeof(inputActionConfig.Name));
     memset(inputActionConfig.LocalizedName, 0, sizeof(inputActionConfig.LocalizedName));
 
@@ -125,10 +156,10 @@ void AxrFloatInputAction::destroy(AxrFloatInputActionConfig& inputActionConfig) 
 
 // ---- Private Functions ----
 
-void AxrFloatInputAction::cleanup() {
+void AxrBoolInputAction::cleanup() {
     m_Name.clear();
     m_LocalizedName.clear();
     m_Bindings.clear();
-    m_Value = 0.0f;
+    m_Value = false;
     m_WasTriggeredThisFrame = false;
 }

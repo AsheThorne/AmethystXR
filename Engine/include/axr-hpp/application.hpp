@@ -9,7 +9,7 @@
 #include "assets.hpp"
 #include "scene.hpp"
 #include "xrSystem.hpp"
-#include "ioActionsSystem.hpp"
+#include "ioActionSystem.hpp"
 
 namespace axr {
     // ----------------------------------------- //
@@ -24,7 +24,7 @@ namespace axr {
         char ApplicationName[AXR_MAX_APPLICATION_NAME_SIZE]{};
         uint32_t ApplicationVersion;
         axr::GraphicsSystemConfig GraphicsSystemConfig;
-        axr::IOActionsSystemConfig IOActionsSystemConfig;
+        axr::IOActionSystemConfig IOActionSystemConfig;
         const axr::WindowSystemConfig* WindowSystemConfig;
         const axr::XrSystemConfig* XrSystemConfig;
 
@@ -38,7 +38,7 @@ namespace axr {
         ApplicationConfig() :
             ApplicationVersion(0),
             GraphicsSystemConfig({}),
-            IOActionsSystemConfig({}),
+            IOActionSystemConfig({}),
             WindowSystemConfig(nullptr),
             XrSystemConfig(nullptr) {
         }
@@ -47,19 +47,19 @@ namespace axr {
         /// @param applicationName The application name
         /// @param applicationVersion The application version
         /// @param graphicsSystemConfig The graphics system config
-        /// @param ioActionsSystemConfig The input/output system config
+        /// @param ioActionSystemConfig The input/output system config
         /// @param windowSystemConfig The window system config
         /// @param xrSystemConfig The xr system config
         ApplicationConfig(
             const char* applicationName,
             const uint32_t applicationVersion,
             const axr::GraphicsSystemConfig& graphicsSystemConfig,
-            const axr::IOActionsSystemConfig& ioActionsSystemConfig,
+            const axr::IOActionSystemConfig& ioActionSystemConfig,
             const axr::WindowSystemConfig* windowSystemConfig,
             const axr::XrSystemConfig* xrSystemConfig
         ) : ApplicationVersion(applicationVersion),
             GraphicsSystemConfig(graphicsSystemConfig),
-            IOActionsSystemConfig(ioActionsSystemConfig),
+            IOActionSystemConfig(ioActionSystemConfig),
             WindowSystemConfig(windowSystemConfig),
             XrSystemConfig(xrSystemConfig) {
             if (applicationName != nullptr) {
@@ -169,10 +169,10 @@ namespace axr {
             return axrApplicationGetGraphicsSystem(m_Application);
         }
 
-        /// Get the input/output actions system
-        /// @returns A handle to the input/output actions system
-        [[nodiscard]] axr::IOActionsSystem getIOActionsSystem() const {
-            return axrApplicationGetIOActionsSystem(m_Application);
+        /// Get the input/output action system
+        /// @returns A handle to the input/output action system
+        [[nodiscard]] axr::IOActionSystem getIOActionSystem() const {
+            return axr::IOActionSystem(axrApplicationGetIOActionSystem(m_Application));
         }
 
         /// Get the global asset collection

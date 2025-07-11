@@ -1,31 +1,47 @@
 ﻿// ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "vec2InputAction.hpp"
-
-#include "boolInputAction.hpp"
+#include "floatInputAction.hpp"
 #include "axr/logger.h"
 
 // ----------------------------------------- //
 // External Functions
 // ----------------------------------------- //
 
-AxrVec2InputActionConfig axrVec2InputActionConfigClone(const AxrVec2InputActionConfig* inputActionConfig) {
+AxrFloatInputActionConfig axrFloatInputActionConfigClone(const AxrFloatInputActionConfig* inputActionConfig) {
     if (inputActionConfig == nullptr) {
         axrLogErrorLocation("`inputActionConfig` is null");
         return {};
     }
 
-    return AxrVec2InputAction::clone(*inputActionConfig);
+    return AxrFloatInputAction::clone(*inputActionConfig);
 }
 
-void axrVec2InputActionConfigDestroy(AxrVec2InputActionConfig* inputActionConfig) {
+void axrFloatInputActionConfigDestroy(AxrFloatInputActionConfig* inputActionConfig) {
     if (inputActionConfig == nullptr) {
         axrLogErrorLocation("`inputActionConfig` is null");
         return;
     }
 
-    return AxrVec2InputAction::destroy(*inputActionConfig);
+    return AxrFloatInputAction::destroy(*inputActionConfig);
+}
+
+bool axrFloatInputActionWasValueSetThisFrame(const AxrFloatInputActionConst_T inputAction) {
+    if (inputAction == nullptr) {
+        axrLogErrorLocation("`inputAction` is null");
+        return 0.0f;
+    }
+
+    return inputAction->wasValueSetThisFrame();
+}
+
+float axrFloatInputActionGetValue(const AxrFloatInputActionConst_T inputAction) {
+    if (inputAction == nullptr) {
+        axrLogErrorLocation("`inputAction` is null");
+        return false;
+    }
+
+    return inputAction->getValue();
 }
 
 // ----------------------------------------- //
@@ -34,10 +50,10 @@ void axrVec2InputActionConfigDestroy(AxrVec2InputActionConfig* inputActionConfig
 
 // ---- Special Functions ----
 
-AxrVec2InputAction::AxrVec2InputAction(const Config& config):
+AxrFloatInputAction::AxrFloatInputAction(const Config& config):
     m_Name(config.Name),
     m_LocalizedName(config.LocalizedName),
-    m_Value(glm::vec2(0.0f)),
+    m_Value(0.0f),
     m_WasTriggeredThisFrame(false) {
     if (config.Bindings != nullptr) {
         for (uint32_t i = 0; i < config.BindingCount; ++i) {
@@ -46,7 +62,7 @@ AxrVec2InputAction::AxrVec2InputAction(const Config& config):
     }
 }
 
-AxrVec2InputAction::AxrVec2InputAction(AxrVec2InputAction&& src) noexcept {
+AxrFloatInputAction::AxrFloatInputAction(AxrFloatInputAction&& src) noexcept {
     m_Name = std::move(src.m_Name);
     m_LocalizedName = std::move(src.m_LocalizedName);
     m_Bindings = std::move(src.m_Bindings);
@@ -54,15 +70,15 @@ AxrVec2InputAction::AxrVec2InputAction(AxrVec2InputAction&& src) noexcept {
     m_Value = src.m_Value;
     m_WasTriggeredThisFrame = src.m_WasTriggeredThisFrame;
 
-    src.m_Value = glm::vec2(0.0f);
+    src.m_Value = 0.0f;
     src.m_WasTriggeredThisFrame = false;
 }
 
-AxrVec2InputAction::~AxrVec2InputAction() {
+AxrFloatInputAction::~AxrFloatInputAction() {
     cleanup();
 }
 
-AxrVec2InputAction& AxrVec2InputAction::operator=(AxrVec2InputAction&& src) noexcept {
+AxrFloatInputAction& AxrFloatInputAction::operator=(AxrFloatInputAction&& src) noexcept {
     if (this != &src) {
         cleanup();
 
@@ -73,27 +89,39 @@ AxrVec2InputAction& AxrVec2InputAction::operator=(AxrVec2InputAction&& src) noex
         m_Value = src.m_Value;
         m_WasTriggeredThisFrame = src.m_WasTriggeredThisFrame;
 
-        src.m_Value = glm::vec2(0.0f);
+        src.m_Value = 0.0f;
         src.m_WasTriggeredThisFrame = false;
     }
     return *this;
 }
 
-bool AxrVec2InputAction::containsBinding(const AxrVec2InputActionEnum biding) const {
+// ---- Public Functions ----
+
+bool AxrFloatInputAction::wasValueSetThisFrame() const {
+    return m_WasTriggeredThisFrame;
+}
+
+float AxrFloatInputAction::getValue() const {
+    return m_Value;
+}
+
+void AxrFloatInputAction::newFrameStarted() {
+    m_WasTriggeredThisFrame = false;
+}
+
+bool AxrFloatInputAction::containsBinding(const AxrFloatInputActionEnum biding) const {
     return m_Bindings.contains(biding);
 }
 
-void AxrVec2InputAction::trigger(const glm::vec2& value) {
+void AxrFloatInputAction::trigger(const float value) {
     m_Value = value;
     m_WasTriggeredThisFrame = true;
 }
 
-// ---- Public Functions ----
-
 // ---- Public Static Functions ----
 
-AxrVec2InputActionConfig AxrVec2InputAction::clone(const AxrVec2InputActionConfig& inputActionConfig) {
-    AxrVec2InputActionConfig config{
+AxrFloatInputActionConfig AxrFloatInputAction::clone(const AxrFloatInputActionConfig& inputActionConfig) {
+    AxrFloatInputActionConfig config{
         .Name = {},
         .LocalizedName = {},
         .BindingCount = inputActionConfig.BindingCount,
@@ -104,7 +132,7 @@ AxrVec2InputActionConfig AxrVec2InputAction::clone(const AxrVec2InputActionConfi
     strncpy_s(config.LocalizedName, inputActionConfig.LocalizedName, AXR_MAX_IO_ACTION_NAME_SIZE);
 
     if (inputActionConfig.BindingCount != 0 && inputActionConfig.Bindings != nullptr) {
-        config.Bindings = new AxrVec2InputActionEnum[inputActionConfig.BindingCount]{};
+        config.Bindings = new AxrFloatInputActionEnum[inputActionConfig.BindingCount]{};
 
         for (uint32_t i = 0; i < inputActionConfig.BindingCount; ++i) {
             config.Bindings[i] = inputActionConfig.Bindings[i];
@@ -114,7 +142,7 @@ AxrVec2InputActionConfig AxrVec2InputAction::clone(const AxrVec2InputActionConfi
     return config;
 }
 
-void AxrVec2InputAction::destroy(AxrVec2InputActionConfig& inputActionConfig) {
+void AxrFloatInputAction::destroy(AxrFloatInputActionConfig& inputActionConfig) {
     memset(inputActionConfig.Name, 0, sizeof(inputActionConfig.Name));
     memset(inputActionConfig.LocalizedName, 0, sizeof(inputActionConfig.LocalizedName));
 
@@ -125,11 +153,12 @@ void AxrVec2InputAction::destroy(AxrVec2InputActionConfig& inputActionConfig) {
     inputActionConfig.BindingCount = 0;
 }
 
-void AxrVec2InputAction::cleanup() {
+// ---- Private Functions ----
+
+void AxrFloatInputAction::cleanup() {
     m_Name.clear();
     m_LocalizedName.clear();
     m_Bindings.clear();
-
-    m_Value = glm::vec2(0.0f);
+    m_Value = 0.0f;
     m_WasTriggeredThisFrame = false;
 }

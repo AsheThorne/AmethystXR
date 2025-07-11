@@ -3,7 +3,7 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/ioActionsSystem.h"
+#include "axr/ioActionSystem.h"
 
 namespace axr {
     // ----------------------------------------- //
@@ -1086,8 +1086,8 @@ namespace axr {
         "Original type and wrapper have different size!"
     );
 
-    /// Input/Output actions system config
-    struct IOActionsSystemConfig {
+    /// Input/Output action system config
+    struct IOActionSystemConfig {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
@@ -1101,25 +1101,25 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        IOActionsSystemConfig() = default;
+        IOActionSystemConfig() = default;
 
         /// Constructor
         /// @param ioActionSets Input/Output action sets
-        IOActionsSystemConfig(
+        IOActionSystemConfig(
             const std::vector<axr::IOActionSetConfig>& ioActionSets
         ) {
             addIOActionSets(ioActionSets);
         }
 
         /// Copy Constructor
-        /// @param src Source IOActionsSystemConfig to copy from
-        IOActionsSystemConfig(const IOActionsSystemConfig& src) {
+        /// @param src Source IOActionSystemConfig to copy from
+        IOActionSystemConfig(const IOActionSystemConfig& src) {
             addIOActionSets(src.IOActionSetCount, src.IOActionSets);
         }
 
         /// Move Constructor
-        /// @param src Source IOActionsSystemConfig to move from
-        IOActionsSystemConfig(IOActionsSystemConfig&& src) noexcept {
+        /// @param src Source IOActionSystemConfig to move from
+        IOActionSystemConfig(IOActionSystemConfig&& src) noexcept {
             IOActionSetCount = src.IOActionSetCount;
             IOActionSets = src.IOActionSets;
 
@@ -1129,15 +1129,15 @@ namespace axr {
 
         // ---- Destructor ----
 
-        ~IOActionsSystemConfig() {
+        ~IOActionSystemConfig() {
             cleanup();
         }
 
         // ---- Operator Overloads ----
 
         /// Copy Assignment Operator
-        /// @param src Source IOActionsSystemConfig to copy from
-        IOActionsSystemConfig& operator=(const IOActionsSystemConfig& src) {
+        /// @param src Source IOActionSystemConfig to copy from
+        IOActionSystemConfig& operator=(const IOActionSystemConfig& src) {
             if (this != &src) {
                 cleanup();
 
@@ -1147,8 +1147,8 @@ namespace axr {
         }
 
         /// Move Assignment Operator
-        /// @param src Source IOActionsSystemConfig to move from
-        IOActionsSystemConfig& operator=(IOActionsSystemConfig&& src) noexcept {
+        /// @param src Source IOActionSystemConfig to move from
+        IOActionSystemConfig& operator=(IOActionSystemConfig&& src) noexcept {
             if (this != &src) {
                 cleanup();
 
@@ -1166,16 +1166,16 @@ namespace axr {
         // Public Functions
         // ----------------------------------------- //
 
-        /// Get a handle to the IOActionsSystemConfig as an AxrIOActionsSystemConfig
-        /// @returns This as an AxrIOActionsSystemConfig
-        const AxrIOActionsSystemConfig* toRaw() const {
-            return reinterpret_cast<const AxrIOActionsSystemConfig*>(this);
+        /// Get a handle to the IOActionSystemConfig as an AxrIOActionSystemConfig
+        /// @returns This as an AxrIOActionSystemConfig
+        const AxrIOActionSystemConfig* toRaw() const {
+            return reinterpret_cast<const AxrIOActionSystemConfig*>(this);
         }
 
-        /// Get a handle to the IOActionsSystemConfig as an AxrIOActionsSystemConfig
-        /// @returns This as an AxrIOActionsSystemConfig
-        AxrIOActionsSystemConfig* toRaw() {
-            return reinterpret_cast<AxrIOActionsSystemConfig*>(this);
+        /// Get a handle to the IOActionSystemConfig as an AxrIOActionSystemConfig
+        /// @returns This as an AxrIOActionSystemConfig
+        AxrIOActionSystemConfig* toRaw() {
+            return reinterpret_cast<AxrIOActionSystemConfig*>(this);
         }
 
         /// Add the given input/output action sets
@@ -1247,16 +1247,16 @@ namespace axr {
     };
 
     static_assert(
-        sizeof(AxrIOActionsSystemConfig) == sizeof(axr::IOActionsSystemConfig),
+        sizeof(AxrIOActionSystemConfig) == sizeof(axr::IOActionSystemConfig),
         "Original type and wrapper have different size!"
     );
 
     // ----------------------------------------- //
-    // Input/Output Actions System Definition
+    // Bool Input Action Definition
     // ----------------------------------------- //
 
-    /// Input/Output Actions System
-    class IOActionsSystem {
+    /// Bool Input Action
+    class BoolInputAction {
     public:
         // ----------------------------------------- //
         // Special Functions
@@ -1265,19 +1265,203 @@ namespace axr {
         // ---- Constructors ----
 
         /// Constructor
-        /// @param ioActionsSystem Input/Output actions system handle
-        IOActionsSystem(const AxrIOActionsSystem_T ioActionsSystem):
-            m_IOActionsSystem(ioActionsSystem) {
+        /// @param boolInputAction Bool input action handle
+        explicit BoolInputAction(const AxrBoolInputAction_T boolInputAction):
+            m_BoolInputAction(boolInputAction) {
         }
 
         // ----------------------------------------- //
         // Public Functions
         // ----------------------------------------- //
 
+        /// Check if the value was set this frame
+        /// @returns True if the value was set this frame
+        [[nodiscard]] bool wasValueSetThisFrame() const {
+            return axrBoolInputActionWasValueSetThisFrame(m_BoolInputAction);
+        }
+
+        /// Get the current value of this input action
+        /// @returns The current value of this input action
+        [[nodiscard]] bool getValue() const {
+            return axrBoolInputActionGetValue(m_BoolInputAction);
+        }
+
     private:
         // ----------------------------------------- //
         // Private Variables
         // ----------------------------------------- //
-        AxrIOActionsSystem_T m_IOActionsSystem;
+        AxrBoolInputAction_T m_BoolInputAction;
+    };
+
+    // ----------------------------------------- //
+    // Float Input Action Definition
+    // ----------------------------------------- //
+
+    /// Float Input Action
+    class FloatInputAction {
+    public:
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Constructor
+        /// @param floatInputAction Float input action handle
+        explicit FloatInputAction(const AxrFloatInputAction_T floatInputAction):
+            m_FloatInputAction(floatInputAction) {
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Check if the value was set this frame
+        /// @returns True if the value was set this frame
+        [[nodiscard]] bool wasValueSetThisFrame() const {
+            return axrFloatInputActionWasValueSetThisFrame(m_FloatInputAction);
+        }
+
+        /// Get the current value of this input action
+        /// @returns The current value of this input action
+        [[nodiscard]] float getValue() const {
+            return axrFloatInputActionGetValue(m_FloatInputAction);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Variables
+        // ----------------------------------------- //
+        AxrFloatInputAction_T m_FloatInputAction;
+    };
+
+    // ----------------------------------------- //
+    // Vec2 Input Action Definition
+    // ----------------------------------------- //
+
+    /// Vec2 Input Action
+    class Vec2InputAction {
+    public:
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Constructor
+        /// @param vec2InputAction Vec2 input action handle
+        explicit Vec2InputAction(const AxrVec2InputAction_T vec2InputAction):
+            m_Vec2InputAction(vec2InputAction) {
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Check if the value was set this frame
+        /// @returns True if the value was set this frame
+        [[nodiscard]] bool wasValueSetThisFrame() const {
+            return axrVec2InputActionWasValueSetThisFrame(m_Vec2InputAction);
+        }
+
+        /// Get the current value of this input action
+        /// @returns The current value of this input action
+        [[nodiscard]] glm::vec2 getValue() const {
+            return axrVec2InputActionGetValue(m_Vec2InputAction);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Variables
+        // ----------------------------------------- //
+        AxrVec2InputAction_T m_Vec2InputAction;
+    };
+
+    // ----------------------------------------- //
+    // Input/Output Action Set Definition
+    // ----------------------------------------- //
+
+    /// Input/Output Action Set
+    class IOActionSet {
+    public:
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Constructor
+        /// @param iOActionSet Input/Output action set handle
+        explicit IOActionSet(const AxrIOActionSet_T iOActionSet):
+            m_IOActionSet(iOActionSet) {
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get the named bool input action
+        /// @param name Bool input action name
+        /// @returns The bool input action or nullptr if it wasn't found
+        [[nodiscard]] axr::BoolInputAction getBoolInputAction(const char* name) const {
+            return axr::BoolInputAction(axrIOActionSetGetBoolInputAction(m_IOActionSet, name));
+        }
+
+        /// Get the named float input action
+        /// @param name Float input action name
+        /// @returns The float input action or nullptr if it wasn't found
+        [[nodiscard]] axr::FloatInputAction getFloatInputAction(const char* name) const {
+            return axr::FloatInputAction(axrIOActionSetGetFloatInputAction(m_IOActionSet, name));
+        }
+
+        /// Get the named vec2 input action
+        /// @param name Vec2 input action name
+        /// @returns The vec2 input action or nullptr if it wasn't found
+        [[nodiscard]] axr::Vec2InputAction getVec2InputAction(const char* name) const {
+            return axr::Vec2InputAction(axrIOActionSetGetVec2InputAction(m_IOActionSet, name));
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Variables
+        // ----------------------------------------- //
+        AxrIOActionSet_T m_IOActionSet;
+    };
+
+    // ----------------------------------------- //
+    // Input/Output Action System Definition
+    // ----------------------------------------- //
+
+    /// Input/Output Action System
+    class IOActionSystem {
+    public:
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Constructor
+        /// @param ioActionSystem Input/Output action system handle
+        explicit IOActionSystem(const AxrIOActionSystem_T ioActionSystem):
+            m_IOActionSystem(ioActionSystem) {
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get the named input/output action set
+        /// @param name Input/Output action set name
+        /// @returns The input/output action set or nullptr if it wasn't found
+        axr::IOActionSet getIOActionSet(const char* name) const {
+            return axr::IOActionSet(axrIOActionSystemGetIOActionSet(m_IOActionSystem, name));
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Variables
+        // ----------------------------------------- //
+        AxrIOActionSystem_T m_IOActionSystem;
     };
 }

@@ -84,13 +84,13 @@ AxrGraphicsSystem_T axrApplicationGetGraphicsSystem(const AxrApplication_T app) 
     return app->getGraphicsSystem();
 }
 
-AxrIOActionsSystem_T axrApplicationGetIOActionsSystem(const AxrApplication_T app) {
+AxrIOActionSystem_T axrApplicationGetIOActionSystem(const AxrApplication_T app) {
     if (app == nullptr) {
         axrLogErrorLocation("`app` is null.");
         return nullptr;
     }
 
-    return app->getIOActionsSystem();
+    return app->getIOActionSystem();
 }
 
 AxrAssetCollection_T axrApplicationGetGlobalAssetCollection(const AxrApplication_T app) {
@@ -175,7 +175,7 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
             return AxrWindowSystem(
                 AxrWindowSystem::Config{
                     .ApplicationName = config.ApplicationName,
-                    .IOActionsSystem = &m_IOActionsSystem,
+                    .IOActionSystem = &m_IOActionSystem,
                     .Width = config.WindowSystemConfig->Width,
                     .Height = config.WindowSystemConfig->Height,
                 }
@@ -202,10 +202,10 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
             );
         }()
     ),
-    m_IOActionsSystem(
-        AxrIOActionsSystem::Config{
-            .ActionSetCount = config.IOActionsSystemConfig.IOActionSetCount,
-            .ActionSets = config.IOActionsSystemConfig.IOActionSets,
+    m_IOActionSystem(
+        AxrIOActionSystem::Config{
+            .ActionSetCount = config.IOActionSystemConfig.IOActionSetCount,
+            .ActionSets = config.IOActionSystemConfig.IOActionSets,
         }
     ),
     m_DeltaTime(0) {
@@ -213,7 +213,7 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
 
 AxrApplication::~AxrApplication() {
     m_GraphicsSystem.resetSetup();
-    m_IOActionsSystem.resetSetup();
+    m_IOActionSystem.resetSetup();
     m_WindowSystem.resetSetup();
     m_XrSystem.resetSetup();
     m_GlobalAssetCollection.cleanup();
@@ -237,7 +237,7 @@ AxrResult AxrApplication::setup() {
         if (AXR_FAILED(axrResult)) return axrResult;
     }
 
-    axrResult = m_IOActionsSystem.setup();
+    axrResult = m_IOActionSystem.setup();
     if (AXR_FAILED(axrResult)) return axrResult;
 
     axrResult = m_GraphicsSystem.setup();
@@ -262,6 +262,8 @@ bool AxrApplication::isRunning() const {
 }
 
 void AxrApplication::processEvents() {
+    m_IOActionSystem.newFrameStarted();
+    
     if (m_WindowSystem.isValid()) {
         m_WindowSystem.processEvents();
     }
@@ -288,8 +290,8 @@ AxrGraphicsSystem_T AxrApplication::getGraphicsSystem() {
     return &m_GraphicsSystem;
 }
 
-AxrIOActionsSystem_T AxrApplication::getIOActionsSystem() {
-    return &m_IOActionsSystem;
+AxrIOActionSystem_T AxrApplication::getIOActionSystem() {
+    return &m_IOActionSystem;
 }
 
 AxrAssetCollection_T AxrApplication::getGlobalAssetCollection() {

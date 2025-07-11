@@ -3,7 +3,7 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/ioActionsSystem.h"
+#include "axr/ioActionSystem.h"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -59,6 +59,21 @@ public:
     // ----------------------------------------- //
     // Public Functions
     // ----------------------------------------- //
+
+    /// Check if the value was set this frame
+    /// @returns True if the value was set this frame
+    [[nodiscard]] bool wasValueSetThisFrame() const;
+
+    /// Get the current value of this input action
+    /// @returns The current value of this input action
+    [[nodiscard]] float getValue() const;
+
+    // ---- For Internal Use ----
+    // These functions are only to be used internally in the AmethystXr engine.
+    // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
+
+    /// Signal that a new frame has started
+    void newFrameStarted();
 
     /// Check if this input action contains the given binding
     /// @param biding Binding to check
