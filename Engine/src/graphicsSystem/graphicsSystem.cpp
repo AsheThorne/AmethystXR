@@ -17,7 +17,7 @@ void axrGraphicsSystemDrawFrame(const AxrGraphicsSystem_T graphicsSystem) {
     graphicsSystem->drawFrame();
 }
 
-void axrGraphicsSystemSetClearColor(const AxrGraphicsSystemConst_T graphicsSystem, const glm::vec4 color) {
+void axrGraphicsSystemSetClearColor(const AxrGraphicsSystemConst_T graphicsSystem, const AxrColor color) {
     if (graphicsSystem == nullptr) {
         axrLogErrorLocation("`graphicsSystem` is null.");
         return;
@@ -121,7 +121,7 @@ void AxrGraphicsSystem::drawFrame() {
     }
 }
 
-void AxrGraphicsSystem::setClearColor(const glm::vec4& color) const {
+void AxrGraphicsSystem::setClearColor(const AxrColor& color) const {
     switch (m_GraphicsApi) {
         case AXR_GRAPHICS_API_VULKAN: {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN

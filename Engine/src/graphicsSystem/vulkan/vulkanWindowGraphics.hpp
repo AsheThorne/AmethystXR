@@ -92,7 +92,7 @@ public:
 
     /// Set the clear color
     /// @param color Clear color
-    void setClearColor(const glm::vec4& color);
+    void setClearColor(const AxrColor& color);
 
     /// Set up vulkan window graphics
     /// @param config Setup config
@@ -196,7 +196,7 @@ private:
     /// Ordered from most desired to the least desired
     std::vector<vk::Format> m_SwapchainDepthFormatOptions;
 
-    glm::vec4 m_ClearColor;
+    AxrColor m_ClearColor;
     vk::ImageLayout m_SwapchainImageLayout;
     vk::SurfaceKHR m_Surface;
     vk::SurfaceFormatKHR m_SwapchainColorFormat;

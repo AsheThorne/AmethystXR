@@ -56,7 +56,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
                         "Click",
                         "Click",
                         std::vector{
-                            axr::BoolInputActionEnum::MouseClickM,
+                            axr::BoolInputActionEnum::MouseClickL,
                             axr::BoolInputActionEnum::MouseClickR,
                         }
                     ),
@@ -64,7 +64,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
                         "DoubleClick",
                         "DoubleClick",
                         std::vector{
-                            axr::BoolInputActionEnum::MouseDoubleClickM,
+                            axr::BoolInputActionEnum::MouseDoubleClickL,
                             axr::BoolInputActionEnum::MouseDoubleClickR,
                         }
                     ),
@@ -148,7 +148,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     }
 
     axr::GraphicsSystem graphicsSystem = app.getGraphicsSystem();
-    graphicsSystem.setClearColor(glm::vec4(0.2f, 0.05f, 0.2f, 1.0f));
+    graphicsSystem.setClearColor(axr::Color(0.2f, 0.05f, 0.2f, 1.0f));
 
     axr::IOActionSystem ioActionSystem = app.getIOActionSystem();
     axr::IOActionSet ioActionSet = ioActionSystem.getIOActionSet("Test");

@@ -111,7 +111,7 @@ public:
 
     /// Set the clear color
     /// @param color Clear color
-    void setClearColor(const glm::vec4& color);
+    void setClearColor(const AxrColor& color);
 
     /// Set up vulkan xr graphics
     /// @param config Setup config
@@ -245,7 +245,7 @@ private:
     std::vector<vk::Format> m_SwapchainDepthFormatOptions;
 
     // ---- Data ----
-    glm::vec4 m_ClearColor;
+    AxrColor m_ClearColor;
     bool m_IsReady;
     vk::Format m_SwapchainColorFormat;
     vk::Format m_SwapchainDepthFormat;

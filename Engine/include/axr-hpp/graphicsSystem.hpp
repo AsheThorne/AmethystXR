@@ -4,6 +4,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/graphicsSystem.h"
+#include "common/types.hpp"
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 #include "vulkanApi.hpp"
@@ -233,8 +234,8 @@ namespace axr {
 
         /// Set the clear color
         /// @param color Clear color
-        void setClearColor(const glm::vec4& color) const {
-            axrGraphicsSystemSetClearColor(m_GraphicsSystem, color);
+        void setClearColor(const axr::Color& color) const {
+            axrGraphicsSystemSetClearColor(m_GraphicsSystem, *color.toRaw());
         }
 
     private:

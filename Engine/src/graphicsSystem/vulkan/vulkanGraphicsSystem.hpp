@@ -110,7 +110,7 @@ public:
 
     /// Set the clear color
     /// @param color Clear color
-    void setClearColor(const glm::vec4& color) const;
+    void setClearColor(const AxrColor& color) const;
 
     /// Load the named scene
     /// @param scene Scene to load

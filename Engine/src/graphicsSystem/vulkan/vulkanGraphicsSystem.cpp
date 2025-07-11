@@ -186,7 +186,7 @@ void AxrVulkanGraphicsSystem::drawFrame() const {
     }
 }
 
-void AxrVulkanGraphicsSystem::setClearColor(const glm::vec4& color) const {
+void AxrVulkanGraphicsSystem::setClearColor(const AxrColor& color) const {
     if (m_WindowGraphics != nullptr) {
         m_WindowGraphics->setClearColor(color);
     }

@@ -68,7 +68,7 @@ public:
 
     /// Set the clear color
     /// @param color Clear color
-    void setClearColor(const glm::vec4& color) const;
+    void setClearColor(const AxrColor& color) const;
 
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
