@@ -33,12 +33,10 @@ namespace axr {
     enum class FloatInputActionEnum {
         Undefined = AXR_FLOAT_INPUT_ACTION_UNDEFINED,
 
-        // ---- Mouse - Max of 8 ----
+        // ---- Mouse - Max of 4 ----
         MouseStart = AXR_FLOAT_INPUT_ACTION_MOUSE_START,
-        MouseWheelUp = AXR_FLOAT_INPUT_ACTION_MOUSE_WHEEL_UP,
-        MouseWheelDown = AXR_FLOAT_INPUT_ACTION_MOUSE_WHEEL_DOWN,
-        MouseWheelHorizontalUp = AXR_FLOAT_INPUT_ACTION_MOUSE_WHEEL_HORIZONTAL_UP,
-        MouseWheelHorizontalDown = AXR_FLOAT_INPUT_ACTION_MOUSE_WHEEL_HORIZONTAL_DOWN,
+        MouseWheel = AXR_FLOAT_INPUT_ACTION_MOUSE_WHEEL,
+        MouseWheelHorizontal = AXR_FLOAT_INPUT_ACTION_MOUSE_WHEEL_HORIZONTAL,
         MouseEnd = AXR_FLOAT_INPUT_ACTION_MOUSE_END,
     };
 

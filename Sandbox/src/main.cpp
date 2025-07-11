@@ -74,9 +74,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
                         "MouseWheel",
                         "Mouse Wheel",
                         std::vector{
-                            // TODO: Combine mouse wheels into a single binding. up is + down is -
-                            axr::FloatInputActionEnum::MouseWheelUp,
-                            axr::FloatInputActionEnum::MouseWheelDown,
+                            axr::FloatInputActionEnum::MouseWheel,
                         }
                     ),
                 },

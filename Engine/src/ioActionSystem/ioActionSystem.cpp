@@ -520,11 +520,7 @@ void AxrIOActionSystem::processWin32MouseScrollInput(const RAWINPUT* rawInput) {
         const auto wheelDelta = static_cast<short>(rawInput->data.mouse.usButtonData);
         const float scrollDelta = static_cast<float>(wheelDelta) / WHEEL_DELTA;
 
-        if (scrollDelta < 0) {
-            triggerFloatInputAction(AXR_FLOAT_INPUT_ACTION_MOUSE_WHEEL_DOWN, scrollDelta * -1);
-        } else if (scrollDelta > 0) {
-            triggerFloatInputAction(AXR_FLOAT_INPUT_ACTION_MOUSE_WHEEL_UP, scrollDelta);
-        }
+        triggerFloatInputAction(AXR_FLOAT_INPUT_ACTION_MOUSE_WHEEL, scrollDelta);
     }
 
     // Horizontal Scroll Wheel
@@ -532,11 +528,7 @@ void AxrIOActionSystem::processWin32MouseScrollInput(const RAWINPUT* rawInput) {
         const auto wheelDelta = static_cast<short>(rawInput->data.mouse.usButtonData);
         const float scrollDelta = static_cast<float>(wheelDelta) / WHEEL_DELTA;
 
-        if (scrollDelta < 0) {
-            triggerFloatInputAction(AXR_FLOAT_INPUT_ACTION_MOUSE_WHEEL_HORIZONTAL_DOWN, scrollDelta * -1);
-        } else if (scrollDelta > 0) {
-            triggerFloatInputAction(AXR_FLOAT_INPUT_ACTION_MOUSE_WHEEL_HORIZONTAL_UP, scrollDelta);
-        }
+        triggerFloatInputAction(AXR_FLOAT_INPUT_ACTION_MOUSE_WHEEL_HORIZONTAL, scrollDelta);
     }
 }
 #endif
