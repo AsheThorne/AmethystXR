@@ -388,6 +388,11 @@ extern "C" {
 
     // ---- Input/Output Action Set ----
 
+    /// Set the priority over other action sets. Higher number = Higher priority.
+    /// @param ioActionSet Input/Output action set to use
+    /// @param priority new priority
+    void axrIOActionSetSetPriority(AxrIOActionSet_T ioActionSet, uint32_t priority);
+
     /// Get the named bool input action
     /// @param ioActionSet Input/Output action set to use
     /// @param name Bool input action name

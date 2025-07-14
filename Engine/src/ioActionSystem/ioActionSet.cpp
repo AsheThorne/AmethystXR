@@ -29,6 +29,15 @@ void axrIOActionSetConfigDestroy(AxrIOActionSetConfig* ioActionSetConfig) {
     return AxrIOActionSet::destroy(*ioActionSetConfig);
 }
 
+void axrIOActionSetSetPriority(const AxrIOActionSet_T ioActionSet, const uint32_t priority) {
+    if (ioActionSet == nullptr) {
+        axrLogErrorLocation("`ioActionSet` is null");
+        return;
+    }
+
+    return ioActionSet->setPriority(priority);
+}
+
 AxrBoolInputAction_T axrIOActionSetGetBoolInputAction(const AxrIOActionSet_T ioActionSet, const char* name) {
     if (ioActionSet == nullptr) {
         axrLogErrorLocation("`ioActionSet` is null");
@@ -82,7 +91,6 @@ AxrIOActionSet::AxrIOActionSet(const Config& config):
     m_LocalizedName(config.LocalizedName),
     // TODO: Make this config variable
     m_IsEnabled(true),
-    // TODO: Make this config variable
     m_Priority(0),
     m_XrSystem(nullptr),
     m_XrActionSet(XR_NULL_HANDLE) {
@@ -305,6 +313,10 @@ void AxrIOActionSet::newFrameStarted() {
     }
 }
 
+void AxrIOActionSet::setPriority(const uint32_t priority) {
+    m_Priority = priority;
+}
+
 std::unordered_map<std::string, AxrBoolInputAction>& AxrIOActionSet::getBoolInputActions() {
     return m_BoolInputActions;
 }
@@ -329,7 +341,7 @@ void AxrIOActionSet::updateXrActionValues() {
     for (AxrFloatInputAction& inputAction : m_FloatInputActions | std::ranges::views::values) {
         inputAction.updateXrActionValue();
     }
-    
+
     for (AxrVec2InputAction& inputAction : m_Vec2InputActions | std::ranges::views::values) {
         inputAction.updateXrActionValue();
     }

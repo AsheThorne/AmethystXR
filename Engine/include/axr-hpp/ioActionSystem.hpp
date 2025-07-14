@@ -1691,6 +1691,12 @@ namespace axr {
         // Public Functions
         // ----------------------------------------- //
 
+        /// Set the priority over other action sets. Higher number = Higher priority.
+        /// @param priority new priority
+        void setPriority(const uint32_t priority) const {
+            axrIOActionSetSetPriority(m_IOActionSet, priority);
+        }
+
         /// Get the named bool input action
         /// @param name Bool input action name
         /// @returns The bool input action or nullptr if it wasn't found

@@ -102,6 +102,10 @@ public:
     /// Signal that a new frame has started
     void newFrameStarted();
 
+    /// Set the priority over other action sets. Higher number = Higher priority.
+    /// @param priority new priority
+    void setPriority(uint32_t priority);
+
     /// Get the bool input actions
     /// @returns The bool input actions
     [[nodiscard]] std::unordered_map<std::string, AxrBoolInputAction>& getBoolInputActions();
