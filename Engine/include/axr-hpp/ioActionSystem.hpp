@@ -11,6 +11,30 @@ namespace axr {
     // Enums
     // ----------------------------------------- //
 
+    /// Input/Output action xr visibility enum
+    ///
+    /// Auto -> Only if there's an action with xr binding, make it available for an xr session to use and modify.
+    ///
+    /// Always -> Even if there's no action with an xr binding, make it available for an xr session to use and modify.
+    /// This can be useful if the action is meant for desktop use, but an xr session is allowed to map its own inputs to it.
+    ///
+    /// Never -> Never make this available to an xr session to use or modify.
+    /// Warning: Even if there's an action with an xr binding attached, it'll never work for any xr binding.
+    enum class IOActionXrVisibilityEnum {
+        Auto = AXR_IO_ACTION_XR_VISIBILITY_AUTO,
+        Always = AXR_IO_ACTION_XR_VISIBILITY_ALWAYS,
+        Never = AXR_IO_ACTION_XR_VISIBILITY_NEVER,
+    };
+
+    /// Xr interaction profile enum
+    enum class XrInteractionProfileEnum {
+        Undefined = AXR_XR_INTERACTION_PROFILE_UNDEFINED,
+        /// https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#_khronos_simple_controller_profile
+        SimpleController = AXR_XR_INTERACTION_PROFILE_SIMPLE_CONTROLLER,
+        /// https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#_valve_index_controller_profile
+        ValveIndexController = AXR_XR_INTERACTION_PROFILE_VALVE_INDEX_CONTROLLER,
+    };
+
     /// Bool input action enum
     enum class BoolInputActionEnum {
         Undefined = AXR_BOOL_INPUT_ACTION_UNDEFINED,
@@ -129,6 +153,32 @@ namespace axr {
         KeyboardOem6_ClosedSquareBracket_Braces = AXR_BOOL_INPUT_ACTION_KEYBOARD_OEM6_CLOSED_SQUARE_BRACKET_BRACES,
         KeyboardOem7_Quotes = AXR_BOOL_INPUT_ACTION_KEYBOARD_OEM7_QUOTES,
         KeyboardEnd = AXR_BOOL_INPUT_ACTION_KEYBOARD_END,
+
+        // ---- XR - Max of 128 ----
+        XrStart = AXR_BOOL_INPUT_ACTION_XR_START,
+        XrController_Left_Select_Click = AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_LEFT_SELECT_CLICK,
+        XrController_Right_Select_Click = AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_RIGHT_SELECT_CLICK,
+        XrController_Left_Menu_Click = AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_LEFT_MENU_CLICK,
+        XrController_Right_Menu_Click = AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_RIGHT_MENU_CLICK,
+        XrController_Left_A_Click = AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_LEFT_A_CLICK,
+        XrController_Right_A_Click = AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_RIGHT_A_CLICK,
+        XrController_Left_A_Touch = AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_LEFT_A_TOUCH,
+        XrController_Right_A_Touch = AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_RIGHT_A_TOUCH,
+        XrController_Left_B_Click = AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_LEFT_B_CLICK,
+        XrController_Right_B_Click = AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_RIGHT_B_CLICK,
+        XrController_Left_B_Touch = AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_LEFT_B_TOUCH,
+        XrController_Right_B_Touch = AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_RIGHT_B_TOUCH,
+        XrController_Left_Trigger_Click = AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_LEFT_TRIGGER_CLICK,
+        XrController_Right_Trigger_Click = AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_RIGHT_TRIGGER_CLICK,
+        XrController_Left_Trigger_Touch = AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_LEFT_TRIGGER_TOUCH,
+        XrController_Right_Trigger_Touch = AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_RIGHT_TRIGGER_TOUCH,
+        XrController_Left_Thumbstick_Click = AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_LEFT_THUMBSTICK_CLICK,
+        XrController_Right_Thumbstick_Click = AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_RIGHT_THUMBSTICK_CLICK,
+        XrController_Left_Thumbstick_Touch = AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_LEFT_THUMBSTICK_TOUCH,
+        XrController_Right_Thumbstick_Touch = AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_RIGHT_THUMBSTICK_TOUCH,
+        XrController_Left_Trackpad_Touch = AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_LEFT_TRACKPAD_TOUCH,
+        XrController_Right_Trackpad_Touch = AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_RIGHT_TRACKPAD_TOUCH,
+        XrEnd = AXR_BOOL_INPUT_ACTION_XR_END,
     };
 
     /// Float input action enum
@@ -140,6 +190,26 @@ namespace axr {
         MouseWheel = AXR_FLOAT_INPUT_ACTION_MOUSE_WHEEL,
         MouseWheelHorizontal = AXR_FLOAT_INPUT_ACTION_MOUSE_WHEEL_HORIZONTAL,
         MouseEnd = AXR_FLOAT_INPUT_ACTION_MOUSE_END,
+
+        // ---- XR - Max of 128 ----
+        XrStart = AXR_FLOAT_INPUT_ACTION_XR_START,
+        XrController_Left_Squeeze_Value = AXR_FLOAT_INPUT_ACTION_XR_CONTROLLER_LEFT_SQUEEZE_VALUE,
+        XrController_Right_Squeeze_Value = AXR_FLOAT_INPUT_ACTION_XR_CONTROLLER_RIGHT_SQUEEZE_VALUE,
+        XrController_Left_Squeeze_Force = AXR_FLOAT_INPUT_ACTION_XR_CONTROLLER_LEFT_SQUEEZE_FORCE,
+        XrController_Right_Squeeze_Force = AXR_FLOAT_INPUT_ACTION_XR_CONTROLLER_RIGHT_SQUEEZE_FORCE,
+        XrController_Left_Trigger_Value = AXR_FLOAT_INPUT_ACTION_XR_CONTROLLER_LEFT_TRIGGER_VALUE,
+        XrController_Right_Trigger_Value = AXR_FLOAT_INPUT_ACTION_XR_CONTROLLER_RIGHT_TRIGGER_VALUE,
+        XrController_Left_Thumbstick_X = AXR_FLOAT_INPUT_ACTION_XR_CONTROLLER_LEFT_THUMBSTICK_X,
+        XrController_Right_Thumbstick_X = AXR_FLOAT_INPUT_ACTION_XR_CONTROLLER_RIGHT_THUMBSTICK_X,
+        XrController_Left_Thumbstick_Y = AXR_FLOAT_INPUT_ACTION_XR_CONTROLLER_LEFT_THUMBSTICK_Y,
+        XrController_Right_Thumbstick_Y = AXR_FLOAT_INPUT_ACTION_XR_CONTROLLER_RIGHT_THUMBSTICK_Y,
+        XrController_Left_Trackpad_X = AXR_FLOAT_INPUT_ACTION_XR_CONTROLLER_LEFT_TRACKPAD_X,
+        XrController_Right_Trackpad_X = AXR_FLOAT_INPUT_ACTION_XR_CONTROLLER_RIGHT_TRACKPAD_X,
+        XrController_Left_Trackpad_Y = AXR_FLOAT_INPUT_ACTION_XR_CONTROLLER_LEFT_TRACKPAD_Y,
+        XrController_Right_Trackpad_Y = AXR_FLOAT_INPUT_ACTION_XR_CONTROLLER_RIGHT_TRACKPAD_Y,
+        XrController_Left_Trackpad_Force = AXR_FLOAT_INPUT_ACTION_XR_CONTROLLER_LEFT_TRACKPAD_FORCE,
+        XrController_Right_Trackpad_Force = AXR_FLOAT_INPUT_ACTION_XR_CONTROLLER_RIGHT_TRACKPAD_FORCE,
+        XrEnd = AXR_FLOAT_INPUT_ACTION_XR_END,
     };
 
     /// Vec2 input action enum
@@ -151,6 +221,14 @@ namespace axr {
         MouseMoved = AXR_VEC2_INPUT_ACTION_MOUSE_MOVED,
         MousePosition = AXR_VEC2_INPUT_ACTION_MOUSE_POSITION,
         MouseEnd = AXR_VEC2_INPUT_ACTION_MOUSE_END,
+
+        // ---- XR - Max of 128 ----
+        XrStart = AXR_VEC2_INPUT_ACTION_XR_START,
+        XrController_Left_Thumbstick = AXR_VEC2_INPUT_ACTION_XR_CONTROLLER_LEFT_THUMBSTICK,
+        XrController_Right_Thumbstick = AXR_VEC2_INPUT_ACTION_XR_CONTROLLER_RIGHT_THUMBSTICK,
+        XrController_Left_Trackpad = AXR_VEC2_INPUT_ACTION_XR_CONTROLLER_LEFT_TRACKPAD,
+        XrController_Right_Trackpad = AXR_VEC2_INPUT_ACTION_XR_CONTROLLER_RIGHT_TRACKPAD,
+        XrEnd = AXR_VEC2_INPUT_ACTION_XR_END,
     };
 
     // ----------------------------------------- //
@@ -164,6 +242,7 @@ namespace axr {
         // ----------------------------------------- //
         char Name[AXR_MAX_IO_ACTION_NAME_SIZE]{};
         char LocalizedName[AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE]{};
+        axr::IOActionXrVisibilityEnum XrVisibility = {};
         uint32_t BindingCount = 0;
         axr::BoolInputActionEnum* Bindings = nullptr;
 
@@ -179,10 +258,12 @@ namespace axr {
         /// Constructor
         /// @param name Input action name
         /// @param localizedName Input action localized name
+        /// @param xrVisibility Xr visibility
         BoolInputActionConfig(
             const char* name,
-            const char* localizedName
-        ) {
+            const char* localizedName,
+            const axr::IOActionXrVisibilityEnum xrVisibility
+        ): XrVisibility(xrVisibility) {
             if (name != nullptr) {
                 strncpy_s(Name, name, AXR_MAX_IO_ACTION_NAME_SIZE);
             }
@@ -194,12 +275,14 @@ namespace axr {
         /// Constructor
         /// @param name Input action name
         /// @param localizedName Input action localized name
+        /// @param xrVisibility Xr visibility
         /// @param bindings Bool bindings
         BoolInputActionConfig(
             const char* name,
             const char* localizedName,
+            const axr::IOActionXrVisibilityEnum xrVisibility,
             const std::vector<axr::BoolInputActionEnum>& bindings
-        ) {
+        ): XrVisibility(xrVisibility) {
             if (name != nullptr) {
                 strncpy_s(Name, name, AXR_MAX_IO_ACTION_NAME_SIZE);
             }
@@ -215,11 +298,13 @@ namespace axr {
         explicit BoolInputActionConfig(AxrBoolInputActionConfig&& src) noexcept {
             strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
             strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+            XrVisibility = static_cast<axr::IOActionXrVisibilityEnum>(src.XrVisibility);
             BindingCount = src.BindingCount;
             Bindings = reinterpret_cast<axr::BoolInputActionEnum*>(src.Bindings);
 
             memset(src.Name, 0, sizeof(src.Name));
             memset(src.LocalizedName, 0, sizeof(src.LocalizedName));
+            src.XrVisibility = {};
             src.BindingCount = 0;
             src.Bindings = nullptr;
         }
@@ -229,6 +314,7 @@ namespace axr {
         BoolInputActionConfig(const BoolInputActionConfig& src) {
             strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
             strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+            XrVisibility = src.XrVisibility;
             addBindings(src.BindingCount, src.Bindings);
         }
 
@@ -237,11 +323,13 @@ namespace axr {
         BoolInputActionConfig(BoolInputActionConfig&& src) noexcept {
             strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
             strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+            XrVisibility = src.XrVisibility;
             BindingCount = src.BindingCount;
             Bindings = src.Bindings;
 
             memset(src.Name, 0, sizeof(src.Name));
             memset(src.LocalizedName, 0, sizeof(src.LocalizedName));
+            src.XrVisibility = {};
             src.BindingCount = 0;
             src.Bindings = nullptr;
         }
@@ -262,6 +350,7 @@ namespace axr {
 
                 strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
                 strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+                XrVisibility = src.XrVisibility;
                 addBindings(src.BindingCount, src.Bindings);
             }
             return *this;
@@ -275,11 +364,13 @@ namespace axr {
 
                 strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
                 strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+                XrVisibility = src.XrVisibility;
                 BindingCount = src.BindingCount;
                 Bindings = src.Bindings;
 
                 memset(src.Name, 0, sizeof(src.Name));
                 memset(src.LocalizedName, 0, sizeof(src.LocalizedName));
+                src.XrVisibility = {};
                 src.BindingCount = 0;
                 src.Bindings = nullptr;
             }
@@ -346,6 +437,7 @@ namespace axr {
         void cleanup() {
             memset(Name, 0, sizeof(Name));
             memset(LocalizedName, 0, sizeof(LocalizedName));
+            XrVisibility = {};
             clearBindings();
         }
 
@@ -376,6 +468,7 @@ namespace axr {
         // ----------------------------------------- //
         char Name[AXR_MAX_IO_ACTION_NAME_SIZE]{};
         char LocalizedName[AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE]{};
+        axr::IOActionXrVisibilityEnum XrVisibility = {};
         uint32_t BindingCount = 0;
         axr::FloatInputActionEnum* Bindings = nullptr;
 
@@ -391,10 +484,12 @@ namespace axr {
         /// Constructor
         /// @param name Input action name
         /// @param localizedName Input action localized name
+        /// @param xrVisibility Xr visibility
         FloatInputActionConfig(
             const char* name,
-            const char* localizedName
-        ) {
+            const char* localizedName,
+            const axr::IOActionXrVisibilityEnum xrVisibility
+        ): XrVisibility(xrVisibility) {
             if (name != nullptr) {
                 strncpy_s(Name, name, AXR_MAX_IO_ACTION_NAME_SIZE);
             }
@@ -406,12 +501,14 @@ namespace axr {
         /// Constructor
         /// @param name Input action name
         /// @param localizedName Input action localized name
+        /// @param xrVisibility Xr visibility
         /// @param bindings Float bindings
         FloatInputActionConfig(
             const char* name,
             const char* localizedName,
+            const axr::IOActionXrVisibilityEnum xrVisibility,
             const std::vector<axr::FloatInputActionEnum>& bindings
-        ) {
+        ): XrVisibility(xrVisibility) {
             if (name != nullptr) {
                 strncpy_s(Name, name, AXR_MAX_IO_ACTION_NAME_SIZE);
             }
@@ -427,11 +524,13 @@ namespace axr {
         explicit FloatInputActionConfig(AxrFloatInputActionConfig&& src) noexcept {
             strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
             strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+            XrVisibility = static_cast<axr::IOActionXrVisibilityEnum>(src.XrVisibility);
             BindingCount = src.BindingCount;
             Bindings = reinterpret_cast<axr::FloatInputActionEnum*>(src.Bindings);
 
             memset(src.Name, 0, sizeof(src.Name));
             memset(src.LocalizedName, 0, sizeof(src.LocalizedName));
+            src.XrVisibility = {};
             src.BindingCount = 0;
             src.Bindings = nullptr;
         }
@@ -441,6 +540,7 @@ namespace axr {
         FloatInputActionConfig(const FloatInputActionConfig& src) {
             strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
             strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+            XrVisibility = src.XrVisibility;
             addBindings(src.BindingCount, src.Bindings);
         }
 
@@ -449,11 +549,13 @@ namespace axr {
         FloatInputActionConfig(FloatInputActionConfig&& src) noexcept {
             strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
             strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+            XrVisibility = src.XrVisibility;
             BindingCount = src.BindingCount;
             Bindings = src.Bindings;
 
             memset(src.Name, 0, sizeof(src.Name));
             memset(src.LocalizedName, 0, sizeof(src.LocalizedName));
+            src.XrVisibility = {};
             src.BindingCount = 0;
             src.Bindings = nullptr;
         }
@@ -474,6 +576,7 @@ namespace axr {
 
                 strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
                 strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+                XrVisibility = src.XrVisibility;
                 addBindings(src.BindingCount, src.Bindings);
             }
             return *this;
@@ -487,11 +590,13 @@ namespace axr {
 
                 strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
                 strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+                XrVisibility = src.XrVisibility;
                 BindingCount = src.BindingCount;
                 Bindings = src.Bindings;
 
                 memset(src.Name, 0, sizeof(src.Name));
                 memset(src.LocalizedName, 0, sizeof(src.LocalizedName));
+                src.XrVisibility = {};
                 src.BindingCount = 0;
                 src.Bindings = nullptr;
             }
@@ -558,6 +663,7 @@ namespace axr {
         void cleanup() {
             memset(Name, 0, sizeof(Name));
             memset(LocalizedName, 0, sizeof(LocalizedName));
+            XrVisibility = {};
 
             clearBindings();
         }
@@ -589,6 +695,7 @@ namespace axr {
         // ----------------------------------------- //
         char Name[AXR_MAX_IO_ACTION_NAME_SIZE]{};
         char LocalizedName[AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE]{};
+        axr::IOActionXrVisibilityEnum XrVisibility = {};
         uint32_t BindingCount = 0;
         axr::Vec2InputActionEnum* Bindings = nullptr;
 
@@ -604,10 +711,12 @@ namespace axr {
         /// Constructor
         /// @param name Input action name
         /// @param localizedName Input action localized name
+        /// @param xrVisibility Xr visibility
         Vec2InputActionConfig(
             const char* name,
-            const char* localizedName
-        ) {
+            const char* localizedName,
+            const axr::IOActionXrVisibilityEnum xrVisibility
+        ): XrVisibility(xrVisibility) {
             if (name != nullptr) {
                 strncpy_s(Name, name, AXR_MAX_IO_ACTION_NAME_SIZE);
             }
@@ -619,12 +728,14 @@ namespace axr {
         /// Constructor
         /// @param name Input action name
         /// @param localizedName Input action localized name
+        /// @param xrVisibility Xr visibility
         /// @param bindings Vec2 bindings
         Vec2InputActionConfig(
             const char* name,
             const char* localizedName,
+            const axr::IOActionXrVisibilityEnum xrVisibility,
             const std::vector<axr::Vec2InputActionEnum>& bindings
-        ) {
+        ): XrVisibility(xrVisibility) {
             if (name != nullptr) {
                 strncpy_s(Name, name, AXR_MAX_IO_ACTION_NAME_SIZE);
             }
@@ -640,11 +751,13 @@ namespace axr {
         explicit Vec2InputActionConfig(AxrVec2InputActionConfig&& src) noexcept {
             strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
             strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+            XrVisibility = static_cast<axr::IOActionXrVisibilityEnum>(src.XrVisibility);
             BindingCount = src.BindingCount;
             Bindings = reinterpret_cast<axr::Vec2InputActionEnum*>(src.Bindings);
 
             memset(src.Name, 0, sizeof(src.Name));
             memset(src.LocalizedName, 0, sizeof(src.LocalizedName));
+            src.XrVisibility = {};
             src.BindingCount = 0;
             src.Bindings = nullptr;
         }
@@ -654,6 +767,7 @@ namespace axr {
         Vec2InputActionConfig(const Vec2InputActionConfig& src) {
             strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
             strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+            XrVisibility = src.XrVisibility;
             addBindings(src.BindingCount, src.Bindings);
         }
 
@@ -662,11 +776,13 @@ namespace axr {
         Vec2InputActionConfig(Vec2InputActionConfig&& src) noexcept {
             strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
             strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+            XrVisibility = src.XrVisibility;
             BindingCount = src.BindingCount;
             Bindings = src.Bindings;
 
             memset(src.Name, 0, sizeof(src.Name));
             memset(src.LocalizedName, 0, sizeof(src.LocalizedName));
+            src.XrVisibility = {};
             src.BindingCount = 0;
             src.Bindings = nullptr;
         }
@@ -687,6 +803,7 @@ namespace axr {
 
                 strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
                 strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+                XrVisibility = src.XrVisibility;
                 addBindings(src.BindingCount, src.Bindings);
             }
             return *this;
@@ -700,11 +817,13 @@ namespace axr {
 
                 strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
                 strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+                XrVisibility = src.XrVisibility;
                 BindingCount = src.BindingCount;
                 Bindings = src.Bindings;
 
                 memset(src.Name, 0, sizeof(src.Name));
                 memset(src.LocalizedName, 0, sizeof(src.LocalizedName));
+                src.XrVisibility = {};
                 src.BindingCount = 0;
                 src.Bindings = nullptr;
             }
@@ -771,6 +890,7 @@ namespace axr {
         void cleanup() {
             memset(Name, 0, sizeof(Name));
             memset(LocalizedName, 0, sizeof(LocalizedName));
+            XrVisibility = {};
 
             clearBindings();
         }
@@ -1193,6 +1313,8 @@ namespace axr {
         // ----------------------------------------- //
         uint32_t IOActionSetCount = 0;
         axr::IOActionSetConfig* IOActionSets = nullptr;
+        uint32_t XrInteractionProfileCount = 0;
+        axr::XrInteractionProfileEnum* XrInteractionProfiles = nullptr;
 
         // ----------------------------------------- //
         // Special Functions
@@ -1205,16 +1327,20 @@ namespace axr {
 
         /// Constructor
         /// @param ioActionSets Input/Output action sets
+        /// @param xrInteractionProfiles Xr interaction profiles
         IOActionSystemConfig(
-            const std::vector<axr::IOActionSetConfig>& ioActionSets
+            const std::vector<axr::IOActionSetConfig>& ioActionSets,
+            const std::vector<axr::XrInteractionProfileEnum>& xrInteractionProfiles
         ) {
             addIOActionSets(ioActionSets);
+            addXrInteractionProfiles(xrInteractionProfiles);
         }
 
         /// Copy Constructor
         /// @param src Source IOActionSystemConfig to copy from
         IOActionSystemConfig(const IOActionSystemConfig& src) {
             addIOActionSets(src.IOActionSetCount, src.IOActionSets);
+            addXrInteractionProfiles(src.XrInteractionProfileCount, src.XrInteractionProfiles);
         }
 
         /// Move Constructor
@@ -1222,9 +1348,13 @@ namespace axr {
         IOActionSystemConfig(IOActionSystemConfig&& src) noexcept {
             IOActionSetCount = src.IOActionSetCount;
             IOActionSets = src.IOActionSets;
+            XrInteractionProfileCount = src.XrInteractionProfileCount;
+            XrInteractionProfiles = src.XrInteractionProfiles;
 
             src.IOActionSetCount = 0;
             src.IOActionSets = nullptr;
+            src.XrInteractionProfileCount = 0;
+            src.XrInteractionProfiles = nullptr;
         }
 
         // ---- Destructor ----
@@ -1242,6 +1372,7 @@ namespace axr {
                 cleanup();
 
                 addIOActionSets(src.IOActionSetCount, src.IOActionSets);
+                addXrInteractionProfiles(src.XrInteractionProfileCount, src.XrInteractionProfiles);
             }
             return *this;
         }
@@ -1254,9 +1385,13 @@ namespace axr {
 
                 IOActionSetCount = src.IOActionSetCount;
                 IOActionSets = src.IOActionSets;
+                XrInteractionProfileCount = src.XrInteractionProfileCount;
+                XrInteractionProfiles = src.XrInteractionProfiles;
 
                 src.IOActionSetCount = 0;
                 src.IOActionSets = nullptr;
+                src.XrInteractionProfileCount = 0;
+                src.XrInteractionProfiles = nullptr;
             }
 
             return *this;
@@ -1308,6 +1443,38 @@ namespace axr {
             );
         }
 
+        /// Add the given xr interaction profiles
+        /// @param xrInteractionProfiles Xr interaction profiles
+        void addXrInteractionProfiles(const std::vector<axr::XrInteractionProfileEnum>& xrInteractionProfiles) {
+            addXrInteractionProfiles(
+                xrInteractionProfiles.size(),
+                xrInteractionProfiles.data()
+            );
+        }
+
+        /// Add the given xr interaction profiles
+        /// @param xrInteractionProfileCount Xr interaction profile count
+        /// @param xrInteractionProfiles Xr interaction profiles
+        void addXrInteractionProfiles(
+            const uint32_t xrInteractionProfileCount,
+            const axr::XrInteractionProfileEnum* xrInteractionProfiles
+        ) {
+            const uint32_t startingSize = XrInteractionProfileCount;
+            resizeXrInteractionProfiles(XrInteractionProfileCount + xrInteractionProfileCount);
+
+            for (uint32_t i = 0; i < xrInteractionProfileCount; ++i) {
+                XrInteractionProfiles[startingSize + i] = xrInteractionProfiles[i];
+            }
+        }
+
+        /// Add an xr interaction profile
+        /// @param xrInteractionProfile Xr interaction profile
+        void addXrInteractionProfile(const axr::XrInteractionProfileEnum xrInteractionProfile) {
+            resizeXrInteractionProfiles(XrInteractionProfileCount + 1);
+
+            XrInteractionProfiles[XrInteractionProfileCount - 1] = xrInteractionProfile;
+        }
+
         /// Clear the input/output action sets
         void clearIOActionSets() {
             if (IOActionSets == nullptr) return;
@@ -1321,6 +1488,15 @@ namespace axr {
             IOActionSetCount = 0;
         }
 
+        /// Clear the xr interaction profiles
+        void clearXrInteractionProfiles() {
+            if (XrInteractionProfiles == nullptr) return;
+
+            delete[] XrInteractionProfiles;
+            XrInteractionProfiles = nullptr;
+            XrInteractionProfileCount = 0;
+        }
+
     private:
         // ----------------------------------------- //
         // Private Functions
@@ -1329,6 +1505,7 @@ namespace axr {
         /// Clean up this class
         void cleanup() {
             clearIOActionSets();
+            clearXrInteractionProfiles();
         }
 
         /// Resize the input/output action set
@@ -1343,6 +1520,20 @@ namespace axr {
             clearIOActionSets();
             IOActionSets = newIOActionSets;
             IOActionSetCount = size;
+        }
+
+        /// Resize the xr interaction profiles
+        /// @param size New size
+        void resizeXrInteractionProfiles(const uint32_t size) {
+            const auto newXrInteractionProfiles = new axr::XrInteractionProfileEnum[size]{};
+            for (uint32_t i = 0; i < std::min(XrInteractionProfileCount, size); ++i) {
+                newXrInteractionProfiles[i] = XrInteractionProfiles[i];
+                XrInteractionProfiles[i] = {};
+            }
+
+            clearXrInteractionProfiles();
+            XrInteractionProfiles = newXrInteractionProfiles;
+            XrInteractionProfileCount = size;
         }
     };
 

@@ -7,6 +7,7 @@
 #include "../extensionCollection.hpp"
 #include "axr/graphicsSystem.h"
 #include "axr/common/callback.h"
+#include "axr/ioActionSystem.h"
 
 // Vulkan headers are required for <openxr/openxr_platform.h>
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
@@ -42,6 +43,12 @@ public:
         AxrXrExtension_T* Extensions;
     };
 
+    /// Action binding
+    struct ActionBinding {
+        XrAction Action;
+        const char* bindingName;
+    };
+
     // ----------------------------------------- //
     // Types
     // ----------------------------------------- //
@@ -56,6 +63,8 @@ public:
 
     /// On xr session state changed for the graphics system
     OnXrSessionStateChangedCallback_T OnXrSessionStateChangedCallbackGraphics;
+    /// On xr session state changed for the input/output action system
+    OnXrSessionStateChangedCallback_T OnXrSessionStateChangedCallbackIOActions;
 
     // ----------------------------------------- //
     // Special Functions
@@ -143,6 +152,69 @@ public:
     /// Get the far clipping plane
     /// @returns The far clipping plane
     [[nodiscard]] float getFarClippingPlane() const;
+
+    /// Update the state of the input actions in the given sets
+    /// @param actionSets Action sets to sync
+    void syncActions(const std::vector<XrActiveActionSet>& actionSets) const;
+    /// Create an XrActionSet
+    /// @param name Action set name
+    /// @param localizedName Localized action set name
+    /// @param priority Priority
+    /// @param actionSet Output action set
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createActionSet(
+        const std::string& name,
+        const std::string& localizedName,
+        uint32_t priority,
+        XrActionSet& actionSet
+    ) const;
+    /// Destroy the given action set
+    /// @param actionSet Action set to destroy
+    void destroyActionSet(XrActionSet& actionSet) const;
+    /// Create an XrAction
+    /// @param name Action name
+    /// @param localizedName Localized action name
+    /// @param actionType Action type
+    /// @param actionSet Action set
+    /// @param action Output action
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createAction(
+        const std::string& name,
+        const std::string& localizedName,
+        XrActionType actionType,
+        XrActionSet actionSet,
+        XrAction& action
+    ) const;
+    /// Destroy the given action
+    /// @param action Action to destroy
+    void destroyAction(XrAction& action) const;
+
+    /// Suggest the given action bindings for the given interaction profile
+    /// @param interactionProfileEnum Interaction profile
+    /// @param actionBindings Action bindings
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult suggestBindings(
+        AxrXrInteractionProfileEnum interactionProfileEnum,
+        const std::vector<ActionBinding>& actionBindings
+    ) const;
+
+    /// Attach the given action sets to the xr session
+    /// @param actionSets Action sets
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult attachActionSets(const std::vector<XrActionSet>& actionSets) const;
+
+    /// Get the bool action state for the given action
+    /// @param action Xr action
+    /// @returns The bool action state
+    [[nodiscard]] XrActionStateBoolean getBoolActionState(XrAction action) const;
+    /// Get the float action state for the given action
+    /// @param action Xr action
+    /// @returns The float action state
+    [[nodiscard]] XrActionStateFloat getFloatActionState(XrAction action) const;
+    /// Get the vec2 action state for the given action
+    /// @param action Xr action
+    /// @returns The vec2 action state
+    [[nodiscard]] XrActionStateVector2f getVec2ActionState(XrAction action) const;
 
     /// Create an xr swapchain
     /// @param usageFlags Usage flags

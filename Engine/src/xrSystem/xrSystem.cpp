@@ -7,6 +7,7 @@
 #include "../common.hpp"
 #include "../utils.hpp"
 #include "xrExtensionFunctions.hpp"
+#include "../ioActionSystem/ioActionUtils.hpp"
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 #include "../graphicsSystem/vulkan/vulkanUtils.hpp"
@@ -299,6 +300,372 @@ float AxrXrSystem::getNearClippingPlane() const {
 
 float AxrXrSystem::getFarClippingPlane() const {
     return m_FarClippingPlane;
+}
+
+void AxrXrSystem::syncActions(const std::vector<XrActiveActionSet>& actionSets) const {
+    // ----------------------------------------- //
+    // Validate
+    // ----------------------------------------- //
+
+    if (actionSets.empty()) {
+        return;
+    }
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return;
+    }
+
+    // The xrSyncActions function returns XR_SESSION_NOT_FOCUSED if application isn't focused.
+    // So it's not worth calling it in this case
+    if (!isSessionActive()) {
+        return;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const XrActionsSyncInfo actionsSyncInfo = {
+        .type = XR_TYPE_ACTIONS_SYNC_INFO,
+        .next = nullptr,
+        .countActiveActionSets = static_cast<uint32_t>(actionSets.size()),
+        .activeActionSets = actionSets.data(),
+    };
+
+    const XrResult xrResult = xrSyncActions(m_Session, &actionsSyncInfo);
+    axrLogXrResult(xrResult, "xrSyncActions");
+}
+
+AxrResult AxrXrSystem::createActionSet(
+    const std::string& name,
+    const std::string& localizedName,
+    const uint32_t priority,
+    XrActionSet& actionSet
+) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Instance == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Instance is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    XrActionSetCreateInfo actionSetCreateInfo{
+        .type = XR_TYPE_ACTION_SET_CREATE_INFO,
+        .next = nullptr,
+        .actionSetName = {},
+        .localizedActionSetName = {},
+        .priority = priority,
+    };
+
+    strncpy_s(
+        actionSetCreateInfo.actionSetName,
+        name.c_str(),
+        XR_MAX_ACTION_SET_NAME_SIZE
+    );
+    strncpy_s(
+        actionSetCreateInfo.localizedActionSetName,
+        localizedName.c_str(),
+        XR_MAX_LOCALIZED_ACTION_SET_NAME_SIZE
+    );
+
+    const XrResult xrResult = xrCreateActionSet(m_Instance, &actionSetCreateInfo, &actionSet);
+    axrLogXrResult(xrResult, "xrSyncActions");
+    if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+    return AXR_SUCCESS;
+}
+
+void AxrXrSystem::destroyActionSet(XrActionSet& actionSet) const {
+    if (actionSet == XR_NULL_HANDLE) return;
+
+    const XrResult xrResult = xrDestroyActionSet(actionSet);
+    axrLogXrResult(xrResult, "xrDestroyActionSet");
+    if (XR_SUCCEEDED(xrResult)) {
+        actionSet = XR_NULL_HANDLE;
+    }
+}
+
+AxrResult AxrXrSystem::createAction(
+    const std::string& name,
+    const std::string& localizedName,
+    const XrActionType actionType,
+    const XrActionSet actionSet,
+    XrAction& action
+) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (actionSet == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Action set is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    XrActionCreateInfo actionCreateInfo{
+        .type = XR_TYPE_ACTION_CREATE_INFO,
+        .next = nullptr,
+        .actionName = {},
+        .actionType = actionType,
+        .countSubactionPaths = 0,
+        .subactionPaths = nullptr,
+        .localizedActionName = {},
+    };
+
+    strncpy_s(
+        actionCreateInfo.actionName,
+        name.c_str(),
+        XR_MAX_ACTION_NAME_SIZE
+    );
+    strncpy_s(
+        actionCreateInfo.localizedActionName,
+        localizedName.c_str(),
+        XR_MAX_LOCALIZED_ACTION_NAME_SIZE
+    );
+
+    const XrResult xrResult = xrCreateAction(actionSet, &actionCreateInfo, &action);
+    axrLogXrResult(xrResult, "xrSyncActions");
+    if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+    return AXR_SUCCESS;
+}
+
+void AxrXrSystem::destroyAction(XrAction& action) const {
+    if (action == XR_NULL_HANDLE) return;
+
+    const XrResult xrResult = xrDestroyAction(action);
+    axrLogXrResult(xrResult, "xrDestroyAction");
+    if (XR_SUCCEEDED(xrResult)) {
+        action = XR_NULL_HANDLE;
+    }
+}
+
+AxrResult AxrXrSystem::suggestBindings(
+    const AxrXrInteractionProfileEnum interactionProfileEnum,
+    const std::vector<ActionBinding>& actionBindings
+) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (actionBindings.empty()) {
+        return AXR_SUCCESS;
+    }
+
+    if (m_Instance == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Instance is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+    const char* interactionProfileName = axrGetXrInteractionProfileName(interactionProfileEnum);
+    if (axrStringIsEmpty(interactionProfileName)) {
+        return AXR_ERROR;
+    }
+
+    XrPath interactionProfilePath = XR_NULL_PATH;
+    XrResult xrResult = xrStringToPath(m_Instance, interactionProfileName, &interactionProfilePath);
+    axrLogXrResult(xrResult, "xrStringToPath");
+    if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+    const std::unordered_set<const char*> availableBindings = axrGetXrInteractionProfileBindingNames(
+        interactionProfileEnum
+    );
+
+    std::vector<XrActionSuggestedBinding> suggestedBindings;
+    suggestedBindings.reserve(actionBindings.size());
+    for (const ActionBinding& actionBinding : actionBindings) {
+        if (!availableBindings.contains(actionBinding.bindingName)) continue;
+
+        XrPath path = XR_NULL_PATH;
+        xrResult = xrStringToPath(m_Instance, actionBinding.bindingName, &path);
+        axrLogXrResult(xrResult, "xrStringToPath");
+        if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+        suggestedBindings.push_back(
+            XrActionSuggestedBinding{
+                .action = actionBinding.Action,
+                .binding = path,
+            }
+        );
+    }
+
+    if (suggestedBindings.empty()) {
+        return AXR_SUCCESS;
+    }
+
+    const XrInteractionProfileSuggestedBinding interactionProfileSuggestedBindings{
+        .type = XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING,
+        .next = nullptr,
+        .interactionProfile = interactionProfilePath,
+        .countSuggestedBindings = static_cast<uint32_t>(suggestedBindings.size()),
+        .suggestedBindings = suggestedBindings.data(),
+    };
+
+    xrResult = xrSuggestInteractionProfileBindings(m_Instance, &interactionProfileSuggestedBindings);
+    axrLogXrResult(xrResult, "xrSuggestInteractionProfileBindings");
+    if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrXrSystem::attachActionSets(const std::vector<XrActionSet>& actionSets) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (actionSets.empty()) return AXR_SUCCESS;
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const XrSessionActionSetsAttachInfo attachInfo{
+        .type = XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO,
+        .next = nullptr,
+        .countActionSets = static_cast<uint32_t>(actionSets.size()),
+        .actionSets = actionSets.data(),
+    };
+
+    const XrResult xrResult = xrAttachSessionActionSets(m_Session, &attachInfo);
+    axrLogXrResult(xrResult, "xrAttachSessionActionSets");
+    if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+    return AXR_SUCCESS;
+}
+
+XrActionStateBoolean AxrXrSystem::getBoolActionState(const XrAction action) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!isSessionActive()) return {};
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return {};
+    }
+
+    if (action == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Action is null.");
+        return {};
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const XrActionStateGetInfo actionStateGetInfo{
+        .type = XR_TYPE_ACTION_STATE_GET_INFO,
+        .next = nullptr,
+        .action = action,
+        .subactionPath = XR_NULL_PATH,
+    };
+
+    XrActionStateBoolean actionState{
+        .type = XR_TYPE_ACTION_STATE_BOOLEAN,
+    };
+
+    const XrResult xrResult = xrGetActionStateBoolean(m_Session, &actionStateGetInfo, &actionState);
+    axrLogXrResult(xrResult, "xrGetActionStateBoolean");
+    if (XR_FAILED(xrResult)) return {};
+
+    return actionState;
+}
+
+XrActionStateFloat AxrXrSystem::getFloatActionState(const XrAction action) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!isSessionActive()) return {};
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return {};
+    }
+
+    if (action == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Action is null.");
+        return {};
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const XrActionStateGetInfo actionStateGetInfo{
+        .type = XR_TYPE_ACTION_STATE_GET_INFO,
+        .next = nullptr,
+        .action = action,
+        .subactionPath = XR_NULL_PATH,
+    };
+
+    XrActionStateFloat actionState{
+        .type = XR_TYPE_ACTION_STATE_FLOAT,
+    };
+
+    const XrResult xrResult = xrGetActionStateFloat(m_Session, &actionStateGetInfo, &actionState);
+    axrLogXrResult(xrResult, "xrGetActionStateFloat");
+    if (XR_FAILED(xrResult)) return {};
+
+    return actionState;
+}
+
+XrActionStateVector2f AxrXrSystem::getVec2ActionState(const XrAction action) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!isSessionActive()) return {};
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return {};
+    }
+
+    if (action == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Action is null.");
+        return {};
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const XrActionStateGetInfo actionStateGetInfo{
+        .type = XR_TYPE_ACTION_STATE_GET_INFO,
+        .next = nullptr,
+        .action = action,
+        .subactionPath = XR_NULL_PATH,
+    };
+
+    XrActionStateVector2f actionState{
+        .type = XR_TYPE_ACTION_STATE_VECTOR2F,
+    };
+
+    const XrResult xrResult = xrGetActionStateVector2f(m_Session, &actionStateGetInfo, &actionState);
+    axrLogXrResult(xrResult, "xrGetActionStateVector2f");
+    if (XR_FAILED(xrResult)) return {};
+
+    return actionState;
 }
 
 AxrResult AxrXrSystem::createSwapchain(
@@ -1545,6 +1912,7 @@ void AxrXrSystem::destroyGraphicsBinding() {
 }
 
 void AxrXrSystem::destroySessionData() {
+    OnXrSessionStateChangedCallbackIOActions(false);
     OnXrSessionStateChangedCallbackGraphics(false);
     destroySpace(m_StageReferenceSpace);
     destroySession();
@@ -1767,6 +2135,7 @@ void AxrXrSystem::xrEvent_SessionStateChanged(const XrEventDataSessionStateChang
             axrLogXrResult(xrResult, "xrBeginSession");
             if (XR_SUCCEEDED(xrResult)) {
                 OnXrSessionStateChangedCallbackGraphics(true);
+                OnXrSessionStateChangedCallbackIOActions(true);
             }
             break;
         }

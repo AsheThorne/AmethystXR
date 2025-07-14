@@ -83,7 +83,9 @@ AxrIOActionSet::AxrIOActionSet(const Config& config):
     // TODO: Make this config variable
     m_IsEnabled(true),
     // TODO: Make this config variable
-    m_Priority(0) {
+    m_Priority(0),
+    m_XrSystem(nullptr),
+    m_XrActionSet(XR_NULL_HANDLE) {
     if (config.BoolInputActions != nullptr) {
         for (uint32_t i = 0; i < config.BoolInputActionCount; ++i) {
             m_BoolInputActions.insert(
@@ -93,6 +95,7 @@ AxrIOActionSet::AxrIOActionSet(const Config& config):
                         AxrBoolInputAction::Config{
                             .Name = config.BoolInputActions[i].Name,
                             .LocalizedName = config.BoolInputActions[i].LocalizedName,
+                            .XrVisibility = config.BoolInputActions[i].XrVisibility,
                             .BindingCount = config.BoolInputActions[i].BindingCount,
                             .Bindings = config.BoolInputActions[i].Bindings,
                         }
@@ -110,6 +113,7 @@ AxrIOActionSet::AxrIOActionSet(const Config& config):
                         AxrFloatInputAction::Config{
                             .Name = config.FloatInputActions[i].Name,
                             .LocalizedName = config.FloatInputActions[i].LocalizedName,
+                            .XrVisibility = config.FloatInputActions[i].XrVisibility,
                             .BindingCount = config.FloatInputActions[i].BindingCount,
                             .Bindings = config.FloatInputActions[i].Bindings,
                         }
@@ -127,6 +131,7 @@ AxrIOActionSet::AxrIOActionSet(const Config& config):
                         AxrVec2InputAction::Config{
                             .Name = config.Vec2InputActions[i].Name,
                             .LocalizedName = config.Vec2InputActions[i].LocalizedName,
+                            .XrVisibility = config.Vec2InputActions[i].XrVisibility,
                             .BindingCount = config.Vec2InputActions[i].BindingCount,
                             .Bindings = config.Vec2InputActions[i].Bindings,
                         }
@@ -146,9 +151,13 @@ AxrIOActionSet::AxrIOActionSet(AxrIOActionSet&& src) noexcept {
 
     m_IsEnabled = src.m_IsEnabled;
     m_Priority = src.m_Priority;
+    m_XrSystem = src.m_XrSystem;
+    m_XrActionSet = src.m_XrActionSet;
 
     src.m_IsEnabled = false;
     src.m_Priority = 0;
+    src.m_XrSystem = nullptr;
+    src.m_XrActionSet = XR_NULL_HANDLE;
 }
 
 AxrIOActionSet::~AxrIOActionSet() {
@@ -167,9 +176,13 @@ AxrIOActionSet& AxrIOActionSet::operator=(AxrIOActionSet&& src) noexcept {
 
         m_IsEnabled = src.m_IsEnabled;
         m_Priority = src.m_Priority;
+        m_XrSystem = src.m_XrSystem;
+        m_XrActionSet = src.m_XrActionSet;
 
         src.m_IsEnabled = false;
         src.m_Priority = 0;
+        src.m_XrSystem = nullptr;
+        src.m_XrActionSet = XR_NULL_HANDLE;
     }
     return *this;
 }
@@ -203,6 +216,75 @@ AxrVec2InputAction_T AxrIOActionSet::getVec2InputAction(const std::string& name)
     return &foundInputAction->second;
 }
 
+AxrResult AxrIOActionSet::setupXrActions(const AxrXrSystem_T xrSystem) {
+    if (!isVisibleToXrSession()) return AXR_SUCCESS;
+
+    if (xrSystem == nullptr) {
+        axrLogErrorLocation("XrSystem is null");
+        return AXR_ERROR;
+    }
+
+    AxrResult axrResult = AXR_SUCCESS;
+    m_XrSystem = xrSystem;
+
+    axrResult = m_XrSystem->createActionSet(
+        m_Name,
+        m_LocalizedName,
+        m_Priority,
+        m_XrActionSet
+    );
+    if (AXR_FAILED(axrResult)) {
+        resetSetupXrActions();
+        return axrResult;
+    }
+
+    for (AxrBoolInputAction& inputAction : m_BoolInputActions | std::ranges::views::values) {
+        axrResult = inputAction.setupXrActions(m_XrSystem, m_XrActionSet);
+        if (AXR_FAILED(axrResult)) {
+            resetSetupXrActions();
+            return axrResult;
+        }
+    }
+
+    for (AxrFloatInputAction& inputAction : m_FloatInputActions | std::ranges::views::values) {
+        axrResult = inputAction.setupXrActions(m_XrSystem, m_XrActionSet);
+        if (AXR_FAILED(axrResult)) {
+            resetSetupXrActions();
+            return axrResult;
+        }
+    }
+
+    for (AxrVec2InputAction& inputAction : m_Vec2InputActions | std::ranges::views::values) {
+        axrResult = inputAction.setupXrActions(m_XrSystem, m_XrActionSet);
+        if (AXR_FAILED(axrResult)) {
+            resetSetupXrActions();
+            return axrResult;
+        }
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrIOActionSet::resetSetupXrActions() {
+    if (m_XrSystem == nullptr) return;
+
+    for (AxrBoolInputAction& inputAction : m_BoolInputActions | std::ranges::views::values) {
+        inputAction.resetSetupXrActions();
+    }
+
+    for (AxrFloatInputAction& inputAction : m_FloatInputActions | std::ranges::views::values) {
+        inputAction.resetSetupXrActions();
+    }
+
+    for (AxrVec2InputAction& inputAction : m_Vec2InputActions | std::ranges::views::values) {
+        inputAction.resetSetupXrActions();
+    }
+
+    m_XrSystem->destroyActionSet(m_XrActionSet);
+
+    m_XrSystem = nullptr;
+}
+
 bool AxrIOActionSet::isEnabled() const {
     return m_IsEnabled;
 }
@@ -233,6 +315,24 @@ std::unordered_map<std::string, AxrFloatInputAction>& AxrIOActionSet::getFloatIn
 
 std::unordered_map<std::string, AxrVec2InputAction>& AxrIOActionSet::getVec2InputActions() {
     return m_Vec2InputActions;
+}
+
+XrActionSet AxrIOActionSet::getXrActionSet() const {
+    return m_XrActionSet;
+}
+
+void AxrIOActionSet::updateXrActionValues() {
+    for (AxrBoolInputAction& inputAction : m_BoolInputActions | std::ranges::views::values) {
+        inputAction.updateXrActionValue();
+    }
+
+    for (AxrFloatInputAction& inputAction : m_FloatInputActions | std::ranges::views::values) {
+        inputAction.updateXrActionValue();
+    }
+    
+    for (AxrVec2InputAction& inputAction : m_Vec2InputActions | std::ranges::views::values) {
+        inputAction.updateXrActionValue();
+    }
 }
 
 // ---- Public Static Functions ----
@@ -315,11 +415,31 @@ void AxrIOActionSet::destroy(AxrIOActionSetConfig& ioActionSetConfig) {
 }
 
 void AxrIOActionSet::cleanup() {
+    resetSetupXrActions();
+
     m_Name.clear();
     m_LocalizedName.clear();
-    m_IsEnabled = false;
-    m_Priority = 0;
     m_BoolInputActions.clear();
     m_FloatInputActions.clear();
     m_Vec2InputActions.clear();
+    m_IsEnabled = false;
+    m_Priority = 0;
+}
+
+bool AxrIOActionSet::isVisibleToXrSession() const {
+    // If any IO action is visible to the xr session, then the whole must be
+
+    for (const AxrBoolInputAction& inputAction : m_BoolInputActions | std::views::values) {
+        if (inputAction.isVisibleToXrSession()) return true;
+    }
+
+    for (const AxrFloatInputAction& inputAction : m_FloatInputActions | std::views::values) {
+        if (inputAction.isVisibleToXrSession()) return true;
+    }
+
+    for (const AxrVec2InputAction& inputAction : m_Vec2InputActions | std::views::values) {
+        if (inputAction.isVisibleToXrSession()) return true;
+    }
+
+    return false;
 }

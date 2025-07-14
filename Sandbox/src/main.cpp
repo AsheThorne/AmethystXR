@@ -49,37 +49,47 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     axr::IOActionSystemConfig ioActionSystemConfig(
         std::vector{
             axr::IOActionSetConfig(
-                "Test",
+                // TODO: Validate all action set and action names: https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#well-formed-path-strings
+                "test",
                 "Test",
                 std::vector{
                     axr::BoolInputActionConfig(
+                        "key",
                         "Key",
-                        "Key",
+                        axr::IOActionXrVisibilityEnum::Always,
                         std::vector{
-                            axr::BoolInputActionEnum::KeyboardG,
-                            axr::BoolInputActionEnum::Keyboard4,
+                            axr::BoolInputActionEnum::KeyboardA,
+                            axr::BoolInputActionEnum::XrController_Left_A_Click,
+                            axr::BoolInputActionEnum::XrController_Right_A_Click,
                         }
                     ),
                 },
                 std::vector{
                     axr::FloatInputActionConfig(
-                        "MouseWheel",
+                        "mousewheel",
                         "Mouse Wheel",
+                        axr::IOActionXrVisibilityEnum::Never,
                         std::vector{
                             axr::FloatInputActionEnum::MouseWheel,
+                            axr::FloatInputActionEnum::XrController_Right_Trigger_Value,
+                            axr::FloatInputActionEnum::XrController_Left_Trigger_Value,
                         }
                     ),
                 },
                 std::vector{
                     axr::Vec2InputActionConfig(
-                        "MouseMoved",
+                        "mousemoved",
                         "Mouse Moved",
+                        axr::IOActionXrVisibilityEnum::Auto,
                         std::vector{
                             axr::Vec2InputActionEnum::MousePosition,
                         }
                     ),
                 }
             )
+        },
+        std::vector{
+            axr::XrInteractionProfileEnum::ValveIndexController,
         }
     );
 
@@ -111,8 +121,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         graphicsSystemConfig,
         ioActionSystemConfig,
         &windowSystemConfig,
-        nullptr
-        // &xrSystemConfig
+        &xrSystemConfig
     );
 
     auto app = axr::Application(appConfig);
@@ -143,8 +152,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     graphicsSystem.setClearColor(axr::Color(0.2f, 0.05f, 0.2f, 1.0f));
 
     axr::IOActionSystem ioActionSystem = app.getIOActionSystem();
-    axr::IOActionSet ioActionSet = ioActionSystem.getIOActionSet("Test");
-    axr::BoolInputAction keyAction = ioActionSet.getBoolInputAction("Key");
+    axr::IOActionSet ioActionSet = ioActionSystem.getIOActionSet("test");
+    axr::BoolInputAction keyAction = ioActionSet.getBoolInputAction("key");
+    axr::FloatInputAction mouseWheelAction = ioActionSet.getFloatInputAction("mousewheel");
+    axr::Vec2InputAction mouseMovedAction = ioActionSet.getVec2InputAction("mousemoved");
 
     while (app.isRunning()) {
         app.processEvents();
@@ -157,8 +168,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
             }
         }
 
+        // TODO: Maybe add a wasValueChangedThisFrame too. so we don't get the spam from holding a key down if we don't want.
+        //  Don't add a new one, change this one. Make it more similar to the XR changedSinceLastSync
         if (keyAction.wasValueSetThisFrame()) {
             axr::logWarning("Click: {0}", keyAction.getValue());
+        }
+
+        if (mouseWheelAction.wasValueSetThisFrame()) {
+            axr::logWarning("wheel: {0}", mouseWheelAction.getValue());
+        }
+
+        if (mouseMovedAction.wasValueSetThisFrame()) {
+            axr::logWarning("moved: {0}:{1}", mouseMovedAction.getValue().x, mouseMovedAction.getValue().y);
         }
 
         scene.update();

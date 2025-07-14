@@ -2,6 +2,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "boolInputAction.hpp"
+#include "ioActionUtils.hpp"
 #include "axr/logger.h"
 
 // ----------------------------------------- //
@@ -53,8 +54,11 @@ bool axrBoolInputActionGetValue(const AxrBoolInputActionConst_T inputAction) {
 AxrBoolInputAction::AxrBoolInputAction(const Config& config):
     m_Name(config.Name),
     m_LocalizedName(config.LocalizedName),
+    m_XrVisibility(config.XrVisibility),
     m_Value(false),
-    m_WasTriggeredThisFrame(false) {
+    m_WasTriggeredThisFrame(false),
+    m_XrSystem(nullptr),
+    m_XrAction(XR_NULL_HANDLE) {
     if (config.Bindings != nullptr) {
         for (uint32_t i = 0; i < config.BindingCount; ++i) {
             m_Bindings.insert(config.Bindings[i]);
@@ -67,11 +71,17 @@ AxrBoolInputAction::AxrBoolInputAction(AxrBoolInputAction&& src) noexcept {
     m_LocalizedName = std::move(src.m_LocalizedName);
     m_Bindings = std::move(src.m_Bindings);
 
+    m_XrVisibility = src.m_XrVisibility;
     m_Value = src.m_Value;
     m_WasTriggeredThisFrame = src.m_WasTriggeredThisFrame;
+    m_XrSystem = src.m_XrSystem;
+    m_XrAction = src.m_XrAction;
 
+    src.m_XrVisibility = {};
     src.m_Value = false;
     src.m_WasTriggeredThisFrame = false;
+    src.m_XrSystem = nullptr;
+    src.m_XrAction = XR_NULL_HANDLE;
 }
 
 AxrBoolInputAction::~AxrBoolInputAction() {
@@ -86,11 +96,17 @@ AxrBoolInputAction& AxrBoolInputAction::operator=(AxrBoolInputAction&& src) noex
         m_LocalizedName = std::move(src.m_LocalizedName);
         m_Bindings = std::move(src.m_Bindings);
 
+        m_XrVisibility = src.m_XrVisibility;
         m_Value = src.m_Value;
         m_WasTriggeredThisFrame = src.m_WasTriggeredThisFrame;
+        m_XrSystem = src.m_XrSystem;
+        m_XrAction = src.m_XrAction;
 
+        src.m_XrVisibility = {};
         src.m_Value = false;
         src.m_WasTriggeredThisFrame = false;
+        src.m_XrSystem = nullptr;
+        src.m_XrAction = XR_NULL_HANDLE;
     }
     return *this;
 }
@@ -105,8 +121,48 @@ bool AxrBoolInputAction::getValue() const {
     return m_Value;
 }
 
+AxrResult AxrBoolInputAction::setupXrActions(const AxrXrSystem_T xrSystem, const XrActionSet actionSet) {
+    if (!isVisibleToXrSession()) return AXR_SUCCESS;
+
+    if (xrSystem == nullptr) {
+        axrLogErrorLocation("XrSystem is null");
+        return AXR_ERROR;
+    }
+
+    m_XrSystem = xrSystem;
+
+    const AxrResult axrResult = m_XrSystem->createAction(
+        m_Name,
+        m_LocalizedName,
+        XR_ACTION_TYPE_BOOLEAN_INPUT,
+        actionSet,
+        m_XrAction
+    );
+    if (AXR_FAILED(axrResult)) {
+        resetSetupXrActions();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrBoolInputAction::resetSetupXrActions() {
+    if (m_XrSystem == nullptr) return;
+
+    m_XrSystem->destroyAction(m_XrAction);
+    m_XrSystem = nullptr;
+}
+
 void AxrBoolInputAction::newFrameStarted() {
     m_WasTriggeredThisFrame = false;
+}
+
+XrAction AxrBoolInputAction::getXrAction() const {
+    return m_XrAction;
+}
+
+const std::unordered_set<AxrBoolInputActionEnum>& AxrBoolInputAction::getBindings() const {
+    return m_Bindings;
 }
 
 bool AxrBoolInputAction::containsBinding(const AxrBoolInputActionEnum biding) const {
@@ -118,12 +174,51 @@ void AxrBoolInputAction::trigger(const bool value) {
     m_WasTriggeredThisFrame = true;
 }
 
+bool AxrBoolInputAction::isVisibleToXrSession() const {
+    switch (m_XrVisibility) {
+        case AXR_IO_ACTION_XR_VISIBILITY_ALWAYS: {
+            return true;
+        }
+        case AXR_IO_ACTION_XR_VISIBILITY_NEVER: {
+            return false;
+        }
+        default: {
+            axrLogErrorLocation(
+                "Unknown AxrIOActionXrVisibilityEnum value: {0}.",
+                static_cast<int32_t>(m_XrVisibility)
+            );
+            // Don't break. We intentionally fall through to the auto case
+        }
+        case AXR_IO_ACTION_XR_VISIBILITY_AUTO: {
+            for (const AxrBoolInputActionEnum binding : m_Bindings) {
+                if (axrIsXrBoolInputAction(binding)) {
+                    return true;
+                }
+            }
+
+            break;
+        }
+    }
+
+    return false;
+}
+
+void AxrBoolInputAction::updateXrActionValue() {
+    if (m_XrSystem == nullptr || m_XrAction == XR_NULL_HANDLE) return;
+
+    const XrActionStateBoolean actionState = m_XrSystem->getBoolActionState(m_XrAction);
+    if (actionState.isActive && actionState.changedSinceLastSync) {
+        trigger(actionState.currentState);
+    }
+}
+
 // ---- Public Static Functions ----
 
 AxrBoolInputActionConfig AxrBoolInputAction::clone(const AxrBoolInputActionConfig& inputActionConfig) {
     AxrBoolInputActionConfig config{
         .Name = {},
         .LocalizedName = {},
+        .XrVisibility = inputActionConfig.XrVisibility,
         .BindingCount = inputActionConfig.BindingCount,
         .Bindings = nullptr,
     };
@@ -146,6 +241,7 @@ AxrBoolInputActionConfig AxrBoolInputAction::clone(const AxrBoolInputActionConfi
 void AxrBoolInputAction::destroy(AxrBoolInputActionConfig& inputActionConfig) {
     memset(inputActionConfig.Name, 0, sizeof(inputActionConfig.Name));
     memset(inputActionConfig.LocalizedName, 0, sizeof(inputActionConfig.LocalizedName));
+    inputActionConfig.XrVisibility = {};
 
     if (inputActionConfig.Bindings != nullptr) {
         delete[] inputActionConfig.Bindings;
@@ -157,8 +253,11 @@ void AxrBoolInputAction::destroy(AxrBoolInputActionConfig& inputActionConfig) {
 // ---- Private Functions ----
 
 void AxrBoolInputAction::cleanup() {
+    resetSetupXrActions();
+
     m_Name.clear();
     m_LocalizedName.clear();
+    m_XrVisibility = {};
     m_Bindings.clear();
     m_Value = false;
     m_WasTriggeredThisFrame = false;

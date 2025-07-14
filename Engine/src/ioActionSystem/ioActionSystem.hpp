@@ -14,6 +14,7 @@
 #include <chrono>
 #include <unordered_set>
 #include <unordered_map>
+#include "../xrSystem/xrSystem.hpp"
 
 #ifdef AXR_USE_PLATFORM_WIN32
 // ----------------------------------------- //
@@ -31,8 +32,11 @@ public:
 
     /// AxrIOActionSystem config
     struct Config {
+        AxrXrSystem_T XrSystem;
         uint32_t ActionSetCount;
         AxrIOActionSetConfig* ActionSets;
+        uint32_t XrInteractionProfileCount;
+        AxrXrInteractionProfileEnum* XrInteractionProfiles;
     };
 
     // ----------------------------------------- //
@@ -87,6 +91,9 @@ public:
     /// Signal that a new frame has started
     void newFrameStarted();
 
+    /// Process the input/output events
+    void processEvents();
+
 #ifdef AXR_USE_PLATFORM_WIN32
     // ---- Win32 Functions ----
 
@@ -110,7 +117,13 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
+
+    // ---- Config Variables ----
+    AxrXrSystem_T m_XrSystem;
     std::unordered_map<std::string, AxrIOActionSet> m_ActionSets;
+    std::unordered_set<AxrXrInteractionProfileEnum> m_XrInteractionProfiles;
+
+    // ---- Data ----
     uint32_t m_DoubleClickTime;
     std::unordered_set<AxrBoolInputActionEnum> m_ActiveBoolInputActions;
     std::chrono::time_point<std::chrono::steady_clock> m_MouseClickLStartTime;
@@ -119,6 +132,8 @@ private:
     std::chrono::time_point<std::chrono::steady_clock> m_MouseClickX1StartTime;
     std::chrono::time_point<std::chrono::steady_clock> m_MouseClickX2StartTime;
     AxrVec2 m_LastAbsoluteCursorPosition;
+    std::vector<XrActionSet> m_XrActionSets;
+    bool m_AreXrActionsAttached;
 
     // ----------------------------------------- //
     // Private Functions
@@ -139,6 +154,26 @@ private:
 
     /// Clear all input action data
     void clearInputActions();
+
+    // ---- XR Functions ----
+
+    /// Set up xr inputs
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setupXrInputs();
+    /// Reset setupXrInputs()
+    void resetSetupXrInputs();
+    /// Find all the xr action sets
+    /// @returns The collection xr action sets
+    [[nodiscard]] std::vector<XrActionSet> findXrActionSets() const;
+
+    /// Suggest bindings to the xr session
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult suggestXrBindings();
+
+    /// 'On xr session state changed' callback function
+    /// @param isSessionRunning If true, the xr session is running. If false, the xr session is not running.
+    /// @returns AXR_SUCCESS if the function succeeded
+    AxrResult onXrSessionStateChangedCallback(bool isSessionRunning);
 
 #ifdef AXR_USE_PLATFORM_WIN32
     // ---- Win32 Functions ----

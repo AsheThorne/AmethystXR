@@ -7,6 +7,7 @@
 #include "boolInputAction.hpp"
 #include "floatInputAction.hpp"
 #include "vec2InputAction.hpp"
+#include "../xrSystem/xrSystem.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -84,6 +85,13 @@ public:
     // These functions are only to be used internally in the AmethystXr engine.
     // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
 
+    /// Set up the xr actions
+    /// @param xrSystem Xr system to use
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setupXrActions(AxrXrSystem_T xrSystem);
+    /// Reset setupXrActions() function
+    void resetSetupXrActions();
+
     /// Check if the action set is enabled
     /// @returns True if the action set is enabled
     [[nodiscard]] bool isEnabled() const;
@@ -104,6 +112,13 @@ public:
     /// @returns The vec2 input actions
     [[nodiscard]] std::unordered_map<std::string, AxrVec2InputAction>& getVec2InputActions();
 
+    /// Get the xr action set
+    /// @returns The xr action set
+    [[nodiscard]] XrActionSet getXrActionSet() const;
+
+    /// Update the xr action values
+    void updateXrActionValues();
+
     // ----------------------------------------- //
     // Public Static Functions
     // ----------------------------------------- //
@@ -120,18 +135,28 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
+
+    // ---- Config Variables ----
     std::string m_Name;
     std::string m_LocalizedName;
-    bool m_IsEnabled;
-    uint32_t m_Priority;
     std::unordered_map<std::string, AxrBoolInputAction> m_BoolInputActions;
     std::unordered_map<std::string, AxrFloatInputAction> m_FloatInputActions;
     std::unordered_map<std::string, AxrVec2InputAction> m_Vec2InputActions;
 
+    // ---- Data ----
+    bool m_IsEnabled;
+    uint32_t m_Priority;
+    AxrXrSystem_T m_XrSystem;
+    XrActionSet m_XrActionSet;
+    
     // ----------------------------------------- //
     // Private Functions
     // ----------------------------------------- //
 
     /// Clean up this class
     void cleanup();
+
+    /// Check if this should be visible to the xr session
+    /// @returns True if this should be visible to the xr session
+    [[nodiscard]] bool isVisibleToXrSession() const; 
 };

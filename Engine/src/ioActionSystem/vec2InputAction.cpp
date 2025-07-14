@@ -2,8 +2,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "vec2InputAction.hpp"
-
-#include "boolInputAction.hpp"
+#include "ioActionUtils.hpp"
 #include "axr/logger.h"
 
 // ----------------------------------------- //
@@ -55,8 +54,11 @@ AxrVec2 axrVec2InputActionGetValue(const AxrVec2InputActionConst_T inputAction) 
 AxrVec2InputAction::AxrVec2InputAction(const Config& config):
     m_Name(config.Name),
     m_LocalizedName(config.LocalizedName),
+    m_XrVisibility(config.XrVisibility),
     m_Value(AxrVec2(0.0f, 0.0f)),
-    m_WasTriggeredThisFrame(false) {
+    m_WasTriggeredThisFrame(false),
+    m_XrSystem(nullptr),
+    m_XrAction(XR_NULL_HANDLE) {
     if (config.Bindings != nullptr) {
         for (uint32_t i = 0; i < config.BindingCount; ++i) {
             m_Bindings.insert(config.Bindings[i]);
@@ -69,11 +71,17 @@ AxrVec2InputAction::AxrVec2InputAction(AxrVec2InputAction&& src) noexcept {
     m_LocalizedName = std::move(src.m_LocalizedName);
     m_Bindings = std::move(src.m_Bindings);
 
+    m_XrVisibility = src.m_XrVisibility;
     m_Value = src.m_Value;
     m_WasTriggeredThisFrame = src.m_WasTriggeredThisFrame;
+    m_XrSystem = src.m_XrSystem;
+    m_XrAction = src.m_XrAction;
 
+    src.m_XrVisibility = {};
     src.m_Value = AxrVec2(0.0f, 0.0f);
     src.m_WasTriggeredThisFrame = false;
+    src.m_XrSystem = nullptr;
+    src.m_XrAction = XR_NULL_HANDLE;
 }
 
 AxrVec2InputAction::~AxrVec2InputAction() {
@@ -88,11 +96,17 @@ AxrVec2InputAction& AxrVec2InputAction::operator=(AxrVec2InputAction&& src) noex
         m_LocalizedName = std::move(src.m_LocalizedName);
         m_Bindings = std::move(src.m_Bindings);
 
+        m_XrVisibility = src.m_XrVisibility;
         m_Value = src.m_Value;
         m_WasTriggeredThisFrame = src.m_WasTriggeredThisFrame;
+        m_XrSystem = src.m_XrSystem;
+        m_XrAction = src.m_XrAction;
 
+        src.m_XrVisibility = {};
         src.m_Value = AxrVec2(0.0f, 0.0f);
         src.m_WasTriggeredThisFrame = false;
+        src.m_XrSystem = nullptr;
+        src.m_XrAction = XR_NULL_HANDLE;
     }
     return *this;
 }
@@ -107,8 +121,48 @@ AxrVec2 AxrVec2InputAction::getValue() const {
     return m_Value;
 }
 
+AxrResult AxrVec2InputAction::setupXrActions(const AxrXrSystem_T xrSystem, const XrActionSet actionSet) {
+    if (!isVisibleToXrSession()) return AXR_SUCCESS;
+
+    if (xrSystem == nullptr) {
+        axrLogErrorLocation("XrSystem is null");
+        return AXR_ERROR;
+    }
+
+    m_XrSystem = xrSystem;
+
+    const AxrResult axrResult = m_XrSystem->createAction(
+        m_Name,
+        m_LocalizedName,
+        XR_ACTION_TYPE_VECTOR2F_INPUT,
+        actionSet,
+        m_XrAction
+    );
+    if (AXR_FAILED(axrResult)) {
+        resetSetupXrActions();
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVec2InputAction::resetSetupXrActions() {
+    if (m_XrSystem == nullptr) return;
+
+    m_XrSystem->destroyAction(m_XrAction);
+    m_XrSystem = nullptr;
+}
+
 void AxrVec2InputAction::newFrameStarted() {
     m_WasTriggeredThisFrame = false;
+}
+
+XrAction AxrVec2InputAction::getXrAction() const {
+    return m_XrAction;
+}
+
+const std::unordered_set<AxrVec2InputActionEnum>& AxrVec2InputAction::getBindings() const {
+    return m_Bindings;
 }
 
 bool AxrVec2InputAction::containsBinding(const AxrVec2InputActionEnum biding) const {
@@ -120,12 +174,56 @@ void AxrVec2InputAction::trigger(const AxrVec2& value) {
     m_WasTriggeredThisFrame = true;
 }
 
+bool AxrVec2InputAction::isVisibleToXrSession() const {
+    switch (m_XrVisibility) {
+        case AXR_IO_ACTION_XR_VISIBILITY_ALWAYS: {
+            return true;
+        }
+        case AXR_IO_ACTION_XR_VISIBILITY_NEVER: {
+            return false;
+        }
+        default: {
+            axrLogErrorLocation(
+                "Unknown AxrIOActionXrVisibilityEnum value: {0}.",
+                static_cast<int32_t>(m_XrVisibility)
+            );
+            // Don't break. We intentionally fall through to the auto case
+        }
+        case AXR_IO_ACTION_XR_VISIBILITY_AUTO: {
+            for (const AxrVec2InputActionEnum binding : m_Bindings) {
+                if (axrIsXrVec2InputAction(binding)) {
+                    return true;
+                }
+            }
+
+            break;
+        }
+    }
+
+    return false;
+}
+
+void AxrVec2InputAction::updateXrActionValue() {
+    if (m_XrSystem == nullptr || m_XrAction == XR_NULL_HANDLE) return;
+
+    const XrActionStateVector2f actionState = m_XrSystem->getVec2ActionState(m_XrAction);
+    if (actionState.isActive && actionState.changedSinceLastSync) {
+        trigger(
+            AxrVec2{
+                .x = actionState.currentState.x,
+                .y = actionState.currentState.y,
+            }
+        );
+    }
+}
+
 // ---- Public Static Functions ----
 
 AxrVec2InputActionConfig AxrVec2InputAction::clone(const AxrVec2InputActionConfig& inputActionConfig) {
     AxrVec2InputActionConfig config{
         .Name = {},
         .LocalizedName = {},
+        .XrVisibility = inputActionConfig.XrVisibility,
         .BindingCount = inputActionConfig.BindingCount,
         .Bindings = nullptr,
     };
@@ -147,6 +245,7 @@ AxrVec2InputActionConfig AxrVec2InputAction::clone(const AxrVec2InputActionConfi
 void AxrVec2InputAction::destroy(AxrVec2InputActionConfig& inputActionConfig) {
     memset(inputActionConfig.Name, 0, sizeof(inputActionConfig.Name));
     memset(inputActionConfig.LocalizedName, 0, sizeof(inputActionConfig.LocalizedName));
+    inputActionConfig.XrVisibility = {};
 
     if (inputActionConfig.Bindings != nullptr) {
         delete[] inputActionConfig.Bindings;
@@ -156,10 +255,12 @@ void AxrVec2InputAction::destroy(AxrVec2InputActionConfig& inputActionConfig) {
 }
 
 void AxrVec2InputAction::cleanup() {
+    resetSetupXrActions();
+
     m_Name.clear();
     m_LocalizedName.clear();
+    m_XrVisibility = {};
     m_Bindings.clear();
-
     m_Value = AxrVec2(0.0f, 0.0f);
     m_WasTriggeredThisFrame = false;
 }

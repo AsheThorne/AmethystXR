@@ -43,8 +43,10 @@ AxrIOActionSet_T axrIOActionSystemGetIOActionSet(const AxrIOActionSystem_T ioAct
 // ---- Special Functions ----
 
 AxrIOActionSystem::AxrIOActionSystem(const Config& config):
+    m_XrSystem(config.XrSystem),
     m_DoubleClickTime(0),
-    m_LastAbsoluteCursorPosition(0.0f) {
+    m_LastAbsoluteCursorPosition(0.0f),
+    m_AreXrActionsAttached(false) {
     if (config.ActionSets != nullptr) {
         for (uint32_t i = 0; i < config.ActionSetCount; ++i) {
             m_ActionSets.insert(
@@ -64,6 +66,9 @@ AxrIOActionSystem::AxrIOActionSystem(const Config& config):
                     )
                 )
             );
+        }
+        for (uint32_t i = 0; i < config.XrInteractionProfileCount; ++i) {
+            m_XrInteractionProfiles.insert(config.XrInteractionProfiles[i]);
         }
     }
 }
@@ -91,12 +96,16 @@ AxrResult AxrIOActionSystem::setup() {
     if (AXR_FAILED(axrResult)) return axrResult;
 #endif
 
+    axrResult = setupXrInputs();
+    if (AXR_FAILED(axrResult)) return axrResult;
+
     return AXR_SUCCESS;
 }
 
 void AxrIOActionSystem::resetSetup() {
     clearInputActions();
 
+    resetSetupXrInputs();
 #ifdef AXR_USE_PLATFORM_WIN32
     resetSetupWin32Inputs();
 #endif
@@ -105,6 +114,25 @@ void AxrIOActionSystem::resetSetup() {
 void AxrIOActionSystem::newFrameStarted() {
     for (AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
         actionSet.newFrameStarted();
+    }
+}
+
+void AxrIOActionSystem::processEvents() {
+    if (m_XrSystem == nullptr || !m_AreXrActionsAttached) return;
+
+    std::vector<XrActiveActionSet> activeActionSets(m_XrActionSets.size());
+
+    for (uint32_t i = 0; i < m_XrActionSets.size(); ++i) {
+        activeActionSets[i] = XrActiveActionSet{
+            .actionSet = m_XrActionSets[i],
+            .subactionPath = XR_NULL_PATH,
+        };
+    }
+
+    m_XrSystem->syncActions(activeActionSets);
+
+    for (AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+        actionSet.updateXrActionValues();
     }
 }
 
@@ -266,6 +294,146 @@ void AxrIOActionSystem::clearInputActions() {
     m_MouseClickX1StartTime = std::chrono::time_point<std::chrono::steady_clock>::min();
     m_MouseClickX2StartTime = std::chrono::time_point<std::chrono::steady_clock>::min();
     m_LastAbsoluteCursorPosition = AxrVec2(0.0f, 0.0f);
+}
+
+AxrResult AxrIOActionSystem::setupXrInputs() {
+    if (m_XrSystem == nullptr) return AXR_SUCCESS;
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    for (AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+        axrResult = actionSet.setupXrActions(m_XrSystem);
+        if (AXR_FAILED(axrResult)) {
+            resetSetupXrInputs();
+            return axrResult;
+        }
+    }
+
+    m_XrActionSets = findXrActionSets();
+
+    axrResult = suggestXrBindings();
+    if (AXR_FAILED(axrResult)) {
+        resetSetupXrInputs();
+        return axrResult;
+    }
+
+    m_XrSystem->OnXrSessionStateChangedCallbackIOActions
+              .connect<&AxrIOActionSystem::onXrSessionStateChangedCallback>(this);
+
+    return AXR_SUCCESS;
+}
+
+void AxrIOActionSystem::resetSetupXrInputs() {
+    m_XrSystem->OnXrSessionStateChangedCallbackIOActions.reset();
+    m_XrActionSets.clear();
+
+    for (AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+        actionSet.resetSetupXrActions();
+    }
+}
+
+std::vector<XrActionSet> AxrIOActionSystem::findXrActionSets() const {
+    std::vector<XrActionSet> xrActionSets;
+
+    for (const AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+        const XrActionSet xrActionSet = actionSet.getXrActionSet();
+        if (xrActionSet == XR_NULL_HANDLE) continue;
+        xrActionSets.push_back(xrActionSet);
+    }
+
+    return xrActionSets;
+}
+
+AxrResult AxrIOActionSystem::suggestXrBindings() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_XrSystem == nullptr) {
+        axrLogErrorLocation("XrSystem is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    std::vector<AxrXrSystem::ActionBinding> actionBindings;
+
+    for (AxrIOActionSet& xrActionSet : m_ActionSets | std::ranges::views::values) {
+        for (AxrBoolInputAction& inputAction : xrActionSet.getBoolInputActions() | std::ranges::views::values) {
+            for (const AxrBoolInputActionEnum inputActionEnum : inputAction.getBindings()) {
+                const XrAction action = inputAction.getXrAction();
+                
+                if (axrIsXrBoolInputAction(inputActionEnum) && action != XR_NULL_HANDLE) {
+                    actionBindings.push_back(
+                        AxrXrSystem::ActionBinding{
+                            .Action = action,
+                            .bindingName = axrGetXrBoolInputActionName(inputActionEnum),
+                        }
+                    );
+                }
+            }
+        }
+
+        for (AxrFloatInputAction& inputAction : xrActionSet.getFloatInputActions() | std::ranges::views::values) {
+            for (const AxrFloatInputActionEnum inputActionEnum : inputAction.getBindings()) {
+                const XrAction action = inputAction.getXrAction();
+
+                if (axrIsXrFloatInputAction(inputActionEnum) && action != XR_NULL_HANDLE) {
+                    actionBindings.push_back(
+                        AxrXrSystem::ActionBinding{
+                            .Action = action,
+                            .bindingName = axrGetXrFloatInputActionName(inputActionEnum),
+                        }
+                    );
+                }
+            }
+        }
+
+        for (AxrVec2InputAction& inputAction : xrActionSet.getVec2InputActions() | std::ranges::views::values) {
+            for (const AxrVec2InputActionEnum inputActionEnum : inputAction.getBindings()) {
+                const XrAction action = inputAction.getXrAction();
+
+                if (axrIsXrVec2InputAction(inputActionEnum) && action != XR_NULL_HANDLE) {
+                    actionBindings.push_back(
+                        AxrXrSystem::ActionBinding{
+                            .Action = action,
+                            .bindingName = axrGetXrVec2InputActionName(inputActionEnum),
+                        }
+                    );
+                }
+            }
+        }
+    }
+
+    for (const AxrXrInteractionProfileEnum xrInteractionProfile : m_XrInteractionProfiles) {
+        const AxrResult axrResult = m_XrSystem->suggestBindings(xrInteractionProfile, actionBindings);
+        if (AXR_FAILED(axrResult)) return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrIOActionSystem::onXrSessionStateChangedCallback(const bool isSessionRunning) {
+    if (isSessionRunning) {
+        if (m_XrSystem == nullptr) {
+            axrLogErrorLocation("XrSystem is null.");
+            return AXR_ERROR;
+        }
+
+        const AxrResult axrResult = m_XrSystem->attachActionSets(m_XrActionSets);
+        if (AXR_FAILED(axrResult)) {
+            resetSetupXrInputs();
+            return axrResult;
+        }
+
+        m_AreXrActionsAttached = true;
+    } else {
+        m_AreXrActionsAttached = false;
+    }
+
+    return AXR_SUCCESS;
 }
 
 #ifdef AXR_USE_PLATFORM_WIN32

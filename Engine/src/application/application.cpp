@@ -204,8 +204,11 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
     ),
     m_IOActionSystem(
         AxrIOActionSystem::Config{
+            .XrSystem = config.XrSystemConfig == nullptr ? nullptr : &m_XrSystem,
             .ActionSetCount = config.IOActionSystemConfig.IOActionSetCount,
             .ActionSets = config.IOActionSystemConfig.IOActionSets,
+            .XrInteractionProfileCount = config.IOActionSystemConfig.XrInteractionProfileCount,
+            .XrInteractionProfiles = config.IOActionSystemConfig.XrInteractionProfiles
         }
     ),
     m_DeltaTime(0) {
@@ -263,13 +266,15 @@ bool AxrApplication::isRunning() const {
 
 void AxrApplication::processEvents() {
     m_IOActionSystem.newFrameStarted();
-    
+
     if (m_WindowSystem.isValid()) {
         m_WindowSystem.processEvents();
     }
     if (m_XrSystem.isValid()) {
         m_XrSystem.processEvents();
     }
+
+    m_IOActionSystem.processEvents();
 
     static std::chrono::high_resolution_clock::time_point lastFrameTime = std::chrono::high_resolution_clock::now();
     const std::chrono::high_resolution_clock::time_point currentFrameTime = std::chrono::high_resolution_clock::now();

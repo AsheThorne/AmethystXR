@@ -4,6 +4,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/ioActionSystem.h"
+#include "../xrSystem/xrSystem.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -22,6 +23,7 @@ public:
     struct Config {
         std::string Name;
         std::string LocalizedName;
+        AxrIOActionXrVisibilityEnum XrVisibility;
         uint32_t BindingCount;
         AxrFloatInputActionEnum* Bindings;
     };
@@ -72,9 +74,23 @@ public:
     // These functions are only to be used internally in the AmethystXr engine.
     // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
 
+    /// Set up the xr actions
+    /// @param xrSystem Xr system to use
+    /// @param actionSet Action set associated with this action
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setupXrActions(AxrXrSystem_T xrSystem, XrActionSet actionSet);
+    /// Reset setupXrActions() function
+    void resetSetupXrActions();
+
     /// Signal that a new frame has started
     void newFrameStarted();
 
+    /// Get the XrAction
+    /// @returns The XrAction
+    [[nodiscard]] XrAction getXrAction() const;
+    /// Get the bindings
+    /// @returns The bindings
+    [[nodiscard]] const std::unordered_set<AxrFloatInputActionEnum>& getBindings() const;
     /// Check if this input action contains the given binding
     /// @param biding Binding to check
     /// @returns True if this input action contains the given binding
@@ -83,6 +99,13 @@ public:
     /// Trigger the input action
     /// @param value Value to use
     void trigger(float value);
+
+    /// Check if this should be visible to the xr session
+    /// @returns True if this should be visible to the xr session
+    [[nodiscard]] bool isVisibleToXrSession() const;
+
+    /// Update the xr action value
+    void updateXrActionValue();
 
     // ----------------------------------------- //
     // Public Static Functions
@@ -104,11 +127,14 @@ private:
     // ---- Config Variables ----
     std::string m_Name;
     std::string m_LocalizedName;
+    AxrIOActionXrVisibilityEnum m_XrVisibility;
     std::unordered_set<AxrFloatInputActionEnum> m_Bindings;
 
     // ---- Data ----
     float m_Value;
     bool m_WasTriggeredThisFrame;
+    AxrXrSystem_T m_XrSystem;
+    XrAction m_XrAction;
 
     // ----------------------------------------- //
     // Private Functions
