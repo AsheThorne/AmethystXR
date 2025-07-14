@@ -1565,10 +1565,10 @@ namespace axr {
         // Public Functions
         // ----------------------------------------- //
 
-        /// Check if the value was set this frame
-        /// @returns True if the value was set this frame
-        [[nodiscard]] bool wasValueSetThisFrame() const {
-            return axrBoolInputActionWasValueSetThisFrame(m_BoolInputAction);
+        /// Check if the value has changed since the last frame
+        /// @returns True if the value has changed since the last frame
+        [[nodiscard]] bool valueChanged() const {
+            return axrBoolInputActionValueChanged(m_BoolInputAction);
         }
 
         /// Get the current value of this input action
@@ -1607,10 +1607,10 @@ namespace axr {
         // Public Functions
         // ----------------------------------------- //
 
-        /// Check if the value was set this frame
-        /// @returns True if the value was set this frame
-        [[nodiscard]] bool wasValueSetThisFrame() const {
-            return axrFloatInputActionWasValueSetThisFrame(m_FloatInputAction);
+        /// Check if the value has changed since the last frame
+        /// @returns True if the value has changed since the last frame
+        [[nodiscard]] bool valueChanged() const {
+            return axrFloatInputActionValueChanged(m_FloatInputAction);
         }
 
         /// Get the current value of this input action
@@ -1649,10 +1649,10 @@ namespace axr {
         // Public Functions
         // ----------------------------------------- //
 
-        /// Check if the value was set this frame
-        /// @returns True if the value was set this frame
-        [[nodiscard]] bool wasValueSetThisFrame() const {
-            return axrVec2InputActionWasValueSetThisFrame(m_Vec2InputAction);
+        /// Check if the value has changed since the last frame
+        /// @returns True if the value has changed since the last frame
+        [[nodiscard]] bool valueChanged() const {
+            return axrVec2InputActionValueChanged(m_Vec2InputAction);
         }
 
         /// Get the current value of this input action

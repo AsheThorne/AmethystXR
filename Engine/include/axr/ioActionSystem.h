@@ -355,10 +355,10 @@ extern "C" {
 
     // ---- Bool Input Action ----
 
-    /// Check if the value was set this frame
+    /// Check if the value has changed since the last frame
     /// @param inputAction Bool input action to use
-    /// @returns True if the value was set this frame
-    AXR_API bool axrBoolInputActionWasValueSetThisFrame(AxrBoolInputActionConst_T inputAction);
+    /// @returns True if the value has changed since the last frame
+    AXR_API bool axrBoolInputActionValueChanged(AxrBoolInputActionConst_T inputAction);
     /// Get the current value of this input action
     /// @param inputAction Bool input action to use
     /// @returns The current value of this input action
@@ -366,10 +366,10 @@ extern "C" {
 
     // ---- Float Input Action ----
 
-    /// Check if the value was set this frame
+    /// Check if the value has changed since the last frame
     /// @param inputAction Float input action to use
-    /// @returns True if the value was set this frame
-    AXR_API bool axrFloatInputActionWasValueSetThisFrame(AxrFloatInputActionConst_T inputAction);
+    /// @returns True if the value has changed since the last frame
+    AXR_API bool axrFloatInputActionValueChanged(AxrFloatInputActionConst_T inputAction);
     /// Get the current value of this input action
     /// @param inputAction Float input action to use
     /// @returns The current value of this input action
@@ -377,10 +377,10 @@ extern "C" {
 
     // ---- Vec2 Input Action ----
 
-    /// Check if the value was set this frame
+    /// Check if the value has changed since the last frame
     /// @param inputAction Vec2 input action to use
-    /// @returns True if the value was set this frame
-    AXR_API bool axrVec2InputActionWasValueSetThisFrame(AxrVec2InputActionConst_T inputAction);
+    /// @returns True if the value has changed since the last frame
+    AXR_API bool axrVec2InputActionValueChanged(AxrVec2InputActionConst_T inputAction);
     /// Get the current value of this input action
     /// @param inputAction Vec2 input action to use
     /// @returns The current value of this input action

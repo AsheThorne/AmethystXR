@@ -62,9 +62,9 @@ public:
     // Public Functions
     // ----------------------------------------- //
 
-    /// Check if the value was set this frame
-    /// @returns True if the value was set this frame
-    [[nodiscard]] bool wasValueSetThisFrame() const;
+    /// Check if the value has changed since the last frame
+    /// @returns True if the value has changed since the last frame
+    [[nodiscard]] bool valueChanged() const;
 
     /// Get the current value of this input action
     /// @returns The current value of this input action
@@ -99,6 +99,8 @@ public:
     /// Trigger the input action
     /// @param value Value to use
     void trigger(bool value);
+    /// Reset the input action
+    void reset();
 
     /// Check if this should be visible to the xr session
     /// @returns True if this should be visible to the xr session
@@ -132,7 +134,7 @@ private:
 
     // ---- Data ----
     bool m_Value;
-    bool m_WasTriggeredThisFrame;
+    bool m_ValueLastFrame;
     AxrXrSystem_T m_XrSystem;
     XrAction m_XrAction;
 

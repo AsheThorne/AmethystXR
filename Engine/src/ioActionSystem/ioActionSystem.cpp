@@ -46,6 +46,9 @@ AxrIOActionSystem::AxrIOActionSystem(const Config& config):
     m_XrSystem(config.XrSystem),
     m_DoubleClickTime(0),
     m_LastAbsoluteCursorPosition(0.0f),
+    m_ScrollDelta(0.0f),
+    m_HorizontalScrollDelta(0.0f),
+    m_MouseMovedDelta(AxrVec2(0.0f, 0.0f)),
     m_AreXrActionsAttached(false) {
     if (config.ActionSets != nullptr) {
         for (uint32_t i = 0; i < config.ActionSetCount; ++i) {
@@ -112,12 +115,16 @@ void AxrIOActionSystem::resetSetup() {
 }
 
 void AxrIOActionSystem::newFrameStarted() {
+    resetRelativeActions();
+
     for (AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
         actionSet.newFrameStarted();
     }
 }
 
 void AxrIOActionSystem::processEvents() {
+    triggerRelativeActions();
+
     if (m_XrSystem == nullptr || !m_AreXrActionsAttached) return;
 
     std::vector<XrActiveActionSet> activeActionSets(m_XrActionSets.size());
@@ -286,6 +293,61 @@ void AxrIOActionSystem::triggerVec2InputAction(const AxrVec2InputActionEnum inpu
     }
 }
 
+void AxrIOActionSystem::resetBoolInputAction(const AxrBoolInputActionEnum inputActionEnum) {
+    for (AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+        for (AxrBoolInputAction& inputAction : actionSet.getBoolInputActions() | std::ranges::views::values) {
+            if (inputAction.containsBinding(inputActionEnum)) {
+                inputAction.reset();
+            }
+        }
+    }
+}
+
+void AxrIOActionSystem::resetFloatInputAction(const AxrFloatInputActionEnum inputActionEnum) {
+    for (AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+        for (AxrFloatInputAction& inputAction : actionSet.getFloatInputActions() | std::ranges::views::values) {
+            if (inputAction.containsBinding(inputActionEnum)) {
+                inputAction.reset();
+            }
+        }
+    }
+}
+
+void AxrIOActionSystem::resetVec2InputAction(const AxrVec2InputActionEnum inputActionEnum) {
+    for (AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+        for (AxrVec2InputAction& inputAction : actionSet.getVec2InputActions() | std::ranges::views::values) {
+            if (inputAction.containsBinding(inputActionEnum)) {
+                inputAction.reset();
+            }
+        }
+    }
+}
+
+void AxrIOActionSystem::triggerRelativeActions() {
+    if (m_ScrollDelta != 0.0f) {
+        triggerFloatInputAction(AXR_FLOAT_INPUT_ACTION_MOUSE_WHEEL, m_ScrollDelta);
+    }
+    if (m_HorizontalScrollDelta != 0.0f) {
+        triggerFloatInputAction(AXR_FLOAT_INPUT_ACTION_MOUSE_WHEEL_HORIZONTAL, m_HorizontalScrollDelta);
+    }
+    if (m_MouseMovedDelta.x != 0.0f || m_MouseMovedDelta.y != 0.0f) {
+        triggerVec2InputAction(AXR_VEC2_INPUT_ACTION_MOUSE_MOVED, m_MouseMovedDelta);
+    }
+}
+
+void AxrIOActionSystem::resetRelativeActions() {
+    m_ScrollDelta = 0.0f;
+    m_HorizontalScrollDelta = 0.0f;
+    m_MouseMovedDelta = AxrVec2{
+        .x = 0.0f,
+        .y = 0.0f,
+    };
+
+    resetFloatInputAction(AXR_FLOAT_INPUT_ACTION_MOUSE_WHEEL);
+    resetFloatInputAction(AXR_FLOAT_INPUT_ACTION_MOUSE_WHEEL_HORIZONTAL);
+    resetVec2InputAction(AXR_VEC2_INPUT_ACTION_MOUSE_MOVED);
+}
+
 void AxrIOActionSystem::clearInputActions() {
     m_ActiveBoolInputActions.clear();
     m_MouseClickLStartTime = std::chrono::time_point<std::chrono::steady_clock>::min();
@@ -294,6 +356,10 @@ void AxrIOActionSystem::clearInputActions() {
     m_MouseClickX1StartTime = std::chrono::time_point<std::chrono::steady_clock>::min();
     m_MouseClickX2StartTime = std::chrono::time_point<std::chrono::steady_clock>::min();
     m_LastAbsoluteCursorPosition = AxrVec2(0.0f, 0.0f);
+
+    m_ScrollDelta = 0.0f;
+    m_HorizontalScrollDelta = 0.0f;
+    m_MouseMovedDelta = AxrVec2(0.0f, 0.0f);
 }
 
 AxrResult AxrIOActionSystem::setupXrInputs() {
@@ -364,7 +430,7 @@ AxrResult AxrIOActionSystem::suggestXrBindings() {
         for (AxrBoolInputAction& inputAction : xrActionSet.getBoolInputActions() | std::ranges::views::values) {
             for (const AxrBoolInputActionEnum inputActionEnum : inputAction.getBindings()) {
                 const XrAction action = inputAction.getXrAction();
-                
+
                 if (axrIsXrBoolInputAction(inputActionEnum) && action != XR_NULL_HANDLE) {
                     actionBindings.push_back(
                         AxrXrSystem::ActionBinding{
@@ -533,13 +599,8 @@ void AxrIOActionSystem::processWin32MouseMovedInput(const HWND windowHandle, con
         };
         ScreenToClient(windowHandle, &cursorPosition);
 
-        triggerVec2InputAction(
-            AXR_VEC2_INPUT_ACTION_MOUSE_MOVED,
-            AxrVec2{
-                .x = m_LastAbsoluteCursorPosition.x - static_cast<float>(absolutePosition.x),
-                .y = m_LastAbsoluteCursorPosition.y - static_cast<float>(absolutePosition.y)
-            }
-        );
+        m_MouseMovedDelta.x += m_LastAbsoluteCursorPosition.x - static_cast<float>(absolutePosition.x);
+        m_MouseMovedDelta.y += m_LastAbsoluteCursorPosition.y - static_cast<float>(absolutePosition.y);
 
         m_LastAbsoluteCursorPosition = AxrVec2{
             .x = static_cast<float>(absolutePosition.x),
@@ -563,13 +624,8 @@ void AxrIOActionSystem::processWin32MouseMovedInput(const HWND windowHandle, con
         const int relativeX = rawInput->data.mouse.lLastX;
         const int relativeY = rawInput->data.mouse.lLastY;
 
-        triggerVec2InputAction(
-            AXR_VEC2_INPUT_ACTION_MOUSE_MOVED,
-            AxrVec2{
-                .x = static_cast<float>(relativeX),
-                .y = static_cast<float>(relativeY)
-            }
-        );
+        m_MouseMovedDelta.x += static_cast<float>(relativeX);
+        m_MouseMovedDelta.y += static_cast<float>(relativeY);
 
         POINT cursorPosition{};
         if (GetCursorPos(&cursorPosition)) {
@@ -706,7 +762,7 @@ void AxrIOActionSystem::processWin32MouseScrollInput(const RAWINPUT* rawInput) {
         const auto wheelDelta = static_cast<short>(rawInput->data.mouse.usButtonData);
         const float scrollDelta = static_cast<float>(wheelDelta) / WHEEL_DELTA;
 
-        triggerFloatInputAction(AXR_FLOAT_INPUT_ACTION_MOUSE_WHEEL, scrollDelta);
+        m_ScrollDelta += scrollDelta;
     }
 
     // Horizontal Scroll Wheel
@@ -714,7 +770,7 @@ void AxrIOActionSystem::processWin32MouseScrollInput(const RAWINPUT* rawInput) {
         const auto wheelDelta = static_cast<short>(rawInput->data.mouse.usButtonData);
         const float scrollDelta = static_cast<float>(wheelDelta) / WHEEL_DELTA;
 
-        triggerFloatInputAction(AXR_FLOAT_INPUT_ACTION_MOUSE_WHEEL_HORIZONTAL, scrollDelta);
+        m_HorizontalScrollDelta += scrollDelta;
     }
 }
 

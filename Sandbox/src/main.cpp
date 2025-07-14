@@ -82,7 +82,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
                         "Mouse Moved",
                         axr::IOActionXrVisibilityEnum::Auto,
                         std::vector{
-                            axr::Vec2InputActionEnum::MousePosition,
+                            axr::Vec2InputActionEnum::MouseMoved,
                         }
                     ),
                 }
@@ -168,17 +168,15 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
             }
         }
 
-        // TODO: Maybe add a wasValueChangedThisFrame too. so we don't get the spam from holding a key down if we don't want.
-        //  Don't add a new one, change this one. Make it more similar to the XR changedSinceLastSync
-        if (keyAction.wasValueSetThisFrame()) {
+        if (keyAction.valueChanged()) {
             axr::logWarning("Click: {0}", keyAction.getValue());
         }
 
-        if (mouseWheelAction.wasValueSetThisFrame()) {
+        if (mouseWheelAction.valueChanged()) {
             axr::logWarning("wheel: {0}", mouseWheelAction.getValue());
         }
 
-        if (mouseMovedAction.wasValueSetThisFrame()) {
+        if (mouseMovedAction.valueChanged()) {
             axr::logWarning("moved: {0}:{1}", mouseMovedAction.getValue().x, mouseMovedAction.getValue().y);
         }
 

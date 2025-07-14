@@ -27,13 +27,13 @@ void axrFloatInputActionConfigDestroy(AxrFloatInputActionConfig* inputActionConf
     return AxrFloatInputAction::destroy(*inputActionConfig);
 }
 
-bool axrFloatInputActionWasValueSetThisFrame(const AxrFloatInputActionConst_T inputAction) {
+bool axrFloatInputActionValueChanged(const AxrFloatInputActionConst_T inputAction) {
     if (inputAction == nullptr) {
         axrLogErrorLocation("`inputAction` is null");
         return false;
     }
 
-    return inputAction->wasValueSetThisFrame();
+    return inputAction->valueChanged();
 }
 
 float axrFloatInputActionGetValue(const AxrFloatInputActionConst_T inputAction) {
@@ -56,7 +56,7 @@ AxrFloatInputAction::AxrFloatInputAction(const Config& config):
     m_LocalizedName(config.LocalizedName),
     m_XrVisibility(config.XrVisibility),
     m_Value(0.0f),
-    m_WasTriggeredThisFrame(false),
+    m_ValueLastFrame(0.0f),
     m_XrSystem(nullptr),
     m_XrAction(XR_NULL_HANDLE) {
     if (config.Bindings != nullptr) {
@@ -73,13 +73,13 @@ AxrFloatInputAction::AxrFloatInputAction(AxrFloatInputAction&& src) noexcept {
 
     m_XrVisibility = src.m_XrVisibility;
     m_Value = src.m_Value;
-    m_WasTriggeredThisFrame = src.m_WasTriggeredThisFrame;
+    m_ValueLastFrame = src.m_ValueLastFrame;
     m_XrSystem = src.m_XrSystem;
     m_XrAction = src.m_XrAction;
 
     src.m_XrVisibility = {};
     src.m_Value = 0.0f;
-    src.m_WasTriggeredThisFrame = false;
+    src.m_ValueLastFrame = 0.0f;
     src.m_XrSystem = nullptr;
     src.m_XrAction = XR_NULL_HANDLE;
 }
@@ -98,13 +98,13 @@ AxrFloatInputAction& AxrFloatInputAction::operator=(AxrFloatInputAction&& src) n
 
         m_XrVisibility = src.m_XrVisibility;
         m_Value = src.m_Value;
-        m_WasTriggeredThisFrame = src.m_WasTriggeredThisFrame;
+        m_ValueLastFrame = src.m_ValueLastFrame;
         m_XrSystem = src.m_XrSystem;
         m_XrAction = src.m_XrAction;
 
         src.m_XrVisibility = {};
         src.m_Value = 0.0f;
-        src.m_WasTriggeredThisFrame = false;
+        src.m_ValueLastFrame = 0.0f;
         src.m_XrSystem = nullptr;
         src.m_XrAction = XR_NULL_HANDLE;
     }
@@ -113,8 +113,8 @@ AxrFloatInputAction& AxrFloatInputAction::operator=(AxrFloatInputAction&& src) n
 
 // ---- Public Functions ----
 
-bool AxrFloatInputAction::wasValueSetThisFrame() const {
-    return m_WasTriggeredThisFrame;
+bool AxrFloatInputAction::valueChanged() const {
+    return m_ValueLastFrame != m_Value;
 }
 
 float AxrFloatInputAction::getValue() const {
@@ -154,7 +154,7 @@ void AxrFloatInputAction::resetSetupXrActions() {
 }
 
 void AxrFloatInputAction::newFrameStarted() {
-    m_WasTriggeredThisFrame = false;
+    m_ValueLastFrame = m_Value;
 }
 
 XrAction AxrFloatInputAction::getXrAction() const {
@@ -171,7 +171,10 @@ bool AxrFloatInputAction::containsBinding(const AxrFloatInputActionEnum biding) 
 
 void AxrFloatInputAction::trigger(const float value) {
     m_Value = value;
-    m_WasTriggeredThisFrame = true;
+}
+
+void AxrFloatInputAction::reset() {
+    m_Value = 0.0f; 
 }
 
 bool AxrFloatInputAction::isVisibleToXrSession() const {
@@ -259,5 +262,5 @@ void AxrFloatInputAction::cleanup() {
     m_XrVisibility = {};
     m_Bindings.clear();
     m_Value = 0.0f;
-    m_WasTriggeredThisFrame = false;
+    m_ValueLastFrame = 0.0f;
 }

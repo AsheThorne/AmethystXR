@@ -132,6 +132,13 @@ private:
     std::chrono::time_point<std::chrono::steady_clock> m_MouseClickX1StartTime;
     std::chrono::time_point<std::chrono::steady_clock> m_MouseClickX2StartTime;
     AxrVec2 m_LastAbsoluteCursorPosition;
+
+    // ---- Relative action data ----
+    // Relative actions are actions that are relative to the last frame
+    float m_ScrollDelta;
+    float m_HorizontalScrollDelta;
+    AxrVec2 m_MouseMovedDelta;
+
     std::vector<XrActionSet> m_XrActionSets;
     bool m_AreXrActionsAttached;
 
@@ -151,6 +158,21 @@ private:
     /// @param inputActionEnum Vec2 input action
     /// @param value Vec2 value
     void triggerVec2InputAction(AxrVec2InputActionEnum inputActionEnum, const AxrVec2& value);
+
+    /// Reset a bool input action
+    /// @param inputActionEnum Bool input action
+    void resetBoolInputAction(AxrBoolInputActionEnum inputActionEnum);
+    /// Reset a float input action
+    /// @param inputActionEnum Float input action
+    void resetFloatInputAction(AxrFloatInputActionEnum inputActionEnum);
+    /// Reset a vec2 input action
+    /// @param inputActionEnum Vec2 input action
+    void resetVec2InputAction(AxrVec2InputActionEnum inputActionEnum);
+
+    /// Trigger all relative actions
+    void triggerRelativeActions();
+    /// Reset all relative actions
+    void resetRelativeActions();
 
     /// Clear all input action data
     void clearInputActions();

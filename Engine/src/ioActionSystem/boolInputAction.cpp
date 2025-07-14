@@ -27,13 +27,13 @@ void axrBoolInputActionConfigDestroy(AxrBoolInputActionConfig* inputActionConfig
     return AxrBoolInputAction::destroy(*inputActionConfig);
 }
 
-bool axrBoolInputActionWasValueSetThisFrame(const AxrBoolInputActionConst_T inputAction) {
+bool axrBoolInputActionValueChanged(const AxrBoolInputActionConst_T inputAction) {
     if (inputAction == nullptr) {
         axrLogErrorLocation("`inputAction` is null");
         return false;
     }
 
-    return inputAction->wasValueSetThisFrame();
+    return inputAction->valueChanged();
 }
 
 bool axrBoolInputActionGetValue(const AxrBoolInputActionConst_T inputAction) {
@@ -56,7 +56,7 @@ AxrBoolInputAction::AxrBoolInputAction(const Config& config):
     m_LocalizedName(config.LocalizedName),
     m_XrVisibility(config.XrVisibility),
     m_Value(false),
-    m_WasTriggeredThisFrame(false),
+    m_ValueLastFrame(false),
     m_XrSystem(nullptr),
     m_XrAction(XR_NULL_HANDLE) {
     if (config.Bindings != nullptr) {
@@ -73,13 +73,13 @@ AxrBoolInputAction::AxrBoolInputAction(AxrBoolInputAction&& src) noexcept {
 
     m_XrVisibility = src.m_XrVisibility;
     m_Value = src.m_Value;
-    m_WasTriggeredThisFrame = src.m_WasTriggeredThisFrame;
+    m_ValueLastFrame = src.m_ValueLastFrame;
     m_XrSystem = src.m_XrSystem;
     m_XrAction = src.m_XrAction;
 
     src.m_XrVisibility = {};
     src.m_Value = false;
-    src.m_WasTriggeredThisFrame = false;
+    src.m_ValueLastFrame = false;
     src.m_XrSystem = nullptr;
     src.m_XrAction = XR_NULL_HANDLE;
 }
@@ -98,13 +98,13 @@ AxrBoolInputAction& AxrBoolInputAction::operator=(AxrBoolInputAction&& src) noex
 
         m_XrVisibility = src.m_XrVisibility;
         m_Value = src.m_Value;
-        m_WasTriggeredThisFrame = src.m_WasTriggeredThisFrame;
+        m_ValueLastFrame = src.m_ValueLastFrame;
         m_XrSystem = src.m_XrSystem;
         m_XrAction = src.m_XrAction;
 
         src.m_XrVisibility = {};
         src.m_Value = false;
-        src.m_WasTriggeredThisFrame = false;
+        src.m_ValueLastFrame = false;
         src.m_XrSystem = nullptr;
         src.m_XrAction = XR_NULL_HANDLE;
     }
@@ -113,8 +113,8 @@ AxrBoolInputAction& AxrBoolInputAction::operator=(AxrBoolInputAction&& src) noex
 
 // ---- Public Functions ----
 
-bool AxrBoolInputAction::wasValueSetThisFrame() const {
-    return m_WasTriggeredThisFrame;
+bool AxrBoolInputAction::valueChanged() const {
+    return m_ValueLastFrame != m_Value;
 }
 
 bool AxrBoolInputAction::getValue() const {
@@ -154,7 +154,7 @@ void AxrBoolInputAction::resetSetupXrActions() {
 }
 
 void AxrBoolInputAction::newFrameStarted() {
-    m_WasTriggeredThisFrame = false;
+    m_ValueLastFrame = m_Value;
 }
 
 XrAction AxrBoolInputAction::getXrAction() const {
@@ -171,7 +171,10 @@ bool AxrBoolInputAction::containsBinding(const AxrBoolInputActionEnum biding) co
 
 void AxrBoolInputAction::trigger(const bool value) {
     m_Value = value;
-    m_WasTriggeredThisFrame = true;
+}
+
+void AxrBoolInputAction::reset() {
+    m_Value = false;
 }
 
 bool AxrBoolInputAction::isVisibleToXrSession() const {
@@ -260,5 +263,5 @@ void AxrBoolInputAction::cleanup() {
     m_XrVisibility = {};
     m_Bindings.clear();
     m_Value = false;
-    m_WasTriggeredThisFrame = false;
+    m_ValueLastFrame = false;
 }
