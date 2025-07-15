@@ -2,7 +2,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "boolInputAction.hpp"
-#include "ioActionUtils.hpp"
+#include "actionUtils.hpp"
 #include "axr/logger.h"
 
 // ----------------------------------------- //
@@ -223,20 +223,20 @@ void AxrBoolInputAction::reset() {
 
 bool AxrBoolInputAction::isVisibleToXrSession() const {
     switch (m_XrVisibility) {
-        case AXR_IO_ACTION_XR_VISIBILITY_ALWAYS: {
+        case AXR_ACTION_XR_VISIBILITY_ALWAYS: {
             return true;
         }
-        case AXR_IO_ACTION_XR_VISIBILITY_NEVER: {
+        case AXR_ACTION_XR_VISIBILITY_NEVER: {
             return false;
         }
         default: {
             axrLogErrorLocation(
-                "Unknown AxrIOActionXrVisibilityEnum value: {0}.",
+                "Unknown AxrActionXrVisibilityEnum value: {0}.",
                 static_cast<int32_t>(m_XrVisibility)
             );
             // Don't break. We intentionally fall through to the auto case
         }
-        case AXR_IO_ACTION_XR_VISIBILITY_AUTO: {
+        case AXR_ACTION_XR_VISIBILITY_AUTO: {
             for (const AxrBoolInputActionEnum binding : m_Bindings) {
                 if (axrIsXrBoolInputAction(binding)) {
                     return true;
@@ -270,8 +270,8 @@ AxrBoolInputActionConfig AxrBoolInputAction::clone(const AxrBoolInputActionConfi
         .Bindings = nullptr,
     };
 
-    strncpy_s(config.Name, inputActionConfig.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
-    strncpy_s(config.LocalizedName, inputActionConfig.LocalizedName, AXR_MAX_IO_ACTION_NAME_SIZE);
+    strncpy_s(config.Name, inputActionConfig.Name, AXR_MAX_ACTION_NAME_SIZE);
+    strncpy_s(config.LocalizedName, inputActionConfig.LocalizedName, AXR_MAX_ACTION_NAME_SIZE);
 
     // TODO: Add this check for any other similar cloning function. like assets
     if (inputActionConfig.BindingCount != 0 && inputActionConfig.Bindings != nullptr) {

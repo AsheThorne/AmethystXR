@@ -6,7 +6,7 @@
 #include "axr/common.h"
 #include "axr/windowSystem.h"
 #include "win32/win32WindowSystem.hpp"
-#include "axr/ioActionSystem.h"
+#include "axr/actionSystem.h"
 
 /// Axr Window System
 class AxrWindowSystem {
@@ -18,7 +18,7 @@ public:
     /// Window System Config
     struct Config {
         std::string ApplicationName;
-        AxrIOActionSystem_T IOActionSystem;
+        AxrActionSystem_T ActionSystem;
         uint32_t Width;
         uint32_t Height;
     };

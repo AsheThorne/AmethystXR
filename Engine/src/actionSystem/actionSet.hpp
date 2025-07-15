@@ -3,7 +3,7 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/ioActionSystem.h"
+#include "axr/actionSystem.h"
 #include "boolInputAction.hpp"
 #include "floatInputAction.hpp"
 #include "vec2InputAction.hpp"
@@ -15,14 +15,14 @@
 #include <string>
 #include <unordered_map>
 
-/// Axr Input/Output Action Set
-class AxrIOActionSet {
+/// Axr Action Set
+class AxrActionSet {
 public:
     // ----------------------------------------- //
     // Structs
     // ----------------------------------------- //
 
-    /// AxrIOActionSet Config
+    /// AxrActionSet Config
     struct Config {
         std::string Name;
         std::string LocalizedName;
@@ -41,28 +41,28 @@ public:
     // ---- Constructors ----
 
     /// Constructor
-    /// @param config AxrIOActionSet config
-    explicit AxrIOActionSet(const Config& config);
+    /// @param config AxrActionSet config
+    explicit AxrActionSet(const Config& config);
     /// Copy Constructor
-    /// @param src Source AxrIOActionSet to copy from
-    AxrIOActionSet(const AxrIOActionSet& src) = delete;
+    /// @param src Source AxrActionSet to copy from
+    AxrActionSet(const AxrActionSet& src) = delete;
     /// Move Constructor
-    /// @param src Source AxrIOActionSet to move from
-    AxrIOActionSet(AxrIOActionSet&& src) noexcept;
+    /// @param src Source AxrActionSet to move from
+    AxrActionSet(AxrActionSet&& src) noexcept;
 
     // ---- Destructor ----
 
     /// Destructor
-    ~AxrIOActionSet();
+    ~AxrActionSet();
 
     // ---- Operator Overloads ----
 
     /// Copy Assignment Operator
-    /// @param src Source AxrIOActionSet to copy from
-    AxrIOActionSet& operator=(const AxrIOActionSet& src) = delete;
+    /// @param src Source AxrActionSet to copy from
+    AxrActionSet& operator=(const AxrActionSet& src) = delete;
     /// Move Assignment Operator
-    /// @param src Source AxrIOActionSet to move from
-    AxrIOActionSet& operator=(AxrIOActionSet&& src) noexcept;
+    /// @param src Source AxrActionSet to move from
+    AxrActionSet& operator=(AxrActionSet&& src) noexcept;
 
     // ----------------------------------------- //
     // Public Functions
@@ -76,9 +76,9 @@ public:
     /// @returns The priority level
     [[nodiscard]] uint32_t getPriority() const;
 
-    /// Enable the input/output action set
+    /// Enable the action set
     void enable();
-    /// Disable the input/output action set
+    /// Disable the action set
     void disable();
     /// Check if the action set is enabled
     /// @returns True if the action set is enabled
@@ -132,13 +132,13 @@ public:
     // Public Static Functions
     // ----------------------------------------- //
 
-    /// Clone the given input/output action set config
-    /// @param ioActionSetConfig Input/Output action set config to clone
-    /// @returns The cloned input/output action set
-    [[nodiscard]] static AxrIOActionSetConfig clone(const AxrIOActionSetConfig& ioActionSetConfig);
-    /// Destroy the given input/output action set config
-    /// @param ioActionSetConfig Input/Output action set config to destroy
-    static void destroy(AxrIOActionSetConfig& ioActionSetConfig);
+    /// Clone the given action set config
+    /// @param actionSetConfig Action set config to clone
+    /// @returns The cloned action set
+    [[nodiscard]] static AxrActionSetConfig clone(const AxrActionSetConfig& actionSetConfig);
+    /// Destroy the given action set config
+    /// @param actionSetConfig Action set config to destroy
+    static void destroy(AxrActionSetConfig& actionSetConfig);
 
 private:
     // ----------------------------------------- //

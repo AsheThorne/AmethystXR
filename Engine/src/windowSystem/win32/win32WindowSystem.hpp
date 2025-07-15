@@ -5,7 +5,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/common.h"
-#include "../../ioActionSystem/ioActionSystem.hpp"
+#include "../../actionSystem/actionSystem.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -37,7 +37,7 @@ public:
     /// Win32 Window System Config
     struct Config {
         std::string ApplicationName;
-        AxrIOActionSystem_T IOActionSystem;
+        AxrActionSystem_T ActionSystem;
         uint32_t Width;
         uint32_t Height;
         OnWindowResizedCallback_T OnWindowResizedCallback;
@@ -111,7 +111,7 @@ private:
 
     // ---- Config Variables ----
     std::string m_ApplicationName;
-    AxrIOActionSystem_T m_IOActionSystem;
+    AxrActionSystem_T m_ActionSystem;
     uint32_t m_Width;
     uint32_t m_Height;
     OnWindowResizedCallback_T m_OnWindowResizedCallback;

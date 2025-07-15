@@ -1,7 +1,7 @@
 ﻿// ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "ioActionSet.hpp"
+#include "actionSet.hpp"
 
 #include <ranges>
 
@@ -11,73 +11,73 @@
 // External Functions
 // ----------------------------------------- //
 
-AxrIOActionSetConfig axrIOActionSetConfigClone(const AxrIOActionSetConfig* ioActionSetConfig) {
-    if (ioActionSetConfig == nullptr) {
-        axrLogErrorLocation("`ioActionSetConfig` is null");
+AxrActionSetConfig axrActionSetConfigClone(const AxrActionSetConfig* actionSetConfig) {
+    if (actionSetConfig == nullptr) {
+        axrLogErrorLocation("`actionSetConfig` is null");
         return {};
     }
 
-    return AxrIOActionSet::clone(*ioActionSetConfig);
+    return AxrActionSet::clone(*actionSetConfig);
 }
 
-void axrIOActionSetConfigDestroy(AxrIOActionSetConfig* ioActionSetConfig) {
-    if (ioActionSetConfig == nullptr) {
-        axrLogErrorLocation("`ioActionSetConfig` is null");
+void axrActionSetConfigDestroy(AxrActionSetConfig* actionSetConfig) {
+    if (actionSetConfig == nullptr) {
+        axrLogErrorLocation("`actionSetConfig` is null");
         return;
     }
 
-    return AxrIOActionSet::destroy(*ioActionSetConfig);
+    return AxrActionSet::destroy(*actionSetConfig);
 }
 
-void axrIOActionSetSetPriority(const AxrIOActionSet_T ioActionSet, const uint32_t priority) {
-    if (ioActionSet == nullptr) {
-        axrLogErrorLocation("`ioActionSet` is null");
+void axrActionSetSetPriority(const AxrActionSet_T actionSet, const uint32_t priority) {
+    if (actionSet == nullptr) {
+        axrLogErrorLocation("`actionSet` is null");
         return;
     }
 
-    return ioActionSet->setPriority(priority);
+    return actionSet->setPriority(priority);
 }
 
-uint32_t axrIOActionSetGetPriority(const AxrIOActionSetConst_T ioActionSet) {
-    if (ioActionSet == nullptr) {
-        axrLogErrorLocation("`ioActionSet` is null");
+uint32_t axrActionSetGetPriority(const AxrActionSetConst_T actionSet) {
+    if (actionSet == nullptr) {
+        axrLogErrorLocation("`actionSet` is null");
         return 0;
     }
 
-    return ioActionSet->getPriority();
+    return actionSet->getPriority();
 }
 
 
-void axrIOActionSetEnable(const AxrIOActionSet_T ioActionSet) {
-    if (ioActionSet == nullptr) {
-        axrLogErrorLocation("`ioActionSet` is null");
+void axrActionSetEnable(const AxrActionSet_T actionSet) {
+    if (actionSet == nullptr) {
+        axrLogErrorLocation("`actionSet` is null");
         return;
     }
 
-    return ioActionSet->enable();
+    return actionSet->enable();
 }
 
-void axrIOActionSetDisable(const AxrIOActionSet_T ioActionSet) {
-    if (ioActionSet == nullptr) {
-        axrLogErrorLocation("`ioActionSet` is null");
+void axrActionSetDisable(const AxrActionSet_T actionSet) {
+    if (actionSet == nullptr) {
+        axrLogErrorLocation("`actionSet` is null");
         return;
     }
 
-    return ioActionSet->disable();
+    return actionSet->disable();
 }
 
-bool axrIOActionSetIsEnabled(const AxrIOActionSetConst_T ioActionSet) {
-    if (ioActionSet == nullptr) {
-        axrLogErrorLocation("`ioActionSet` is null");
+bool axrActionSetIsEnabled(const AxrActionSetConst_T actionSet) {
+    if (actionSet == nullptr) {
+        axrLogErrorLocation("`actionSet` is null");
         return false;
     }
 
-    return ioActionSet->isEnabled();
+    return actionSet->isEnabled();
 }
 
-AxrBoolInputAction_T axrIOActionSetGetBoolInputAction(const AxrIOActionSet_T ioActionSet, const char* name) {
-    if (ioActionSet == nullptr) {
-        axrLogErrorLocation("`ioActionSet` is null");
+AxrBoolInputAction_T axrActionSetGetBoolInputAction(const AxrActionSet_T actionSet, const char* name) {
+    if (actionSet == nullptr) {
+        axrLogErrorLocation("`actionSet` is null");
         return nullptr;
     }
 
@@ -86,12 +86,12 @@ AxrBoolInputAction_T axrIOActionSetGetBoolInputAction(const AxrIOActionSet_T ioA
         return nullptr;
     }
 
-    return ioActionSet->getBoolInputAction(name);
+    return actionSet->getBoolInputAction(name);
 }
 
-AxrFloatInputAction_T axrIOActionSetGetFloatInputAction(const AxrIOActionSet_T ioActionSet, const char* name) {
-    if (ioActionSet == nullptr) {
-        axrLogErrorLocation("`ioActionSet` is null");
+AxrFloatInputAction_T axrActionSetGetFloatInputAction(const AxrActionSet_T actionSet, const char* name) {
+    if (actionSet == nullptr) {
+        axrLogErrorLocation("`actionSet` is null");
         return nullptr;
     }
 
@@ -100,12 +100,12 @@ AxrFloatInputAction_T axrIOActionSetGetFloatInputAction(const AxrIOActionSet_T i
         return nullptr;
     }
 
-    return ioActionSet->getFloatInputAction(name);
+    return actionSet->getFloatInputAction(name);
 }
 
-AxrVec2InputAction_T axrIOActionSetGetVec2InputAction(const AxrIOActionSet_T ioActionSet, const char* name) {
-    if (ioActionSet == nullptr) {
-        axrLogErrorLocation("`ioActionSet` is null");
+AxrVec2InputAction_T axrActionSetGetVec2InputAction(const AxrActionSet_T actionSet, const char* name) {
+    if (actionSet == nullptr) {
+        axrLogErrorLocation("`actionSet` is null");
         return nullptr;
     }
 
@@ -114,7 +114,7 @@ AxrVec2InputAction_T axrIOActionSetGetVec2InputAction(const AxrIOActionSet_T ioA
         return nullptr;
     }
 
-    return ioActionSet->getVec2InputAction(name);
+    return actionSet->getVec2InputAction(name);
 }
 
 // ----------------------------------------- //
@@ -123,7 +123,7 @@ AxrVec2InputAction_T axrIOActionSetGetVec2InputAction(const AxrIOActionSet_T ioA
 
 // ---- Special Functions ----
 
-AxrIOActionSet::AxrIOActionSet(const Config& config):
+AxrActionSet::AxrActionSet(const Config& config):
     m_Name(config.Name),
     m_LocalizedName(config.LocalizedName),
     m_IsEnabled(true),
@@ -186,7 +186,7 @@ AxrIOActionSet::AxrIOActionSet(const Config& config):
     }
 }
 
-AxrIOActionSet::AxrIOActionSet(AxrIOActionSet&& src) noexcept {
+AxrActionSet::AxrActionSet(AxrActionSet&& src) noexcept {
     m_Name = std::move(src.m_Name);
     m_LocalizedName = std::move(src.m_LocalizedName);
     m_BoolInputActions = std::move(src.m_BoolInputActions);
@@ -204,11 +204,11 @@ AxrIOActionSet::AxrIOActionSet(AxrIOActionSet&& src) noexcept {
     src.m_XrActionSet = XR_NULL_HANDLE;
 }
 
-AxrIOActionSet::~AxrIOActionSet() {
+AxrActionSet::~AxrActionSet() {
     cleanup();
 }
 
-AxrIOActionSet& AxrIOActionSet::operator=(AxrIOActionSet&& src) noexcept {
+AxrActionSet& AxrActionSet::operator=(AxrActionSet&& src) noexcept {
     if (this != &src) {
         cleanup();
 
@@ -233,27 +233,27 @@ AxrIOActionSet& AxrIOActionSet::operator=(AxrIOActionSet&& src) noexcept {
 
 // ---- Public Functions ----
 
-void AxrIOActionSet::setPriority(const uint32_t priority) {
+void AxrActionSet::setPriority(const uint32_t priority) {
     m_Priority = priority;
 }
 
-uint32_t AxrIOActionSet::getPriority() const {
+uint32_t AxrActionSet::getPriority() const {
     return m_Priority;
 }
 
-void AxrIOActionSet::enable() {
+void AxrActionSet::enable() {
     m_IsEnabled = true;
 }
 
-void AxrIOActionSet::disable() {
+void AxrActionSet::disable() {
     m_IsEnabled = false;
 }
 
-bool AxrIOActionSet::isEnabled() const {
+bool AxrActionSet::isEnabled() const {
     return m_IsEnabled;
 }
 
-AxrBoolInputAction_T AxrIOActionSet::getBoolInputAction(const std::string& name) {
+AxrBoolInputAction_T AxrActionSet::getBoolInputAction(const std::string& name) {
     const auto foundInputAction = m_BoolInputActions.find(name);
     if (foundInputAction == m_BoolInputActions.end()) {
         return nullptr;
@@ -262,7 +262,7 @@ AxrBoolInputAction_T AxrIOActionSet::getBoolInputAction(const std::string& name)
     return &foundInputAction->second;
 }
 
-AxrFloatInputAction_T AxrIOActionSet::getFloatInputAction(const std::string& name) {
+AxrFloatInputAction_T AxrActionSet::getFloatInputAction(const std::string& name) {
     const auto foundInputAction = m_FloatInputActions.find(name);
     if (foundInputAction == m_FloatInputActions.end()) {
         return nullptr;
@@ -271,7 +271,7 @@ AxrFloatInputAction_T AxrIOActionSet::getFloatInputAction(const std::string& nam
     return &foundInputAction->second;
 }
 
-AxrVec2InputAction_T AxrIOActionSet::getVec2InputAction(const std::string& name) {
+AxrVec2InputAction_T AxrActionSet::getVec2InputAction(const std::string& name) {
     const auto foundInputAction = m_Vec2InputActions.find(name);
     if (foundInputAction == m_Vec2InputActions.end()) {
         return nullptr;
@@ -280,7 +280,7 @@ AxrVec2InputAction_T AxrIOActionSet::getVec2InputAction(const std::string& name)
     return &foundInputAction->second;
 }
 
-AxrResult AxrIOActionSet::setupXrActions(const AxrXrSystem_T xrSystem) {
+AxrResult AxrActionSet::setupXrActions(const AxrXrSystem_T xrSystem) {
     if (!isVisibleToXrSession()) return AXR_SUCCESS;
 
     if (xrSystem == nullptr) {
@@ -329,7 +329,7 @@ AxrResult AxrIOActionSet::setupXrActions(const AxrXrSystem_T xrSystem) {
     return AXR_SUCCESS;
 }
 
-void AxrIOActionSet::resetSetupXrActions() {
+void AxrActionSet::resetSetupXrActions() {
     if (m_XrSystem == nullptr) return;
 
     for (AxrBoolInputAction& inputAction : m_BoolInputActions | std::ranges::views::values) {
@@ -349,7 +349,7 @@ void AxrIOActionSet::resetSetupXrActions() {
     m_XrSystem = nullptr;
 }
 
-void AxrIOActionSet::newFrameStarted() {
+void AxrActionSet::newFrameStarted() {
     for (AxrBoolInputAction& inputAction : m_BoolInputActions | std::ranges::views::values) {
         inputAction.newFrameStarted();
     }
@@ -361,23 +361,23 @@ void AxrIOActionSet::newFrameStarted() {
     }
 }
 
-std::unordered_map<std::string, AxrBoolInputAction>& AxrIOActionSet::getBoolInputActions() {
+std::unordered_map<std::string, AxrBoolInputAction>& AxrActionSet::getBoolInputActions() {
     return m_BoolInputActions;
 }
 
-std::unordered_map<std::string, AxrFloatInputAction>& AxrIOActionSet::getFloatInputActions() {
+std::unordered_map<std::string, AxrFloatInputAction>& AxrActionSet::getFloatInputActions() {
     return m_FloatInputActions;
 }
 
-std::unordered_map<std::string, AxrVec2InputAction>& AxrIOActionSet::getVec2InputActions() {
+std::unordered_map<std::string, AxrVec2InputAction>& AxrActionSet::getVec2InputActions() {
     return m_Vec2InputActions;
 }
 
-XrActionSet AxrIOActionSet::getXrActionSet() const {
+XrActionSet AxrActionSet::getXrActionSet() const {
     return m_XrActionSet;
 }
 
-void AxrIOActionSet::updateXrActionValues() {
+void AxrActionSet::updateXrActionValues() {
     for (AxrBoolInputAction& inputAction : m_BoolInputActions | std::ranges::views::values) {
         inputAction.updateXrActionValue();
     }
@@ -393,84 +393,84 @@ void AxrIOActionSet::updateXrActionValues() {
 
 // ---- Public Static Functions ----
 
-AxrIOActionSetConfig AxrIOActionSet::clone(const AxrIOActionSetConfig& ioActionSetConfig) {
-    AxrIOActionSetConfig config{
+AxrActionSetConfig AxrActionSet::clone(const AxrActionSetConfig& actionSetConfig) {
+    AxrActionSetConfig config{
         .Name = {},
         .LocalizedName = {},
-        .BoolInputActionCount = ioActionSetConfig.BoolInputActionCount,
+        .BoolInputActionCount = actionSetConfig.BoolInputActionCount,
         .BoolInputActions = nullptr,
-        .FloatInputActionCount = ioActionSetConfig.FloatInputActionCount,
+        .FloatInputActionCount = actionSetConfig.FloatInputActionCount,
         .FloatInputActions = nullptr,
-        .Vec2InputActionCount = ioActionSetConfig.Vec2InputActionCount,
+        .Vec2InputActionCount = actionSetConfig.Vec2InputActionCount,
         .Vec2InputActions = nullptr,
     };
 
-    strncpy_s(config.Name, ioActionSetConfig.Name, AXR_MAX_IO_ACTION_SET_NAME_SIZE);
-    strncpy_s(config.LocalizedName, ioActionSetConfig.LocalizedName, AXR_MAX_IO_ACTION_SET_NAME_SIZE);
+    strncpy_s(config.Name, actionSetConfig.Name, AXR_MAX_ACTION_SET_NAME_SIZE);
+    strncpy_s(config.LocalizedName, actionSetConfig.LocalizedName, AXR_MAX_ACTION_SET_NAME_SIZE);
 
-    if (ioActionSetConfig.BoolInputActionCount != 0 && ioActionSetConfig.BoolInputActions != nullptr) {
-        config.BoolInputActions = new AxrBoolInputActionConfig[ioActionSetConfig.BoolInputActionCount]{};
+    if (actionSetConfig.BoolInputActionCount != 0 && actionSetConfig.BoolInputActions != nullptr) {
+        config.BoolInputActions = new AxrBoolInputActionConfig[actionSetConfig.BoolInputActionCount]{};
 
-        for (uint32_t i = 0; i < ioActionSetConfig.BoolInputActionCount; ++i) {
-            config.BoolInputActions[i] = AxrBoolInputAction::clone(ioActionSetConfig.BoolInputActions[i]);
+        for (uint32_t i = 0; i < actionSetConfig.BoolInputActionCount; ++i) {
+            config.BoolInputActions[i] = AxrBoolInputAction::clone(actionSetConfig.BoolInputActions[i]);
         }
     }
 
-    if (ioActionSetConfig.FloatInputActionCount != 0 && ioActionSetConfig.FloatInputActions != nullptr) {
-        config.FloatInputActions = new AxrFloatInputActionConfig[ioActionSetConfig.FloatInputActionCount]{};
+    if (actionSetConfig.FloatInputActionCount != 0 && actionSetConfig.FloatInputActions != nullptr) {
+        config.FloatInputActions = new AxrFloatInputActionConfig[actionSetConfig.FloatInputActionCount]{};
 
-        for (uint32_t i = 0; i < ioActionSetConfig.FloatInputActionCount; ++i) {
-            config.FloatInputActions[i] = AxrFloatInputAction::clone(ioActionSetConfig.FloatInputActions[i]);
+        for (uint32_t i = 0; i < actionSetConfig.FloatInputActionCount; ++i) {
+            config.FloatInputActions[i] = AxrFloatInputAction::clone(actionSetConfig.FloatInputActions[i]);
         }
     }
 
-    if (ioActionSetConfig.Vec2InputActionCount != 0 && ioActionSetConfig.Vec2InputActions != nullptr) {
-        config.Vec2InputActions = new AxrVec2InputActionConfig[ioActionSetConfig.Vec2InputActionCount]{};
+    if (actionSetConfig.Vec2InputActionCount != 0 && actionSetConfig.Vec2InputActions != nullptr) {
+        config.Vec2InputActions = new AxrVec2InputActionConfig[actionSetConfig.Vec2InputActionCount]{};
 
-        for (uint32_t i = 0; i < ioActionSetConfig.Vec2InputActionCount; ++i) {
-            config.Vec2InputActions[i] = AxrVec2InputAction::clone(ioActionSetConfig.Vec2InputActions[i]);
+        for (uint32_t i = 0; i < actionSetConfig.Vec2InputActionCount; ++i) {
+            config.Vec2InputActions[i] = AxrVec2InputAction::clone(actionSetConfig.Vec2InputActions[i]);
         }
     }
 
     return config;
 }
 
-void AxrIOActionSet::destroy(AxrIOActionSetConfig& ioActionSetConfig) {
-    memset(ioActionSetConfig.Name, 0, sizeof(ioActionSetConfig.Name));
-    memset(ioActionSetConfig.LocalizedName, 0, sizeof(ioActionSetConfig.LocalizedName));
+void AxrActionSet::destroy(AxrActionSetConfig& actionSetConfig) {
+    memset(actionSetConfig.Name, 0, sizeof(actionSetConfig.Name));
+    memset(actionSetConfig.LocalizedName, 0, sizeof(actionSetConfig.LocalizedName));
 
-    if (ioActionSetConfig.BoolInputActions != nullptr) {
-        for (uint32_t i = 0; i < ioActionSetConfig.BoolInputActionCount; ++i) {
-            AxrBoolInputAction::destroy(ioActionSetConfig.BoolInputActions[i]);
+    if (actionSetConfig.BoolInputActions != nullptr) {
+        for (uint32_t i = 0; i < actionSetConfig.BoolInputActionCount; ++i) {
+            AxrBoolInputAction::destroy(actionSetConfig.BoolInputActions[i]);
         }
 
-        delete[] ioActionSetConfig.BoolInputActions;
-        ioActionSetConfig.BoolInputActions = nullptr;
+        delete[] actionSetConfig.BoolInputActions;
+        actionSetConfig.BoolInputActions = nullptr;
     }
-    ioActionSetConfig.BoolInputActionCount = 0;
+    actionSetConfig.BoolInputActionCount = 0;
 
-    if (ioActionSetConfig.FloatInputActions != nullptr) {
-        for (uint32_t i = 0; i < ioActionSetConfig.FloatInputActionCount; ++i) {
-            AxrFloatInputAction::destroy(ioActionSetConfig.FloatInputActions[i]);
+    if (actionSetConfig.FloatInputActions != nullptr) {
+        for (uint32_t i = 0; i < actionSetConfig.FloatInputActionCount; ++i) {
+            AxrFloatInputAction::destroy(actionSetConfig.FloatInputActions[i]);
         }
 
-        delete[] ioActionSetConfig.FloatInputActions;
-        ioActionSetConfig.FloatInputActions = nullptr;
+        delete[] actionSetConfig.FloatInputActions;
+        actionSetConfig.FloatInputActions = nullptr;
     }
-    ioActionSetConfig.FloatInputActionCount = 0;
+    actionSetConfig.FloatInputActionCount = 0;
 
-    if (ioActionSetConfig.Vec2InputActions != nullptr) {
-        for (uint32_t i = 0; i < ioActionSetConfig.Vec2InputActionCount; ++i) {
-            AxrVec2InputAction::destroy(ioActionSetConfig.Vec2InputActions[i]);
+    if (actionSetConfig.Vec2InputActions != nullptr) {
+        for (uint32_t i = 0; i < actionSetConfig.Vec2InputActionCount; ++i) {
+            AxrVec2InputAction::destroy(actionSetConfig.Vec2InputActions[i]);
         }
 
-        delete[] ioActionSetConfig.Vec2InputActions;
-        ioActionSetConfig.Vec2InputActions = nullptr;
+        delete[] actionSetConfig.Vec2InputActions;
+        actionSetConfig.Vec2InputActions = nullptr;
     }
-    ioActionSetConfig.Vec2InputActionCount = 0;
+    actionSetConfig.Vec2InputActionCount = 0;
 }
 
-void AxrIOActionSet::cleanup() {
+void AxrActionSet::cleanup() {
     resetSetupXrActions();
 
     m_Name.clear();
@@ -482,8 +482,8 @@ void AxrIOActionSet::cleanup() {
     m_Priority = 0;
 }
 
-bool AxrIOActionSet::isVisibleToXrSession() const {
-    // If any IO action is visible to the xr session, then the whole must be
+bool AxrActionSet::isVisibleToXrSession() const {
+    // If any action is visible to the xr session, then the whole must be
 
     for (const AxrBoolInputAction& inputAction : m_BoolInputActions | std::views::values) {
         if (inputAction.isVisibleToXrSession()) return true;

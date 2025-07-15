@@ -46,9 +46,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         axr::SamplerAnisotropyQualityEnum::High
     );
 
-    axr::IOActionSystemConfig ioActionSystemConfig(
+    axr::ActionSystemConfig actionSystemConfig(
         std::vector{
-            axr::IOActionSetConfig(
+            axr::ActionSetConfig(
                 // TODO: Validate all action set and action names: https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#well-formed-path-strings
                 "test",
                 "Test",
@@ -56,7 +56,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
                     axr::BoolInputActionConfig(
                         "key",
                         "Key",
-                        axr::IOActionXrVisibilityEnum::Always,
+                        axr::ActionXrVisibilityEnum::Always,
                         std::vector{
                             axr::BoolInputActionEnum::KeyboardA,
                             axr::BoolInputActionEnum::XrController_Left_A_Click,
@@ -68,7 +68,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
                     axr::FloatInputActionConfig(
                         "mousewheel",
                         "Mouse Wheel",
-                        axr::IOActionXrVisibilityEnum::Never,
+                        axr::ActionXrVisibilityEnum::Never,
                         std::vector{
                             axr::FloatInputActionEnum::MouseWheel,
                             axr::FloatInputActionEnum::XrController_Right_Trigger_Value,
@@ -80,7 +80,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
                     axr::Vec2InputActionConfig(
                         "mousemoved",
                         "Mouse Moved",
-                        axr::IOActionXrVisibilityEnum::Auto,
+                        axr::ActionXrVisibilityEnum::Auto,
                         std::vector{
                             axr::Vec2InputActionEnum::MouseMoved,
                         }
@@ -119,7 +119,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         applicationName.c_str(),
         AXR_MAKE_VERSION(1, 0, 0),
         graphicsSystemConfig,
-        ioActionSystemConfig,
+        actionSystemConfig,
         &windowSystemConfig,
         &xrSystemConfig
     );
@@ -151,11 +151,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     axr::GraphicsSystem graphicsSystem = app.getGraphicsSystem();
     graphicsSystem.setClearColor(axr::Color(0.2f, 0.05f, 0.2f, 1.0f));
 
-    axr::IOActionSystem ioActionSystem = app.getIOActionSystem();
-    axr::IOActionSet ioActionSet = ioActionSystem.getIOActionSet("test");
-    axr::BoolInputAction keyAction = ioActionSet.getBoolInputAction("key");
-    axr::FloatInputAction mouseWheelAction = ioActionSet.getFloatInputAction("mousewheel");
-    axr::Vec2InputAction mouseMovedAction = ioActionSet.getVec2InputAction("mousemoved");
+    axr::ActionSystem actionSystem = app.getActionSystem();
+    axr::ActionSet actionSet = actionSystem.getActionSet("test");
+    axr::BoolInputAction keyAction = actionSet.getBoolInputAction("key");
+    axr::FloatInputAction mouseWheelAction = actionSet.getFloatInputAction("mousewheel");
+    axr::Vec2InputAction mouseMovedAction = actionSet.getVec2InputAction("mousemoved");
 
     while (app.isRunning()) {
         app.processEvents();

@@ -7,7 +7,7 @@
 #include "../common.hpp"
 #include "../utils.hpp"
 #include "xrExtensionFunctions.hpp"
-#include "../ioActionSystem/ioActionUtils.hpp"
+#include "../actionSystem/actionUtils.hpp"
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 #include "../graphicsSystem/vulkan/vulkanUtils.hpp"
@@ -1912,7 +1912,7 @@ void AxrXrSystem::destroyGraphicsBinding() {
 }
 
 void AxrXrSystem::destroySessionData() {
-    OnXrSessionStateChangedCallbackIOActions(false);
+    OnXrSessionStateChangedCallbackActions(false);
     OnXrSessionStateChangedCallbackGraphics(false);
     destroySpace(m_StageReferenceSpace);
     destroySession();
@@ -2135,7 +2135,7 @@ void AxrXrSystem::xrEvent_SessionStateChanged(const XrEventDataSessionStateChang
             axrLogXrResult(xrResult, "xrBeginSession");
             if (XR_SUCCEEDED(xrResult)) {
                 OnXrSessionStateChangedCallbackGraphics(true);
-                OnXrSessionStateChangedCallbackIOActions(true);
+                OnXrSessionStateChangedCallbackActions(true);
             }
             break;
         }

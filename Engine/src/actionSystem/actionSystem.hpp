@@ -3,9 +3,9 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/ioActionSystem.h"
+#include "axr/actionSystem.h"
 #include "axr/common/enums.h"
-#include "ioActionSet.hpp"
+#include "actionSet.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -23,18 +23,18 @@
 #include <windows.h>
 #endif
 
-/// Axr Input/Output Action System
-class AxrIOActionSystem {
+/// Axr Action System
+class AxrActionSystem {
 public:
     // ----------------------------------------- //
     // Structs
     // ----------------------------------------- //
 
-    /// AxrIOActionSystem config
+    /// AxrActionSystem config
     struct Config {
         AxrXrSystem_T XrSystem;
         uint32_t ActionSetCount;
-        AxrIOActionSetConfig* ActionSets;
+        AxrActionSetConfig* ActionSets;
         uint32_t XrInteractionProfileCount;
         AxrXrInteractionProfileEnum* XrInteractionProfiles;
     };
@@ -46,43 +46,43 @@ public:
     // ---- Constructors ----
 
     /// Constructor
-    /// @param config AxrIOActionSystem config
-    AxrIOActionSystem(const Config& config);
+    /// @param config AxrActionSystem config
+    AxrActionSystem(const Config& config);
     /// Copy Constructor
-    /// @param src Source AxrIOActionSystem to copy from
-    AxrIOActionSystem(const AxrIOActionSystem& src) = delete;
+    /// @param src Source AxrActionSystem to copy from
+    AxrActionSystem(const AxrActionSystem& src) = delete;
     /// Move Constructor
-    /// @param src Source AxrIOActionSystem to move from
-    AxrIOActionSystem(AxrIOActionSystem&& src) noexcept = delete;
+    /// @param src Source AxrActionSystem to move from
+    AxrActionSystem(AxrActionSystem&& src) noexcept = delete;
 
     // ---- Destructor ----
 
     /// Destructor
-    ~AxrIOActionSystem();
+    ~AxrActionSystem();
 
     // ---- Operator Overloads ----
 
     /// Copy Assignment Operator
-    /// @param src Source AxrIOActionSystem to copy from
-    AxrIOActionSystem& operator=(const AxrIOActionSystem& src) = delete;
+    /// @param src Source AxrActionSystem to copy from
+    AxrActionSystem& operator=(const AxrActionSystem& src) = delete;
     /// Move Assignment Operator
-    /// @param src Source AxrIOActionSystem to move from
-    AxrIOActionSystem& operator=(AxrIOActionSystem&& src) noexcept = delete;
+    /// @param src Source AxrActionSystem to move from
+    AxrActionSystem& operator=(AxrActionSystem&& src) noexcept = delete;
 
     // ----------------------------------------- //
     // Public Functions
     // ----------------------------------------- //
 
-    /// Get the named input/output action set
-    /// @param name Input/Output action set name
-    /// @returns The input/output action set or nullptr if it wasn't found
-    AxrIOActionSet_T getIOActionSet(const std::string& name);
+    /// Get the named action set
+    /// @param name Action set name
+    /// @returns The action set or nullptr if it wasn't found
+    AxrActionSet_T getActionSet(const std::string& name);
 
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
     // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
 
-    /// Set up the input/output action system
+    /// Set up the action system
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setup();
     /// Reset setup()
@@ -91,7 +91,7 @@ public:
     /// Signal that a new frame has started
     void newFrameStarted();
 
-    /// Process the input/output events
+    /// Process the action events
     void processEvents();
 
 #ifdef AXR_USE_PLATFORM_WIN32
@@ -120,7 +120,7 @@ private:
 
     // ---- Config Variables ----
     AxrXrSystem_T m_XrSystem;
-    std::unordered_map<std::string, AxrIOActionSet> m_ActionSets;
+    std::unordered_map<std::string, AxrActionSet> m_ActionSets;
     std::unordered_set<AxrXrInteractionProfileEnum> m_XrInteractionProfiles;
 
     // ---- Data ----

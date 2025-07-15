@@ -1,9 +1,9 @@
 ﻿// ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "ioActionSystem.hpp"
+#include "actionSystem.hpp"
 #include "axr/logger.h"
-#include "ioActionUtils.hpp"
+#include "actionUtils.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -22,9 +22,9 @@
 // External Functions
 // ----------------------------------------- //
 
-AxrIOActionSet_T axrIOActionSystemGetIOActionSet(const AxrIOActionSystem_T ioActionSystem, const char* name) {
-    if (ioActionSystem == nullptr) {
-        axrLogErrorLocation("`ioActionSystem` is null");
+AxrActionSet_T axrActionSystemGetActionSet(const AxrActionSystem_T actionSystem, const char* name) {
+    if (actionSystem == nullptr) {
+        axrLogErrorLocation("`actionSystem` is null");
         return nullptr;
     }
 
@@ -33,7 +33,7 @@ AxrIOActionSet_T axrIOActionSystemGetIOActionSet(const AxrIOActionSystem_T ioAct
         return nullptr;
     }
 
-    return ioActionSystem->getIOActionSet(name);
+    return actionSystem->getActionSet(name);
 }
 
 // ----------------------------------------- //
@@ -42,7 +42,7 @@ AxrIOActionSet_T axrIOActionSystemGetIOActionSet(const AxrIOActionSystem_T ioAct
 
 // ---- Special Functions ----
 
-AxrIOActionSystem::AxrIOActionSystem(const Config& config):
+AxrActionSystem::AxrActionSystem(const Config& config):
     m_XrSystem(config.XrSystem),
     m_DoubleClickTime(0),
     m_LastAbsoluteCursorPosition(0.0f),
@@ -55,8 +55,8 @@ AxrIOActionSystem::AxrIOActionSystem(const Config& config):
             m_ActionSets.insert(
                 std::pair(
                     config.ActionSets[i].Name,
-                    AxrIOActionSet(
-                        AxrIOActionSet::Config{
+                    AxrActionSet(
+                        AxrActionSet::Config{
                             .Name = config.ActionSets[i].Name,
                             .LocalizedName = config.ActionSets[i].LocalizedName,
                             .BoolInputActionCount = config.ActionSets[i].BoolInputActionCount,
@@ -76,22 +76,22 @@ AxrIOActionSystem::AxrIOActionSystem(const Config& config):
     }
 }
 
-AxrIOActionSystem::~AxrIOActionSystem() {
+AxrActionSystem::~AxrActionSystem() {
     resetSetup();
 }
 
 // ---- Public Functions ----
 
-AxrIOActionSet_T AxrIOActionSystem::getIOActionSet(const std::string& name) {
-    const auto foundIOActionSet = m_ActionSets.find(name);
-    if (foundIOActionSet == m_ActionSets.end()) {
+AxrActionSet_T AxrActionSystem::getActionSet(const std::string& name) {
+    const auto foundActionSet = m_ActionSets.find(name);
+    if (foundActionSet == m_ActionSets.end()) {
         return nullptr;
     }
 
-    return &foundIOActionSet->second;
+    return &foundActionSet->second;
 }
 
-AxrResult AxrIOActionSystem::setup() {
+AxrResult AxrActionSystem::setup() {
     AxrResult axrResult = AXR_SUCCESS;
 
 #ifdef AXR_USE_PLATFORM_WIN32
@@ -105,7 +105,7 @@ AxrResult AxrIOActionSystem::setup() {
     return AXR_SUCCESS;
 }
 
-void AxrIOActionSystem::resetSetup() {
+void AxrActionSystem::resetSetup() {
     clearInputActions();
 
     resetSetupXrInputs();
@@ -114,15 +114,15 @@ void AxrIOActionSystem::resetSetup() {
 #endif
 }
 
-void AxrIOActionSystem::newFrameStarted() {
+void AxrActionSystem::newFrameStarted() {
     resetRelativeActions();
 
-    for (AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+    for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
         actionSet.newFrameStarted();
     }
 }
 
-void AxrIOActionSystem::processEvents() {
+void AxrActionSystem::processEvents() {
     triggerRelativeActions();
 
     if (m_XrSystem == nullptr || !m_AreXrActionsAttached) return;
@@ -138,14 +138,14 @@ void AxrIOActionSystem::processEvents() {
 
     m_XrSystem->syncActions(activeActionSets);
 
-    for (AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+    for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
         actionSet.updateXrActionValues();
     }
 }
 
 #ifdef AXR_USE_PLATFORM_WIN32
 // ReSharper disable once CppDFAConstantFunctionResult
-LRESULT AxrIOActionSystem::processWin32Message(
+LRESULT AxrActionSystem::processWin32Message(
     const HWND windowHandle,
     const UINT uMsg,
     const WPARAM wParam,
@@ -203,7 +203,7 @@ LRESULT AxrIOActionSystem::processWin32Message(
 
 // ---- Private Functions ----
 
-void AxrIOActionSystem::triggerBoolInputAction(const AxrBoolInputActionEnum inputActionEnum, const bool value) {
+void AxrActionSystem::triggerBoolInputAction(const AxrBoolInputActionEnum inputActionEnum, const bool value) {
     if (value) {
         m_ActiveBoolInputActions.insert(inputActionEnum);
     } else {
@@ -213,7 +213,7 @@ void AxrIOActionSystem::triggerBoolInputAction(const AxrBoolInputActionEnum inpu
     uint32_t highestPriority = 0;
     std::vector<AxrBoolInputAction*> inputActionsToTrigger;
 
-    for (AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+    for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
         if (actionSet.isEnabled()) {
             // Only trigger actions on sets of the highest priority
             const uint32_t priority = actionSet.getPriority();
@@ -237,11 +237,11 @@ void AxrIOActionSystem::triggerBoolInputAction(const AxrBoolInputActionEnum inpu
     }
 }
 
-void AxrIOActionSystem::triggerFloatInputAction(const AxrFloatInputActionEnum inputActionEnum, const float value) {
+void AxrActionSystem::triggerFloatInputAction(const AxrFloatInputActionEnum inputActionEnum, const float value) {
     uint32_t highestPriority = 0;
     std::vector<AxrFloatInputAction*> inputActionsToTrigger;
 
-    for (AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+    for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
         if (actionSet.isEnabled()) {
             // Only trigger actions on sets of the highest priority
             const uint32_t priority = actionSet.getPriority();
@@ -265,11 +265,11 @@ void AxrIOActionSystem::triggerFloatInputAction(const AxrFloatInputActionEnum in
     }
 }
 
-void AxrIOActionSystem::triggerVec2InputAction(const AxrVec2InputActionEnum inputActionEnum, const AxrVec2& value) {
+void AxrActionSystem::triggerVec2InputAction(const AxrVec2InputActionEnum inputActionEnum, const AxrVec2& value) {
     uint32_t highestPriority = 0;
     std::vector<AxrVec2InputAction*> inputActionsToTrigger;
 
-    for (AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+    for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
         if (actionSet.isEnabled()) {
             // Only trigger actions on sets of the highest priority
             const uint32_t priority = actionSet.getPriority();
@@ -293,8 +293,8 @@ void AxrIOActionSystem::triggerVec2InputAction(const AxrVec2InputActionEnum inpu
     }
 }
 
-void AxrIOActionSystem::resetBoolInputAction(const AxrBoolInputActionEnum inputActionEnum) {
-    for (AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+void AxrActionSystem::resetBoolInputAction(const AxrBoolInputActionEnum inputActionEnum) {
+    for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
         for (AxrBoolInputAction& inputAction : actionSet.getBoolInputActions() | std::ranges::views::values) {
             if (inputAction.containsBinding(inputActionEnum)) {
                 inputAction.reset();
@@ -303,8 +303,8 @@ void AxrIOActionSystem::resetBoolInputAction(const AxrBoolInputActionEnum inputA
     }
 }
 
-void AxrIOActionSystem::resetFloatInputAction(const AxrFloatInputActionEnum inputActionEnum) {
-    for (AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+void AxrActionSystem::resetFloatInputAction(const AxrFloatInputActionEnum inputActionEnum) {
+    for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
         for (AxrFloatInputAction& inputAction : actionSet.getFloatInputActions() | std::ranges::views::values) {
             if (inputAction.containsBinding(inputActionEnum)) {
                 inputAction.reset();
@@ -313,8 +313,8 @@ void AxrIOActionSystem::resetFloatInputAction(const AxrFloatInputActionEnum inpu
     }
 }
 
-void AxrIOActionSystem::resetVec2InputAction(const AxrVec2InputActionEnum inputActionEnum) {
-    for (AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+void AxrActionSystem::resetVec2InputAction(const AxrVec2InputActionEnum inputActionEnum) {
+    for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
         for (AxrVec2InputAction& inputAction : actionSet.getVec2InputActions() | std::ranges::views::values) {
             if (inputAction.containsBinding(inputActionEnum)) {
                 inputAction.reset();
@@ -323,7 +323,7 @@ void AxrIOActionSystem::resetVec2InputAction(const AxrVec2InputActionEnum inputA
     }
 }
 
-void AxrIOActionSystem::triggerRelativeActions() {
+void AxrActionSystem::triggerRelativeActions() {
     if (m_ScrollDelta != 0.0f) {
         triggerFloatInputAction(AXR_FLOAT_INPUT_ACTION_MOUSE_WHEEL, m_ScrollDelta);
     }
@@ -335,7 +335,7 @@ void AxrIOActionSystem::triggerRelativeActions() {
     }
 }
 
-void AxrIOActionSystem::resetRelativeActions() {
+void AxrActionSystem::resetRelativeActions() {
     m_ScrollDelta = 0.0f;
     m_HorizontalScrollDelta = 0.0f;
     m_MouseMovedDelta = AxrVec2{
@@ -348,7 +348,7 @@ void AxrIOActionSystem::resetRelativeActions() {
     resetVec2InputAction(AXR_VEC2_INPUT_ACTION_MOUSE_MOVED);
 }
 
-void AxrIOActionSystem::clearInputActions() {
+void AxrActionSystem::clearInputActions() {
     m_ActiveBoolInputActions.clear();
     m_MouseClickLStartTime = std::chrono::time_point<std::chrono::steady_clock>::min();
     m_MouseClickRStartTime = std::chrono::time_point<std::chrono::steady_clock>::min();
@@ -362,12 +362,12 @@ void AxrIOActionSystem::clearInputActions() {
     m_MouseMovedDelta = AxrVec2(0.0f, 0.0f);
 }
 
-AxrResult AxrIOActionSystem::setupXrInputs() {
+AxrResult AxrActionSystem::setupXrInputs() {
     if (m_XrSystem == nullptr) return AXR_SUCCESS;
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    for (AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+    for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
         axrResult = actionSet.setupXrActions(m_XrSystem);
         if (AXR_FAILED(axrResult)) {
             resetSetupXrInputs();
@@ -383,25 +383,25 @@ AxrResult AxrIOActionSystem::setupXrInputs() {
         return axrResult;
     }
 
-    m_XrSystem->OnXrSessionStateChangedCallbackIOActions
-              .connect<&AxrIOActionSystem::onXrSessionStateChangedCallback>(this);
+    m_XrSystem->OnXrSessionStateChangedCallbackActions
+              .connect<&AxrActionSystem::onXrSessionStateChangedCallback>(this);
 
     return AXR_SUCCESS;
 }
 
-void AxrIOActionSystem::resetSetupXrInputs() {
-    m_XrSystem->OnXrSessionStateChangedCallbackIOActions.reset();
+void AxrActionSystem::resetSetupXrInputs() {
+    m_XrSystem->OnXrSessionStateChangedCallbackActions.reset();
     m_XrActionSets.clear();
 
-    for (AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+    for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
         actionSet.resetSetupXrActions();
     }
 }
 
-std::vector<XrActionSet> AxrIOActionSystem::findXrActionSets() const {
+std::vector<XrActionSet> AxrActionSystem::findXrActionSets() const {
     std::vector<XrActionSet> xrActionSets;
 
-    for (const AxrIOActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+    for (const AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
         const XrActionSet xrActionSet = actionSet.getXrActionSet();
         if (xrActionSet == XR_NULL_HANDLE) continue;
         xrActionSets.push_back(xrActionSet);
@@ -410,7 +410,7 @@ std::vector<XrActionSet> AxrIOActionSystem::findXrActionSets() const {
     return xrActionSets;
 }
 
-AxrResult AxrIOActionSystem::suggestXrBindings() {
+AxrResult AxrActionSystem::suggestXrBindings() {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -426,7 +426,7 @@ AxrResult AxrIOActionSystem::suggestXrBindings() {
 
     std::vector<AxrXrSystem::ActionBinding> actionBindings;
 
-    for (AxrIOActionSet& xrActionSet : m_ActionSets | std::ranges::views::values) {
+    for (AxrActionSet& xrActionSet : m_ActionSets | std::ranges::views::values) {
         for (AxrBoolInputAction& inputAction : xrActionSet.getBoolInputActions() | std::ranges::views::values) {
             for (const AxrBoolInputActionEnum inputActionEnum : inputAction.getBindings()) {
                 const XrAction action = inputAction.getXrAction();
@@ -481,7 +481,7 @@ AxrResult AxrIOActionSystem::suggestXrBindings() {
     return AXR_SUCCESS;
 }
 
-AxrResult AxrIOActionSystem::onXrSessionStateChangedCallback(const bool isSessionRunning) {
+AxrResult AxrActionSystem::onXrSessionStateChangedCallback(const bool isSessionRunning) {
     if (isSessionRunning) {
         if (m_XrSystem == nullptr) {
             axrLogErrorLocation("XrSystem is null.");
@@ -503,7 +503,7 @@ AxrResult AxrIOActionSystem::onXrSessionStateChangedCallback(const bool isSessio
 }
 
 #ifdef AXR_USE_PLATFORM_WIN32
-AxrResult AxrIOActionSystem::setupWin32Inputs() {
+AxrResult AxrActionSystem::setupWin32Inputs() {
     const AxrResult axrResult = registerWin32RawInputs();
     if (AXR_FAILED(axrResult)) return axrResult;
 
@@ -512,11 +512,11 @@ AxrResult AxrIOActionSystem::setupWin32Inputs() {
     return AXR_SUCCESS;
 }
 
-void AxrIOActionSystem::resetSetupWin32Inputs() {
+void AxrActionSystem::resetSetupWin32Inputs() {
     m_DoubleClickTime = 0;
 }
 
-AxrResult AxrIOActionSystem::registerWin32RawInputs() const {
+AxrResult AxrActionSystem::registerWin32RawInputs() const {
     const std::vector rawInputDevices{
         // Mouse 
         RAWINPUTDEVICE{
@@ -545,7 +545,7 @@ AxrResult AxrIOActionSystem::registerWin32RawInputs() const {
 }
 
 // ReSharper disable once CppDFAConstantFunctionResult
-LRESULT AxrIOActionSystem::processWin32MouseInput(const HWND windowHandle, const RAWINPUT* rawInput, bool& wasHandled) {
+LRESULT AxrActionSystem::processWin32MouseInput(const HWND windowHandle, const RAWINPUT* rawInput, bool& wasHandled) {
     // Only process mouse inputs if the mouse is within the client area 
     POINT currentCursorPosition{};
     RECT clientRect;
@@ -569,7 +569,7 @@ LRESULT AxrIOActionSystem::processWin32MouseInput(const HWND windowHandle, const
     return 0;
 }
 
-void AxrIOActionSystem::processWin32MouseMovedInput(const HWND windowHandle, const RAWINPUT* rawInput) {
+void AxrActionSystem::processWin32MouseMovedInput(const HWND windowHandle, const RAWINPUT* rawInput) {
     // If the mouse device itself sends absolute movement data
     // NOTE: This has never been tested. Need a mouse that uses absolute positioning
     if (rawInput->data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE) {
@@ -645,7 +645,7 @@ void AxrIOActionSystem::processWin32MouseMovedInput(const HWND windowHandle, con
     }
 }
 
-void AxrIOActionSystem::processWin32MouseDownInput(const RAWINPUT* rawInput) {
+void AxrActionSystem::processWin32MouseDownInput(const RAWINPUT* rawInput) {
     if (rawInput->data.mouse.usButtonFlags & RI_MOUSE_LEFT_BUTTON_DOWN) {
         const auto timeSinceLastClick = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::high_resolution_clock::now() - m_MouseClickLStartTime
@@ -708,7 +708,7 @@ void AxrIOActionSystem::processWin32MouseDownInput(const RAWINPUT* rawInput) {
     }
 }
 
-void AxrIOActionSystem::processWin32MouseUpInput(const RAWINPUT* rawInput) {
+void AxrActionSystem::processWin32MouseUpInput(const RAWINPUT* rawInput) {
     if (rawInput->data.mouse.usButtonFlags & RI_MOUSE_LEFT_BUTTON_UP) {
         // If the left mouse button was doubled clicked, trigger the double-clicked up event.
         // Otherwise, trigger the normal mouse up event
@@ -756,7 +756,7 @@ void AxrIOActionSystem::processWin32MouseUpInput(const RAWINPUT* rawInput) {
     }
 }
 
-void AxrIOActionSystem::processWin32MouseScrollInput(const RAWINPUT* rawInput) {
+void AxrActionSystem::processWin32MouseScrollInput(const RAWINPUT* rawInput) {
     // Vertical Scroll Wheel
     if (rawInput->data.mouse.usButtonFlags & RI_MOUSE_WHEEL) {
         const auto wheelDelta = static_cast<short>(rawInput->data.mouse.usButtonData);
@@ -774,7 +774,7 @@ void AxrIOActionSystem::processWin32MouseScrollInput(const RAWINPUT* rawInput) {
     }
 }
 
-LRESULT AxrIOActionSystem::processWin32KeyDown(const WPARAM wParam, bool& wasHandled) {
+LRESULT AxrActionSystem::processWin32KeyDown(const WPARAM wParam, bool& wasHandled) {
     triggerBoolInputAction(
         axrWParamToBoolInputActionEnum(wParam),
         true
@@ -784,7 +784,7 @@ LRESULT AxrIOActionSystem::processWin32KeyDown(const WPARAM wParam, bool& wasHan
     return 0;
 }
 
-LRESULT AxrIOActionSystem::processWin32KeyUp(const WPARAM wParam, bool& wasHandled) {
+LRESULT AxrActionSystem::processWin32KeyUp(const WPARAM wParam, bool& wasHandled) {
     triggerBoolInputAction(
         axrWParamToBoolInputActionEnum(wParam),
         false

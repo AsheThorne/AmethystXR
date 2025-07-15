@@ -3,7 +3,7 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/ioActionSystem.h"
+#include "axr/actionSystem.h"
 #include "../xrSystem/xrSystem.hpp"
 
 // ----------------------------------------- //
@@ -23,7 +23,7 @@ public:
     struct Config {
         std::string Name;
         std::string LocalizedName;
-        AxrIOActionXrVisibilityEnum XrVisibility;
+        AxrActionXrVisibilityEnum XrVisibility;
         uint32_t BindingCount;
         AxrBoolInputActionEnum* Bindings;
     };
@@ -137,7 +137,7 @@ private:
     // ---- Config Variables ----
     std::string m_Name;
     std::string m_LocalizedName;
-    AxrIOActionXrVisibilityEnum m_XrVisibility;
+    AxrActionXrVisibilityEnum m_XrVisibility;
     std::unordered_set<AxrBoolInputActionEnum> m_Bindings;
 
     // ---- Data ----

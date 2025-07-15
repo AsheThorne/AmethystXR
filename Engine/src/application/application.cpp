@@ -84,13 +84,13 @@ AxrGraphicsSystem_T axrApplicationGetGraphicsSystem(const AxrApplication_T app) 
     return app->getGraphicsSystem();
 }
 
-AxrIOActionSystem_T axrApplicationGetIOActionSystem(const AxrApplication_T app) {
+AxrActionSystem_T axrApplicationGetActionSystem(const AxrApplication_T app) {
     if (app == nullptr) {
         axrLogErrorLocation("`app` is null.");
         return nullptr;
     }
 
-    return app->getIOActionSystem();
+    return app->getActionSystem();
 }
 
 AxrAssetCollection_T axrApplicationGetGlobalAssetCollection(const AxrApplication_T app) {
@@ -175,7 +175,7 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
             return AxrWindowSystem(
                 AxrWindowSystem::Config{
                     .ApplicationName = config.ApplicationName,
-                    .IOActionSystem = &m_IOActionSystem,
+                    .ActionSystem = &m_ActionSystem,
                     .Width = config.WindowSystemConfig->Width,
                     .Height = config.WindowSystemConfig->Height,
                 }
@@ -202,13 +202,13 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
             );
         }()
     ),
-    m_IOActionSystem(
-        AxrIOActionSystem::Config{
+    m_ActionSystem(
+        AxrActionSystem::Config{
             .XrSystem = config.XrSystemConfig == nullptr ? nullptr : &m_XrSystem,
-            .ActionSetCount = config.IOActionSystemConfig.IOActionSetCount,
-            .ActionSets = config.IOActionSystemConfig.IOActionSets,
-            .XrInteractionProfileCount = config.IOActionSystemConfig.XrInteractionProfileCount,
-            .XrInteractionProfiles = config.IOActionSystemConfig.XrInteractionProfiles
+            .ActionSetCount = config.ActionSystemConfig.ActionSetCount,
+            .ActionSets = config.ActionSystemConfig.ActionSets,
+            .XrInteractionProfileCount = config.ActionSystemConfig.XrInteractionProfileCount,
+            .XrInteractionProfiles = config.ActionSystemConfig.XrInteractionProfiles
         }
     ),
     m_DeltaTime(0) {
@@ -216,7 +216,7 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
 
 AxrApplication::~AxrApplication() {
     m_GraphicsSystem.resetSetup();
-    m_IOActionSystem.resetSetup();
+    m_ActionSystem.resetSetup();
     m_WindowSystem.resetSetup();
     m_XrSystem.resetSetup();
     m_GlobalAssetCollection.cleanup();
@@ -240,7 +240,7 @@ AxrResult AxrApplication::setup() {
         if (AXR_FAILED(axrResult)) return axrResult;
     }
 
-    axrResult = m_IOActionSystem.setup();
+    axrResult = m_ActionSystem.setup();
     if (AXR_FAILED(axrResult)) return axrResult;
 
     axrResult = m_GraphicsSystem.setup();
@@ -265,7 +265,7 @@ bool AxrApplication::isRunning() const {
 }
 
 void AxrApplication::processEvents() {
-    m_IOActionSystem.newFrameStarted();
+    m_ActionSystem.newFrameStarted();
 
     if (m_WindowSystem.isValid()) {
         m_WindowSystem.processEvents();
@@ -274,7 +274,7 @@ void AxrApplication::processEvents() {
         m_XrSystem.processEvents();
     }
 
-    m_IOActionSystem.processEvents();
+    m_ActionSystem.processEvents();
 
     static std::chrono::high_resolution_clock::time_point lastFrameTime = std::chrono::high_resolution_clock::now();
     const std::chrono::high_resolution_clock::time_point currentFrameTime = std::chrono::high_resolution_clock::now();
@@ -295,8 +295,8 @@ AxrGraphicsSystem_T AxrApplication::getGraphicsSystem() {
     return &m_GraphicsSystem;
 }
 
-AxrIOActionSystem_T AxrApplication::getIOActionSystem() {
-    return &m_IOActionSystem;
+AxrActionSystem_T AxrApplication::getActionSystem() {
+    return &m_ActionSystem;
 }
 
 AxrAssetCollection_T AxrApplication::getGlobalAssetCollection() {

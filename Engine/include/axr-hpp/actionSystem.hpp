@@ -3,7 +3,7 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/ioActionSystem.h"
+#include "axr/actionSystem.h"
 #include "common/types.hpp"
 
 namespace axr {
@@ -11,7 +11,7 @@ namespace axr {
     // Enums
     // ----------------------------------------- //
 
-    /// Input/Output action xr visibility enum
+    /// Action xr visibility enum
     ///
     /// Auto -> Only if there's an action with xr binding, make it available for an xr session to use and modify.
     ///
@@ -20,10 +20,10 @@ namespace axr {
     ///
     /// Never -> Never make this available to an xr session to use or modify.
     /// Warning: Even if there's an action with an xr binding attached, it'll never work for any xr binding.
-    enum class IOActionXrVisibilityEnum {
-        Auto = AXR_IO_ACTION_XR_VISIBILITY_AUTO,
-        Always = AXR_IO_ACTION_XR_VISIBILITY_ALWAYS,
-        Never = AXR_IO_ACTION_XR_VISIBILITY_NEVER,
+    enum class ActionXrVisibilityEnum {
+        Auto = AXR_ACTION_XR_VISIBILITY_AUTO,
+        Always = AXR_ACTION_XR_VISIBILITY_ALWAYS,
+        Never = AXR_ACTION_XR_VISIBILITY_NEVER,
     };
 
     /// Xr interaction profile enum
@@ -240,9 +240,9 @@ namespace axr {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-        char Name[AXR_MAX_IO_ACTION_NAME_SIZE]{};
-        char LocalizedName[AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE]{};
-        axr::IOActionXrVisibilityEnum XrVisibility = {};
+        char Name[AXR_MAX_ACTION_NAME_SIZE]{};
+        char LocalizedName[AXR_MAX_ACTION_LOCALIZED_NAME_SIZE]{};
+        axr::ActionXrVisibilityEnum XrVisibility = {};
         uint32_t BindingCount = 0;
         axr::BoolInputActionEnum* Bindings = nullptr;
 
@@ -262,13 +262,13 @@ namespace axr {
         BoolInputActionConfig(
             const char* name,
             const char* localizedName,
-            const axr::IOActionXrVisibilityEnum xrVisibility
+            const axr::ActionXrVisibilityEnum xrVisibility
         ): XrVisibility(xrVisibility) {
             if (name != nullptr) {
-                strncpy_s(Name, name, AXR_MAX_IO_ACTION_NAME_SIZE);
+                strncpy_s(Name, name, AXR_MAX_ACTION_NAME_SIZE);
             }
             if (localizedName != nullptr) {
-                strncpy_s(LocalizedName, localizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+                strncpy_s(LocalizedName, localizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
             }
         }
 
@@ -280,14 +280,14 @@ namespace axr {
         BoolInputActionConfig(
             const char* name,
             const char* localizedName,
-            const axr::IOActionXrVisibilityEnum xrVisibility,
+            const axr::ActionXrVisibilityEnum xrVisibility,
             const std::vector<axr::BoolInputActionEnum>& bindings
         ): XrVisibility(xrVisibility) {
             if (name != nullptr) {
-                strncpy_s(Name, name, AXR_MAX_IO_ACTION_NAME_SIZE);
+                strncpy_s(Name, name, AXR_MAX_ACTION_NAME_SIZE);
             }
             if (localizedName != nullptr) {
-                strncpy_s(LocalizedName, localizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+                strncpy_s(LocalizedName, localizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
             }
 
             addBindings(bindings);
@@ -296,9 +296,9 @@ namespace axr {
         /// Constructor
         /// @param src Source BoolInputActionConfig
         explicit BoolInputActionConfig(AxrBoolInputActionConfig&& src) noexcept {
-            strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
-            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
-            XrVisibility = static_cast<axr::IOActionXrVisibilityEnum>(src.XrVisibility);
+            strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
+            XrVisibility = static_cast<axr::ActionXrVisibilityEnum>(src.XrVisibility);
             BindingCount = src.BindingCount;
             Bindings = reinterpret_cast<axr::BoolInputActionEnum*>(src.Bindings);
 
@@ -312,8 +312,8 @@ namespace axr {
         /// Copy Constructor
         /// @param src Source BoolInputActionConfig to copy from
         BoolInputActionConfig(const BoolInputActionConfig& src) {
-            strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
-            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+            strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
             XrVisibility = src.XrVisibility;
             addBindings(src.BindingCount, src.Bindings);
         }
@@ -321,8 +321,8 @@ namespace axr {
         /// Move Constructor
         /// @param src Source BoolInputActionConfig to move from
         BoolInputActionConfig(BoolInputActionConfig&& src) noexcept {
-            strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
-            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+            strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
             XrVisibility = src.XrVisibility;
             BindingCount = src.BindingCount;
             Bindings = src.Bindings;
@@ -348,8 +348,8 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
-                strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+                strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+                strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
                 XrVisibility = src.XrVisibility;
                 addBindings(src.BindingCount, src.Bindings);
             }
@@ -362,8 +362,8 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
-                strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+                strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+                strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
                 XrVisibility = src.XrVisibility;
                 BindingCount = src.BindingCount;
                 Bindings = src.Bindings;
@@ -466,9 +466,9 @@ namespace axr {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-        char Name[AXR_MAX_IO_ACTION_NAME_SIZE]{};
-        char LocalizedName[AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE]{};
-        axr::IOActionXrVisibilityEnum XrVisibility = {};
+        char Name[AXR_MAX_ACTION_NAME_SIZE]{};
+        char LocalizedName[AXR_MAX_ACTION_LOCALIZED_NAME_SIZE]{};
+        axr::ActionXrVisibilityEnum XrVisibility = {};
         uint32_t BindingCount = 0;
         axr::FloatInputActionEnum* Bindings = nullptr;
 
@@ -488,13 +488,13 @@ namespace axr {
         FloatInputActionConfig(
             const char* name,
             const char* localizedName,
-            const axr::IOActionXrVisibilityEnum xrVisibility
+            const axr::ActionXrVisibilityEnum xrVisibility
         ): XrVisibility(xrVisibility) {
             if (name != nullptr) {
-                strncpy_s(Name, name, AXR_MAX_IO_ACTION_NAME_SIZE);
+                strncpy_s(Name, name, AXR_MAX_ACTION_NAME_SIZE);
             }
             if (localizedName != nullptr) {
-                strncpy_s(LocalizedName, localizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+                strncpy_s(LocalizedName, localizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
             }
         }
 
@@ -506,14 +506,14 @@ namespace axr {
         FloatInputActionConfig(
             const char* name,
             const char* localizedName,
-            const axr::IOActionXrVisibilityEnum xrVisibility,
+            const axr::ActionXrVisibilityEnum xrVisibility,
             const std::vector<axr::FloatInputActionEnum>& bindings
         ): XrVisibility(xrVisibility) {
             if (name != nullptr) {
-                strncpy_s(Name, name, AXR_MAX_IO_ACTION_NAME_SIZE);
+                strncpy_s(Name, name, AXR_MAX_ACTION_NAME_SIZE);
             }
             if (localizedName != nullptr) {
-                strncpy_s(LocalizedName, localizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+                strncpy_s(LocalizedName, localizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
             }
 
             addBindings(bindings);
@@ -522,9 +522,9 @@ namespace axr {
         /// Constructor
         /// @param src Source FloatInputActionConfig
         explicit FloatInputActionConfig(AxrFloatInputActionConfig&& src) noexcept {
-            strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
-            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
-            XrVisibility = static_cast<axr::IOActionXrVisibilityEnum>(src.XrVisibility);
+            strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
+            XrVisibility = static_cast<axr::ActionXrVisibilityEnum>(src.XrVisibility);
             BindingCount = src.BindingCount;
             Bindings = reinterpret_cast<axr::FloatInputActionEnum*>(src.Bindings);
 
@@ -538,8 +538,8 @@ namespace axr {
         /// Copy Constructor
         /// @param src Source FloatInputActionConfig to copy from
         FloatInputActionConfig(const FloatInputActionConfig& src) {
-            strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
-            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+            strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
             XrVisibility = src.XrVisibility;
             addBindings(src.BindingCount, src.Bindings);
         }
@@ -547,8 +547,8 @@ namespace axr {
         /// Move Constructor
         /// @param src Source FloatInputActionConfig to move from
         FloatInputActionConfig(FloatInputActionConfig&& src) noexcept {
-            strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
-            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+            strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
             XrVisibility = src.XrVisibility;
             BindingCount = src.BindingCount;
             Bindings = src.Bindings;
@@ -574,8 +574,8 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
-                strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+                strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+                strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
                 XrVisibility = src.XrVisibility;
                 addBindings(src.BindingCount, src.Bindings);
             }
@@ -588,8 +588,8 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
-                strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+                strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+                strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
                 XrVisibility = src.XrVisibility;
                 BindingCount = src.BindingCount;
                 Bindings = src.Bindings;
@@ -693,9 +693,9 @@ namespace axr {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-        char Name[AXR_MAX_IO_ACTION_NAME_SIZE]{};
-        char LocalizedName[AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE]{};
-        axr::IOActionXrVisibilityEnum XrVisibility = {};
+        char Name[AXR_MAX_ACTION_NAME_SIZE]{};
+        char LocalizedName[AXR_MAX_ACTION_LOCALIZED_NAME_SIZE]{};
+        axr::ActionXrVisibilityEnum XrVisibility = {};
         uint32_t BindingCount = 0;
         axr::Vec2InputActionEnum* Bindings = nullptr;
 
@@ -715,13 +715,13 @@ namespace axr {
         Vec2InputActionConfig(
             const char* name,
             const char* localizedName,
-            const axr::IOActionXrVisibilityEnum xrVisibility
+            const axr::ActionXrVisibilityEnum xrVisibility
         ): XrVisibility(xrVisibility) {
             if (name != nullptr) {
-                strncpy_s(Name, name, AXR_MAX_IO_ACTION_NAME_SIZE);
+                strncpy_s(Name, name, AXR_MAX_ACTION_NAME_SIZE);
             }
             if (localizedName != nullptr) {
-                strncpy_s(LocalizedName, localizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+                strncpy_s(LocalizedName, localizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
             }
         }
 
@@ -733,14 +733,14 @@ namespace axr {
         Vec2InputActionConfig(
             const char* name,
             const char* localizedName,
-            const axr::IOActionXrVisibilityEnum xrVisibility,
+            const axr::ActionXrVisibilityEnum xrVisibility,
             const std::vector<axr::Vec2InputActionEnum>& bindings
         ): XrVisibility(xrVisibility) {
             if (name != nullptr) {
-                strncpy_s(Name, name, AXR_MAX_IO_ACTION_NAME_SIZE);
+                strncpy_s(Name, name, AXR_MAX_ACTION_NAME_SIZE);
             }
             if (localizedName != nullptr) {
-                strncpy_s(LocalizedName, localizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+                strncpy_s(LocalizedName, localizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
             }
 
             addBindings(bindings);
@@ -749,9 +749,9 @@ namespace axr {
         /// Constructor
         /// @param src Source Vec2InputActionConfig
         explicit Vec2InputActionConfig(AxrVec2InputActionConfig&& src) noexcept {
-            strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
-            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
-            XrVisibility = static_cast<axr::IOActionXrVisibilityEnum>(src.XrVisibility);
+            strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
+            XrVisibility = static_cast<axr::ActionXrVisibilityEnum>(src.XrVisibility);
             BindingCount = src.BindingCount;
             Bindings = reinterpret_cast<axr::Vec2InputActionEnum*>(src.Bindings);
 
@@ -765,8 +765,8 @@ namespace axr {
         /// Copy Constructor
         /// @param src Source Vec2InputActionConfig to copy from
         Vec2InputActionConfig(const Vec2InputActionConfig& src) {
-            strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
-            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+            strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
             XrVisibility = src.XrVisibility;
             addBindings(src.BindingCount, src.Bindings);
         }
@@ -774,8 +774,8 @@ namespace axr {
         /// Move Constructor
         /// @param src Source Vec2InputActionConfig to move from
         Vec2InputActionConfig(Vec2InputActionConfig&& src) noexcept {
-            strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
-            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+            strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
             XrVisibility = src.XrVisibility;
             BindingCount = src.BindingCount;
             Bindings = src.Bindings;
@@ -801,8 +801,8 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
-                strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+                strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+                strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
                 XrVisibility = src.XrVisibility;
                 addBindings(src.BindingCount, src.Bindings);
             }
@@ -815,8 +815,8 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
-                strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE);
+                strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+                strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
                 XrVisibility = src.XrVisibility;
                 BindingCount = src.BindingCount;
                 Bindings = src.Bindings;
@@ -915,13 +915,13 @@ namespace axr {
         "Original type and wrapper have different size!"
     );
 
-    /// Input/Output action set config
-    struct IOActionSetConfig {
+    /// Action set config
+    struct ActionSetConfig {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-        char Name[AXR_MAX_IO_ACTION_NAME_SIZE]{};
-        char LocalizedName[AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE]{};
+        char Name[AXR_MAX_ACTION_NAME_SIZE]{};
+        char LocalizedName[AXR_MAX_ACTION_LOCALIZED_NAME_SIZE]{};
         uint32_t BoolInputActionCount = 0;
         axr::BoolInputActionConfig* BoolInputActions = nullptr;
         uint32_t FloatInputActionCount = 0;
@@ -936,20 +936,20 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        IOActionSetConfig() = default;
+        ActionSetConfig() = default;
 
         /// Constructor
         /// @param name Input action name
         /// @param localizedName Input action localized name
-        IOActionSetConfig(
+        ActionSetConfig(
             const char* name,
             const char* localizedName
         ) {
             if (name != nullptr) {
-                strncpy_s(Name, name, AXR_MAX_IO_ACTION_SET_NAME_SIZE);
+                strncpy_s(Name, name, AXR_MAX_ACTION_SET_NAME_SIZE);
             }
             if (localizedName != nullptr) {
-                strncpy_s(LocalizedName, localizedName, AXR_MAX_IO_ACTION_SET_LOCALIZED_NAME_SIZE);
+                strncpy_s(LocalizedName, localizedName, AXR_MAX_ACTION_SET_LOCALIZED_NAME_SIZE);
             }
         }
 
@@ -959,7 +959,7 @@ namespace axr {
         /// @param boolInputActions Bool input actions
         /// @param floatInputActions Float input actions
         /// @param vec2InputActions Vec2 input actions
-        IOActionSetConfig(
+        ActionSetConfig(
             const char* name,
             const char* localizedName,
             const std::vector<axr::BoolInputActionConfig>& boolInputActions,
@@ -967,10 +967,10 @@ namespace axr {
             const std::vector<axr::Vec2InputActionConfig>& vec2InputActions
         ) {
             if (name != nullptr) {
-                strncpy_s(Name, name, AXR_MAX_IO_ACTION_SET_NAME_SIZE);
+                strncpy_s(Name, name, AXR_MAX_ACTION_SET_NAME_SIZE);
             }
             if (localizedName != nullptr) {
-                strncpy_s(LocalizedName, localizedName, AXR_MAX_IO_ACTION_SET_LOCALIZED_NAME_SIZE);
+                strncpy_s(LocalizedName, localizedName, AXR_MAX_ACTION_SET_LOCALIZED_NAME_SIZE);
             }
 
             addBoolInputActions(boolInputActions);
@@ -979,10 +979,10 @@ namespace axr {
         }
 
         /// Constructor
-        /// @param src Source IOActionSetConfig
-        explicit IOActionSetConfig(AxrIOActionSetConfig&& src) noexcept {
-            strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_SET_NAME_SIZE);
-            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_SET_LOCALIZED_NAME_SIZE);
+        /// @param src Source ActionSetConfig
+        explicit ActionSetConfig(AxrActionSetConfig&& src) noexcept {
+            strncpy_s(Name, src.Name, AXR_MAX_ACTION_SET_NAME_SIZE);
+            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_SET_LOCALIZED_NAME_SIZE);
             BoolInputActionCount = src.BoolInputActionCount;
             BoolInputActions = reinterpret_cast<axr::BoolInputActionConfig*>(src.BoolInputActions);
             FloatInputActionCount = src.FloatInputActionCount;
@@ -1001,20 +1001,20 @@ namespace axr {
         }
 
         /// Copy Constructor
-        /// @param src Source IOActionSetConfig to copy from
-        IOActionSetConfig(const IOActionSetConfig& src) {
-            strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_SET_NAME_SIZE);
-            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_SET_LOCALIZED_NAME_SIZE);
+        /// @param src Source ActionSetConfig to copy from
+        ActionSetConfig(const ActionSetConfig& src) {
+            strncpy_s(Name, src.Name, AXR_MAX_ACTION_SET_NAME_SIZE);
+            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_SET_LOCALIZED_NAME_SIZE);
             addBoolInputActions(src.BoolInputActionCount, src.BoolInputActions);
             addFloatInputActions(src.FloatInputActionCount, src.FloatInputActions);
             addVec2InputActions(src.Vec2InputActionCount, src.Vec2InputActions);
         }
 
         /// Move Constructor
-        /// @param src Source IOActionSetConfig to move from
-        IOActionSetConfig(IOActionSetConfig&& src) noexcept {
-            strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_SET_NAME_SIZE);
-            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_SET_LOCALIZED_NAME_SIZE);
+        /// @param src Source ActionSetConfig to move from
+        ActionSetConfig(ActionSetConfig&& src) noexcept {
+            strncpy_s(Name, src.Name, AXR_MAX_ACTION_SET_NAME_SIZE);
+            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_SET_LOCALIZED_NAME_SIZE);
             BoolInputActionCount = src.BoolInputActionCount;
             BoolInputActions = src.BoolInputActions;
             FloatInputActionCount = src.FloatInputActionCount;
@@ -1034,20 +1034,20 @@ namespace axr {
 
         // ---- Destructor ----
 
-        ~IOActionSetConfig() {
+        ~ActionSetConfig() {
             cleanup();
         }
 
         // ---- Operator Overloads ----
 
         /// Copy Assignment Operator
-        /// @param src Source IOActionSetConfig to copy from
-        IOActionSetConfig& operator=(const IOActionSetConfig& src) {
+        /// @param src Source ActionSetConfig to copy from
+        ActionSetConfig& operator=(const ActionSetConfig& src) {
             if (this != &src) {
                 cleanup();
 
-                strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_SET_NAME_SIZE);
-                strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_SET_LOCALIZED_NAME_SIZE);
+                strncpy_s(Name, src.Name, AXR_MAX_ACTION_SET_NAME_SIZE);
+                strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_SET_LOCALIZED_NAME_SIZE);
                 addBoolInputActions(src.BoolInputActionCount, src.BoolInputActions);
                 addFloatInputActions(src.FloatInputActionCount, src.FloatInputActions);
                 addVec2InputActions(src.Vec2InputActionCount, src.Vec2InputActions);
@@ -1056,13 +1056,13 @@ namespace axr {
         }
 
         /// Move Assignment Operator
-        /// @param src Source IOActionSetConfig to move from
-        IOActionSetConfig& operator=(IOActionSetConfig&& src) noexcept {
+        /// @param src Source ActionSetConfig to move from
+        ActionSetConfig& operator=(ActionSetConfig&& src) noexcept {
             if (this != &src) {
                 cleanup();
 
-                strncpy_s(Name, src.Name, AXR_MAX_IO_ACTION_SET_NAME_SIZE);
-                strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_IO_ACTION_SET_LOCALIZED_NAME_SIZE);
+                strncpy_s(Name, src.Name, AXR_MAX_ACTION_SET_NAME_SIZE);
+                strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_SET_LOCALIZED_NAME_SIZE);
                 BoolInputActionCount = src.BoolInputActionCount;
                 BoolInputActions = src.BoolInputActions;
                 FloatInputActionCount = src.FloatInputActionCount;
@@ -1086,16 +1086,16 @@ namespace axr {
         // Public Functions
         // ----------------------------------------- //
 
-        /// Get a handle to the IOActionSetConfig as an AxrIOActionSetConfig
-        /// @returns This as an AxrIOActionSetConfig
-        const AxrIOActionSetConfig* toRaw() const {
-            return reinterpret_cast<const AxrIOActionSetConfig*>(this);
+        /// Get a handle to the ActionSetConfig as an AxrActionSetConfig
+        /// @returns This as an AxrActionSetConfig
+        const AxrActionSetConfig* toRaw() const {
+            return reinterpret_cast<const AxrActionSetConfig*>(this);
         }
 
-        /// Get a handle to the IOActionSetConfig as an AxrIOActionSetConfig
-        /// @returns This as an AxrIOActionSetConfig
-        AxrIOActionSetConfig* toRaw() {
-            return reinterpret_cast<AxrIOActionSetConfig*>(this);
+        /// Get a handle to the ActionSetConfig as an AxrActionSetConfig
+        /// @returns This as an AxrActionSetConfig
+        AxrActionSetConfig* toRaw() {
+            return reinterpret_cast<AxrActionSetConfig*>(this);
         }
 
         /// Add the given bool input actions
@@ -1302,17 +1302,17 @@ namespace axr {
     };
 
     static_assert(
-        sizeof(AxrIOActionSetConfig) == sizeof(axr::IOActionSetConfig),
+        sizeof(AxrActionSetConfig) == sizeof(axr::ActionSetConfig),
         "Original type and wrapper have different size!"
     );
 
-    /// Input/Output action system config
-    struct IOActionSystemConfig {
+    /// Action system config
+    struct ActionSystemConfig {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-        uint32_t IOActionSetCount = 0;
-        axr::IOActionSetConfig* IOActionSets = nullptr;
+        uint32_t ActionSetCount = 0;
+        axr::ActionSetConfig* ActionSets = nullptr;
         uint32_t XrInteractionProfileCount = 0;
         axr::XrInteractionProfileEnum* XrInteractionProfiles = nullptr;
 
@@ -1323,73 +1323,73 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        IOActionSystemConfig() = default;
+        ActionSystemConfig() = default;
 
         /// Constructor
-        /// @param ioActionSets Input/Output action sets
+        /// @param actionSets Action sets
         /// @param xrInteractionProfiles Xr interaction profiles
-        IOActionSystemConfig(
-            const std::vector<axr::IOActionSetConfig>& ioActionSets,
+        ActionSystemConfig(
+            const std::vector<axr::ActionSetConfig>& actionSets,
             const std::vector<axr::XrInteractionProfileEnum>& xrInteractionProfiles
         ) {
-            addIOActionSets(ioActionSets);
+            addActionSets(actionSets);
             addXrInteractionProfiles(xrInteractionProfiles);
         }
 
         /// Copy Constructor
-        /// @param src Source IOActionSystemConfig to copy from
-        IOActionSystemConfig(const IOActionSystemConfig& src) {
-            addIOActionSets(src.IOActionSetCount, src.IOActionSets);
+        /// @param src Source ActionSystemConfig to copy from
+        ActionSystemConfig(const ActionSystemConfig& src) {
+            addActionSets(src.ActionSetCount, src.ActionSets);
             addXrInteractionProfiles(src.XrInteractionProfileCount, src.XrInteractionProfiles);
         }
 
         /// Move Constructor
-        /// @param src Source IOActionSystemConfig to move from
-        IOActionSystemConfig(IOActionSystemConfig&& src) noexcept {
-            IOActionSetCount = src.IOActionSetCount;
-            IOActionSets = src.IOActionSets;
+        /// @param src Source ActionSystemConfig to move from
+        ActionSystemConfig(ActionSystemConfig&& src) noexcept {
+            ActionSetCount = src.ActionSetCount;
+            ActionSets = src.ActionSets;
             XrInteractionProfileCount = src.XrInteractionProfileCount;
             XrInteractionProfiles = src.XrInteractionProfiles;
 
-            src.IOActionSetCount = 0;
-            src.IOActionSets = nullptr;
+            src.ActionSetCount = 0;
+            src.ActionSets = nullptr;
             src.XrInteractionProfileCount = 0;
             src.XrInteractionProfiles = nullptr;
         }
 
         // ---- Destructor ----
 
-        ~IOActionSystemConfig() {
+        ~ActionSystemConfig() {
             cleanup();
         }
 
         // ---- Operator Overloads ----
 
         /// Copy Assignment Operator
-        /// @param src Source IOActionSystemConfig to copy from
-        IOActionSystemConfig& operator=(const IOActionSystemConfig& src) {
+        /// @param src Source ActionSystemConfig to copy from
+        ActionSystemConfig& operator=(const ActionSystemConfig& src) {
             if (this != &src) {
                 cleanup();
 
-                addIOActionSets(src.IOActionSetCount, src.IOActionSets);
+                addActionSets(src.ActionSetCount, src.ActionSets);
                 addXrInteractionProfiles(src.XrInteractionProfileCount, src.XrInteractionProfiles);
             }
             return *this;
         }
 
         /// Move Assignment Operator
-        /// @param src Source IOActionSystemConfig to move from
-        IOActionSystemConfig& operator=(IOActionSystemConfig&& src) noexcept {
+        /// @param src Source ActionSystemConfig to move from
+        ActionSystemConfig& operator=(ActionSystemConfig&& src) noexcept {
             if (this != &src) {
                 cleanup();
 
-                IOActionSetCount = src.IOActionSetCount;
-                IOActionSets = src.IOActionSets;
+                ActionSetCount = src.ActionSetCount;
+                ActionSets = src.ActionSets;
                 XrInteractionProfileCount = src.XrInteractionProfileCount;
                 XrInteractionProfiles = src.XrInteractionProfiles;
 
-                src.IOActionSetCount = 0;
-                src.IOActionSets = nullptr;
+                src.ActionSetCount = 0;
+                src.ActionSets = nullptr;
                 src.XrInteractionProfileCount = 0;
                 src.XrInteractionProfiles = nullptr;
             }
@@ -1401,45 +1401,45 @@ namespace axr {
         // Public Functions
         // ----------------------------------------- //
 
-        /// Get a handle to the IOActionSystemConfig as an AxrIOActionSystemConfig
-        /// @returns This as an AxrIOActionSystemConfig
-        const AxrIOActionSystemConfig* toRaw() const {
-            return reinterpret_cast<const AxrIOActionSystemConfig*>(this);
+        /// Get a handle to the ActionSystemConfig as an AxrActionSystemConfig
+        /// @returns This as an AxrActionSystemConfig
+        const AxrActionSystemConfig* toRaw() const {
+            return reinterpret_cast<const AxrActionSystemConfig*>(this);
         }
 
-        /// Get a handle to the IOActionSystemConfig as an AxrIOActionSystemConfig
-        /// @returns This as an AxrIOActionSystemConfig
-        AxrIOActionSystemConfig* toRaw() {
-            return reinterpret_cast<AxrIOActionSystemConfig*>(this);
+        /// Get a handle to the ActionSystemConfig as an AxrActionSystemConfig
+        /// @returns This as an AxrActionSystemConfig
+        AxrActionSystemConfig* toRaw() {
+            return reinterpret_cast<AxrActionSystemConfig*>(this);
         }
 
-        /// Add the given input/output action sets
-        /// @param ioActionSets Input/Output action sets
-        void addIOActionSets(const std::vector<axr::IOActionSetConfig>& ioActionSets) {
-            addIOActionSets(ioActionSets.size(), ioActionSets.data());
+        /// Add the given action sets
+        /// @param actionSets Action sets
+        void addActionSets(const std::vector<axr::ActionSetConfig>& actionSets) {
+            addActionSets(actionSets.size(), actionSets.data());
         }
 
-        /// Add the given input/output action sets
-        /// @param ioActionSetCount Input/Output action sets count
-        /// @param ioActionSets Input/Output action sets
-        void addIOActionSets(const uint32_t ioActionSetCount, const axr::IOActionSetConfig* ioActionSets) {
-            const uint32_t startingSize = IOActionSetCount;
-            resizeIOActionSets(IOActionSetCount + ioActionSetCount);
+        /// Add the given action sets
+        /// @param actionSetCount Action sets count
+        /// @param actionSets Action sets
+        void addActionSets(const uint32_t actionSetCount, const axr::ActionSetConfig* actionSets) {
+            const uint32_t startingSize = ActionSetCount;
+            resizeActionSets(ActionSetCount + actionSetCount);
 
-            for (uint32_t i = 0; i < ioActionSetCount; ++i) {
-                IOActionSets[startingSize + i] = axr::IOActionSetConfig(
-                    axrIOActionSetConfigClone(ioActionSets[i].toRaw())
+            for (uint32_t i = 0; i < actionSetCount; ++i) {
+                ActionSets[startingSize + i] = axr::ActionSetConfig(
+                    axrActionSetConfigClone(actionSets[i].toRaw())
                 );
             }
         }
 
-        /// Add an input/output action set
-        /// @param ioActionSet Input/Output action set
-        void addIOActionSet(const axr::IOActionSetConfig& ioActionSet) {
-            resizeIOActionSets(IOActionSetCount + 1);
+        /// Add an action set
+        /// @param actionSet Action set
+        void addActionSet(const axr::ActionSetConfig& actionSet) {
+            resizeActionSets(ActionSetCount + 1);
 
-            IOActionSets[IOActionSetCount - 1] = axr::IOActionSetConfig(
-                axrIOActionSetConfigClone(ioActionSet.toRaw())
+            ActionSets[ActionSetCount - 1] = axr::ActionSetConfig(
+                axrActionSetConfigClone(actionSet.toRaw())
             );
         }
 
@@ -1475,17 +1475,17 @@ namespace axr {
             XrInteractionProfiles[XrInteractionProfileCount - 1] = xrInteractionProfile;
         }
 
-        /// Clear the input/output action sets
-        void clearIOActionSets() {
-            if (IOActionSets == nullptr) return;
+        /// Clear the action sets
+        void clearActionSets() {
+            if (ActionSets == nullptr) return;
 
-            for (uint32_t i = 0; i < IOActionSetCount; ++i) {
-                axrIOActionSetConfigDestroy(IOActionSets[i].toRaw());
+            for (uint32_t i = 0; i < ActionSetCount; ++i) {
+                axrActionSetConfigDestroy(ActionSets[i].toRaw());
             }
 
-            delete[] IOActionSets;
-            IOActionSets = nullptr;
-            IOActionSetCount = 0;
+            delete[] ActionSets;
+            ActionSets = nullptr;
+            ActionSetCount = 0;
         }
 
         /// Clear the xr interaction profiles
@@ -1504,22 +1504,22 @@ namespace axr {
 
         /// Clean up this class
         void cleanup() {
-            clearIOActionSets();
+            clearActionSets();
             clearXrInteractionProfiles();
         }
 
-        /// Resize the input/output action set
+        /// Resize the action sets
         /// @param size New size
-        void resizeIOActionSets(const uint32_t size) {
-            const auto newIOActionSets = new axr::IOActionSetConfig[size]{};
-            for (uint32_t i = 0; i < std::min(IOActionSetCount, size); ++i) {
-                newIOActionSets[i] = IOActionSets[i];
-                IOActionSets[i] = {};
+        void resizeActionSets(const uint32_t size) {
+            const auto newActionSets = new axr::ActionSetConfig[size]{};
+            for (uint32_t i = 0; i < std::min(ActionSetCount, size); ++i) {
+                newActionSets[i] = ActionSets[i];
+                ActionSets[i] = {};
             }
 
-            clearIOActionSets();
-            IOActionSets = newIOActionSets;
-            IOActionSetCount = size;
+            clearActionSets();
+            ActionSets = newActionSets;
+            ActionSetCount = size;
         }
 
         /// Resize the xr interaction profiles
@@ -1538,7 +1538,7 @@ namespace axr {
     };
 
     static_assert(
-        sizeof(AxrIOActionSystemConfig) == sizeof(axr::IOActionSystemConfig),
+        sizeof(AxrActionSystemConfig) == sizeof(axr::ActionSystemConfig),
         "Original type and wrapper have different size!"
     );
 
@@ -1717,11 +1717,11 @@ namespace axr {
     };
 
     // ----------------------------------------- //
-    // Input/Output Action Set Definition
+    // Action Set Definition
     // ----------------------------------------- //
 
-    /// Input/Output Action Set
-    class IOActionSet {
+    /// Action Set
+    class ActionSet {
     public:
         // ----------------------------------------- //
         // Special Functions
@@ -1730,9 +1730,9 @@ namespace axr {
         // ---- Constructors ----
 
         /// Constructor
-        /// @param iOActionSet Input/Output action set handle
-        explicit IOActionSet(const AxrIOActionSet_T iOActionSet):
-            m_IOActionSet(iOActionSet) {
+        /// @param actionSet Action set handle
+        explicit ActionSet(const AxrActionSet_T actionSet):
+            m_ActionSet(actionSet) {
         }
 
         // ----------------------------------------- //
@@ -1742,65 +1742,65 @@ namespace axr {
         /// Set the priority over other action sets. Higher number = Higher priority.
         /// @param priority new priority
         void setPriority(const uint32_t priority) const {
-            axrIOActionSetSetPriority(m_IOActionSet, priority);
+            axrActionSetSetPriority(m_ActionSet, priority);
         }
 
         /// Get the priority level
         /// @returns The priority level
         [[nodiscard]] uint32_t getPriority() const {
-            return axrIOActionSetGetPriority(m_IOActionSet);
+            return axrActionSetGetPriority(m_ActionSet);
         }
 
-        /// Enable the input/output action set
+        /// Enable the action set
         void enable() const {
-            axrIOActionSetEnable(m_IOActionSet);
+            axrActionSetEnable(m_ActionSet);
         }
 
-        /// Disable the input/output action set
+        /// Disable the action set
         void disable() const {
-            axrIOActionSetDisable(m_IOActionSet);
+            axrActionSetDisable(m_ActionSet);
         }
 
         /// Check if the action set is enabled
         /// @returns True if the action set is enabled
         [[nodiscard]] bool isEnabled() const {
-            return axrIOActionSetIsEnabled(m_IOActionSet);
+            return axrActionSetIsEnabled(m_ActionSet);
         }
 
         /// Get the named bool input action
         /// @param name Bool input action name
         /// @returns The bool input action or nullptr if it wasn't found
         [[nodiscard]] axr::BoolInputAction getBoolInputAction(const char* name) const {
-            return axr::BoolInputAction(axrIOActionSetGetBoolInputAction(m_IOActionSet, name));
+            return axr::BoolInputAction(axrActionSetGetBoolInputAction(m_ActionSet, name));
         }
 
         /// Get the named float input action
         /// @param name Float input action name
         /// @returns The float input action or nullptr if it wasn't found
         [[nodiscard]] axr::FloatInputAction getFloatInputAction(const char* name) const {
-            return axr::FloatInputAction(axrIOActionSetGetFloatInputAction(m_IOActionSet, name));
+            return axr::FloatInputAction(axrActionSetGetFloatInputAction(m_ActionSet, name));
         }
 
         /// Get the named vec2 input action
         /// @param name Vec2 input action name
         /// @returns The vec2 input action or nullptr if it wasn't found
         [[nodiscard]] axr::Vec2InputAction getVec2InputAction(const char* name) const {
-            return axr::Vec2InputAction(axrIOActionSetGetVec2InputAction(m_IOActionSet, name));
+            return axr::Vec2InputAction(axrActionSetGetVec2InputAction(m_ActionSet, name));
         }
 
     private:
         // ----------------------------------------- //
         // Private Variables
         // ----------------------------------------- //
-        AxrIOActionSet_T m_IOActionSet;
+        AxrActionSet_T m_ActionSet;
     };
 
     // ----------------------------------------- //
-    // Input/Output Action System Definition
+    // Action System Definition
     // ----------------------------------------- //
 
-    /// Input/Output Action System
-    class IOActionSystem {
+    /// Action System
+    class ActionSystem {
     public:
         // ----------------------------------------- //
         // Special Functions
@@ -1809,26 +1809,26 @@ namespace axr {
         // ---- Constructors ----
 
         /// Constructor
-        /// @param ioActionSystem Input/Output action system handle
-        explicit IOActionSystem(const AxrIOActionSystem_T ioActionSystem):
-            m_IOActionSystem(ioActionSystem) {
+        /// @param actionSystem Action system handle
+        explicit ActionSystem(const AxrActionSystem_T actionSystem):
+            m_ActionSystem(actionSystem) {
         }
 
         // ----------------------------------------- //
         // Public Functions
         // ----------------------------------------- //
 
-        /// Get the named input/output action set
-        /// @param name Input/Output action set name
-        /// @returns The input/output action set or nullptr if it wasn't found
-        axr::IOActionSet getIOActionSet(const char* name) const {
-            return axr::IOActionSet(axrIOActionSystemGetIOActionSet(m_IOActionSystem, name));
+        /// Get the named action set
+        /// @param name Action set name
+        /// @returns The action set or nullptr if it wasn't found
+        axr::ActionSet getActionSet(const char* name) const {
+            return axr::ActionSet(axrActionSystemGetActionSet(m_ActionSystem, name));
         }
 
     private:
         // ----------------------------------------- //
         // Private Variables
         // ----------------------------------------- //
-        AxrIOActionSystem_T m_IOActionSystem;
+        AxrActionSystem_T m_ActionSystem;
     };
 }

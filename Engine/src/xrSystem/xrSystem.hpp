@@ -7,7 +7,7 @@
 #include "../extensionCollection.hpp"
 #include "axr/graphicsSystem.h"
 #include "axr/common/callback.h"
-#include "axr/ioActionSystem.h"
+#include "axr/actionSystem.h"
 
 // Vulkan headers are required for <openxr/openxr_platform.h>
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
@@ -63,8 +63,8 @@ public:
 
     /// On xr session state changed for the graphics system
     OnXrSessionStateChangedCallback_T OnXrSessionStateChangedCallbackGraphics;
-    /// On xr session state changed for the input/output action system
-    OnXrSessionStateChangedCallback_T OnXrSessionStateChangedCallbackIOActions;
+    /// On xr session state changed for the action system
+    OnXrSessionStateChangedCallback_T OnXrSessionStateChangedCallbackActions;
 
     // ----------------------------------------- //
     // Special Functions

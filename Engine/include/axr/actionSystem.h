@@ -15,7 +15,7 @@
 // Enums
 // ----------------------------------------- //
 
-/// Input/Output action xr visibility enum
+/// Action xr visibility enum
 ///
 /// Auto -> Only if there's an action with xr binding, make it available for an xr session to use and modify.
 ///
@@ -24,10 +24,10 @@
 ///
 /// Never -> Never make this available to an xr session to use or modify.
 /// Warning: Even if there's an action with an xr binding attached, it'll never work for any xr binding.
-enum AxrIOActionXrVisibilityEnum {
-    AXR_IO_ACTION_XR_VISIBILITY_AUTO = 0,
-    AXR_IO_ACTION_XR_VISIBILITY_ALWAYS,
-    AXR_IO_ACTION_XR_VISIBILITY_NEVER,
+enum AxrActionXrVisibilityEnum {
+    AXR_ACTION_XR_VISIBILITY_AUTO = 0,
+    AXR_ACTION_XR_VISIBILITY_ALWAYS,
+    AXR_ACTION_XR_VISIBILITY_NEVER,
 };
 
 /// Xr interaction profile enum
@@ -241,35 +241,35 @@ enum AxrVec2InputActionEnum {
 
 /// Bool Input Action Config
 struct AxrBoolInputActionConfig {
-    char Name[AXR_MAX_IO_ACTION_NAME_SIZE];
-    char LocalizedName[AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE];
-    AxrIOActionXrVisibilityEnum XrVisibility;
+    char Name[AXR_MAX_ACTION_NAME_SIZE];
+    char LocalizedName[AXR_MAX_ACTION_LOCALIZED_NAME_SIZE];
+    AxrActionXrVisibilityEnum XrVisibility;
     uint32_t BindingCount;
     AxrBoolInputActionEnum* Bindings;
 };
 
 /// Float Input Action Config
 struct AxrFloatInputActionConfig {
-    char Name[AXR_MAX_IO_ACTION_NAME_SIZE];
-    char LocalizedName[AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE];
-    AxrIOActionXrVisibilityEnum XrVisibility;
+    char Name[AXR_MAX_ACTION_NAME_SIZE];
+    char LocalizedName[AXR_MAX_ACTION_LOCALIZED_NAME_SIZE];
+    AxrActionXrVisibilityEnum XrVisibility;
     uint32_t BindingCount;
     AxrFloatInputActionEnum* Bindings;
 };
 
 /// Vec2 Input Action Config
 struct AxrVec2InputActionConfig {
-    char Name[AXR_MAX_IO_ACTION_NAME_SIZE];
-    char LocalizedName[AXR_MAX_IO_ACTION_LOCALIZED_NAME_SIZE];
-    AxrIOActionXrVisibilityEnum XrVisibility;
+    char Name[AXR_MAX_ACTION_NAME_SIZE];
+    char LocalizedName[AXR_MAX_ACTION_LOCALIZED_NAME_SIZE];
+    AxrActionXrVisibilityEnum XrVisibility;
     uint32_t BindingCount;
     AxrVec2InputActionEnum* Bindings;
 };
 
-/// Input/Output action set config
-struct AxrIOActionSetConfig {
-    char Name[AXR_MAX_IO_ACTION_SET_NAME_SIZE];
-    char LocalizedName[AXR_MAX_IO_ACTION_SET_LOCALIZED_NAME_SIZE];
+/// Action set config
+struct AxrActionSetConfig {
+    char Name[AXR_MAX_ACTION_SET_NAME_SIZE];
+    char LocalizedName[AXR_MAX_ACTION_SET_LOCALIZED_NAME_SIZE];
     uint32_t BoolInputActionCount;
     AxrBoolInputActionConfig* BoolInputActions;
     uint32_t FloatInputActionCount;
@@ -278,10 +278,10 @@ struct AxrIOActionSetConfig {
     AxrVec2InputActionConfig* Vec2InputActions;
 };
 
-/// Input/Output action system config
-struct AxrIOActionSystemConfig {
-    uint32_t IOActionSetCount;
-    AxrIOActionSetConfig* IOActionSets;
+/// Action system config
+struct AxrActionSystemConfig {
+    uint32_t ActionSetCount;
+    AxrActionSetConfig* ActionSets;
     uint32_t XrInteractionProfileCount;
     AxrXrInteractionProfileEnum* XrInteractionProfiles;
 };
@@ -305,15 +305,15 @@ typedef class AxrVec2InputAction* AxrVec2InputAction_T;
 /// const AxrVec2InputAction Handle
 typedef const AxrVec2InputAction* AxrVec2InputActionConst_T;
 
-/// AxrIOActionSet Handle
-typedef class AxrIOActionSet* AxrIOActionSet_T;
-/// const AxrIOActionSet Handle
-typedef const AxrIOActionSet* AxrIOActionSetConst_T;
+/// AxrActionSet Handle
+typedef class AxrActionSet* AxrActionSet_T;
+/// const AxrActionSet Handle
+typedef const AxrActionSet* AxrActionSetConst_T;
 
-/// AxrIOActionSystem Handle
-typedef class AxrIOActionSystem* AxrIOActionSystem_T;
-/// const AxrIOActionSystem Handle
-typedef const AxrIOActionSystem* AxrIOActionSystemConst_T;
+/// AxrActionSystem Handle
+typedef class AxrActionSystem* AxrActionSystem_T;
+/// const AxrActionSystem Handle
+typedef const AxrActionSystem* AxrActionSystemConst_T;
 
 // ----------------------------------------- //
 // External Function Definitions
@@ -345,13 +345,13 @@ extern "C" {
     /// @param inputActionConfig Vec2 input action config to destroy
     AXR_API void axrVec2InputActionConfigDestroy(AxrVec2InputActionConfig* inputActionConfig);
 
-    /// Clone the given input/output action set config
-    /// @param ioActionSetConfig Input/Output action set config to clone
-    /// @returns The cloned input/output action set
-    AXR_API AxrIOActionSetConfig axrIOActionSetConfigClone(const AxrIOActionSetConfig* ioActionSetConfig);
-    /// Destroy the given input/output action set config
-    /// @param ioActionSetConfig Input/Output action set config to destroy
-    AXR_API void axrIOActionSetConfigDestroy(AxrIOActionSetConfig* ioActionSetConfig);
+    /// Clone the given action set config
+    /// @param actionSetConfig Action set config to clone
+    /// @returns The cloned action set
+    AXR_API AxrActionSetConfig axrActionSetConfigClone(const AxrActionSetConfig* actionSetConfig);
+    /// Destroy the given action set config
+    /// @param actionSetConfig Action set config to destroy
+    AXR_API void axrActionSetConfigDestroy(AxrActionSetConfig* actionSetConfig);
 
     // ---- Bool Input Action ----
 
@@ -419,49 +419,49 @@ extern "C" {
     /// @returns The current value of this input action
     AXR_API AxrVec2 axrVec2InputActionGetValue(AxrVec2InputActionConst_T inputAction);
 
-    // ---- Input/Output Action Set ----
+    // ---- Action Set ----
 
     /// Set the priority over other action sets. Higher number = Higher priority.
-    /// @param ioActionSet Input/Output action set to use
+    /// @param actionSet Action set to use
     /// @param priority new priority
-    AXR_API void axrIOActionSetSetPriority(AxrIOActionSet_T ioActionSet, uint32_t priority);
+    AXR_API void axrActionSetSetPriority(AxrActionSet_T actionSet, uint32_t priority);
     /// Get the priority level
-    /// @param ioActionSet Input/Output action set to use
+    /// @param actionSet Action set to use
     /// @returns The priority level
-    AXR_API uint32_t axrIOActionSetGetPriority(AxrIOActionSetConst_T ioActionSet);
+    AXR_API uint32_t axrActionSetGetPriority(AxrActionSetConst_T actionSet);
 
-    /// Enable the input/output action set
-    /// @param ioActionSet Input/Output action set to use
-    AXR_API void axrIOActionSetEnable(AxrIOActionSet_T ioActionSet);
-    /// Disable the input/output action set
-    /// @param ioActionSet Input/Output action set to use
-    AXR_API void axrIOActionSetDisable(AxrIOActionSet_T ioActionSet);
+    /// Enable the action set
+    /// @param actionSet Action set to use
+    AXR_API void axrActionSetEnable(AxrActionSet_T actionSet);
+    /// Disable the action set
+    /// @param actionSet Action set to use
+    AXR_API void axrActionSetDisable(AxrActionSet_T actionSet);
     /// Check if the action set is enabled
-    /// @param ioActionSet Input/Output action set to use
+    /// @param actionSet Action set to use
     /// @returns True if the action set is enabled
-    AXR_API bool axrIOActionSetIsEnabled(AxrIOActionSetConst_T ioActionSet);
+    AXR_API bool axrActionSetIsEnabled(AxrActionSetConst_T actionSet);
 
     /// Get the named bool input action
-    /// @param ioActionSet Input/Output action set to use
+    /// @param actionSet Action set to use
     /// @param name Bool input action name
     /// @returns The bool input action or nullptr if it wasn't found
-    AXR_API AxrBoolInputAction_T axrIOActionSetGetBoolInputAction(AxrIOActionSet_T ioActionSet, const char* name);
+    AXR_API AxrBoolInputAction_T axrActionSetGetBoolInputAction(AxrActionSet_T actionSet, const char* name);
     /// Get the named float input action
-    /// @param ioActionSet Input/Output action set to use
+    /// @param actionSet Action set to use
     /// @param name Float input action name
     /// @returns The float input action or nullptr if it wasn't found
-    AXR_API AxrFloatInputAction_T axrIOActionSetGetFloatInputAction(AxrIOActionSet_T ioActionSet, const char* name);
+    AXR_API AxrFloatInputAction_T axrActionSetGetFloatInputAction(AxrActionSet_T actionSet, const char* name);
     /// Get the named vec2 input action
-    /// @param ioActionSet Input/Output action set to use
+    /// @param actionSet Action set to use
     /// @param name Vec2 input action name
     /// @returns The vec2 input action or nullptr if it wasn't found
-    AXR_API AxrVec2InputAction_T axrIOActionSetGetVec2InputAction(AxrIOActionSet_T ioActionSet, const char* name);
+    AXR_API AxrVec2InputAction_T axrActionSetGetVec2InputAction(AxrActionSet_T actionSet, const char* name);
 
-    // ---- Input/Output Action System ----
+    // ---- Action System ----
 
-    /// Get the named input/output action set
-    /// @param ioActionSystem Input/Output action system to use
-    /// @param name Input/Output action set name
-    /// @returns The input/output action set or nullptr if it wasn't found
-    AXR_API AxrIOActionSet_T axrIOActionSystemGetIOActionSet(AxrIOActionSystem_T ioActionSystem, const char* name);
+    /// Get the named action set
+    /// @param actionSystem Action system to use
+    /// @param name Action set name
+    /// @returns The Action set or nullptr if it wasn't found
+    AXR_API AxrActionSet_T axrActionSystemGetActionSet(AxrActionSystem_T actionSystem, const char* name);
 }

@@ -3,7 +3,7 @@
 // ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "axr/ioActionSystem.h"
+#include "axr/actionSystem.h"
 #include "../xrSystem/xrSystem.hpp"
 
 // ----------------------------------------- //
@@ -12,20 +12,20 @@
 #include <string>
 #include <unordered_set>
 
-/// Axr Vec2 Input Action
-class AxrVec2InputAction {
+/// Axr Float Input Action
+class AxrFloatInputAction {
 public:
     // ----------------------------------------- //
     // Structs
     // ----------------------------------------- //
 
-    /// AxrVec2InputAction config
+    /// AxrFloatInputAction config
     struct Config {
         std::string Name;
         std::string LocalizedName;
-        AxrIOActionXrVisibilityEnum XrVisibility;
+        AxrActionXrVisibilityEnum XrVisibility;
         uint32_t BindingCount;
-        AxrVec2InputActionEnum* Bindings;
+        AxrFloatInputActionEnum* Bindings;
     };
 
     // ----------------------------------------- //
@@ -35,36 +35,36 @@ public:
     // ---- Constructors ----
 
     /// Constructor
-    /// @param config AxrVec2InputAction config
-    explicit AxrVec2InputAction(const Config& config);
+    /// @param config AxrFloatInputAction config
+    explicit AxrFloatInputAction(const Config& config);
     /// Copy Constructor
-    /// @param src Source AxrVec2InputAction to copy from
-    AxrVec2InputAction(const AxrVec2InputAction& src) = delete;
+    /// @param src Source AxrFloatInputAction to copy from
+    AxrFloatInputAction(const AxrFloatInputAction& src) = delete;
     /// Move Constructor
-    /// @param src Source AxrVec2InputAction to move from
-    AxrVec2InputAction(AxrVec2InputAction&& src) noexcept;
+    /// @param src Source AxrFloatInputAction to move from
+    AxrFloatInputAction(AxrFloatInputAction&& src) noexcept;
 
     // ---- Destructor ----
 
     /// Destructor
-    ~AxrVec2InputAction();
+    ~AxrFloatInputAction();
 
     // ---- Operator Overloads ----
 
     /// Copy Assignment Operator
-    /// @param src Source AxrVec2InputAction to copy from
-    AxrVec2InputAction& operator=(const AxrVec2InputAction& src) = delete;
+    /// @param src Source AxrFloatInputAction to copy from
+    AxrFloatInputAction& operator=(const AxrFloatInputAction& src) = delete;
     /// Move Assignment Operator
-    /// @param src Source AxrVec2InputAction to move from
-    AxrVec2InputAction& operator=(AxrVec2InputAction&& src) noexcept;
+    /// @param src Source AxrFloatInputAction to move from
+    AxrFloatInputAction& operator=(AxrFloatInputAction&& src) noexcept;
 
     // ----------------------------------------- //
     // Public Functions
     // ----------------------------------------- //
 
-    /// Enable the vec2 action set
+    /// Enable the float action set
     void enable();
-    /// Disable the vec2 action set
+    /// Disable the float action set
     void disable();
     /// Check if the action is enabled
     /// @returns True if the action is enabled
@@ -76,7 +76,7 @@ public:
 
     /// Get the current value of this input action
     /// @returns The current value of this input action
-    [[nodiscard]] AxrVec2 getValue() const;
+    [[nodiscard]] float getValue() const;
 
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
@@ -98,15 +98,15 @@ public:
     [[nodiscard]] XrAction getXrAction() const;
     /// Get the bindings
     /// @returns The bindings
-    [[nodiscard]] const std::unordered_set<AxrVec2InputActionEnum>& getBindings() const;
+    [[nodiscard]] const std::unordered_set<AxrFloatInputActionEnum>& getBindings() const;
     /// Check if this input action contains the given binding
     /// @param biding Binding to check
     /// @returns True if this input action contains the given binding
-    [[nodiscard]] bool containsBinding(AxrVec2InputActionEnum biding) const;
+    [[nodiscard]] bool containsBinding(AxrFloatInputActionEnum biding) const;
 
     /// Trigger the input action
     /// @param value Value to use
-    void trigger(const AxrVec2& value);
+    void trigger(float value);
     /// Reset the input action
     void reset();
 
@@ -121,13 +121,13 @@ public:
     // Public Static Functions
     // ----------------------------------------- //
 
-    /// Clone the given vec2 input action config
-    /// @param inputActionConfig Vec2 input action config to clone
-    /// @returns The cloned vec2 input action
-    [[nodiscard]] static AxrVec2InputActionConfig clone(const AxrVec2InputActionConfig& inputActionConfig);
-    /// Destroy the given vec2 input action config
-    /// @param inputActionConfig Vec2 input action config to destroy
-    static void destroy(AxrVec2InputActionConfig& inputActionConfig);
+    /// Clone the given float input action config
+    /// @param inputActionConfig Float input action config to clone
+    /// @returns The cloned float input action
+    [[nodiscard]] static AxrFloatInputActionConfig clone(const AxrFloatInputActionConfig& inputActionConfig);
+    /// Destroy the given float input action config
+    /// @param inputActionConfig Float input action config to destroy
+    static void destroy(AxrFloatInputActionConfig& inputActionConfig);
 
 private:
     // ----------------------------------------- //
@@ -137,13 +137,13 @@ private:
     // ---- Config Variables ----
     std::string m_Name;
     std::string m_LocalizedName;
-    AxrIOActionXrVisibilityEnum m_XrVisibility;
-    std::unordered_set<AxrVec2InputActionEnum> m_Bindings;
+    AxrActionXrVisibilityEnum m_XrVisibility;
+    std::unordered_set<AxrFloatInputActionEnum> m_Bindings;
 
     // ---- Data ----
     bool m_IsEnabled;
-    AxrVec2 m_Value;
-    AxrVec2 m_ValueLastFrame;
+    float m_Value;
+    float m_ValueLastFrame;
     AxrXrSystem_T m_XrSystem;
     XrAction m_XrAction;
 

@@ -1,33 +1,33 @@
 ﻿// ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
-#include "floatInputAction.hpp"
-#include "ioActionUtils.hpp"
+#include "vec2InputAction.hpp"
+#include "actionUtils.hpp"
 #include "axr/logger.h"
 
 // ----------------------------------------- //
 // External Functions
 // ----------------------------------------- //
 
-AxrFloatInputActionConfig axrFloatInputActionConfigClone(const AxrFloatInputActionConfig* inputActionConfig) {
+AxrVec2InputActionConfig axrVec2InputActionConfigClone(const AxrVec2InputActionConfig* inputActionConfig) {
     if (inputActionConfig == nullptr) {
         axrLogErrorLocation("`inputActionConfig` is null");
         return {};
     }
 
-    return AxrFloatInputAction::clone(*inputActionConfig);
+    return AxrVec2InputAction::clone(*inputActionConfig);
 }
 
-void axrFloatInputActionConfigDestroy(AxrFloatInputActionConfig* inputActionConfig) {
+void axrVec2InputActionConfigDestroy(AxrVec2InputActionConfig* inputActionConfig) {
     if (inputActionConfig == nullptr) {
         axrLogErrorLocation("`inputActionConfig` is null");
         return;
     }
 
-    return AxrFloatInputAction::destroy(*inputActionConfig);
+    return AxrVec2InputAction::destroy(*inputActionConfig);
 }
 
-void axrFloatInputActionSetEnable(const AxrFloatInputAction_T inputAction) {
+void axrVec2InputActionSetEnable(const AxrVec2InputAction_T inputAction) {
     if (inputAction == nullptr) {
         axrLogErrorLocation("`inputAction` is null");
         return;
@@ -36,7 +36,7 @@ void axrFloatInputActionSetEnable(const AxrFloatInputAction_T inputAction) {
     return inputAction->enable();
 }
 
-void axrFloatInputActionSetDisable(const AxrFloatInputAction_T inputAction) {
+void axrVec2InputActionSetDisable(const AxrVec2InputAction_T inputAction) {
     if (inputAction == nullptr) {
         axrLogErrorLocation("`inputAction` is null");
         return;
@@ -45,7 +45,7 @@ void axrFloatInputActionSetDisable(const AxrFloatInputAction_T inputAction) {
     return inputAction->disable();
 }
 
-bool axrFloatInputActionIsEnabled(const AxrFloatInputActionConst_T inputAction) {
+bool axrVec2InputActionIsEnabled(const AxrVec2InputActionConst_T inputAction) {
     if (inputAction == nullptr) {
         axrLogErrorLocation("`inputAction` is null");
         return false;
@@ -54,7 +54,7 @@ bool axrFloatInputActionIsEnabled(const AxrFloatInputActionConst_T inputAction) 
     return inputAction->isEnabled();
 }
 
-bool axrFloatInputActionValueChanged(const AxrFloatInputActionConst_T inputAction) {
+bool axrVec2InputActionValueChanged(const AxrVec2InputActionConst_T inputAction) {
     if (inputAction == nullptr) {
         axrLogErrorLocation("`inputAction` is null");
         return false;
@@ -63,10 +63,10 @@ bool axrFloatInputActionValueChanged(const AxrFloatInputActionConst_T inputActio
     return inputAction->valueChanged();
 }
 
-float axrFloatInputActionGetValue(const AxrFloatInputActionConst_T inputAction) {
+AxrVec2 axrVec2InputActionGetValue(const AxrVec2InputActionConst_T inputAction) {
     if (inputAction == nullptr) {
         axrLogErrorLocation("`inputAction` is null");
-        return 0.0f;
+        return {.x = 0.0f, .y = 0.0f};
     }
 
     return inputAction->getValue();
@@ -78,13 +78,13 @@ float axrFloatInputActionGetValue(const AxrFloatInputActionConst_T inputAction) 
 
 // ---- Special Functions ----
 
-AxrFloatInputAction::AxrFloatInputAction(const Config& config):
+AxrVec2InputAction::AxrVec2InputAction(const Config& config):
     m_Name(config.Name),
     m_LocalizedName(config.LocalizedName),
     m_XrVisibility(config.XrVisibility),
     m_IsEnabled(true),
-    m_Value(0.0f),
-    m_ValueLastFrame(0.0f),
+    m_Value(AxrVec2(0.0f, 0.0f)),
+    m_ValueLastFrame(AxrVec2(0.0f, 0.0f)),
     m_XrSystem(nullptr),
     m_XrAction(XR_NULL_HANDLE) {
     if (config.Bindings != nullptr) {
@@ -94,7 +94,9 @@ AxrFloatInputAction::AxrFloatInputAction(const Config& config):
     }
 }
 
-AxrFloatInputAction::AxrFloatInputAction(AxrFloatInputAction&& src) noexcept {
+AxrVec2InputAction::AxrVec2InputAction(AxrVec2InputAction&& src) noexcept:
+    m_Value({}),
+    m_ValueLastFrame({}) {
     m_Name = std::move(src.m_Name);
     m_LocalizedName = std::move(src.m_LocalizedName);
     m_Bindings = std::move(src.m_Bindings);
@@ -108,17 +110,17 @@ AxrFloatInputAction::AxrFloatInputAction(AxrFloatInputAction&& src) noexcept {
 
     src.m_XrVisibility = {};
     src.m_IsEnabled = false;
-    src.m_Value = 0.0f;
-    src.m_ValueLastFrame = 0.0f;
+    src.m_Value = AxrVec2(0.0f, 0.0f);
+    src.m_ValueLastFrame = AxrVec2(0.0f, 0.0f);
     src.m_XrSystem = nullptr;
     src.m_XrAction = XR_NULL_HANDLE;
 }
 
-AxrFloatInputAction::~AxrFloatInputAction() {
+AxrVec2InputAction::~AxrVec2InputAction() {
     cleanup();
 }
 
-AxrFloatInputAction& AxrFloatInputAction::operator=(AxrFloatInputAction&& src) noexcept {
+AxrVec2InputAction& AxrVec2InputAction::operator=(AxrVec2InputAction&& src) noexcept {
     if (this != &src) {
         cleanup();
 
@@ -135,37 +137,38 @@ AxrFloatInputAction& AxrFloatInputAction::operator=(AxrFloatInputAction&& src) n
 
         src.m_XrVisibility = {};
         src.m_IsEnabled = false;
-        src.m_Value = 0.0f;
-        src.m_ValueLastFrame = 0.0f;
+        src.m_Value = AxrVec2(0.0f, 0.0f);
+        src.m_ValueLastFrame = AxrVec2(0.0f, 0.0f);
         src.m_XrSystem = nullptr;
         src.m_XrAction = XR_NULL_HANDLE;
     }
     return *this;
 }
 
-void AxrFloatInputAction::enable() {
+void AxrVec2InputAction::enable() {
     m_IsEnabled = true;
 }
 
-void AxrFloatInputAction::disable() {
+void AxrVec2InputAction::disable() {
     m_IsEnabled = false;
 }
 
-bool AxrFloatInputAction::isEnabled() const {
+bool AxrVec2InputAction::isEnabled() const {
     return m_IsEnabled;
 }
 
 // ---- Public Functions ----
 
-bool AxrFloatInputAction::valueChanged() const {
-    return m_ValueLastFrame != m_Value;
+bool AxrVec2InputAction::valueChanged() const {
+    return m_ValueLastFrame.x != m_Value.x ||
+        m_ValueLastFrame.y != m_Value.y;
 }
 
-float AxrFloatInputAction::getValue() const {
+AxrVec2 AxrVec2InputAction::getValue() const {
     return m_Value;
 }
 
-AxrResult AxrFloatInputAction::setupXrActions(const AxrXrSystem_T xrSystem, const XrActionSet actionSet) {
+AxrResult AxrVec2InputAction::setupXrActions(const AxrXrSystem_T xrSystem, const XrActionSet actionSet) {
     if (!isVisibleToXrSession()) return AXR_SUCCESS;
 
     if (xrSystem == nullptr) {
@@ -178,7 +181,7 @@ AxrResult AxrFloatInputAction::setupXrActions(const AxrXrSystem_T xrSystem, cons
     const AxrResult axrResult = m_XrSystem->createAction(
         m_Name,
         m_LocalizedName,
-        XR_ACTION_TYPE_FLOAT_INPUT,
+        XR_ACTION_TYPE_VECTOR2F_INPUT,
         actionSet,
         m_XrAction
     );
@@ -190,55 +193,58 @@ AxrResult AxrFloatInputAction::setupXrActions(const AxrXrSystem_T xrSystem, cons
     return AXR_SUCCESS;
 }
 
-void AxrFloatInputAction::resetSetupXrActions() {
+void AxrVec2InputAction::resetSetupXrActions() {
     if (m_XrSystem == nullptr) return;
 
     m_XrSystem->destroyAction(m_XrAction);
     m_XrSystem = nullptr;
 }
 
-void AxrFloatInputAction::newFrameStarted() {
+void AxrVec2InputAction::newFrameStarted() {
     m_ValueLastFrame = m_Value;
 }
 
-XrAction AxrFloatInputAction::getXrAction() const {
+XrAction AxrVec2InputAction::getXrAction() const {
     return m_XrAction;
 }
 
-const std::unordered_set<AxrFloatInputActionEnum>& AxrFloatInputAction::getBindings() const {
+const std::unordered_set<AxrVec2InputActionEnum>& AxrVec2InputAction::getBindings() const {
     return m_Bindings;
 }
 
-bool AxrFloatInputAction::containsBinding(const AxrFloatInputActionEnum biding) const {
+bool AxrVec2InputAction::containsBinding(const AxrVec2InputActionEnum biding) const {
     return m_Bindings.contains(biding);
 }
 
-void AxrFloatInputAction::trigger(const float value) {
+void AxrVec2InputAction::trigger(const AxrVec2& value) {
     m_Value = value;
 }
 
-void AxrFloatInputAction::reset() {
-    m_Value = 0.0f;
+void AxrVec2InputAction::reset() {
+    m_Value = AxrVec2{
+        .x = 0.0f,
+        .y = 0.0f
+    };
 }
 
-bool AxrFloatInputAction::isVisibleToXrSession() const {
+bool AxrVec2InputAction::isVisibleToXrSession() const {
     switch (m_XrVisibility) {
-        case AXR_IO_ACTION_XR_VISIBILITY_ALWAYS: {
+        case AXR_ACTION_XR_VISIBILITY_ALWAYS: {
             return true;
         }
-        case AXR_IO_ACTION_XR_VISIBILITY_NEVER: {
+        case AXR_ACTION_XR_VISIBILITY_NEVER: {
             return false;
         }
         default: {
             axrLogErrorLocation(
-                "Unknown AxrIOActionXrVisibilityEnum value: {0}.",
+                "Unknown AxrActionXrVisibilityEnum value: {0}.",
                 static_cast<int32_t>(m_XrVisibility)
             );
             // Don't break. We intentionally fall through to the auto case
         }
-        case AXR_IO_ACTION_XR_VISIBILITY_AUTO: {
-            for (const AxrFloatInputActionEnum binding : m_Bindings) {
-                if (axrIsXrFloatInputAction(binding)) {
+        case AXR_ACTION_XR_VISIBILITY_AUTO: {
+            for (const AxrVec2InputActionEnum binding : m_Bindings) {
+                if (axrIsXrVec2InputAction(binding)) {
                     return true;
                 }
             }
@@ -250,19 +256,24 @@ bool AxrFloatInputAction::isVisibleToXrSession() const {
     return false;
 }
 
-void AxrFloatInputAction::updateXrActionValue() {
+void AxrVec2InputAction::updateXrActionValue() {
     if (m_XrSystem == nullptr || m_XrAction == XR_NULL_HANDLE) return;
 
-    const XrActionStateFloat actionState = m_XrSystem->getFloatActionState(m_XrAction);
+    const XrActionStateVector2f actionState = m_XrSystem->getVec2ActionState(m_XrAction);
     if (actionState.isActive && actionState.changedSinceLastSync) {
-        trigger(actionState.currentState);
+        trigger(
+            AxrVec2{
+                .x = actionState.currentState.x,
+                .y = actionState.currentState.y,
+            }
+        );
     }
 }
 
 // ---- Public Static Functions ----
 
-AxrFloatInputActionConfig AxrFloatInputAction::clone(const AxrFloatInputActionConfig& inputActionConfig) {
-    AxrFloatInputActionConfig config{
+AxrVec2InputActionConfig AxrVec2InputAction::clone(const AxrVec2InputActionConfig& inputActionConfig) {
+    AxrVec2InputActionConfig config{
         .Name = {},
         .LocalizedName = {},
         .XrVisibility = inputActionConfig.XrVisibility,
@@ -270,11 +281,11 @@ AxrFloatInputActionConfig AxrFloatInputAction::clone(const AxrFloatInputActionCo
         .Bindings = nullptr,
     };
 
-    strncpy_s(config.Name, inputActionConfig.Name, AXR_MAX_IO_ACTION_NAME_SIZE);
-    strncpy_s(config.LocalizedName, inputActionConfig.LocalizedName, AXR_MAX_IO_ACTION_NAME_SIZE);
+    strncpy_s(config.Name, inputActionConfig.Name, AXR_MAX_ACTION_NAME_SIZE);
+    strncpy_s(config.LocalizedName, inputActionConfig.LocalizedName, AXR_MAX_ACTION_NAME_SIZE);
 
     if (inputActionConfig.BindingCount != 0 && inputActionConfig.Bindings != nullptr) {
-        config.Bindings = new AxrFloatInputActionEnum[inputActionConfig.BindingCount]{};
+        config.Bindings = new AxrVec2InputActionEnum[inputActionConfig.BindingCount]{};
 
         for (uint32_t i = 0; i < inputActionConfig.BindingCount; ++i) {
             config.Bindings[i] = inputActionConfig.Bindings[i];
@@ -284,7 +295,7 @@ AxrFloatInputActionConfig AxrFloatInputAction::clone(const AxrFloatInputActionCo
     return config;
 }
 
-void AxrFloatInputAction::destroy(AxrFloatInputActionConfig& inputActionConfig) {
+void AxrVec2InputAction::destroy(AxrVec2InputActionConfig& inputActionConfig) {
     memset(inputActionConfig.Name, 0, sizeof(inputActionConfig.Name));
     memset(inputActionConfig.LocalizedName, 0, sizeof(inputActionConfig.LocalizedName));
     inputActionConfig.XrVisibility = {};
@@ -296,9 +307,7 @@ void AxrFloatInputAction::destroy(AxrFloatInputActionConfig& inputActionConfig) 
     inputActionConfig.BindingCount = 0;
 }
 
-// ---- Private Functions ----
-
-void AxrFloatInputAction::cleanup() {
+void AxrVec2InputAction::cleanup() {
     resetSetupXrActions();
 
     m_Name.clear();
@@ -306,6 +315,6 @@ void AxrFloatInputAction::cleanup() {
     m_XrVisibility = {};
     m_IsEnabled = false;
     m_Bindings.clear();
-    m_Value = 0.0f;
-    m_ValueLastFrame = 0.0f;
+    m_Value = AxrVec2(0.0f, 0.0f);
+    m_ValueLastFrame = AxrVec2(0.0f, 0.0f);
 }
