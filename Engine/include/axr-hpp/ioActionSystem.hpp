@@ -1565,6 +1565,22 @@ namespace axr {
         // Public Functions
         // ----------------------------------------- //
 
+        /// Enable the bool action set
+        void enable() const {
+            axrBoolInputActionSetEnable(m_BoolInputAction);
+        }
+
+        /// Disable the bool action set
+        void disable() const {
+            axrBoolInputActionSetDisable(m_BoolInputAction);
+        }
+
+        /// Check if the action is enabled
+        /// @returns True if the action is enabled
+        [[nodiscard]] bool isEnabled() const {
+            return axrBoolInputActionIsEnabled(m_BoolInputAction);
+        }
+
         /// Check if the value has changed since the last frame
         /// @returns True if the value has changed since the last frame
         [[nodiscard]] bool valueChanged() const {
@@ -1607,6 +1623,22 @@ namespace axr {
         // Public Functions
         // ----------------------------------------- //
 
+        /// Enable the float action set
+        void enable() const {
+            axrFloatInputActionSetEnable(m_FloatInputAction);
+        }
+
+        /// Disable the float action set
+        void disable() const {
+            axrFloatInputActionSetDisable(m_FloatInputAction);
+        }
+
+        /// Check if the action is enabled
+        /// @returns True if the action is enabled
+        [[nodiscard]] bool isEnabled() const {
+            return axrFloatInputActionIsEnabled(m_FloatInputAction);
+        }
+
         /// Check if the value has changed since the last frame
         /// @returns True if the value has changed since the last frame
         [[nodiscard]] bool valueChanged() const {
@@ -1648,6 +1680,22 @@ namespace axr {
         // ----------------------------------------- //
         // Public Functions
         // ----------------------------------------- //
+
+        /// Enable the vec2 action set
+        void enable() const {
+            axrVec2InputActionSetEnable(m_Vec2InputAction);
+        }
+
+        /// Disable the vec2 action set
+        void disable() const {
+            axrVec2InputActionSetDisable(m_Vec2InputAction);
+        }
+
+        /// Check if the action is enabled
+        /// @returns True if the action is enabled
+        [[nodiscard]] bool isEnabled() const {
+            return axrVec2InputActionIsEnabled(m_Vec2InputAction);
+        }
 
         /// Check if the value has changed since the last frame
         /// @returns True if the value has changed since the last frame
@@ -1695,6 +1743,28 @@ namespace axr {
         /// @param priority new priority
         void setPriority(const uint32_t priority) const {
             axrIOActionSetSetPriority(m_IOActionSet, priority);
+        }
+
+        /// Get the priority level
+        /// @returns The priority level
+        [[nodiscard]] uint32_t getPriority() const {
+            return axrIOActionSetGetPriority(m_IOActionSet);
+        }
+
+        /// Enable the input/output action set
+        void enable() const {
+            axrIOActionSetEnable(m_IOActionSet);
+        }
+
+        /// Disable the input/output action set
+        void disable() const {
+            axrIOActionSetDisable(m_IOActionSet);
+        }
+
+        /// Check if the action set is enabled
+        /// @returns True if the action set is enabled
+        [[nodiscard]] bool isEnabled() const {
+            return axrIOActionSetIsEnabled(m_IOActionSet);
         }
 
         /// Get the named bool input action

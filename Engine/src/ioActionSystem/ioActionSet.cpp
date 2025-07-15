@@ -38,6 +38,43 @@ void axrIOActionSetSetPriority(const AxrIOActionSet_T ioActionSet, const uint32_
     return ioActionSet->setPriority(priority);
 }
 
+uint32_t axrIOActionSetGetPriority(const AxrIOActionSetConst_T ioActionSet) {
+    if (ioActionSet == nullptr) {
+        axrLogErrorLocation("`ioActionSet` is null");
+        return 0;
+    }
+
+    return ioActionSet->getPriority();
+}
+
+
+void axrIOActionSetEnable(const AxrIOActionSet_T ioActionSet) {
+    if (ioActionSet == nullptr) {
+        axrLogErrorLocation("`ioActionSet` is null");
+        return;
+    }
+
+    return ioActionSet->enable();
+}
+
+void axrIOActionSetDisable(const AxrIOActionSet_T ioActionSet) {
+    if (ioActionSet == nullptr) {
+        axrLogErrorLocation("`ioActionSet` is null");
+        return;
+    }
+
+    return ioActionSet->disable();
+}
+
+bool axrIOActionSetIsEnabled(const AxrIOActionSetConst_T ioActionSet) {
+    if (ioActionSet == nullptr) {
+        axrLogErrorLocation("`ioActionSet` is null");
+        return false;
+    }
+
+    return ioActionSet->isEnabled();
+}
+
 AxrBoolInputAction_T axrIOActionSetGetBoolInputAction(const AxrIOActionSet_T ioActionSet, const char* name) {
     if (ioActionSet == nullptr) {
         axrLogErrorLocation("`ioActionSet` is null");
@@ -89,7 +126,6 @@ AxrVec2InputAction_T axrIOActionSetGetVec2InputAction(const AxrIOActionSet_T ioA
 AxrIOActionSet::AxrIOActionSet(const Config& config):
     m_Name(config.Name),
     m_LocalizedName(config.LocalizedName),
-    // TODO: Make this config variable
     m_IsEnabled(true),
     m_Priority(0),
     m_XrSystem(nullptr),
@@ -197,6 +233,26 @@ AxrIOActionSet& AxrIOActionSet::operator=(AxrIOActionSet&& src) noexcept {
 
 // ---- Public Functions ----
 
+void AxrIOActionSet::setPriority(const uint32_t priority) {
+    m_Priority = priority;
+}
+
+uint32_t AxrIOActionSet::getPriority() const {
+    return m_Priority;
+}
+
+void AxrIOActionSet::enable() {
+    m_IsEnabled = true;
+}
+
+void AxrIOActionSet::disable() {
+    m_IsEnabled = false;
+}
+
+bool AxrIOActionSet::isEnabled() const {
+    return m_IsEnabled;
+}
+
 AxrBoolInputAction_T AxrIOActionSet::getBoolInputAction(const std::string& name) {
     const auto foundInputAction = m_BoolInputActions.find(name);
     if (foundInputAction == m_BoolInputActions.end()) {
@@ -293,14 +349,6 @@ void AxrIOActionSet::resetSetupXrActions() {
     m_XrSystem = nullptr;
 }
 
-bool AxrIOActionSet::isEnabled() const {
-    return m_IsEnabled;
-}
-
-uint32_t AxrIOActionSet::getPriority() const {
-    return m_Priority;
-}
-
 void AxrIOActionSet::newFrameStarted() {
     for (AxrBoolInputAction& inputAction : m_BoolInputActions | std::ranges::views::values) {
         inputAction.newFrameStarted();
@@ -311,10 +359,6 @@ void AxrIOActionSet::newFrameStarted() {
     for (AxrVec2InputAction& inputAction : m_Vec2InputActions | std::ranges::views::values) {
         inputAction.newFrameStarted();
     }
-}
-
-void AxrIOActionSet::setPriority(const uint32_t priority) {
-    m_Priority = priority;
 }
 
 std::unordered_map<std::string, AxrBoolInputAction>& AxrIOActionSet::getBoolInputActions() {

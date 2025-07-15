@@ -27,6 +27,33 @@ void axrFloatInputActionConfigDestroy(AxrFloatInputActionConfig* inputActionConf
     return AxrFloatInputAction::destroy(*inputActionConfig);
 }
 
+void axrFloatInputActionSetEnable(const AxrFloatInputAction_T inputAction) {
+    if (inputAction == nullptr) {
+        axrLogErrorLocation("`inputAction` is null");
+        return;
+    }
+
+    return inputAction->enable();
+}
+
+void axrFloatInputActionSetDisable(const AxrFloatInputAction_T inputAction) {
+    if (inputAction == nullptr) {
+        axrLogErrorLocation("`inputAction` is null");
+        return;
+    }
+
+    return inputAction->disable();
+}
+
+bool axrFloatInputActionIsEnabled(const AxrFloatInputActionConst_T inputAction) {
+    if (inputAction == nullptr) {
+        axrLogErrorLocation("`inputAction` is null");
+        return false;
+    }
+
+    return inputAction->isEnabled();
+}
+
 bool axrFloatInputActionValueChanged(const AxrFloatInputActionConst_T inputAction) {
     if (inputAction == nullptr) {
         axrLogErrorLocation("`inputAction` is null");
@@ -55,6 +82,7 @@ AxrFloatInputAction::AxrFloatInputAction(const Config& config):
     m_Name(config.Name),
     m_LocalizedName(config.LocalizedName),
     m_XrVisibility(config.XrVisibility),
+    m_IsEnabled(true),
     m_Value(0.0f),
     m_ValueLastFrame(0.0f),
     m_XrSystem(nullptr),
@@ -72,12 +100,14 @@ AxrFloatInputAction::AxrFloatInputAction(AxrFloatInputAction&& src) noexcept {
     m_Bindings = std::move(src.m_Bindings);
 
     m_XrVisibility = src.m_XrVisibility;
+    m_IsEnabled = src.m_IsEnabled;
     m_Value = src.m_Value;
     m_ValueLastFrame = src.m_ValueLastFrame;
     m_XrSystem = src.m_XrSystem;
     m_XrAction = src.m_XrAction;
 
     src.m_XrVisibility = {};
+    src.m_IsEnabled = false;
     src.m_Value = 0.0f;
     src.m_ValueLastFrame = 0.0f;
     src.m_XrSystem = nullptr;
@@ -97,18 +127,32 @@ AxrFloatInputAction& AxrFloatInputAction::operator=(AxrFloatInputAction&& src) n
         m_Bindings = std::move(src.m_Bindings);
 
         m_XrVisibility = src.m_XrVisibility;
+        m_IsEnabled = src.m_IsEnabled;
         m_Value = src.m_Value;
         m_ValueLastFrame = src.m_ValueLastFrame;
         m_XrSystem = src.m_XrSystem;
         m_XrAction = src.m_XrAction;
 
         src.m_XrVisibility = {};
+        src.m_IsEnabled = false;
         src.m_Value = 0.0f;
         src.m_ValueLastFrame = 0.0f;
         src.m_XrSystem = nullptr;
         src.m_XrAction = XR_NULL_HANDLE;
     }
     return *this;
+}
+
+void AxrFloatInputAction::enable() {
+    m_IsEnabled = true;
+}
+
+void AxrFloatInputAction::disable() {
+    m_IsEnabled = false;
+}
+
+bool AxrFloatInputAction::isEnabled() const {
+    return m_IsEnabled;
 }
 
 // ---- Public Functions ----
@@ -174,7 +218,7 @@ void AxrFloatInputAction::trigger(const float value) {
 }
 
 void AxrFloatInputAction::reset() {
-    m_Value = 0.0f; 
+    m_Value = 0.0f;
 }
 
 bool AxrFloatInputAction::isVisibleToXrSession() const {
@@ -260,6 +304,7 @@ void AxrFloatInputAction::cleanup() {
     m_Name.clear();
     m_LocalizedName.clear();
     m_XrVisibility = {};
+    m_IsEnabled = false;
     m_Bindings.clear();
     m_Value = 0.0f;
     m_ValueLastFrame = 0.0f;

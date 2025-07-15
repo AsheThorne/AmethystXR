@@ -27,6 +27,33 @@ void axrVec2InputActionConfigDestroy(AxrVec2InputActionConfig* inputActionConfig
     return AxrVec2InputAction::destroy(*inputActionConfig);
 }
 
+void axrVec2InputActionSetEnable(const AxrVec2InputAction_T inputAction) {
+    if (inputAction == nullptr) {
+        axrLogErrorLocation("`inputAction` is null");
+        return;
+    }
+
+    return inputAction->enable();
+}
+
+void axrVec2InputActionSetDisable(const AxrVec2InputAction_T inputAction) {
+    if (inputAction == nullptr) {
+        axrLogErrorLocation("`inputAction` is null");
+        return;
+    }
+
+    return inputAction->disable();
+}
+
+bool axrVec2InputActionIsEnabled(const AxrVec2InputActionConst_T inputAction) {
+    if (inputAction == nullptr) {
+        axrLogErrorLocation("`inputAction` is null");
+        return false;
+    }
+
+    return inputAction->isEnabled();
+}
+
 bool axrVec2InputActionValueChanged(const AxrVec2InputActionConst_T inputAction) {
     if (inputAction == nullptr) {
         axrLogErrorLocation("`inputAction` is null");
@@ -55,6 +82,7 @@ AxrVec2InputAction::AxrVec2InputAction(const Config& config):
     m_Name(config.Name),
     m_LocalizedName(config.LocalizedName),
     m_XrVisibility(config.XrVisibility),
+    m_IsEnabled(true),
     m_Value(AxrVec2(0.0f, 0.0f)),
     m_ValueLastFrame(AxrVec2(0.0f, 0.0f)),
     m_XrSystem(nullptr),
@@ -74,12 +102,14 @@ AxrVec2InputAction::AxrVec2InputAction(AxrVec2InputAction&& src) noexcept:
     m_Bindings = std::move(src.m_Bindings);
 
     m_XrVisibility = src.m_XrVisibility;
+    m_IsEnabled = src.m_IsEnabled;
     m_Value = src.m_Value;
     m_ValueLastFrame = src.m_ValueLastFrame;
     m_XrSystem = src.m_XrSystem;
     m_XrAction = src.m_XrAction;
 
     src.m_XrVisibility = {};
+    src.m_IsEnabled = false;
     src.m_Value = AxrVec2(0.0f, 0.0f);
     src.m_ValueLastFrame = AxrVec2(0.0f, 0.0f);
     src.m_XrSystem = nullptr;
@@ -99,18 +129,32 @@ AxrVec2InputAction& AxrVec2InputAction::operator=(AxrVec2InputAction&& src) noex
         m_Bindings = std::move(src.m_Bindings);
 
         m_XrVisibility = src.m_XrVisibility;
+        m_IsEnabled = src.m_IsEnabled;
         m_Value = src.m_Value;
         m_ValueLastFrame = src.m_ValueLastFrame;
         m_XrSystem = src.m_XrSystem;
         m_XrAction = src.m_XrAction;
 
         src.m_XrVisibility = {};
+        src.m_IsEnabled = false;
         src.m_Value = AxrVec2(0.0f, 0.0f);
         src.m_ValueLastFrame = AxrVec2(0.0f, 0.0f);
         src.m_XrSystem = nullptr;
         src.m_XrAction = XR_NULL_HANDLE;
     }
     return *this;
+}
+
+void AxrVec2InputAction::enable() {
+    m_IsEnabled = true;
+}
+
+void AxrVec2InputAction::disable() {
+    m_IsEnabled = false;
+}
+
+bool AxrVec2InputAction::isEnabled() const {
+    return m_IsEnabled;
 }
 
 // ---- Public Functions ----
@@ -269,6 +313,7 @@ void AxrVec2InputAction::cleanup() {
     m_Name.clear();
     m_LocalizedName.clear();
     m_XrVisibility = {};
+    m_IsEnabled = false;
     m_Bindings.clear();
     m_Value = AxrVec2(0.0f, 0.0f);
     m_ValueLastFrame = AxrVec2(0.0f, 0.0f);

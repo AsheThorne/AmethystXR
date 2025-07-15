@@ -62,6 +62,14 @@ public:
     // Public Functions
     // ----------------------------------------- //
 
+    /// Enable the float action set
+    void enable();
+    /// Disable the float action set
+    void disable();
+    /// Check if the action is enabled
+    /// @returns True if the action is enabled
+    [[nodiscard]] bool isEnabled() const;
+
     /// Check if the value has changed since the last frame
     /// @returns True if the value has changed since the last frame
     [[nodiscard]] bool valueChanged() const;
@@ -133,6 +141,7 @@ private:
     std::unordered_set<AxrFloatInputActionEnum> m_Bindings;
 
     // ---- Data ----
+    bool m_IsEnabled;
     float m_Value;
     float m_ValueLastFrame;
     AxrXrSystem_T m_XrSystem;

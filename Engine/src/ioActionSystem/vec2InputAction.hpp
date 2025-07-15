@@ -62,6 +62,14 @@ public:
     // Public Functions
     // ----------------------------------------- //
 
+    /// Enable the vec2 action set
+    void enable();
+    /// Disable the vec2 action set
+    void disable();
+    /// Check if the action is enabled
+    /// @returns True if the action is enabled
+    [[nodiscard]] bool isEnabled() const;
+
     /// Check if the value has changed since the last frame
     /// @returns True if the value has changed since the last frame
     [[nodiscard]] bool valueChanged() const;
@@ -133,6 +141,7 @@ private:
     std::unordered_set<AxrVec2InputActionEnum> m_Bindings;
 
     // ---- Data ----
+    bool m_IsEnabled;
     AxrVec2 m_Value;
     AxrVec2 m_ValueLastFrame;
     AxrXrSystem_T m_XrSystem;

@@ -355,6 +355,17 @@ extern "C" {
 
     // ---- Bool Input Action ----
 
+    /// Enable the bool action set
+    /// @param inputAction Bool input action to use
+    AXR_API void axrBoolInputActionSetEnable(AxrBoolInputAction_T inputAction);
+    /// Disable the bool action set
+    /// @param inputAction Bool input action to use
+    AXR_API void axrBoolInputActionSetDisable(AxrBoolInputAction_T inputAction);
+    /// Check if the action is enabled
+    /// @param inputAction Bool input action to use
+    /// @returns True if the action is enabled
+    AXR_API bool axrBoolInputActionIsEnabled(AxrBoolInputActionConst_T inputAction);
+
     /// Check if the value has changed since the last frame
     /// @param inputAction Bool input action to use
     /// @returns True if the value has changed since the last frame
@@ -366,6 +377,17 @@ extern "C" {
 
     // ---- Float Input Action ----
 
+    /// Enable the float action set
+    /// @param inputAction Float input action to use
+    AXR_API void axrFloatInputActionSetEnable(AxrFloatInputAction_T inputAction);
+    /// Disable the float action set
+    /// @param inputAction Float input action to use
+    AXR_API void axrFloatInputActionSetDisable(AxrFloatInputAction_T inputAction);
+    /// Check if the action is enabled
+    /// @param inputAction Float input action to use
+    /// @returns True if the action is enabled
+    AXR_API bool axrFloatInputActionIsEnabled(AxrFloatInputActionConst_T inputAction);
+
     /// Check if the value has changed since the last frame
     /// @param inputAction Float input action to use
     /// @returns True if the value has changed since the last frame
@@ -376,6 +398,17 @@ extern "C" {
     AXR_API float axrFloatInputActionGetValue(AxrFloatInputActionConst_T inputAction);
 
     // ---- Vec2 Input Action ----
+
+    /// Enable the vec2 action set
+    /// @param inputAction Vec2 input action to use
+    AXR_API void axrVec2InputActionSetEnable(AxrVec2InputAction_T inputAction);
+    /// Disable the vec2 action set
+    /// @param inputAction Vec2 input action to use
+    AXR_API void axrVec2InputActionSetDisable(AxrVec2InputAction_T inputAction);
+    /// Check if the action is enabled
+    /// @param inputAction Vec2 input action to use
+    /// @returns True if the action is enabled
+    AXR_API bool axrVec2InputActionIsEnabled(AxrVec2InputActionConst_T inputAction);
 
     /// Check if the value has changed since the last frame
     /// @param inputAction Vec2 input action to use
@@ -391,7 +424,22 @@ extern "C" {
     /// Set the priority over other action sets. Higher number = Higher priority.
     /// @param ioActionSet Input/Output action set to use
     /// @param priority new priority
-    void axrIOActionSetSetPriority(AxrIOActionSet_T ioActionSet, uint32_t priority);
+    AXR_API void axrIOActionSetSetPriority(AxrIOActionSet_T ioActionSet, uint32_t priority);
+    /// Get the priority level
+    /// @param ioActionSet Input/Output action set to use
+    /// @returns The priority level
+    AXR_API uint32_t axrIOActionSetGetPriority(AxrIOActionSetConst_T ioActionSet);
+
+    /// Enable the input/output action set
+    /// @param ioActionSet Input/Output action set to use
+    AXR_API void axrIOActionSetEnable(AxrIOActionSet_T ioActionSet);
+    /// Disable the input/output action set
+    /// @param ioActionSet Input/Output action set to use
+    AXR_API void axrIOActionSetDisable(AxrIOActionSet_T ioActionSet);
+    /// Check if the action set is enabled
+    /// @param ioActionSet Input/Output action set to use
+    /// @returns True if the action set is enabled
+    AXR_API bool axrIOActionSetIsEnabled(AxrIOActionSetConst_T ioActionSet);
 
     /// Get the named bool input action
     /// @param ioActionSet Input/Output action set to use

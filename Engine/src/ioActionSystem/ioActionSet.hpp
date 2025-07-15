@@ -68,6 +68,22 @@ public:
     // Public Functions
     // ----------------------------------------- //
 
+
+    /// Set the priority over other action sets. Higher number = Higher priority.
+    /// @param priority new priority
+    void setPriority(uint32_t priority);
+    /// Get the priority level
+    /// @returns The priority level
+    [[nodiscard]] uint32_t getPriority() const;
+
+    /// Enable the input/output action set
+    void enable();
+    /// Disable the input/output action set
+    void disable();
+    /// Check if the action set is enabled
+    /// @returns True if the action set is enabled
+    [[nodiscard]] bool isEnabled() const;
+
     /// Get the named bool input action
     /// @param name Bool input action name
     /// @returns The bool input action or nullptr if it wasn't found
@@ -92,19 +108,8 @@ public:
     /// Reset setupXrActions() function
     void resetSetupXrActions();
 
-    /// Check if the action set is enabled
-    /// @returns True if the action set is enabled
-    [[nodiscard]] bool isEnabled() const;
-    /// Get the set priority level
-    /// @returns The set priority level
-    [[nodiscard]] uint32_t getPriority() const;
-
     /// Signal that a new frame has started
     void newFrameStarted();
-
-    /// Set the priority over other action sets. Higher number = Higher priority.
-    /// @param priority new priority
-    void setPriority(uint32_t priority);
 
     /// Get the bool input actions
     /// @returns The bool input actions
@@ -152,7 +157,7 @@ private:
     uint32_t m_Priority;
     AxrXrSystem_T m_XrSystem;
     XrActionSet m_XrActionSet;
-    
+
     // ----------------------------------------- //
     // Private Functions
     // ----------------------------------------- //
@@ -162,5 +167,5 @@ private:
 
     /// Check if this should be visible to the xr session
     /// @returns True if this should be visible to the xr session
-    [[nodiscard]] bool isVisibleToXrSession() const; 
+    [[nodiscard]] bool isVisibleToXrSession() const;
 };

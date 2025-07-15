@@ -62,6 +62,14 @@ public:
     // Public Functions
     // ----------------------------------------- //
 
+    /// Enable the bool action set
+    void enable();
+    /// Disable the bool action set
+    void disable();
+    /// Check if the action is enabled
+    /// @returns True if the action is enabled
+    [[nodiscard]] bool isEnabled() const;
+
     /// Check if the value has changed since the last frame
     /// @returns True if the value has changed since the last frame
     [[nodiscard]] bool valueChanged() const;
@@ -133,6 +141,7 @@ private:
     std::unordered_set<AxrBoolInputActionEnum> m_Bindings;
 
     // ---- Data ----
+    bool m_IsEnabled;
     bool m_Value;
     bool m_ValueLastFrame;
     AxrXrSystem_T m_XrSystem;

@@ -225,7 +225,7 @@ void AxrIOActionSystem::triggerBoolInputAction(const AxrBoolInputActionEnum inpu
             if (priority != highestPriority) continue;
 
             for (AxrBoolInputAction& inputAction : actionSet.getBoolInputActions() | std::ranges::views::values) {
-                if (inputAction.containsBinding(inputActionEnum)) {
+                if (inputAction.isEnabled() && inputAction.containsBinding(inputActionEnum)) {
                     inputActionsToTrigger.push_back(&inputAction);
                 }
             }
@@ -253,7 +253,7 @@ void AxrIOActionSystem::triggerFloatInputAction(const AxrFloatInputActionEnum in
             if (priority != highestPriority) continue;
 
             for (AxrFloatInputAction& inputAction : actionSet.getFloatInputActions() | std::ranges::views::values) {
-                if (inputAction.containsBinding(inputActionEnum)) {
+                if (inputAction.isEnabled() && inputAction.containsBinding(inputActionEnum)) {
                     inputActionsToTrigger.push_back(&inputAction);
                 }
             }
@@ -281,7 +281,7 @@ void AxrIOActionSystem::triggerVec2InputAction(const AxrVec2InputActionEnum inpu
             if (priority != highestPriority) continue;
 
             for (AxrVec2InputAction& inputAction : actionSet.getVec2InputActions() | std::ranges::views::values) {
-                if (inputAction.containsBinding(inputActionEnum)) {
+                if (inputAction.isEnabled() && inputAction.containsBinding(inputActionEnum)) {
                     inputActionsToTrigger.push_back(&inputAction);
                 }
             }

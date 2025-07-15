@@ -27,6 +27,33 @@ void axrBoolInputActionConfigDestroy(AxrBoolInputActionConfig* inputActionConfig
     return AxrBoolInputAction::destroy(*inputActionConfig);
 }
 
+void axrBoolInputActionSetEnable(const AxrBoolInputAction_T inputAction) {
+    if (inputAction == nullptr) {
+        axrLogErrorLocation("`inputAction` is null");
+        return;
+    }
+
+    return inputAction->enable();
+}
+
+void axrBoolInputActionSetDisable(const AxrBoolInputAction_T inputAction) {
+    if (inputAction == nullptr) {
+        axrLogErrorLocation("`inputAction` is null");
+        return;
+    }
+
+    return inputAction->disable();
+}
+
+bool axrBoolInputActionIsEnabled(const AxrBoolInputActionConst_T inputAction) {
+    if (inputAction == nullptr) {
+        axrLogErrorLocation("`inputAction` is null");
+        return false;
+    }
+
+    return inputAction->isEnabled();
+}
+
 bool axrBoolInputActionValueChanged(const AxrBoolInputActionConst_T inputAction) {
     if (inputAction == nullptr) {
         axrLogErrorLocation("`inputAction` is null");
@@ -55,6 +82,7 @@ AxrBoolInputAction::AxrBoolInputAction(const Config& config):
     m_Name(config.Name),
     m_LocalizedName(config.LocalizedName),
     m_XrVisibility(config.XrVisibility),
+    m_IsEnabled(true),
     m_Value(false),
     m_ValueLastFrame(false),
     m_XrSystem(nullptr),
@@ -72,12 +100,14 @@ AxrBoolInputAction::AxrBoolInputAction(AxrBoolInputAction&& src) noexcept {
     m_Bindings = std::move(src.m_Bindings);
 
     m_XrVisibility = src.m_XrVisibility;
+    m_IsEnabled = src.m_IsEnabled;
     m_Value = src.m_Value;
     m_ValueLastFrame = src.m_ValueLastFrame;
     m_XrSystem = src.m_XrSystem;
     m_XrAction = src.m_XrAction;
 
     src.m_XrVisibility = {};
+    src.m_IsEnabled = false;
     src.m_Value = false;
     src.m_ValueLastFrame = false;
     src.m_XrSystem = nullptr;
@@ -97,18 +127,32 @@ AxrBoolInputAction& AxrBoolInputAction::operator=(AxrBoolInputAction&& src) noex
         m_Bindings = std::move(src.m_Bindings);
 
         m_XrVisibility = src.m_XrVisibility;
+        m_IsEnabled = src.m_IsEnabled;
         m_Value = src.m_Value;
         m_ValueLastFrame = src.m_ValueLastFrame;
         m_XrSystem = src.m_XrSystem;
         m_XrAction = src.m_XrAction;
 
         src.m_XrVisibility = {};
+        src.m_IsEnabled = false;
         src.m_Value = false;
         src.m_ValueLastFrame = false;
         src.m_XrSystem = nullptr;
         src.m_XrAction = XR_NULL_HANDLE;
     }
     return *this;
+}
+
+void AxrBoolInputAction::enable() {
+    m_IsEnabled = true;
+}
+
+void AxrBoolInputAction::disable() {
+    m_IsEnabled = false;
+}
+
+bool AxrBoolInputAction::isEnabled() const {
+    return m_IsEnabled;
 }
 
 // ---- Public Functions ----
@@ -261,6 +305,7 @@ void AxrBoolInputAction::cleanup() {
     m_Name.clear();
     m_LocalizedName.clear();
     m_XrVisibility = {};
+    m_IsEnabled = false;
     m_Bindings.clear();
     m_Value = false;
     m_ValueLastFrame = false;
