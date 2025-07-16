@@ -34,8 +34,7 @@ enum AxrActionXrVisibilityEnum {
 enum AxrXrInteractionProfileEnum {
     AXR_XR_INTERACTION_PROFILE_UNDEFINED = 0,
     /// https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#_khronos_simple_controller_profile
-    // TODO: Rename to AXR_XR_INTERACTION_PROFILE_KHR_SIMPLE_CONTROLLER
-    AXR_XR_INTERACTION_PROFILE_SIMPLE_CONTROLLER,
+    AXR_XR_INTERACTION_PROFILE_KHR_SIMPLE_CONTROLLER,
     /// https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#_valve_index_controller_profile
     AXR_XR_INTERACTION_PROFILE_VALVE_INDEX_CONTROLLER,
 };

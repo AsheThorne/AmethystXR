@@ -544,7 +544,7 @@ std::unordered_set<AxrBoolInputActionEnum> axrGetXrInteractionProfileBoolInputAc
     const AxrXrInteractionProfileEnum xrInteractionProfile
 ) {
     switch (xrInteractionProfile) {
-        case AXR_XR_INTERACTION_PROFILE_SIMPLE_CONTROLLER: {
+        case AXR_XR_INTERACTION_PROFILE_KHR_SIMPLE_CONTROLLER: {
             return {
                 AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_LEFT_SELECT_CLICK,
                 AXR_BOOL_INPUT_ACTION_XR_CONTROLLER_RIGHT_SELECT_CLICK,
@@ -586,7 +586,7 @@ std::unordered_set<AxrFloatInputActionEnum> axrGetXrInteractionProfileFloatInput
     const AxrXrInteractionProfileEnum xrInteractionProfile
 ) {
     switch (xrInteractionProfile) {
-        case AXR_XR_INTERACTION_PROFILE_SIMPLE_CONTROLLER: {
+        case AXR_XR_INTERACTION_PROFILE_KHR_SIMPLE_CONTROLLER: {
             return {};
         }
         case AXR_XR_INTERACTION_PROFILE_VALVE_INDEX_CONTROLLER: {
@@ -621,7 +621,7 @@ std::unordered_set<AxrVec2InputActionEnum> axrGetXrInteractionProfileVec2InputAc
     const AxrXrInteractionProfileEnum xrInteractionProfile
 ) {
     switch (xrInteractionProfile) {
-        case AXR_XR_INTERACTION_PROFILE_SIMPLE_CONTROLLER: {
+        case AXR_XR_INTERACTION_PROFILE_KHR_SIMPLE_CONTROLLER: {
             return {};
         }
         case AXR_XR_INTERACTION_PROFILE_VALVE_INDEX_CONTROLLER: {
@@ -644,7 +644,7 @@ std::unordered_set<AxrPoseInputActionEnum> axrGetXrInteractionProfilePoseInputAc
     const AxrXrInteractionProfileEnum xrInteractionProfile
 ) {
     switch (xrInteractionProfile) {
-        case AXR_XR_INTERACTION_PROFILE_SIMPLE_CONTROLLER: {
+        case AXR_XR_INTERACTION_PROFILE_KHR_SIMPLE_CONTROLLER: {
             return {
                 AXR_POSE_INPUT_ACTION_XR_CONTROLLER_LEFT_GRIP,
                 AXR_POSE_INPUT_ACTION_XR_CONTROLLER_RIGHT_GRIP,
@@ -714,7 +714,7 @@ std::unordered_set<const char*> axrGetXrInteractionProfileBindingNames(
 
 const char* axrGetXrInteractionProfileName(const AxrXrInteractionProfileEnum interactionProfileEnum) {
     switch (interactionProfileEnum) {
-        case AXR_XR_INTERACTION_PROFILE_SIMPLE_CONTROLLER: {
+        case AXR_XR_INTERACTION_PROFILE_KHR_SIMPLE_CONTROLLER: {
             return "/interaction_profiles/khr/simple_controller";
         }
         case AXR_XR_INTERACTION_PROFILE_VALVE_INDEX_CONTROLLER: {

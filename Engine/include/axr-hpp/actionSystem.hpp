@@ -30,7 +30,7 @@ namespace axr {
     enum class XrInteractionProfileEnum {
         Undefined = AXR_XR_INTERACTION_PROFILE_UNDEFINED,
         /// https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#_khronos_simple_controller_profile
-        SimpleController = AXR_XR_INTERACTION_PROFILE_SIMPLE_CONTROLLER,
+        KhrSimpleController = AXR_XR_INTERACTION_PROFILE_KHR_SIMPLE_CONTROLLER,
         /// https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#_valve_index_controller_profile
         ValveIndexController = AXR_XR_INTERACTION_PROFILE_VALVE_INDEX_CONTROLLER,
     };
