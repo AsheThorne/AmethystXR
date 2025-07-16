@@ -64,10 +64,11 @@ public:
     // ----------------------------------------- //
 
     /// Signal the render target that we're starting the render
+    /// @param sceneData The active scene
     /// @returns AXR_SUCCESS if the function succeeded
     /// @returns AXR_DONT_RENDER if we should skip rendering this frame.
-    [[nodiscard]] AxrResult beginRendering() const {
-        return m_RenderTarget.beginRendering();
+    [[nodiscard]] AxrResult beginRendering(const AxrVulkanSceneData* sceneData) const {
+        return m_RenderTarget.beginRendering(sceneData);
     }
 
     /// Get the number of views for the render target

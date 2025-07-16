@@ -45,10 +45,20 @@ AxrActionSet_T axrActionSystemGetActionSet(const AxrActionSystem_T actionSystem,
 AxrActionSystem::AxrActionSystem(const Config& config):
     m_XrSystem(config.XrSystem),
     m_DoubleClickTime(0),
-    m_LastAbsoluteCursorPosition(0.0f),
+    m_LastAbsoluteCursorPosition(
+        AxrVec2{
+            .x = 0.0f,
+            .y = 0.0f,
+        }
+    ),
     m_ScrollDelta(0.0f),
     m_HorizontalScrollDelta(0.0f),
-    m_MouseMovedDelta(AxrVec2(0.0f, 0.0f)),
+    m_MouseMovedDelta(
+        AxrVec2{
+            .x = 0.0f,
+            .y = 0.0f,
+        }
+    ),
     m_AreXrActionsAttached(false) {
     if (config.ActionSets != nullptr) {
         for (uint32_t i = 0; i < config.ActionSetCount; ++i) {
@@ -65,6 +75,8 @@ AxrActionSystem::AxrActionSystem(const Config& config):
                             .FloatInputActions = config.ActionSets[i].FloatInputActions,
                             .Vec2InputActionCount = config.ActionSets[i].Vec2InputActionCount,
                             .Vec2InputActions = config.ActionSets[i].Vec2InputActions,
+                            .PoseInputActionCount = config.ActionSets[i].PoseInputActionCount,
+                            .PoseInputActions = config.ActionSets[i].PoseInputActions,
                         }
                     )
                 )
@@ -99,7 +111,7 @@ AxrResult AxrActionSystem::setup() {
     if (AXR_FAILED(axrResult)) return axrResult;
 #endif
 
-    axrResult = setupXrInputs();
+    axrResult = setupXrActions();
     if (AXR_FAILED(axrResult)) return axrResult;
 
     return AXR_SUCCESS;
@@ -108,7 +120,7 @@ AxrResult AxrActionSystem::setup() {
 void AxrActionSystem::resetSetup() {
     clearInputActions();
 
-    resetSetupXrInputs();
+    resetSetupXrActions();
 #ifdef AXR_USE_PLATFORM_WIN32
     resetSetupWin32Inputs();
 #endif
@@ -355,14 +367,20 @@ void AxrActionSystem::clearInputActions() {
     m_MouseClickMStartTime = std::chrono::time_point<std::chrono::steady_clock>::min();
     m_MouseClickX1StartTime = std::chrono::time_point<std::chrono::steady_clock>::min();
     m_MouseClickX2StartTime = std::chrono::time_point<std::chrono::steady_clock>::min();
-    m_LastAbsoluteCursorPosition = AxrVec2(0.0f, 0.0f);
+    m_LastAbsoluteCursorPosition = AxrVec2{
+        .x = 0.0f,
+        .y = 0.0f,
+    };
 
     m_ScrollDelta = 0.0f;
     m_HorizontalScrollDelta = 0.0f;
-    m_MouseMovedDelta = AxrVec2(0.0f, 0.0f);
+    m_MouseMovedDelta = AxrVec2{
+        .x = 0.0f,
+        .y = 0.0f,
+    };
 }
 
-AxrResult AxrActionSystem::setupXrInputs() {
+AxrResult AxrActionSystem::setupXrActions() {
     if (m_XrSystem == nullptr) return AXR_SUCCESS;
 
     AxrResult axrResult = AXR_SUCCESS;
@@ -370,7 +388,7 @@ AxrResult AxrActionSystem::setupXrInputs() {
     for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
         axrResult = actionSet.setupXrActions(m_XrSystem);
         if (AXR_FAILED(axrResult)) {
-            resetSetupXrInputs();
+            resetSetupXrActions();
             return axrResult;
         }
     }
@@ -379,7 +397,7 @@ AxrResult AxrActionSystem::setupXrInputs() {
 
     axrResult = suggestXrBindings();
     if (AXR_FAILED(axrResult)) {
-        resetSetupXrInputs();
+        resetSetupXrActions();
         return axrResult;
     }
 
@@ -389,8 +407,15 @@ AxrResult AxrActionSystem::setupXrInputs() {
     return AXR_SUCCESS;
 }
 
-void AxrActionSystem::resetSetupXrInputs() {
+void AxrActionSystem::resetSetupXrActions() {
+    if (m_XrSystem == nullptr) {
+        axrLogWarningLocation("Xr system is null.");
+        return;
+    }
+
     m_XrSystem->OnXrSessionStateChangedCallbackActions.reset();
+    destroyXrActionSpaces();
+    resetXrPoseActions();
     m_XrActionSets.clear();
 
     for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
@@ -471,6 +496,21 @@ AxrResult AxrActionSystem::suggestXrBindings() {
                 }
             }
         }
+
+        for (AxrPoseInputAction& inputAction : xrActionSet.getPoseInputActions() | std::ranges::views::values) {
+            const AxrPoseInputActionEnum inputActionEnum = inputAction.getBinding();
+
+            const XrAction action = inputAction.getXrAction();
+
+            if (axrIsXrPoseInputAction(inputActionEnum) && action != XR_NULL_HANDLE) {
+                actionBindings.push_back(
+                    AxrXrSystem::ActionBinding{
+                        .Action = action,
+                        .bindingName = axrGetXrPoseInputActionName(inputActionEnum),
+                    }
+                );
+            }
+        }
     }
 
     for (const AxrXrInteractionProfileEnum xrInteractionProfile : m_XrInteractionProfiles) {
@@ -488,18 +528,78 @@ AxrResult AxrActionSystem::onXrSessionStateChangedCallback(const bool isSessionR
             return AXR_ERROR;
         }
 
-        const AxrResult axrResult = m_XrSystem->attachActionSets(m_XrActionSets);
+        AxrResult axrResult = m_XrSystem->attachActionSets(m_XrActionSets);
         if (AXR_FAILED(axrResult)) {
-            resetSetupXrInputs();
+            resetSetupXrActions();
+            return axrResult;
+        }
+        m_AreXrActionsAttached = true;
+
+        axrResult = createXrActionSpaces();
+        if (AXR_FAILED(axrResult)) {
+            resetSetupXrActions();
             return axrResult;
         }
 
-        m_AreXrActionsAttached = true;
+        registerXrPoseActions();
     } else {
         m_AreXrActionsAttached = false;
     }
 
     return AXR_SUCCESS;
+}
+
+AxrResult AxrActionSystem::createXrActionSpaces() {
+    AxrResult axrResult = AXR_SUCCESS;
+
+    for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+        axrResult = actionSet.createXrActionSpaces();
+        if (AXR_FAILED(axrResult)) {
+            destroyXrActionSpaces();
+            return axrResult;
+        }
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrActionSystem::destroyXrActionSpaces() {
+    for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+        actionSet.destroyXrActionSpaces();
+    }
+}
+
+void AxrActionSystem::registerXrPoseActions() {
+    if (m_XrSystem == nullptr) {
+        axrLogErrorLocation("Xr system is null.");
+        return;
+    }
+
+    std::vector<AxrXrSystem::PoseAction> poseActions;
+
+    for (auto& [actionSetName, actionSet] : m_ActionSets) {
+        for (auto& [inputActionName, poseInputAction] : actionSet.getPoseInputActions()) {
+            poseActions.emplace_back(
+                AxrXrSystem::PoseAction{
+                    .ActionSetName = actionSetName.c_str(),
+                    .ActionName = inputActionName.c_str(),
+                    .Space = poseInputAction.getXrSpace(),
+                    .PoseData = poseInputAction.getPoseDataHandle()
+                }
+            );
+        }
+    }
+
+    m_XrSystem->registerPoseActions(poseActions);
+}
+
+void AxrActionSystem::resetXrPoseActions() const {
+    if (m_XrSystem == nullptr) {
+        axrLogWarningLocation("Xr system is null.");
+        return;
+    }
+
+    m_XrSystem->resetPoseActions();
 }
 
 #ifdef AXR_USE_PLATFORM_WIN32

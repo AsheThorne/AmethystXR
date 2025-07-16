@@ -154,9 +154,10 @@ public:
     ) const;
 
     /// Begin rendering
+    /// @param sceneData Active scene data
     /// @returns AXR_SUCCESS if the function succeeded
     /// @returns AXR_DONT_RENDER if we should skip rendering this frame.
-    [[nodiscard]] AxrResult beginRendering();
+    [[nodiscard]] AxrResult beginRendering(const AxrVulkanSceneData* sceneData);
     /// End rendering
     /// @returns AXR_SUCCESS if the function succeeded
     AxrResult endRendering();

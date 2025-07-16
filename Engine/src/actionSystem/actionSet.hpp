@@ -7,6 +7,7 @@
 #include "boolInputAction.hpp"
 #include "floatInputAction.hpp"
 #include "vec2InputAction.hpp"
+#include "poseInputAction.hpp"
 #include "../xrSystem/xrSystem.hpp"
 
 // ----------------------------------------- //
@@ -32,6 +33,8 @@ public:
         AxrFloatInputActionConfig* FloatInputActions;
         uint32_t Vec2InputActionCount;
         AxrVec2InputActionConfig* Vec2InputActions;
+        uint32_t PoseInputActionCount;
+        AxrPoseInputActionConfig* PoseInputActions;
     };
 
     // ----------------------------------------- //
@@ -96,6 +99,10 @@ public:
     /// @param name Vec2 input action name
     /// @returns The vec2 input action or nullptr if it wasn't found
     [[nodiscard]] AxrVec2InputAction_T getVec2InputAction(const std::string& name);
+    /// Get the named pose input action
+    /// @param name Pose input action name
+    /// @returns The pose input action or nullptr if it wasn't found
+    [[nodiscard]] AxrPoseInputAction_T getPoseInputAction(const std::string& name);
 
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
@@ -107,6 +114,12 @@ public:
     [[nodiscard]] AxrResult setupXrActions(AxrXrSystem_T xrSystem);
     /// Reset setupXrActions() function
     void resetSetupXrActions();
+    /// Create the action spaces
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createXrActionSpaces();
+    /// Destroy the xr action spaces
+    void destroyXrActionSpaces();
+
 
     /// Signal that a new frame has started
     void newFrameStarted();
@@ -120,6 +133,9 @@ public:
     /// Get the vec2 input actions
     /// @returns The vec2 input actions
     [[nodiscard]] std::unordered_map<std::string, AxrVec2InputAction>& getVec2InputActions();
+    /// Get the pose input actions
+    /// @returns The pose input actions
+    [[nodiscard]] std::unordered_map<std::string, AxrPoseInputAction>& getPoseInputActions();
 
     /// Get the xr action set
     /// @returns The xr action set
@@ -151,6 +167,7 @@ private:
     std::unordered_map<std::string, AxrBoolInputAction> m_BoolInputActions;
     std::unordered_map<std::string, AxrFloatInputAction> m_FloatInputActions;
     std::unordered_map<std::string, AxrVec2InputAction> m_Vec2InputActions;
+    std::unordered_map<std::string, AxrPoseInputAction> m_PoseInputActions;
 
     // ---- Data ----
     bool m_IsEnabled;

@@ -10,7 +10,6 @@
 // ----------------------------------------- //
 // C/C++ Headers
 // ----------------------------------------- //
-#include <cstdint>
 #include <chrono>
 #include <unordered_set>
 #include <unordered_map>
@@ -179,11 +178,11 @@ private:
 
     // ---- XR Functions ----
 
-    /// Set up xr inputs
+    /// Set up xr actions
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setupXrInputs();
-    /// Reset setupXrInputs()
-    void resetSetupXrInputs();
+    [[nodiscard]] AxrResult setupXrActions();
+    /// Reset setupXrActions()
+    void resetSetupXrActions();
     /// Find all the xr action sets
     /// @returns The collection xr action sets
     [[nodiscard]] std::vector<XrActionSet> findXrActionSets() const;
@@ -196,6 +195,16 @@ private:
     /// @param isSessionRunning If true, the xr session is running. If false, the xr session is not running.
     /// @returns AXR_SUCCESS if the function succeeded
     AxrResult onXrSessionStateChangedCallback(bool isSessionRunning);
+
+    /// Create the action spaces
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createXrActionSpaces();
+    /// Destroy the xr action spaces
+    void destroyXrActionSpaces();
+    /// Register xr pose actions to the xr system
+    void registerXrPoseActions();
+    /// Reset the xr pose actions in the xr system
+    void resetXrPoseActions() const;
 
 #ifdef AXR_USE_PLATFORM_WIN32
     // ---- Win32 Functions ----

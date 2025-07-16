@@ -43,6 +43,10 @@ const std::string& AxrVulkanSceneData::getSceneName() const {
     return m_SceneName;
 }
 
+entt::registry* AxrVulkanSceneData::getEcsRegistryHandle() const {
+    return m_EcsRegistryHandle;
+}
+
 AxrResult AxrVulkanSceneData::loadScene() {
     // ----------------------------------------- //
     // Validation

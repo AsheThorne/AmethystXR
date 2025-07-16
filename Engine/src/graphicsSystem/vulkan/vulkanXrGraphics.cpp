@@ -171,7 +171,7 @@ AxrResult AxrVulkanXrGraphics::createVulkanDevice(
     );
 }
 
-AxrResult AxrVulkanXrGraphics::beginRendering() {
+AxrResult AxrVulkanXrGraphics::beginRendering(const AxrVulkanSceneData* sceneData) {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -213,6 +213,8 @@ AxrResult AxrVulkanXrGraphics::beginRendering() {
             },
         };
     }
+
+    axrResult = m_XrSystem.updatePoseActions(m_FrameRenderData.PredictedDisplayTime, sceneData->getEcsRegistryHandle());
 
     return AXR_SUCCESS;
 }

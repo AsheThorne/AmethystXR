@@ -82,13 +82,13 @@ public:
     // These functions are only to be used internally in the AmethystXr engine.
     // They have not been given a publicly accessible function in the 'include headers' to be used by an application.
 
-    /// Set up the xr actions
+    /// Set up the xr action
     /// @param xrSystem Xr system to use
     /// @param actionSet Action set associated with this action
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setupXrActions(AxrXrSystem_T xrSystem, XrActionSet actionSet);
-    /// Reset setupXrActions() function
-    void resetSetupXrActions();
+    [[nodiscard]] AxrResult setupXrAction(AxrXrSystem_T xrSystem, XrActionSet actionSet);
+    /// Reset setupXrAction() function
+    void resetSetupXrAction();
 
     /// Signal that a new frame has started
     void newFrameStarted();

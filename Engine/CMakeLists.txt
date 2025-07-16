@@ -130,6 +130,7 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/actionSystem/boolInputAction.hpp
     ${AXR_SRC_DIR}/actionSystem/floatInputAction.hpp
     ${AXR_SRC_DIR}/actionSystem/vec2InputAction.hpp
+    ${AXR_SRC_DIR}/actionSystem/poseInputAction.hpp
     ${AXR_SRC_DIR}/actionSystem/actionSet.hpp
     ${AXR_SRC_DIR}/actionSystem/actionUtils.hpp
 )
@@ -197,6 +198,7 @@ set(AXR_CPP_FILES
     ${AXR_SRC_DIR}/actionSystem/boolInputAction.cpp
     ${AXR_SRC_DIR}/actionSystem/floatInputAction.cpp
     ${AXR_SRC_DIR}/actionSystem/vec2InputAction.cpp
+    ${AXR_SRC_DIR}/actionSystem/poseInputAction.cpp
     ${AXR_SRC_DIR}/actionSystem/actionSet.cpp
     ${AXR_SRC_DIR}/actionSystem/actionUtils.cpp
 )

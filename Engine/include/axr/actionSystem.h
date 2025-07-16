@@ -34,6 +34,7 @@ enum AxrActionXrVisibilityEnum {
 enum AxrXrInteractionProfileEnum {
     AXR_XR_INTERACTION_PROFILE_UNDEFINED = 0,
     /// https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#_khronos_simple_controller_profile
+    // TODO: Rename to AXR_XR_INTERACTION_PROFILE_KHR_SIMPLE_CONTROLLER
     AXR_XR_INTERACTION_PROFILE_SIMPLE_CONTROLLER,
     /// https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#_valve_index_controller_profile
     AXR_XR_INTERACTION_PROFILE_VALVE_INDEX_CONTROLLER,
@@ -235,6 +236,20 @@ enum AxrVec2InputActionEnum {
     AXR_VEC2_INPUT_ACTION_XR_END = AXR_VEC2_INPUT_ACTION_XR_START + 127,
 };
 
+/// Pose input action enum
+enum AxrPoseInputActionEnum {
+    AXR_POSE_INPUT_ACTION_UNDEFINED = 0,
+
+    // ---- XR - Max of 128 ----
+    AXR_POSE_INPUT_ACTION_XR_START = AXR_POSE_INPUT_ACTION_UNDEFINED + 1,
+    // TODO: AXR_POSE_INPUT_ACTION_XR_HMD
+    AXR_POSE_INPUT_ACTION_XR_CONTROLLER_LEFT_GRIP = AXR_POSE_INPUT_ACTION_XR_START + 0,
+    AXR_POSE_INPUT_ACTION_XR_CONTROLLER_RIGHT_GRIP = AXR_POSE_INPUT_ACTION_XR_START + 1,
+    AXR_POSE_INPUT_ACTION_XR_CONTROLLER_LEFT_AIM = AXR_POSE_INPUT_ACTION_XR_START + 2,
+    AXR_POSE_INPUT_ACTION_XR_CONTROLLER_RIGHT_AIM = AXR_POSE_INPUT_ACTION_XR_START + 3,
+    AXR_POSE_INPUT_ACTION_XR_END = AXR_POSE_INPUT_ACTION_XR_START + 127,
+};
+
 // ----------------------------------------- //
 // Structs
 // ----------------------------------------- //
@@ -266,6 +281,14 @@ struct AxrVec2InputActionConfig {
     AxrVec2InputActionEnum* Bindings;
 };
 
+/// Pose Input Action Config
+struct AxrPoseInputActionConfig {
+    char Name[AXR_MAX_ACTION_NAME_SIZE];
+    char LocalizedName[AXR_MAX_ACTION_LOCALIZED_NAME_SIZE];
+    AxrActionXrVisibilityEnum XrVisibility;
+    AxrPoseInputActionEnum Binding;
+};
+
 /// Action set config
 struct AxrActionSetConfig {
     char Name[AXR_MAX_ACTION_SET_NAME_SIZE];
@@ -276,6 +299,8 @@ struct AxrActionSetConfig {
     AxrFloatInputActionConfig* FloatInputActions;
     uint32_t Vec2InputActionCount;
     AxrVec2InputActionConfig* Vec2InputActions;
+    uint32_t PoseInputActionCount;
+    AxrPoseInputActionConfig* PoseInputActions;
 };
 
 /// Action system config
@@ -305,6 +330,11 @@ typedef class AxrVec2InputAction* AxrVec2InputAction_T;
 /// const AxrVec2InputAction Handle
 typedef const AxrVec2InputAction* AxrVec2InputActionConst_T;
 
+/// AxrPoseInputAction Handle
+typedef class AxrPoseInputAction* AxrPoseInputAction_T;
+/// const AxrPoseInputAction Handle
+typedef const AxrPoseInputAction* AxrPoseInputActionConst_T;
+
 /// AxrActionSet Handle
 typedef class AxrActionSet* AxrActionSet_T;
 /// const AxrActionSet Handle
@@ -319,7 +349,7 @@ typedef const AxrActionSystem* AxrActionSystemConst_T;
 // External Function Definitions
 // ----------------------------------------- //
 extern "C" {
-    // ---- Configs ----
+    // ---- Bool Input Action ----
 
     /// Clone the given bool input action config
     /// @param inputActionConfig Bool input action config to clone
@@ -328,32 +358,6 @@ extern "C" {
     /// Destroy the given bool input action config
     /// @param inputActionConfig Bool input action config to destroy
     AXR_API void axrBoolInputActionConfigDestroy(AxrBoolInputActionConfig* inputActionConfig);
-    /// Clone the given float input action config
-    /// @param inputActionConfig Float input action config to clone
-    /// @returns The cloned float input action
-    AXR_API AxrFloatInputActionConfig axrFloatInputActionConfigClone(
-        const AxrFloatInputActionConfig* inputActionConfig
-    );
-    /// Destroy the given float input action config
-    /// @param inputActionConfig Float input action config to destroy
-    AXR_API void axrFloatInputActionConfigDestroy(AxrFloatInputActionConfig* inputActionConfig);
-    /// Clone the given vec2 input action config
-    /// @param inputActionConfig Vec2 input action config to clone
-    /// @returns The cloned vec2 input action
-    AXR_API AxrVec2InputActionConfig axrVec2InputActionConfigClone(const AxrVec2InputActionConfig* inputActionConfig);
-    /// Destroy the given vec2 input action config
-    /// @param inputActionConfig Vec2 input action config to destroy
-    AXR_API void axrVec2InputActionConfigDestroy(AxrVec2InputActionConfig* inputActionConfig);
-
-    /// Clone the given action set config
-    /// @param actionSetConfig Action set config to clone
-    /// @returns The cloned action set
-    AXR_API AxrActionSetConfig axrActionSetConfigClone(const AxrActionSetConfig* actionSetConfig);
-    /// Destroy the given action set config
-    /// @param actionSetConfig Action set config to destroy
-    AXR_API void axrActionSetConfigDestroy(AxrActionSetConfig* actionSetConfig);
-
-    // ---- Bool Input Action ----
 
     /// Enable the bool action set
     /// @param inputAction Bool input action to use
@@ -377,6 +381,16 @@ extern "C" {
 
     // ---- Float Input Action ----
 
+    /// Clone the given float input action config
+    /// @param inputActionConfig Float input action config to clone
+    /// @returns The cloned float input action
+    AXR_API AxrFloatInputActionConfig axrFloatInputActionConfigClone(
+        const AxrFloatInputActionConfig* inputActionConfig
+    );
+    /// Destroy the given float input action config
+    /// @param inputActionConfig Float input action config to destroy
+    AXR_API void axrFloatInputActionConfigDestroy(AxrFloatInputActionConfig* inputActionConfig);
+
     /// Enable the float action set
     /// @param inputAction Float input action to use
     AXR_API void axrFloatInputActionSetEnable(AxrFloatInputAction_T inputAction);
@@ -399,6 +413,14 @@ extern "C" {
 
     // ---- Vec2 Input Action ----
 
+    /// Clone the given vec2 input action config
+    /// @param inputActionConfig Vec2 input action config to clone
+    /// @returns The cloned vec2 input action
+    AXR_API AxrVec2InputActionConfig axrVec2InputActionConfigClone(const AxrVec2InputActionConfig* inputActionConfig);
+    /// Destroy the given vec2 input action config
+    /// @param inputActionConfig Vec2 input action config to destroy
+    AXR_API void axrVec2InputActionConfigDestroy(AxrVec2InputActionConfig* inputActionConfig);
+
     /// Enable the vec2 action set
     /// @param inputAction Vec2 input action to use
     AXR_API void axrVec2InputActionSetEnable(AxrVec2InputAction_T inputAction);
@@ -419,7 +441,41 @@ extern "C" {
     /// @returns The current value of this input action
     AXR_API AxrVec2 axrVec2InputActionGetValue(AxrVec2InputActionConst_T inputAction);
 
+    // ---- Pose Input Action ----
+
+    /// Clone the given pose input action config
+    /// @param inputActionConfig Pose input action config to clone
+    /// @returns The cloned pose input action
+    AXR_API AxrPoseInputActionConfig axrPoseInputActionConfigClone(const AxrPoseInputActionConfig* inputActionConfig);
+    /// Destroy the given pose input action config
+    /// @param inputActionConfig Pose input action config to destroy
+    AXR_API void axrPoseInputActionConfigDestroy(AxrPoseInputActionConfig* inputActionConfig);
+
+    /// Enable the pose action set
+    /// @param inputAction Pose input action to use
+    AXR_API void axrPoseInputActionSetEnable(AxrPoseInputAction_T inputAction);
+    /// Disable the pose action set
+    /// @param inputAction Pose input action to use
+    AXR_API void axrPoseInputActionSetDisable(AxrPoseInputAction_T inputAction);
+    /// Check if the action is enabled
+    /// @param inputAction Pose input action to use
+    /// @returns True if the action is enabled
+    AXR_API bool axrPoseInputActionIsEnabled(AxrPoseInputActionConst_T inputAction);
+
+    /// Get the current value of this input action
+    /// @param inputAction Pose input action to use
+    /// @returns The current value of this input action
+    AXR_API AxrPose axrPoseInputActionGetValue(AxrPoseInputActionConst_T inputAction);
+
     // ---- Action Set ----
+
+    /// Clone the given action set config
+    /// @param actionSetConfig Action set config to clone
+    /// @returns The cloned action set
+    AXR_API AxrActionSetConfig axrActionSetConfigClone(const AxrActionSetConfig* actionSetConfig);
+    /// Destroy the given action set config
+    /// @param actionSetConfig Action set config to destroy
+    AXR_API void axrActionSetConfigDestroy(AxrActionSetConfig* actionSetConfig);
 
     /// Set the priority over other action sets. Higher number = Higher priority.
     /// @param actionSet Action set to use
@@ -456,6 +512,11 @@ extern "C" {
     /// @param name Vec2 input action name
     /// @returns The vec2 input action or nullptr if it wasn't found
     AXR_API AxrVec2InputAction_T axrActionSetGetVec2InputAction(AxrActionSet_T actionSet, const char* name);
+    /// Get the named pose input action
+    /// @param actionSet Action set to use
+    /// @param name Pose input action name
+    /// @returns The pose input action or nullptr if it wasn't found
+    AXR_API AxrPoseInputAction_T axrActionSetGetPoseInputAction(AxrActionSet_T actionSet, const char* name);
 
     // ---- Action System ----
 

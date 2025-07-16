@@ -23,6 +23,10 @@
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 
+// ----------------------------------------- //
+// EnTT Headers
+// ----------------------------------------- //
+#include "entt/entt.hpp"
 
 /// Axr Xr System
 class AxrXrSystem {
@@ -47,6 +51,14 @@ public:
     struct ActionBinding {
         XrAction Action;
         const char* bindingName;
+    };
+
+    /// Pose action
+    struct PoseAction {
+        const char* ActionSetName; 
+        const char* ActionName; 
+        XrSpace Space;
+        AxrPose* PoseData;
     };
 
     // ----------------------------------------- //
@@ -216,6 +228,26 @@ public:
     /// @returns The vec2 action state
     [[nodiscard]] XrActionStateVector2f getVec2ActionState(XrAction action) const;
 
+    /// Create a new action space
+    /// @param action XrAction to use
+    /// @param space Output created action space
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createActionSpace(XrAction action, XrSpace& space) const;
+    /// Destroy the given XrSpace
+    /// @param space Space to destroy
+    void destroySpace(XrSpace& space) const;
+
+    /// Register the given pose actions to periodically update the location of
+    /// @param poseActions Pose actions
+    void registerPoseActions(const std::vector<PoseAction>& poseActions);
+    /// Reset all registered pose actions
+    void resetPoseActions();
+    /// Update all pose actions with the given time
+    /// @param time Predicted display time
+    /// @param registryHandle Optional registry handle to process the AxrMirrorPoseInputActionComponent's
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult updatePoseActions(XrTime time, entt::registry* registryHandle) const;
+
     /// Create an xr swapchain
     /// @param usageFlags Usage flags
     /// @param format Format
@@ -344,6 +376,8 @@ private:
     XrSpace m_StageReferenceSpace = XR_NULL_HANDLE;
     float m_NearClippingPlane = 0.01f;
     float m_FarClippingPlane = 1000.0f;
+
+    std::unordered_map<std::string, PoseAction> m_PoseActions;
 
     // ----------------------------------------- //
     // Private Functions
@@ -490,9 +524,6 @@ private:
         XrReferenceSpaceType referenceSpaceType,
         XrSpace& referenceSpace
     ) const;
-    /// Destroy the given XrSpace
-    /// @param space Space to destroy
-    void destroySpace(XrSpace& space) const;
 
     // ---- Events ----
 
@@ -511,6 +542,13 @@ private:
     /// OpenXR 'Session State Changed' event handler
     /// @param eventData Event data
     void xrEvent_SessionStateChanged(const XrEventDataSessionStateChanged& eventData);
+
+    // ---- Actions ----
+
+    /// Build the pose actions key from the given params
+    /// @param actionSetName Action set name
+    /// @param actionName Pose input action name
+    std::string buildPoseActionsKey(const char* actionSetName, const char* actionName) const;
 
     // ----------------------------------------- //
     // Private Static Functions

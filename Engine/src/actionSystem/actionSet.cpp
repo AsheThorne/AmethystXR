@@ -117,6 +117,20 @@ AxrVec2InputAction_T axrActionSetGetVec2InputAction(const AxrActionSet_T actionS
     return actionSet->getVec2InputAction(name);
 }
 
+AxrPoseInputAction_T axrActionSetGetPoseInputAction(const AxrActionSet_T actionSet, const char* name) {
+    if (actionSet == nullptr) {
+        axrLogErrorLocation("`actionSet` is null");
+        return nullptr;
+    }
+
+    if (name == nullptr) {
+        axrLogErrorLocation("`name` is null");
+        return nullptr;
+    }
+
+    return actionSet->getPoseInputAction(name);
+}
+
 // ----------------------------------------- //
 // Internal Functions
 // ----------------------------------------- //
@@ -184,6 +198,23 @@ AxrActionSet::AxrActionSet(const Config& config):
             );
         }
     }
+    if (config.PoseInputActions != nullptr) {
+        for (uint32_t i = 0; i < config.PoseInputActionCount; ++i) {
+            m_PoseInputActions.insert(
+                std::pair(
+                    config.PoseInputActions[i].Name,
+                    AxrPoseInputAction(
+                        AxrPoseInputAction::Config{
+                            .Name = config.PoseInputActions[i].Name,
+                            .LocalizedName = config.PoseInputActions[i].LocalizedName,
+                            .XrVisibility = config.PoseInputActions[i].XrVisibility,
+                            .Binding = config.PoseInputActions[i].Binding,
+                        }
+                    )
+                )
+            );
+        }
+    }
 }
 
 AxrActionSet::AxrActionSet(AxrActionSet&& src) noexcept {
@@ -192,6 +223,7 @@ AxrActionSet::AxrActionSet(AxrActionSet&& src) noexcept {
     m_BoolInputActions = std::move(src.m_BoolInputActions);
     m_FloatInputActions = std::move(src.m_FloatInputActions);
     m_Vec2InputActions = std::move(src.m_Vec2InputActions);
+    m_PoseInputActions = std::move(src.m_PoseInputActions);
 
     m_IsEnabled = src.m_IsEnabled;
     m_Priority = src.m_Priority;
@@ -217,6 +249,7 @@ AxrActionSet& AxrActionSet::operator=(AxrActionSet&& src) noexcept {
         m_BoolInputActions = std::move(src.m_BoolInputActions);
         m_FloatInputActions = std::move(src.m_FloatInputActions);
         m_Vec2InputActions = std::move(src.m_Vec2InputActions);
+        m_PoseInputActions = std::move(src.m_PoseInputActions);
 
         m_IsEnabled = src.m_IsEnabled;
         m_Priority = src.m_Priority;
@@ -280,6 +313,15 @@ AxrVec2InputAction_T AxrActionSet::getVec2InputAction(const std::string& name) {
     return &foundInputAction->second;
 }
 
+AxrPoseInputAction_T AxrActionSet::getPoseInputAction(const std::string& name) {
+    const auto foundInputAction = m_PoseInputActions.find(name);
+    if (foundInputAction == m_PoseInputActions.end()) {
+        return nullptr;
+    }
+
+    return &foundInputAction->second;
+}
+
 AxrResult AxrActionSet::setupXrActions(const AxrXrSystem_T xrSystem) {
     if (!isVisibleToXrSession()) return AXR_SUCCESS;
 
@@ -303,7 +345,7 @@ AxrResult AxrActionSet::setupXrActions(const AxrXrSystem_T xrSystem) {
     }
 
     for (AxrBoolInputAction& inputAction : m_BoolInputActions | std::ranges::views::values) {
-        axrResult = inputAction.setupXrActions(m_XrSystem, m_XrActionSet);
+        axrResult = inputAction.setupXrAction(m_XrSystem, m_XrActionSet);
         if (AXR_FAILED(axrResult)) {
             resetSetupXrActions();
             return axrResult;
@@ -311,7 +353,7 @@ AxrResult AxrActionSet::setupXrActions(const AxrXrSystem_T xrSystem) {
     }
 
     for (AxrFloatInputAction& inputAction : m_FloatInputActions | std::ranges::views::values) {
-        axrResult = inputAction.setupXrActions(m_XrSystem, m_XrActionSet);
+        axrResult = inputAction.setupXrAction(m_XrSystem, m_XrActionSet);
         if (AXR_FAILED(axrResult)) {
             resetSetupXrActions();
             return axrResult;
@@ -319,7 +361,15 @@ AxrResult AxrActionSet::setupXrActions(const AxrXrSystem_T xrSystem) {
     }
 
     for (AxrVec2InputAction& inputAction : m_Vec2InputActions | std::ranges::views::values) {
-        axrResult = inputAction.setupXrActions(m_XrSystem, m_XrActionSet);
+        axrResult = inputAction.setupXrAction(m_XrSystem, m_XrActionSet);
+        if (AXR_FAILED(axrResult)) {
+            resetSetupXrActions();
+            return axrResult;
+        }
+    }
+
+    for (AxrPoseInputAction& inputAction : m_PoseInputActions | std::ranges::views::values) {
+        axrResult = inputAction.setupXrAction(m_XrSystem, m_XrActionSet);
         if (AXR_FAILED(axrResult)) {
             resetSetupXrActions();
             return axrResult;
@@ -332,21 +382,47 @@ AxrResult AxrActionSet::setupXrActions(const AxrXrSystem_T xrSystem) {
 void AxrActionSet::resetSetupXrActions() {
     if (m_XrSystem == nullptr) return;
 
+    destroyXrActionSpaces();
+
     for (AxrBoolInputAction& inputAction : m_BoolInputActions | std::ranges::views::values) {
-        inputAction.resetSetupXrActions();
+        inputAction.resetSetupXrAction();
     }
 
     for (AxrFloatInputAction& inputAction : m_FloatInputActions | std::ranges::views::values) {
-        inputAction.resetSetupXrActions();
+        inputAction.resetSetupXrAction();
     }
 
     for (AxrVec2InputAction& inputAction : m_Vec2InputActions | std::ranges::views::values) {
-        inputAction.resetSetupXrActions();
+        inputAction.resetSetupXrAction();
+    }
+
+    for (AxrPoseInputAction& inputAction : m_PoseInputActions | std::ranges::views::values) {
+        inputAction.resetSetupXrAction();
     }
 
     m_XrSystem->destroyActionSet(m_XrActionSet);
 
     m_XrSystem = nullptr;
+}
+
+AxrResult AxrActionSet::createXrActionSpaces() {
+    AxrResult axrResult = AXR_SUCCESS;
+
+    for (AxrPoseInputAction& inputAction : m_PoseInputActions | std::ranges::views::values) {
+        axrResult = inputAction.createXrActionSpace();
+        if (AXR_FAILED(axrResult)) {
+            destroyXrActionSpaces();
+            return axrResult;
+        }
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrActionSet::destroyXrActionSpaces() {
+    for (AxrPoseInputAction& inputAction : m_PoseInputActions | std::ranges::views::values) {
+        inputAction.destroyXrActionSpace();
+    }
 }
 
 void AxrActionSet::newFrameStarted() {
@@ -371,6 +447,10 @@ std::unordered_map<std::string, AxrFloatInputAction>& AxrActionSet::getFloatInpu
 
 std::unordered_map<std::string, AxrVec2InputAction>& AxrActionSet::getVec2InputActions() {
     return m_Vec2InputActions;
+}
+
+std::unordered_map<std::string, AxrPoseInputAction>& AxrActionSet::getPoseInputActions() {
+    return m_PoseInputActions;
 }
 
 XrActionSet AxrActionSet::getXrActionSet() const {
@@ -403,6 +483,8 @@ AxrActionSetConfig AxrActionSet::clone(const AxrActionSetConfig& actionSetConfig
         .FloatInputActions = nullptr,
         .Vec2InputActionCount = actionSetConfig.Vec2InputActionCount,
         .Vec2InputActions = nullptr,
+        .PoseInputActionCount = actionSetConfig.PoseInputActionCount,
+        .PoseInputActions = nullptr,
     };
 
     strncpy_s(config.Name, actionSetConfig.Name, AXR_MAX_ACTION_SET_NAME_SIZE);
@@ -429,6 +511,14 @@ AxrActionSetConfig AxrActionSet::clone(const AxrActionSetConfig& actionSetConfig
 
         for (uint32_t i = 0; i < actionSetConfig.Vec2InputActionCount; ++i) {
             config.Vec2InputActions[i] = AxrVec2InputAction::clone(actionSetConfig.Vec2InputActions[i]);
+        }
+    }
+
+    if (actionSetConfig.PoseInputActionCount != 0 && actionSetConfig.PoseInputActions != nullptr) {
+        config.PoseInputActions = new AxrPoseInputActionConfig[actionSetConfig.PoseInputActionCount]{};
+
+        for (uint32_t i = 0; i < actionSetConfig.PoseInputActionCount; ++i) {
+            config.PoseInputActions[i] = AxrPoseInputAction::clone(actionSetConfig.PoseInputActions[i]);
         }
     }
 
@@ -468,6 +558,16 @@ void AxrActionSet::destroy(AxrActionSetConfig& actionSetConfig) {
         actionSetConfig.Vec2InputActions = nullptr;
     }
     actionSetConfig.Vec2InputActionCount = 0;
+
+    if (actionSetConfig.PoseInputActions != nullptr) {
+        for (uint32_t i = 0; i < actionSetConfig.PoseInputActionCount; ++i) {
+            AxrPoseInputAction::destroy(actionSetConfig.PoseInputActions[i]);
+        }
+
+        delete[] actionSetConfig.PoseInputActions;
+        actionSetConfig.PoseInputActions = nullptr;
+    }
+    actionSetConfig.PoseInputActionCount = 0;
 }
 
 void AxrActionSet::cleanup() {
@@ -478,6 +578,7 @@ void AxrActionSet::cleanup() {
     m_BoolInputActions.clear();
     m_FloatInputActions.clear();
     m_Vec2InputActions.clear();
+    m_PoseInputActions.clear();
     m_IsEnabled = false;
     m_Priority = 0;
 }
@@ -494,6 +595,10 @@ bool AxrActionSet::isVisibleToXrSession() const {
     }
 
     for (const AxrVec2InputAction& inputAction : m_Vec2InputActions | std::views::values) {
+        if (inputAction.isVisibleToXrSession()) return true;
+    }
+
+    for (const AxrPoseInputAction& inputAction : m_PoseInputActions | std::views::values) {
         if (inputAction.isVisibleToXrSession()) return true;
     }
 

@@ -36,6 +36,10 @@
 /// @param inputAction Vec2 input action
 /// @returns True if the given vec2 input action is an xr vec2 input action
 [[nodiscard]] bool axrIsXrVec2InputAction(AxrVec2InputActionEnum inputAction);
+/// Check if the given pose input action is an xr pose input action
+/// @param inputAction Pose input action
+/// @returns True if the given pose input action is an xr pose input action
+[[nodiscard]] bool axrIsXrPoseInputAction(AxrPoseInputActionEnum inputAction);
 
 /// Get the xr path name for the given bool input action
 /// @param inputAction Input action
@@ -49,6 +53,10 @@
 /// @param inputAction Input action
 /// @returns The action xr path name
 [[nodiscard]] const char* axrGetXrVec2InputActionName(AxrVec2InputActionEnum inputAction);
+/// Get the xr path name for the given pose input action
+/// @param inputAction Input action
+/// @returns The action xr path name
+[[nodiscard]] const char* axrGetXrPoseInputActionName(AxrPoseInputActionEnum inputAction);
 
 /// Get all the bool input actions for the given interaction profile
 /// @param xrInteractionProfile Interaction profile
@@ -66,6 +74,12 @@
 /// @param xrInteractionProfile Interaction profile
 /// @returns The collection of vec2 input actions
 [[nodiscard]] std::unordered_set<AxrVec2InputActionEnum> axrGetXrInteractionProfileVec2InputActionBindings(
+    AxrXrInteractionProfileEnum xrInteractionProfile
+);
+/// Get all the pose input actions for the given interaction profile
+/// @param xrInteractionProfile Interaction profile
+/// @returns The collection of pose input actions
+[[nodiscard]] std::unordered_set<AxrPoseInputActionEnum> axrGetXrInteractionProfilePoseInputActionBindings(
     AxrXrInteractionProfileEnum xrInteractionProfile
 );
 

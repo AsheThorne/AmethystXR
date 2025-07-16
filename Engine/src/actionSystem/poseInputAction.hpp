@@ -10,22 +10,20 @@
 // C/C++ Headers
 // ----------------------------------------- //
 #include <string>
-#include <unordered_set>
 
-/// Axr Bool Input Action
-class AxrBoolInputAction {
+/// Axr Pose Input Action
+class AxrPoseInputAction {
 public:
     // ----------------------------------------- //
     // Structs
     // ----------------------------------------- //
 
-    /// AxrBoolInputAction config
+    /// AxrPoseInputAction config
     struct Config {
         std::string Name;
         std::string LocalizedName;
         AxrActionXrVisibilityEnum XrVisibility;
-        uint32_t BindingCount;
-        AxrBoolInputActionEnum* Bindings;
+        AxrPoseInputActionEnum Binding;
     };
 
     // ----------------------------------------- //
@@ -35,48 +33,44 @@ public:
     // ---- Constructors ----
 
     /// Constructor
-    /// @param config AxrBoolInputAction config
-    explicit AxrBoolInputAction(const Config& config);
+    /// @param config AxrPoseInputAction config
+    explicit AxrPoseInputAction(const Config& config);
     /// Copy Constructor
-    /// @param src Source AxrBoolInputAction to copy from
-    AxrBoolInputAction(const AxrBoolInputAction& src) = delete;
+    /// @param src Source AxrPoseInputAction to copy from
+    AxrPoseInputAction(const AxrPoseInputAction& src) = delete;
     /// Move Constructor
-    /// @param src Source AxrBoolInputAction to move from
-    AxrBoolInputAction(AxrBoolInputAction&& src) noexcept;
+    /// @param src Source AxrPoseInputAction to move from
+    AxrPoseInputAction(AxrPoseInputAction&& src) noexcept;
 
     // ---- Destructor ----
 
     /// Destructor
-    ~AxrBoolInputAction();
+    ~AxrPoseInputAction();
 
     // ---- Operator Overloads ----
 
     /// Copy Assignment Operator
-    /// @param src Source AxrBoolInputAction to copy from
-    AxrBoolInputAction& operator=(const AxrBoolInputAction& src) = delete;
+    /// @param src Source AxrPoseInputAction to copy from
+    AxrPoseInputAction& operator=(const AxrPoseInputAction& src) = delete;
     /// Move Assignment Operator
-    /// @param src Source AxrBoolInputAction to move from
-    AxrBoolInputAction& operator=(AxrBoolInputAction&& src) noexcept;
+    /// @param src Source AxrPoseInputAction to move from
+    AxrPoseInputAction& operator=(AxrPoseInputAction&& src) noexcept;
 
     // ----------------------------------------- //
     // Public Functions
     // ----------------------------------------- //
 
-    /// Enable the bool action set
+    /// Enable the pose action set
     void enable();
-    /// Disable the bool action set
+    /// Disable the pose action set
     void disable();
     /// Check if the action is enabled
     /// @returns True if the action is enabled
     [[nodiscard]] bool isEnabled() const;
 
-    /// Check if the value has changed since the last frame
-    /// @returns True if the value has changed since the last frame
-    [[nodiscard]] bool valueChanged() const;
-
     /// Get the current value of this input action
     /// @returns The current value of this input action
-    [[nodiscard]] bool getValue() const;
+    [[nodiscard]] AxrPose getValue() const;
 
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
@@ -89,24 +83,29 @@ public:
     [[nodiscard]] AxrResult setupXrAction(AxrXrSystem_T xrSystem, XrActionSet actionSet);
     /// Reset setupXrAction() function
     void resetSetupXrAction();
-
-    /// Signal that a new frame has started
-    void newFrameStarted();
+    /// Create the xr action space
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createXrActionSpace();
+    /// Destroy the xr action space
+    void destroyXrActionSpace();
 
     /// Get the XrAction
     /// @returns The XrAction
     [[nodiscard]] XrAction getXrAction() const;
-    /// Get the bindings
-    /// @returns The bindings
-    [[nodiscard]] const std::unordered_set<AxrBoolInputActionEnum>& getBindings() const;
-    /// Check if this input action contains the given binding
-    /// @param biding Binding to check
-    /// @returns True if this input action contains the given binding
-    [[nodiscard]] bool containsBinding(AxrBoolInputActionEnum biding) const;
+    /// Get the XrSpace
+    /// @returns The XrSpace
+    [[nodiscard]] XrSpace getXrSpace() const;
+    /// Get the binding
+    /// @returns The binding
+    [[nodiscard]] AxrPoseInputActionEnum getBinding() const;
+    /// Get the pose data handle
+    /// @returns The pose data handle
+    [[nodiscard]] AxrPose* getPoseDataHandle();
+
 
     /// Trigger the input action
     /// @param value Value to use
-    void trigger(bool value);
+    void trigger(const AxrPose& value);
     /// Reset the input action
     void reset();
 
@@ -114,20 +113,17 @@ public:
     /// @returns True if this should be visible to the xr session
     [[nodiscard]] bool isVisibleToXrSession() const;
 
-    /// Update the xr action value
-    void updateXrActionValue();
-
     // ----------------------------------------- //
     // Public Static Functions
     // ----------------------------------------- //
 
-    /// Clone the given bool input action config
-    /// @param inputActionConfig Bool input action config to clone
-    /// @returns The cloned bool input action
-    [[nodiscard]] static AxrBoolInputActionConfig clone(const AxrBoolInputActionConfig& inputActionConfig);
-    /// Destroy the given bool input action config
-    /// @param inputActionConfig Bool input action config to destroy
-    static void destroy(AxrBoolInputActionConfig& inputActionConfig);
+    /// Clone the given pose input action config
+    /// @param inputActionConfig Pose input action config to clone
+    /// @returns The cloned pose input action
+    [[nodiscard]] static AxrPoseInputActionConfig clone(const AxrPoseInputActionConfig& inputActionConfig);
+    /// Destroy the given pose input action config
+    /// @param inputActionConfig Pose input action config to destroy
+    static void destroy(AxrPoseInputActionConfig& inputActionConfig);
 
 private:
     // ----------------------------------------- //
@@ -138,14 +134,14 @@ private:
     std::string m_Name;
     std::string m_LocalizedName;
     AxrActionXrVisibilityEnum m_XrVisibility;
-    std::unordered_set<AxrBoolInputActionEnum> m_Bindings;
+    AxrPoseInputActionEnum m_Binding;
 
     // ---- Data ----
     bool m_IsEnabled;
-    bool m_Value;
-    bool m_ValueLastFrame;
+    AxrPose m_Value;
     AxrXrSystem_T m_XrSystem;
     XrAction m_XrAction;
+    XrSpace m_XrSpace;
 
     // ----------------------------------------- //
     // Private Functions

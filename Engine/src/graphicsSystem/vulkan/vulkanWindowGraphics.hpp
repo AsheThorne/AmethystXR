@@ -106,8 +106,9 @@ public:
     [[nodiscard]] bool isReady() const;
 
     /// Begin rendering
+    /// @param sceneData Active scene data
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult beginRendering();
+    [[nodiscard]] AxrResult beginRendering(const AxrVulkanSceneData* sceneData);
     /// End rendering
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult endRendering();

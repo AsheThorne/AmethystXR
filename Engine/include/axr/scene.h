@@ -57,6 +57,16 @@ struct AxrCameraComponent {
     float FarPlane;
 };
 
+/// Entity mirror pose input action component
+///
+/// Requires the AxrTransformComponent to apply the pose transforms to
+struct AxrMirrorPoseInputActionComponent {
+    char ActionSetName[AXR_MAX_ACTION_SET_NAME_SIZE];
+    char PoseInputActionName[AXR_MAX_ACTION_NAME_SIZE];
+    glm::vec3 OffsetPosition;
+    glm::quat OffsetOrientation;
+};
+
 // ---------------------------------------------------------------------------------- //
 //                                      Scene                                         //
 // ---------------------------------------------------------------------------------- //

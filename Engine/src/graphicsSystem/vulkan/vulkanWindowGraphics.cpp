@@ -173,7 +173,7 @@ bool AxrVulkanWindowGraphics::isReady() const {
     return m_IsReady;
 }
 
-AxrResult AxrVulkanWindowGraphics::beginRendering() {
+AxrResult AxrVulkanWindowGraphics::beginRendering(const AxrVulkanSceneData* sceneData) {
     // Nothing needed here
     return AXR_SUCCESS;
 }

@@ -341,6 +341,11 @@ bool axrIsXrVec2InputAction(const AxrVec2InputActionEnum inputAction) {
         inputAction <= AXR_VEC2_INPUT_ACTION_XR_END;
 }
 
+bool axrIsXrPoseInputAction(const AxrPoseInputActionEnum inputAction) {
+    return inputAction >= AXR_POSE_INPUT_ACTION_XR_START &&
+        inputAction <= AXR_POSE_INPUT_ACTION_XR_END;
+}
+
 const char* axrGetXrBoolInputActionName(const AxrBoolInputActionEnum inputAction) {
     if (!axrIsXrBoolInputAction(inputAction)) {
         axrLogErrorLocation("Input action is not an xr action.");
@@ -509,6 +514,32 @@ const char* axrGetXrVec2InputActionName(const AxrVec2InputActionEnum inputAction
     }
 }
 
+const char* axrGetXrPoseInputActionName(const AxrPoseInputActionEnum inputAction) {
+    if (!axrIsXrPoseInputAction(inputAction)) {
+        axrLogErrorLocation("Input action is not an xr action.");
+        return "";
+    }
+
+    switch (inputAction) {
+        case AXR_POSE_INPUT_ACTION_XR_CONTROLLER_LEFT_GRIP: {
+            return "/user/hand/left/input/grip/pose";
+        }
+        case AXR_POSE_INPUT_ACTION_XR_CONTROLLER_RIGHT_GRIP: {
+            return "/user/hand/right/input/grip/pose";
+        }
+        case AXR_POSE_INPUT_ACTION_XR_CONTROLLER_LEFT_AIM: {
+            return "/user/hand/left/input/aim/pose";
+        }
+        case AXR_POSE_INPUT_ACTION_XR_CONTROLLER_RIGHT_AIM: {
+            return "/user/hand/right/input/aim/pose";
+        }
+        default: {
+            axrLogErrorLocation("Unknown xr input action.");
+            return "";
+        }
+    }
+}
+
 std::unordered_set<AxrBoolInputActionEnum> axrGetXrInteractionProfileBoolInputActionBindings(
     const AxrXrInteractionProfileEnum xrInteractionProfile
 ) {
@@ -609,6 +640,34 @@ std::unordered_set<AxrVec2InputActionEnum> axrGetXrInteractionProfileVec2InputAc
     }
 }
 
+std::unordered_set<AxrPoseInputActionEnum> axrGetXrInteractionProfilePoseInputActionBindings(
+    const AxrXrInteractionProfileEnum xrInteractionProfile
+) {
+    switch (xrInteractionProfile) {
+        case AXR_XR_INTERACTION_PROFILE_SIMPLE_CONTROLLER: {
+            return {
+                AXR_POSE_INPUT_ACTION_XR_CONTROLLER_LEFT_GRIP,
+                AXR_POSE_INPUT_ACTION_XR_CONTROLLER_RIGHT_GRIP,
+                AXR_POSE_INPUT_ACTION_XR_CONTROLLER_LEFT_AIM,
+                AXR_POSE_INPUT_ACTION_XR_CONTROLLER_RIGHT_AIM,
+            };
+        }
+        case AXR_XR_INTERACTION_PROFILE_VALVE_INDEX_CONTROLLER: {
+            return {
+                AXR_POSE_INPUT_ACTION_XR_CONTROLLER_LEFT_GRIP,
+                AXR_POSE_INPUT_ACTION_XR_CONTROLLER_RIGHT_GRIP,
+                AXR_POSE_INPUT_ACTION_XR_CONTROLLER_LEFT_AIM,
+                AXR_POSE_INPUT_ACTION_XR_CONTROLLER_RIGHT_AIM,
+            };
+        }
+        case AXR_XR_INTERACTION_PROFILE_UNDEFINED:
+        default: {
+            axrLogErrorLocation("Unknown xr interaction profile.");
+            return {};
+        }
+    }
+}
+
 std::unordered_set<const char*> axrGetXrInteractionProfileBindingNames(
     const AxrXrInteractionProfileEnum xrInteractionProfile
 ) {
@@ -636,6 +695,15 @@ std::unordered_set<const char*> axrGetXrInteractionProfileBindingNames(
              xrInteractionProfile
          )) {
         const char* inputActionName = axrGetXrVec2InputActionName(inputAction);
+        if (axrStringIsEmpty(inputActionName)) continue;
+
+        xrInteractionProfileBindingNames.insert(inputActionName);
+    }
+
+    for (const AxrPoseInputActionEnum inputAction : axrGetXrInteractionProfilePoseInputActionBindings(
+             xrInteractionProfile
+         )) {
+        const char* inputActionName = axrGetXrPoseInputActionName(inputAction);
         if (axrStringIsEmpty(inputActionName)) continue;
 
         xrInteractionProfileBindingNames.insert(inputActionName);

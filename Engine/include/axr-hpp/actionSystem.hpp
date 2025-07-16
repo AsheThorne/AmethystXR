@@ -231,6 +231,19 @@ namespace axr {
         XrEnd = AXR_VEC2_INPUT_ACTION_XR_END,
     };
 
+    /// Pose input action enum
+    enum class PoseInputActionEnum {
+        Undefined = AXR_POSE_INPUT_ACTION_UNDEFINED,
+
+        // ---- XR - Max of 128 ----
+        XrStart = AXR_POSE_INPUT_ACTION_XR_START,
+        XrController_Left_Grip = AXR_POSE_INPUT_ACTION_XR_CONTROLLER_LEFT_GRIP,
+        XrController_Right_Grip = AXR_POSE_INPUT_ACTION_XR_CONTROLLER_RIGHT_GRIP,
+        XrController_Left_Aim = AXR_POSE_INPUT_ACTION_XR_CONTROLLER_LEFT_AIM,
+        XrController_Right_Aim = AXR_POSE_INPUT_ACTION_XR_CONTROLLER_RIGHT_AIM,
+        XrEnd = AXR_POSE_INPUT_ACTION_XR_END,
+    };
+
     // ----------------------------------------- //
     // Structs
     // ----------------------------------------- //
@@ -915,6 +928,176 @@ namespace axr {
         "Original type and wrapper have different size!"
     );
 
+    /// Pose input action config
+    struct PoseInputActionConfig {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        char Name[AXR_MAX_ACTION_NAME_SIZE]{};
+        char LocalizedName[AXR_MAX_ACTION_LOCALIZED_NAME_SIZE]{};
+        axr::ActionXrVisibilityEnum XrVisibility = {};
+        axr::PoseInputActionEnum Binding = axr::PoseInputActionEnum::Undefined;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        PoseInputActionConfig() = default;
+
+        /// Constructor
+        /// @param name Input action name
+        /// @param localizedName Input action localized name
+        /// @param xrVisibility Xr visibility
+        PoseInputActionConfig(
+            const char* name,
+            const char* localizedName,
+            const axr::ActionXrVisibilityEnum xrVisibility
+        ): XrVisibility(xrVisibility) {
+            if (name != nullptr) {
+                strncpy_s(Name, name, AXR_MAX_ACTION_NAME_SIZE);
+            }
+            if (localizedName != nullptr) {
+                strncpy_s(LocalizedName, localizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
+            }
+        }
+
+        /// Constructor
+        /// @param name Input action name
+        /// @param localizedName Input action localized name
+        /// @param xrVisibility Xr visibility
+        /// @param binding Pose binding
+        PoseInputActionConfig(
+            const char* name,
+            const char* localizedName,
+            const axr::ActionXrVisibilityEnum xrVisibility,
+            const axr::PoseInputActionEnum binding
+        ): XrVisibility(xrVisibility),
+            Binding(binding) {
+            if (name != nullptr) {
+                strncpy_s(Name, name, AXR_MAX_ACTION_NAME_SIZE);
+            }
+            if (localizedName != nullptr) {
+                strncpy_s(LocalizedName, localizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
+            }
+        }
+
+        /// Constructor
+        /// @param src Source PoseInputActionConfig
+        explicit PoseInputActionConfig(AxrPoseInputActionConfig&& src) noexcept {
+            strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
+            XrVisibility = static_cast<axr::ActionXrVisibilityEnum>(src.XrVisibility);
+            Binding = static_cast<axr::PoseInputActionEnum>(src.Binding);
+
+            memset(src.Name, 0, sizeof(src.Name));
+            memset(src.LocalizedName, 0, sizeof(src.LocalizedName));
+            src.XrVisibility = {};
+            src.Binding = AXR_POSE_INPUT_ACTION_UNDEFINED;
+        }
+
+        /// Copy Constructor
+        /// @param src Source PoseInputActionConfig to copy from
+        PoseInputActionConfig(const PoseInputActionConfig& src) {
+            strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
+            XrVisibility = src.XrVisibility;
+            Binding = src.Binding;
+        }
+
+        /// Move Constructor
+        /// @param src Source PoseInputActionConfig to move from
+        PoseInputActionConfig(PoseInputActionConfig&& src) noexcept {
+            strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
+            XrVisibility = src.XrVisibility;
+            Binding = src.Binding;
+
+            memset(src.Name, 0, sizeof(src.Name));
+            memset(src.LocalizedName, 0, sizeof(src.LocalizedName));
+            src.XrVisibility = {};
+            src.Binding = axr::PoseInputActionEnum::Undefined;
+        }
+
+        // ---- Destructor ----
+
+        ~PoseInputActionConfig() {
+            cleanup();
+        }
+
+        // ---- Operator Overloads ----
+
+        /// Copy Assignment Operator
+        /// @param src Source PoseInputActionConfig to copy from
+        PoseInputActionConfig& operator=(const PoseInputActionConfig& src) {
+            if (this != &src) {
+                cleanup();
+
+                strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+                strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
+                XrVisibility = src.XrVisibility;
+                Binding = src.Binding;
+            }
+            return *this;
+        }
+
+        /// Move Assignment Operator
+        /// @param src Source PoseInputActionConfig to move from
+        PoseInputActionConfig& operator=(PoseInputActionConfig&& src) noexcept {
+            if (this != &src) {
+                cleanup();
+
+                strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+                strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
+                XrVisibility = src.XrVisibility;
+                Binding = src.Binding;
+
+                memset(src.Name, 0, sizeof(src.Name));
+                memset(src.LocalizedName, 0, sizeof(src.LocalizedName));
+                src.XrVisibility = {};
+                src.Binding = axr::PoseInputActionEnum::Undefined;
+            }
+            return *this;
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the PoseInputActionConfig as an AxrPoseInputActionConfig
+        /// @returns This as an AxrPoseInputActionConfig
+        const AxrPoseInputActionConfig* toRaw() const {
+            return reinterpret_cast<const AxrPoseInputActionConfig*>(this);
+        }
+
+        /// Get a handle to the PoseInputActionConfig as an AxrPoseInputActionConfig
+        /// @returns This as an AxrPoseInputActionConfig
+        AxrPoseInputActionConfig* toRaw() {
+            return reinterpret_cast<AxrPoseInputActionConfig*>(this);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Functions
+        // ----------------------------------------- //
+
+        /// Clean up this class
+        void cleanup() {
+            memset(Name, 0, sizeof(Name));
+            memset(LocalizedName, 0, sizeof(LocalizedName));
+            XrVisibility = {};
+            Binding = axr::PoseInputActionEnum::Undefined;
+        }
+    };
+
+    static_assert(
+        sizeof(AxrPoseInputActionConfig) == sizeof(axr::PoseInputActionConfig),
+        "Original type and wrapper have different size!"
+    );
+
+
     /// Action set config
     struct ActionSetConfig {
         // ----------------------------------------- //
@@ -928,6 +1111,8 @@ namespace axr {
         axr::FloatInputActionConfig* FloatInputActions = nullptr;
         uint32_t Vec2InputActionCount = 0;
         axr::Vec2InputActionConfig* Vec2InputActions = nullptr;
+        uint32_t PoseInputActionCount = 0;
+        axr::PoseInputActionConfig* PoseInputActions = nullptr;
 
         // ----------------------------------------- //
         // Special Functions
@@ -959,12 +1144,14 @@ namespace axr {
         /// @param boolInputActions Bool input actions
         /// @param floatInputActions Float input actions
         /// @param vec2InputActions Vec2 input actions
+        /// @param poseInputActions Pose input actions
         ActionSetConfig(
             const char* name,
             const char* localizedName,
             const std::vector<axr::BoolInputActionConfig>& boolInputActions,
             const std::vector<axr::FloatInputActionConfig>& floatInputActions,
-            const std::vector<axr::Vec2InputActionConfig>& vec2InputActions
+            const std::vector<axr::Vec2InputActionConfig>& vec2InputActions,
+            const std::vector<axr::PoseInputActionConfig>& poseInputActions
         ) {
             if (name != nullptr) {
                 strncpy_s(Name, name, AXR_MAX_ACTION_SET_NAME_SIZE);
@@ -976,6 +1163,7 @@ namespace axr {
             addBoolInputActions(boolInputActions);
             addFloatInputActions(floatInputActions);
             addVec2InputActions(vec2InputActions);
+            addPoseInputActions(poseInputActions);
         }
 
         /// Constructor
@@ -989,6 +1177,8 @@ namespace axr {
             FloatInputActions = reinterpret_cast<axr::FloatInputActionConfig*>(src.FloatInputActions);
             Vec2InputActionCount = src.Vec2InputActionCount;
             Vec2InputActions = reinterpret_cast<axr::Vec2InputActionConfig*>(src.Vec2InputActions);
+            PoseInputActionCount = src.PoseInputActionCount;
+            PoseInputActions = reinterpret_cast<axr::PoseInputActionConfig*>(src.PoseInputActions);
 
             memset(src.Name, 0, sizeof(src.Name));
             memset(src.LocalizedName, 0, sizeof(src.LocalizedName));
@@ -998,6 +1188,8 @@ namespace axr {
             src.FloatInputActions = nullptr;
             src.Vec2InputActionCount = 0;
             src.Vec2InputActions = nullptr;
+            src.PoseInputActionCount = 0;
+            src.PoseInputActions = nullptr;
         }
 
         /// Copy Constructor
@@ -1008,6 +1200,7 @@ namespace axr {
             addBoolInputActions(src.BoolInputActionCount, src.BoolInputActions);
             addFloatInputActions(src.FloatInputActionCount, src.FloatInputActions);
             addVec2InputActions(src.Vec2InputActionCount, src.Vec2InputActions);
+            addPoseInputActions(src.PoseInputActionCount, src.PoseInputActions);
         }
 
         /// Move Constructor
@@ -1021,6 +1214,8 @@ namespace axr {
             FloatInputActions = src.FloatInputActions;
             Vec2InputActionCount = src.Vec2InputActionCount;
             Vec2InputActions = src.Vec2InputActions;
+            PoseInputActionCount = src.PoseInputActionCount;
+            PoseInputActions = src.PoseInputActions;
 
             memset(src.Name, 0, sizeof(src.Name));
             memset(src.LocalizedName, 0, sizeof(src.LocalizedName));
@@ -1030,6 +1225,8 @@ namespace axr {
             src.FloatInputActions = nullptr;
             src.Vec2InputActionCount = 0;
             src.Vec2InputActions = nullptr;
+            src.PoseInputActionCount = 0;
+            src.PoseInputActions = nullptr;
         }
 
         // ---- Destructor ----
@@ -1051,6 +1248,7 @@ namespace axr {
                 addBoolInputActions(src.BoolInputActionCount, src.BoolInputActions);
                 addFloatInputActions(src.FloatInputActionCount, src.FloatInputActions);
                 addVec2InputActions(src.Vec2InputActionCount, src.Vec2InputActions);
+                addPoseInputActions(src.PoseInputActionCount, src.PoseInputActions);
             }
             return *this;
         }
@@ -1069,6 +1267,8 @@ namespace axr {
                 FloatInputActions = src.FloatInputActions;
                 Vec2InputActionCount = src.Vec2InputActionCount;
                 Vec2InputActions = src.Vec2InputActions;
+                PoseInputActionCount = src.PoseInputActionCount;
+                PoseInputActions = src.PoseInputActions;
 
                 memset(src.Name, 0, sizeof(src.Name));
                 memset(src.LocalizedName, 0, sizeof(src.LocalizedName));
@@ -1078,6 +1278,8 @@ namespace axr {
                 src.FloatInputActions = nullptr;
                 src.Vec2InputActionCount = 0;
                 src.Vec2InputActions = nullptr;
+                src.PoseInputActionCount = 0;
+                src.PoseInputActions = nullptr;
             }
             return *this;
         }
@@ -1188,6 +1390,37 @@ namespace axr {
             );
         }
 
+        /// Add the given pose input actions
+        /// @param inputActions Pose input actions
+        void addPoseInputActions(const std::vector<axr::PoseInputActionConfig>& inputActions) {
+            addPoseInputActions(inputActions.size(), inputActions.data());
+        }
+
+        /// Add the given pose input actions
+        /// @param inputActionCount Pose input actions count
+        /// @param inputActions Pose input actions
+        void addPoseInputActions(const uint32_t inputActionCount, const axr::PoseInputActionConfig* inputActions) {
+            const uint32_t startingSize = PoseInputActionCount;
+            resizePoseInputActions(PoseInputActionCount + inputActionCount);
+
+            for (uint32_t i = 0; i < inputActionCount; ++i) {
+                PoseInputActions[startingSize + i] = axr::PoseInputActionConfig(
+                    axrPoseInputActionConfigClone(inputActions[i].toRaw())
+                );
+            }
+        }
+
+        /// Add a pose input action
+        /// @param inputAction Pose input action
+        void addPoseInputAction(const axr::PoseInputActionConfig& inputAction) {
+            resizePoseInputActions(PoseInputActionCount + 1);
+
+            PoseInputActions[PoseInputActionCount - 1] = axr::PoseInputActionConfig(
+                axrPoseInputActionConfigClone(inputAction.toRaw())
+            );
+        }
+
+
         /// Clear the bool input actions
         void clearBoolInputActions() {
             if (BoolInputActions == nullptr) return;
@@ -1227,6 +1460,19 @@ namespace axr {
             Vec2InputActionCount = 0;
         }
 
+        /// Clear the pose input actions
+        void clearPoseInputActions() {
+            if (PoseInputActions == nullptr) return;
+
+            for (uint32_t i = 0; i < PoseInputActionCount; ++i) {
+                axrPoseInputActionConfigDestroy(PoseInputActions[i].toRaw());
+            }
+
+            delete[] PoseInputActions;
+            PoseInputActions = nullptr;
+            PoseInputActionCount = 0;
+        }
+
     private:
         // ----------------------------------------- //
         // Private Functions
@@ -1240,6 +1486,7 @@ namespace axr {
             clearBoolInputActions();
             clearFloatInputActions();
             clearVec2InputActions();
+            clearPoseInputActions();
         }
 
         /// Resize the bool input actions
@@ -1298,6 +1545,25 @@ namespace axr {
             clearVec2InputActions();
             Vec2InputActions = newInputActions;
             Vec2InputActionCount = size;
+        }
+
+        /// Resize the pose input actions
+        /// @param size New size
+        void resizePoseInputActions(const uint32_t size) {
+            if (size == 0) {
+                clearPoseInputActions();
+                return;
+            }
+
+            const auto newInputActions = new axr::PoseInputActionConfig[size]{};
+            for (uint32_t i = 0; i < std::min(PoseInputActionCount, size); ++i) {
+                newInputActions[i] = PoseInputActions[i];
+                PoseInputActions[i] = {};
+            }
+
+            clearPoseInputActions();
+            PoseInputActions = newInputActions;
+            PoseInputActionCount = size;
         }
     };
 
@@ -1717,6 +1983,59 @@ namespace axr {
     };
 
     // ----------------------------------------- //
+    // Pose Input Action Definition
+    // ----------------------------------------- //
+
+    /// Pose Input Action
+    class PoseInputAction {
+    public:
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Constructor
+        /// @param poseInputAction Pose input action handle
+        explicit PoseInputAction(const AxrPoseInputAction_T poseInputAction):
+            m_PoseInputAction(poseInputAction) {
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Enable the pose action set
+        void enable() const {
+            axrPoseInputActionSetEnable(m_PoseInputAction);
+        }
+
+        /// Disable the pose action set
+        void disable() const {
+            axrPoseInputActionSetDisable(m_PoseInputAction);
+        }
+
+        /// Check if the action is enabled
+        /// @returns True if the action is enabled
+        [[nodiscard]] bool isEnabled() const {
+            return axrPoseInputActionIsEnabled(m_PoseInputAction);
+        }
+
+        /// Get the current value of this input action
+        /// @returns The current value of this input action
+        [[nodiscard]] axr::Pose getValue() const {
+            return axr::Pose(axrPoseInputActionGetValue(m_PoseInputAction));
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Variables
+        // ----------------------------------------- //
+        AxrPoseInputAction_T m_PoseInputAction;
+    };
+
+
+    // ----------------------------------------- //
     // Action Set Definition
     // ----------------------------------------- //
 
@@ -1786,6 +2105,13 @@ namespace axr {
         /// @returns The vec2 input action or nullptr if it wasn't found
         [[nodiscard]] axr::Vec2InputAction getVec2InputAction(const char* name) const {
             return axr::Vec2InputAction(axrActionSetGetVec2InputAction(m_ActionSet, name));
+        }
+
+        /// Get the named pose input action
+        /// @param name Pose input action name
+        /// @returns The pose input action or nullptr if it wasn't found
+        [[nodiscard]] axr::PoseInputAction getPoseInputAction(const char* name) const {
+            return axr::PoseInputAction(axrActionSetGetPoseInputAction(m_ActionSet, name));
         }
 
     private:

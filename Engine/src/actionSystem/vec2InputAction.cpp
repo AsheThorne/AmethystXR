@@ -83,8 +83,18 @@ AxrVec2InputAction::AxrVec2InputAction(const Config& config):
     m_LocalizedName(config.LocalizedName),
     m_XrVisibility(config.XrVisibility),
     m_IsEnabled(true),
-    m_Value(AxrVec2(0.0f, 0.0f)),
-    m_ValueLastFrame(AxrVec2(0.0f, 0.0f)),
+    m_Value(
+        AxrVec2{
+            .x = 0.0f,
+            .y = 0.0f,
+        }
+    ),
+    m_ValueLastFrame(
+        AxrVec2{
+            .x = 0.0f,
+            .y = 0.0f,
+        }
+    ),
     m_XrSystem(nullptr),
     m_XrAction(XR_NULL_HANDLE) {
     if (config.Bindings != nullptr) {
@@ -110,8 +120,14 @@ AxrVec2InputAction::AxrVec2InputAction(AxrVec2InputAction&& src) noexcept:
 
     src.m_XrVisibility = {};
     src.m_IsEnabled = false;
-    src.m_Value = AxrVec2(0.0f, 0.0f);
-    src.m_ValueLastFrame = AxrVec2(0.0f, 0.0f);
+    src.m_Value = AxrVec2{
+        .x = 0.0f,
+        .y = 0.0f,
+    };
+    src.m_ValueLastFrame = AxrVec2{
+        .x = 0.0f,
+        .y = 0.0f,
+    };
     src.m_XrSystem = nullptr;
     src.m_XrAction = XR_NULL_HANDLE;
 }
@@ -137,8 +153,14 @@ AxrVec2InputAction& AxrVec2InputAction::operator=(AxrVec2InputAction&& src) noex
 
         src.m_XrVisibility = {};
         src.m_IsEnabled = false;
-        src.m_Value = AxrVec2(0.0f, 0.0f);
-        src.m_ValueLastFrame = AxrVec2(0.0f, 0.0f);
+        src.m_Value = AxrVec2{
+            .x = 0.0f,
+            .y = 0.0f,
+        };
+        src.m_ValueLastFrame = AxrVec2{
+            .x = 0.0f,
+            .y = 0.0f,
+        };
         src.m_XrSystem = nullptr;
         src.m_XrAction = XR_NULL_HANDLE;
     }
@@ -150,6 +172,7 @@ void AxrVec2InputAction::enable() {
 }
 
 void AxrVec2InputAction::disable() {
+    reset();
     m_IsEnabled = false;
 }
 
@@ -168,7 +191,7 @@ AxrVec2 AxrVec2InputAction::getValue() const {
     return m_Value;
 }
 
-AxrResult AxrVec2InputAction::setupXrActions(const AxrXrSystem_T xrSystem, const XrActionSet actionSet) {
+AxrResult AxrVec2InputAction::setupXrAction(const AxrXrSystem_T xrSystem, const XrActionSet actionSet) {
     if (!isVisibleToXrSession()) return AXR_SUCCESS;
 
     if (xrSystem == nullptr) {
@@ -186,14 +209,14 @@ AxrResult AxrVec2InputAction::setupXrActions(const AxrXrSystem_T xrSystem, const
         m_XrAction
     );
     if (AXR_FAILED(axrResult)) {
-        resetSetupXrActions();
+        resetSetupXrAction();
         return axrResult;
     }
 
     return AXR_SUCCESS;
 }
 
-void AxrVec2InputAction::resetSetupXrActions() {
+void AxrVec2InputAction::resetSetupXrAction() {
     if (m_XrSystem == nullptr) return;
 
     m_XrSystem->destroyAction(m_XrAction);
@@ -308,13 +331,19 @@ void AxrVec2InputAction::destroy(AxrVec2InputActionConfig& inputActionConfig) {
 }
 
 void AxrVec2InputAction::cleanup() {
-    resetSetupXrActions();
+    resetSetupXrAction();
 
     m_Name.clear();
     m_LocalizedName.clear();
     m_XrVisibility = {};
     m_IsEnabled = false;
     m_Bindings.clear();
-    m_Value = AxrVec2(0.0f, 0.0f);
-    m_ValueLastFrame = AxrVec2(0.0f, 0.0f);
+    m_Value = AxrVec2{
+        .x = 0.0f,
+        .y = 0.0f,
+    };
+    m_ValueLastFrame = AxrVec2{
+        .x = 0.0f,
+        .y = 0.0f,
+    };
 }

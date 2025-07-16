@@ -8,6 +8,7 @@
 #include "../utils.hpp"
 #include "xrExtensionFunctions.hpp"
 #include "../actionSystem/actionUtils.hpp"
+#include "axr/scene.h"
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 #include "../graphicsSystem/vulkan/vulkanUtils.hpp"
@@ -666,6 +667,167 @@ XrActionStateVector2f AxrXrSystem::getVec2ActionState(const XrAction action) con
     if (XR_FAILED(xrResult)) return {};
 
     return actionState;
+}
+
+AxrResult AxrXrSystem::createActionSpace(const XrAction action, XrSpace& space) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (space != XR_NULL_HANDLE) {
+        axrLogErrorLocation("Space already exists.");
+        return AXR_ERROR;
+    }
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const XrActionSpaceCreateInfo actionSpaceCreateInfo{
+        .type = XR_TYPE_ACTION_SPACE_CREATE_INFO,
+        .next = nullptr,
+        .action = action,
+        .subactionPath = XR_NULL_PATH,
+        .poseInActionSpace = XrPosef{
+            .orientation = XrQuaternionf{
+                .x = 0.0f,
+                .y = 0.0f,
+                .z = 0.0f,
+                .w = 1.0f
+            },
+            .position = XrVector3f{
+                .x = 0.0f,
+                .y = 0.0f,
+                .z = 0.0f
+            },
+        },
+    };
+
+    const XrResult xrResult = xrCreateActionSpace(m_Session, &actionSpaceCreateInfo, &space);
+    axrLogXrResult(xrResult, "xrLocateSpace");
+    if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+    return AXR_SUCCESS;
+}
+
+void AxrXrSystem::destroySpace(XrSpace& space) const {
+    if (space == XR_NULL_HANDLE) return;
+
+    const XrResult xrResult = xrDestroySpace(space);
+    axrLogXrResult(xrResult, "xrDestroySpace");
+
+    if (XR_SUCCEEDED(xrResult)) {
+        space = XR_NULL_HANDLE;
+    }
+}
+
+void AxrXrSystem::registerPoseActions(const std::vector<PoseAction>& poseActions) {
+    if (poseActions.empty()) return;
+
+    for (const PoseAction& poseAction : poseActions) {
+        if (poseAction.ActionSetName == nullptr || poseAction.ActionName == nullptr) {
+            axrLogErrorLocation("Action set name or action name is null.");
+            continue;
+        }
+
+        m_PoseActions.insert(
+            std::pair(buildPoseActionsKey(poseAction.ActionSetName, poseAction.ActionName), poseAction)
+        );
+    }
+}
+
+void AxrXrSystem::resetPoseActions() {
+    m_PoseActions.clear();
+}
+
+AxrResult AxrXrSystem::updatePoseActions(const XrTime time, entt::registry* registryHandle) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_PoseActions.empty()) return AXR_SUCCESS;
+
+    if (m_StageReferenceSpace == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Stage reference space is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    for (const PoseAction& poseAction : m_PoseActions | std::views::values) {
+        if (poseAction.Space == XR_NULL_HANDLE || poseAction.PoseData == nullptr) {
+            axrLogWarningLocation("Space or pose data is null.");
+            continue;
+        }
+
+        XrSpaceVelocity spaceVelocity{
+            .type = XR_TYPE_SPACE_VELOCITY,
+        };
+
+        XrSpaceLocation spaceLocation{
+            .type = XR_TYPE_SPACE_LOCATION,
+            .next = &spaceVelocity,
+        };
+
+        const XrResult xrResult = xrLocateSpace(poseAction.Space, m_StageReferenceSpace, time, &spaceLocation);
+        axrLogXrResult(xrResult, "xrLocateSpace");
+        if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+        *poseAction.PoseData = AxrPose{
+            .position = AxrVec3{
+                .x = spaceLocation.pose.position.x,
+                .y = spaceLocation.pose.position.y,
+                .z = spaceLocation.pose.position.z,
+            },
+            .orientation = AxrQuaternion{
+                .x = spaceLocation.pose.orientation.x,
+                .y = spaceLocation.pose.orientation.y,
+                .z = spaceLocation.pose.orientation.z,
+                .w = spaceLocation.pose.orientation.w,
+            },
+        };
+    }
+
+    if (registryHandle != nullptr) {
+        for (const auto& [entity, poseInputActionComponent, transformComponent] :
+             registryHandle->view<AxrMirrorPoseInputActionComponent, AxrTransformComponent>().each()) {
+            registryHandle->patch<AxrTransformComponent>(
+                entity,
+                [&](AxrTransformComponent& transform) {
+                    const auto foundPoseAction = m_PoseActions.find(
+                        buildPoseActionsKey(
+                            poseInputActionComponent.ActionSetName,
+                            poseInputActionComponent.PoseInputActionName
+                        )
+                    );
+                    if (foundPoseAction == m_PoseActions.end()) {
+                        return;
+                    }
+
+                    transform.Position = poseInputActionComponent.OffsetPosition + glm::vec3(
+                        foundPoseAction->second.PoseData->position.x,
+                        foundPoseAction->second.PoseData->position.y,
+                        foundPoseAction->second.PoseData->position.z
+                    );
+                    transform.Orientation = poseInputActionComponent.OffsetOrientation * glm::quat(
+                        foundPoseAction->second.PoseData->orientation.w,
+                        foundPoseAction->second.PoseData->orientation.x,
+                        foundPoseAction->second.PoseData->orientation.y,
+                        foundPoseAction->second.PoseData->orientation.z
+                    );
+                }
+            );
+        }
+    }
+
+    return AXR_SUCCESS;
 }
 
 AxrResult AxrXrSystem::createSwapchain(
@@ -1912,6 +2074,8 @@ void AxrXrSystem::destroyGraphicsBinding() {
 }
 
 void AxrXrSystem::destroySessionData() {
+    resetPoseActions();
+
     OnXrSessionStateChangedCallbackActions(false);
     OnXrSessionStateChangedCallbackGraphics(false);
     destroySpace(m_StageReferenceSpace);
@@ -2082,17 +2246,6 @@ AxrResult AxrXrSystem::createReferenceSpace(
     return AXR_SUCCESS;
 }
 
-void AxrXrSystem::destroySpace(XrSpace& space) const {
-    if (space == XR_NULL_HANDLE) return;
-
-    const XrResult xrResult = xrDestroySpace(space);
-    axrLogXrResult(xrResult, "xrDestroySpace");
-
-    if (XR_SUCCEEDED(xrResult)) {
-        space = XR_NULL_HANDLE;
-    }
-}
-
 void AxrXrSystem::xrEvent_EventsLost(const XrEventDataEventsLost& eventData) {
     axrLogWarningLocation("OpenXR - Events Lost: {0}", eventData.lostEventCount);
 }
@@ -2154,6 +2307,15 @@ void AxrXrSystem::xrEvent_SessionStateChanged(const XrEventDataSessionStateChang
             break;
         }
     }
+}
+
+std::string AxrXrSystem::buildPoseActionsKey(const char* actionSetName, const char* actionName) const {
+    if (actionSetName == nullptr || actionName == nullptr) {
+        axrLogErrorLocation("Action set name or action name is null.");
+        return "";
+    }
+    
+    return std::string(actionSetName) + "_" + actionName;
 }
 
 XrBool32 AxrXrSystem::debugUtilsCallback(

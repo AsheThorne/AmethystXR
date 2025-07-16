@@ -52,7 +52,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
                 // TODO: Validate all action set and action names: https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#well-formed-path-strings
                 "test",
                 "Test",
-                std::vector{
+                std::vector<axr::BoolInputActionConfig>{
                     axr::BoolInputActionConfig(
                         "key",
                         "Key",
@@ -64,26 +64,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
                         }
                     ),
                 },
-                std::vector{
-                    axr::FloatInputActionConfig(
-                        "mousewheel",
-                        "Mouse Wheel",
-                        axr::ActionXrVisibilityEnum::Never,
-                        std::vector{
-                            axr::FloatInputActionEnum::MouseWheel,
-                            axr::FloatInputActionEnum::XrController_Right_Trigger_Value,
-                            axr::FloatInputActionEnum::XrController_Left_Trigger_Value,
-                        }
-                    ),
-                },
-                std::vector{
-                    axr::Vec2InputActionConfig(
-                        "mousemoved",
-                        "Mouse Moved",
+                std::vector<axr::FloatInputActionConfig>{},
+                std::vector<axr::Vec2InputActionConfig>{},
+                std::vector<axr::PoseInputActionConfig>{
+                    axr::PoseInputActionConfig(
+                        "pose",
+                        "Pose",
                         axr::ActionXrVisibilityEnum::Auto,
-                        std::vector{
-                            axr::Vec2InputActionEnum::MouseMoved,
-                        }
+                        axr::PoseInputActionEnum::XrController_Right_Grip
                     ),
                 }
             )
@@ -154,12 +142,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     axr::ActionSystem actionSystem = app.getActionSystem();
     axr::ActionSet actionSet = actionSystem.getActionSet("test");
     axr::BoolInputAction keyAction = actionSet.getBoolInputAction("key");
-    axr::FloatInputAction mouseWheelAction = actionSet.getFloatInputAction("mousewheel");
-    axr::Vec2InputAction mouseMovedAction = actionSet.getVec2InputAction("mousemoved");
 
     while (app.isRunning()) {
         app.processEvents();
 
+        // TODO: Closing steamVR while the app is running, closes the vr session (good) but also closes the whole app. See if we can stop that
         if (!windowSystem.isWindowOpen()) {
             xrSystem.stopXrSession();
             app.processEvents();
@@ -170,14 +157,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
         if (keyAction.valueChanged()) {
             axr::logWarning("Click: {0}", keyAction.getValue());
-        }
-
-        if (mouseWheelAction.valueChanged()) {
-            axr::logWarning("wheel: {0}", mouseWheelAction.getValue());
-        }
-
-        if (mouseMovedAction.valueChanged()) {
-            axr::logWarning("moved: {0}:{1}", mouseMovedAction.getValue().x, mouseMovedAction.getValue().y);
         }
 
         scene.update();

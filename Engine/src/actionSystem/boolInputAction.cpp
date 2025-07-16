@@ -148,6 +148,7 @@ void AxrBoolInputAction::enable() {
 }
 
 void AxrBoolInputAction::disable() {
+    reset();
     m_IsEnabled = false;
 }
 
@@ -165,7 +166,7 @@ bool AxrBoolInputAction::getValue() const {
     return m_Value;
 }
 
-AxrResult AxrBoolInputAction::setupXrActions(const AxrXrSystem_T xrSystem, const XrActionSet actionSet) {
+AxrResult AxrBoolInputAction::setupXrAction(const AxrXrSystem_T xrSystem, const XrActionSet actionSet) {
     if (!isVisibleToXrSession()) return AXR_SUCCESS;
 
     if (xrSystem == nullptr) {
@@ -183,14 +184,14 @@ AxrResult AxrBoolInputAction::setupXrActions(const AxrXrSystem_T xrSystem, const
         m_XrAction
     );
     if (AXR_FAILED(axrResult)) {
-        resetSetupXrActions();
+        resetSetupXrAction();
         return axrResult;
     }
 
     return AXR_SUCCESS;
 }
 
-void AxrBoolInputAction::resetSetupXrActions() {
+void AxrBoolInputAction::resetSetupXrAction() {
     if (m_XrSystem == nullptr) return;
 
     m_XrSystem->destroyAction(m_XrAction);
@@ -300,7 +301,7 @@ void AxrBoolInputAction::destroy(AxrBoolInputActionConfig& inputActionConfig) {
 // ---- Private Functions ----
 
 void AxrBoolInputAction::cleanup() {
-    resetSetupXrActions();
+    resetSetupXrAction();
 
     m_Name.clear();
     m_LocalizedName.clear();

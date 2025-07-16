@@ -1316,7 +1316,7 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    axrResult = renderCommands.beginRendering();
+    axrResult = renderCommands.beginRendering(sceneData);
     if (axrResult == AXR_DONT_RENDER) return AXR_SUCCESS;
     if (AXR_FAILED(axrResult)) return axrResult;
 
