@@ -533,6 +533,9 @@ const char* axrGetXrPoseInputActionName(const AxrPoseInputActionEnum inputAction
         case AXR_POSE_INPUT_ACTION_XR_CONTROLLER_RIGHT_AIM: {
             return "/user/hand/right/input/aim/pose";
         }
+        // The head pose is not retrieved the same way as the other pose input actions.
+        // We get the head pose from the XR_REFERENCE_SPACE_TYPE_VIEW reference space. Not from an action.
+        case AXR_POSE_INPUT_ACTION_XR_HMD:
         default: {
             axrLogErrorLocation("Unknown xr input action.");
             return "";

@@ -382,7 +382,7 @@ AxrResult AxrActionSet::setupXrActions(const AxrXrSystem_T xrSystem) {
 void AxrActionSet::resetSetupXrActions() {
     if (m_XrSystem == nullptr) return;
 
-    destroyXrActionSpaces();
+    destroyXrSpaces();
 
     for (AxrBoolInputAction& inputAction : m_BoolInputActions | std::ranges::views::values) {
         inputAction.resetSetupXrAction();
@@ -405,13 +405,13 @@ void AxrActionSet::resetSetupXrActions() {
     m_XrSystem = nullptr;
 }
 
-AxrResult AxrActionSet::createXrActionSpaces() {
+AxrResult AxrActionSet::createXrSpaces() {
     AxrResult axrResult = AXR_SUCCESS;
 
     for (AxrPoseInputAction& inputAction : m_PoseInputActions | std::ranges::views::values) {
-        axrResult = inputAction.createXrActionSpace();
+        axrResult = inputAction.createXrSpace();
         if (AXR_FAILED(axrResult)) {
-            destroyXrActionSpaces();
+            destroyXrSpaces();
             return axrResult;
         }
     }
@@ -419,9 +419,9 @@ AxrResult AxrActionSet::createXrActionSpaces() {
     return AXR_SUCCESS;
 }
 
-void AxrActionSet::destroyXrActionSpaces() {
+void AxrActionSet::destroyXrSpaces() {
     for (AxrPoseInputAction& inputAction : m_PoseInputActions | std::ranges::views::values) {
-        inputAction.destroyXrActionSpace();
+        inputAction.destroyXrSpace();
     }
 }
 

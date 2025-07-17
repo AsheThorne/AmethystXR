@@ -237,6 +237,7 @@ namespace axr {
 
         // ---- XR - Max of 128 ----
         XrStart = AXR_POSE_INPUT_ACTION_XR_START,
+        XrHMD = AXR_POSE_INPUT_ACTION_XR_HMD,
         XrController_Left_Grip = AXR_POSE_INPUT_ACTION_XR_CONTROLLER_LEFT_GRIP,
         XrController_Right_Grip = AXR_POSE_INPUT_ACTION_XR_CONTROLLER_RIGHT_GRIP,
         XrController_Left_Aim = AXR_POSE_INPUT_ACTION_XR_CONTROLLER_LEFT_AIM,

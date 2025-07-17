@@ -715,6 +715,10 @@ AxrResult AxrXrSystem::createActionSpace(const XrAction action, XrSpace& space) 
     return AXR_SUCCESS;
 }
 
+AxrResult AxrXrSystem::createViewSpace(XrSpace& space) const {
+    return createReferenceSpace(XR_REFERENCE_SPACE_TYPE_VIEW, space);
+}
+
 void AxrXrSystem::destroySpace(XrSpace& space) const {
     if (space == XR_NULL_HANDLE) return;
 
@@ -2314,7 +2318,7 @@ std::string AxrXrSystem::buildPoseActionsKey(const char* actionSetName, const ch
         axrLogErrorLocation("Action set name or action name is null.");
         return "";
     }
-    
+
     return std::string(actionSetName) + "_" + actionName;
 }
 

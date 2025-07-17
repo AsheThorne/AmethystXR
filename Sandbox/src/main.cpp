@@ -68,6 +68,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
                 std::vector<axr::Vec2InputActionConfig>{},
                 std::vector<axr::PoseInputActionConfig>{
                     axr::PoseInputActionConfig(
+                        "head",
+                        "Head",
+                        axr::ActionXrVisibilityEnum::Auto,
+                        axr::PoseInputActionEnum::XrHMD
+                    ),
+                    axr::PoseInputActionConfig(
                         "pose",
                         "Pose",
                         axr::ActionXrVisibilityEnum::Auto,

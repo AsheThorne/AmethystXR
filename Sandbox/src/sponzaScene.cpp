@@ -2,8 +2,7 @@
 
 SponzaScene::SponzaScene(axr::Application& app):
     m_Application(app),
-    m_Scene(nullptr),
-    m_HandPoseInputAction(nullptr) {
+    m_Scene(nullptr) {
 }
 
 SponzaScene::~SponzaScene() {
@@ -174,21 +173,21 @@ axr::Result SponzaScene::setup() {
 
     m_Scene.setMainCamera(m_CameraEntity);
 
-    // ---- XR Hand ----
+    // ---- XR Head ----
 
-    const char* handImageName = "UvTesterImage";
+    const char* testCubeImageName = "UvTesterImage";
     if (AXR_FAILED(
-        m_Scene.getAssetCollection().createImage(handImageName, axr::EngineAssetEnum::ImageUvTester)
+        m_Scene.getAssetCollection().createImage(testCubeImageName, axr::EngineAssetEnum::ImageUvTester)
     )) {
         return axr::Result::Error;
     }
 
-    const char* handMaterialName = "HandMaterial";
+    const char* testCubeMaterialName = "HandMaterial";
     if (AXR_FAILED(
         assetCollection.createMaterial(
-            handMaterialName,
+            testCubeMaterialName,
             axr::EngineAssetMaterial_DefaultMaterial(
-                handImageName,
+                testCubeImageName,
                 axr::engineAssetGetName(axr::EngineAssetEnum::ImageSamplerNearestRepeat)
             )
         )
@@ -196,10 +195,58 @@ axr::Result SponzaScene::setup() {
         return axr::Result::Error;
     }
 
-    const char* handModelName = "Hand";
-    if (AXR_FAILED(assetCollection.createModel(handModelName, axr::EngineAssetEnum::ModelCube))) {
+    const char* testCubeModelName = "TestCube";
+    if (AXR_FAILED(assetCollection.createModel(testCubeModelName, axr::EngineAssetEnum::ModelCube))) {
         return axr::Result::Error;
     }
+
+    m_XrHeadEntity = m_Scene.createEntity();
+    m_XrHeadEntity.emplace<AxrTransformComponent>(
+        AxrTransformComponent{
+            .Position = glm::vec3(0.0f, 0.0f, 0.0f),
+            .Scale = glm::vec3(0.3f, 0.3f, 0.3f),
+            .Orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+        }
+    );
+    m_XrHeadEntity.emplace<AxrMirrorPoseInputActionComponent>(
+        AxrMirrorPoseInputActionComponent{
+            .ActionSetName = "test",
+            .PoseInputActionName = "head",
+            .OffsetPosition = glm::vec3(0.0f, 0.0f, 0.0f),
+            .OffsetOrientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+        }
+    );
+
+    AxrModelComponent::Mesh::Submesh headSubmesh{
+        .MaterialName = {},
+    };
+    strcpy_s(headSubmesh.MaterialName, testCubeMaterialName);
+
+    m_HeadComponentSubmeshes = {
+        headSubmesh,
+    };
+    m_HeadComponentMeshes = {
+        AxrModelComponent::Mesh{
+            .SubmeshCount = static_cast<uint32_t>(m_HeadComponentSubmeshes.size()),
+            .Submeshes = m_HeadComponentSubmeshes.data(),
+        }
+    };
+
+    AxrModelComponent headModelComponent{
+        .ModelName = {},
+        .MeshCount = static_cast<uint32_t>(m_HeadComponentMeshes.size()),
+        .Meshes = m_HeadComponentMeshes.data(),
+        .PushConstantBufferName = {},
+    };
+    strcpy_s(headModelComponent.ModelName, testCubeModelName);
+    strcpy_s(
+        headModelComponent.PushConstantBufferName,
+        axr::engineAssetGetName(axr::EngineAssetEnum::PushConstantBufferModelMatrix)
+    );
+
+    m_XrHeadEntity.emplace<AxrModelComponent>(headModelComponent);
+
+    // ---- XR Hand ----
 
     m_XrHandEntity = m_Scene.createEntity();
     m_XrHandEntity.emplace<AxrTransformComponent>(
@@ -221,7 +268,7 @@ axr::Result SponzaScene::setup() {
     AxrModelComponent::Mesh::Submesh handSubmesh{
         .MaterialName = {},
     };
-    strcpy_s(handSubmesh.MaterialName, handMaterialName);
+    strcpy_s(handSubmesh.MaterialName, testCubeMaterialName);
 
     m_HandComponentSubmeshes = {
         handSubmesh,
@@ -239,15 +286,13 @@ axr::Result SponzaScene::setup() {
         .Meshes = m_HandComponentMeshes.data(),
         .PushConstantBufferName = {},
     };
-    strcpy_s(handModelComponent.ModelName, handModelName);
+    strcpy_s(handModelComponent.ModelName, testCubeModelName);
     strcpy_s(
         handModelComponent.PushConstantBufferName,
         axr::engineAssetGetName(axr::EngineAssetEnum::PushConstantBufferModelMatrix)
     );
 
     m_XrHandEntity.emplace<AxrModelComponent>(handModelComponent);
-
-    m_HandPoseInputAction = m_Application.getActionSystem().getActionSet("test").getPoseInputAction("pose");
 
     return axr::Result::Success;
 }

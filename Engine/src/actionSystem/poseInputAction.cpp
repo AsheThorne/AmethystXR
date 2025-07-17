@@ -212,16 +212,19 @@ AxrResult AxrPoseInputAction::setupXrAction(const AxrXrSystem_T xrSystem, const 
 
     m_XrSystem = xrSystem;
 
-    const AxrResult axrResult = m_XrSystem->createAction(
-        m_Name,
-        m_LocalizedName,
-        XR_ACTION_TYPE_POSE_INPUT,
-        actionSet,
-        m_XrAction
-    );
-    if (AXR_FAILED(axrResult)) {
-        resetSetupXrAction();
-        return axrResult;
+    // AXR_POSE_INPUT_ACTION_XR_HMD doesn't use an action
+    if (m_Binding != AXR_POSE_INPUT_ACTION_XR_HMD) {
+        const AxrResult axrResult = m_XrSystem->createAction(
+            m_Name,
+            m_LocalizedName,
+            XR_ACTION_TYPE_POSE_INPUT,
+            actionSet,
+            m_XrAction
+        );
+        if (AXR_FAILED(axrResult)) {
+            resetSetupXrAction();
+            return axrResult;
+        }
     }
 
     return AXR_SUCCESS;
@@ -230,12 +233,12 @@ AxrResult AxrPoseInputAction::setupXrAction(const AxrXrSystem_T xrSystem, const 
 void AxrPoseInputAction::resetSetupXrAction() {
     if (m_XrSystem == nullptr) return;
 
-    destroyXrActionSpace();
+    destroyXrSpace();
     m_XrSystem->destroyAction(m_XrAction);
     m_XrSystem = nullptr;
 }
 
-AxrResult AxrPoseInputAction::createXrActionSpace() {
+AxrResult AxrPoseInputAction::createXrSpace() {
     if (m_XrSpace != XR_NULL_HANDLE) {
         axrLogErrorLocation("XrSpace already exists.");
         return AXR_ERROR;
@@ -246,24 +249,34 @@ AxrResult AxrPoseInputAction::createXrActionSpace() {
         return AXR_ERROR;
     }
 
-    if (m_XrAction == XR_NULL_HANDLE) {
-        axrLogErrorLocation("XrAction is null");
-        return AXR_ERROR;
-    }
+    if (m_Binding == AXR_POSE_INPUT_ACTION_XR_HMD) {
+        const AxrResult axrResult = m_XrSystem->createViewSpace(
+            m_XrSpace
+        );
+        if (AXR_FAILED(axrResult)) {
+            destroyXrSpace();
+            return axrResult;
+        }
+    } else {
+        if (m_XrAction == XR_NULL_HANDLE) {
+            axrLogErrorLocation("XrAction is null");
+            return AXR_ERROR;
+        }
 
-    const AxrResult axrResult = m_XrSystem->createActionSpace(
-        m_XrAction,
-        m_XrSpace
-    );
-    if (AXR_FAILED(axrResult)) {
-        destroyXrActionSpace();
-        return axrResult;
+        const AxrResult axrResult = m_XrSystem->createActionSpace(
+            m_XrAction,
+            m_XrSpace
+        );
+        if (AXR_FAILED(axrResult)) {
+            destroyXrSpace();
+            return axrResult;
+        }
     }
 
     return AXR_SUCCESS;
 }
 
-void AxrPoseInputAction::destroyXrActionSpace() {
+void AxrPoseInputAction::destroyXrSpace() {
     if (m_XrSystem == nullptr) return;
 
     m_XrSystem->destroySpace(m_XrSpace);
@@ -286,6 +299,9 @@ AxrPose* AxrPoseInputAction::getPoseDataHandle() {
 }
 
 void AxrPoseInputAction::trigger(const AxrPose& value) {
+    // TODO: check if this is enabled before first (repeat for all input actions)
+    //  Refactor so that 'isEnabled' checks are done here, not in other classes.
+    //  We do need to check in xrSystem for poses though since that doesn't get set in this class.
     m_Value = value;
 }
 

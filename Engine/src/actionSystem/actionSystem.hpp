@@ -157,6 +157,10 @@ private:
     /// @param inputActionEnum Vec2 input action
     /// @param value Vec2 value
     void triggerVec2InputAction(AxrVec2InputActionEnum inputActionEnum, const AxrVec2& value);
+    /// Trigger a pose input action
+    /// @param inputActionEnum Pose input action
+    /// @param value Pose value
+    void triggerPoseInputAction(AxrPoseInputActionEnum inputActionEnum, const AxrPose& value);
 
     /// Reset a bool input action
     /// @param inputActionEnum Bool input action
@@ -167,6 +171,9 @@ private:
     /// Reset a vec2 input action
     /// @param inputActionEnum Vec2 input action
     void resetVec2InputAction(AxrVec2InputActionEnum inputActionEnum);
+    /// Reset a pose input action
+    /// @param inputActionEnum Pose input action
+    void resetPoseInputAction(AxrPoseInputActionEnum inputActionEnum);
 
     /// Trigger all relative actions
     void triggerRelativeActions();
@@ -196,11 +203,11 @@ private:
     /// @returns AXR_SUCCESS if the function succeeded
     AxrResult onXrSessionStateChangedCallback(bool isSessionRunning);
 
-    /// Create the action spaces
+    /// Create the spaces
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createXrActionSpaces();
-    /// Destroy the xr action spaces
-    void destroyXrActionSpaces();
+    [[nodiscard]] AxrResult createXrSpaces();
+    /// Destroy the xr spaces
+    void destroyXrSpaces();
     /// Register xr pose actions to the xr system
     void registerXrPoseActions();
     /// Reset the xr pose actions in the xr system

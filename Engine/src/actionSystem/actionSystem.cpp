@@ -305,6 +305,34 @@ void AxrActionSystem::triggerVec2InputAction(const AxrVec2InputActionEnum inputA
     }
 }
 
+void AxrActionSystem::triggerPoseInputAction(const AxrPoseInputActionEnum inputActionEnum, const AxrPose& value) {
+    uint32_t highestPriority = 0;
+    std::vector<AxrPoseInputAction*> inputActionsToTrigger;
+
+    for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+        if (actionSet.isEnabled()) {
+            // Only trigger actions on sets of the highest priority
+            const uint32_t priority = actionSet.getPriority();
+            if (priority > highestPriority) {
+                inputActionsToTrigger.clear();
+                highestPriority = priority;
+            }
+
+            if (priority != highestPriority) continue;
+
+            for (AxrPoseInputAction& inputAction : actionSet.getPoseInputActions() | std::ranges::views::values) {
+                if (inputAction.isEnabled() && inputAction.getBinding() == inputActionEnum) {
+                    inputActionsToTrigger.push_back(&inputAction);
+                }
+            }
+        }
+    }
+
+    for (AxrPoseInputAction* inputAction : inputActionsToTrigger) {
+        inputAction->trigger(value);
+    }
+}
+
 void AxrActionSystem::resetBoolInputAction(const AxrBoolInputActionEnum inputActionEnum) {
     for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
         for (AxrBoolInputAction& inputAction : actionSet.getBoolInputActions() | std::ranges::views::values) {
@@ -329,6 +357,16 @@ void AxrActionSystem::resetVec2InputAction(const AxrVec2InputActionEnum inputAct
     for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
         for (AxrVec2InputAction& inputAction : actionSet.getVec2InputActions() | std::ranges::views::values) {
             if (inputAction.containsBinding(inputActionEnum)) {
+                inputAction.reset();
+            }
+        }
+    }
+}
+
+void AxrActionSystem::resetPoseInputAction(const AxrPoseInputActionEnum inputActionEnum) {
+    for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
+        for (AxrPoseInputAction& inputAction : actionSet.getPoseInputActions() | std::ranges::views::values) {
+            if (inputAction.getBinding() == inputActionEnum) {
                 inputAction.reset();
             }
         }
@@ -414,7 +452,7 @@ void AxrActionSystem::resetSetupXrActions() {
     }
 
     m_XrSystem->OnXrSessionStateChangedCallbackActions.reset();
-    destroyXrActionSpaces();
+    destroyXrSpaces();
     resetXrPoseActions();
     m_XrActionSets.clear();
 
@@ -535,7 +573,7 @@ AxrResult AxrActionSystem::onXrSessionStateChangedCallback(const bool isSessionR
         }
         m_AreXrActionsAttached = true;
 
-        axrResult = createXrActionSpaces();
+        axrResult = createXrSpaces();
         if (AXR_FAILED(axrResult)) {
             resetSetupXrActions();
             return axrResult;
@@ -543,19 +581,21 @@ AxrResult AxrActionSystem::onXrSessionStateChangedCallback(const bool isSessionR
 
         registerXrPoseActions();
     } else {
+        resetXrPoseActions();
+        destroyXrSpaces();
         m_AreXrActionsAttached = false;
     }
 
     return AXR_SUCCESS;
 }
 
-AxrResult AxrActionSystem::createXrActionSpaces() {
+AxrResult AxrActionSystem::createXrSpaces() {
     AxrResult axrResult = AXR_SUCCESS;
 
     for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
-        axrResult = actionSet.createXrActionSpaces();
+        axrResult = actionSet.createXrSpaces();
         if (AXR_FAILED(axrResult)) {
-            destroyXrActionSpaces();
+            destroyXrSpaces();
             return axrResult;
         }
     }
@@ -563,9 +603,9 @@ AxrResult AxrActionSystem::createXrActionSpaces() {
     return AXR_SUCCESS;
 }
 
-void AxrActionSystem::destroyXrActionSpaces() {
+void AxrActionSystem::destroyXrSpaces() {
     for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
-        actionSet.destroyXrActionSpaces();
+        actionSet.destroyXrSpaces();
     }
 }
 

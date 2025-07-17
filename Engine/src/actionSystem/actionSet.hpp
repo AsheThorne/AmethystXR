@@ -114,11 +114,11 @@ public:
     [[nodiscard]] AxrResult setupXrActions(AxrXrSystem_T xrSystem);
     /// Reset setupXrActions() function
     void resetSetupXrActions();
-    /// Create the action spaces
+    /// Create the spaces
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createXrActionSpaces();
-    /// Destroy the xr action spaces
-    void destroyXrActionSpaces();
+    [[nodiscard]] AxrResult createXrSpaces();
+    /// Destroy the xr spaces
+    void destroyXrSpaces();
 
 
     /// Signal that a new frame has started

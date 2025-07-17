@@ -233,6 +233,10 @@ public:
     /// @param space Output created action space
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult createActionSpace(XrAction action, XrSpace& space) const;
+    /// Create a new HMD view space
+    /// @param space Output created action space
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createViewSpace(XrSpace& space) const;
     /// Destroy the given XrSpace
     /// @param space Space to destroy
     void destroySpace(XrSpace& space) const;

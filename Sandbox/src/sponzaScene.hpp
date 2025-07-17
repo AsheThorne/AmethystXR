@@ -52,10 +52,12 @@ private:
     axr::Scene m_Scene;
     axr::Entity_T m_Entity;
     axr::Entity_T m_CameraEntity;
+    axr::Entity_T m_XrHeadEntity;
     axr::Entity_T m_XrHandEntity;
     std::vector<AxrModelComponent::Mesh::Submesh> m_ComponentSubmeshes;
     std::vector<AxrModelComponent::Mesh> m_ComponentMeshes;
+    std::vector<AxrModelComponent::Mesh::Submesh> m_HeadComponentSubmeshes;
+    std::vector<AxrModelComponent::Mesh> m_HeadComponentMeshes;
     std::vector<AxrModelComponent::Mesh::Submesh> m_HandComponentSubmeshes;
     std::vector<AxrModelComponent::Mesh> m_HandComponentMeshes;
-    axr::PoseInputAction m_HandPoseInputAction;
 };

@@ -83,11 +83,11 @@ public:
     [[nodiscard]] AxrResult setupXrAction(AxrXrSystem_T xrSystem, XrActionSet actionSet);
     /// Reset setupXrAction() function
     void resetSetupXrAction();
-    /// Create the xr action space
+    /// Create the xr space
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createXrActionSpace();
-    /// Destroy the xr action space
-    void destroyXrActionSpace();
+    [[nodiscard]] AxrResult createXrSpace();
+    /// Destroy the xr space
+    void destroyXrSpace();
 
     /// Get the XrAction
     /// @returns The XrAction
