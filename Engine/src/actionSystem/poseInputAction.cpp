@@ -294,14 +294,9 @@ AxrPoseInputActionEnum AxrPoseInputAction::getBinding() const {
     return m_Binding;
 }
 
-AxrPose* AxrPoseInputAction::getPoseDataHandle() {
-    return &m_Value;
-}
-
 void AxrPoseInputAction::trigger(const AxrPose& value) {
-    // TODO: check if this is enabled before first (repeat for all input actions)
-    //  Refactor so that 'isEnabled' checks are done here, not in other classes.
-    //  We do need to check in xrSystem for poses though since that doesn't get set in this class.
+    if (!isEnabled()) return;
+
     m_Value = value;
 }
 

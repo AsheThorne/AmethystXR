@@ -259,7 +259,7 @@ axr::Result SponzaScene::setup() {
     m_XrHandEntity.emplace<AxrMirrorPoseInputActionComponent>(
         AxrMirrorPoseInputActionComponent{
             .ActionSetName = "test",
-            .PoseInputActionName = "pose",
+            .PoseInputActionName = "righthand",
             .OffsetPosition = glm::vec3(0.0f, 0.2f, 0.0f),
             .OffsetOrientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
         }
@@ -306,4 +306,16 @@ axr::Result SponzaScene::setAsActiveScene() const {
 }
 
 void SponzaScene::update() {
+    const axr::ActionSystem actionSystem = m_Application.getActionSystem();
+    const axr::ActionSet actionSet = actionSystem.getActionSet("test");
+    const axr::BoolInputAction keyAction = actionSet.getBoolInputAction("click");
+    const axr::PoseInputAction headAction = actionSet.getPoseInputAction("righthand");
+
+    if (keyAction.valueChanged() && keyAction.getValue()) {
+        if (headAction.isEnabled()) {
+            headAction.disable();
+        } else {
+            headAction.enable();
+        }
+    }
 }

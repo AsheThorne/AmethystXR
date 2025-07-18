@@ -131,15 +131,13 @@ private:
     std::chrono::time_point<std::chrono::steady_clock> m_MouseClickX1StartTime;
     std::chrono::time_point<std::chrono::steady_clock> m_MouseClickX2StartTime;
     AxrVec2 m_LastAbsoluteCursorPosition;
+    bool m_AreXrActionsAttached;
 
     // ---- Relative action data ----
     // Relative actions are actions that are relative to the last frame
     float m_ScrollDelta;
     float m_HorizontalScrollDelta;
     AxrVec2 m_MouseMovedDelta;
-
-    std::vector<XrActionSet> m_XrActionSets;
-    bool m_AreXrActionsAttached;
 
     // ----------------------------------------- //
     // Private Functions
@@ -190,9 +188,11 @@ private:
     [[nodiscard]] AxrResult setupXrActions();
     /// Reset setupXrActions()
     void resetSetupXrActions();
-    /// Find all the xr action sets
-    /// @returns The collection xr action sets
-    [[nodiscard]] std::vector<XrActionSet> findXrActionSets() const;
+    /// Set up xr session data
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setupXrSessionData();
+    /// Reset setupXrSessionData()
+    void resetSetupXrSessionData();
 
     /// Suggest bindings to the xr session
     /// @returns AXR_SUCCESS if the function succeeded
@@ -208,10 +208,6 @@ private:
     [[nodiscard]] AxrResult createXrSpaces();
     /// Destroy the xr spaces
     void destroyXrSpaces();
-    /// Register xr pose actions to the xr system
-    void registerXrPoseActions();
-    /// Reset the xr pose actions in the xr system
-    void resetXrPoseActions() const;
 
 #ifdef AXR_USE_PLATFORM_WIN32
     // ---- Win32 Functions ----

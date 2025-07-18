@@ -53,14 +53,6 @@ public:
         const char* bindingName;
     };
 
-    /// Pose action
-    struct PoseAction {
-        const char* ActionSetName; 
-        const char* ActionName; 
-        XrSpace Space;
-        AxrPose* PoseData;
-    };
-
     // ----------------------------------------- //
     // Types
     // ----------------------------------------- //
@@ -165,9 +157,6 @@ public:
     /// @returns The far clipping plane
     [[nodiscard]] float getFarClippingPlane() const;
 
-    /// Update the state of the input actions in the given sets
-    /// @param actionSets Action sets to sync
-    void syncActions(const std::vector<XrActiveActionSet>& actionSets) const;
     /// Create an XrActionSet
     /// @param name Action set name
     /// @param localizedName Localized action set name
@@ -213,7 +202,9 @@ public:
     /// Attach the given action sets to the xr session
     /// @param actionSets Action sets
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult attachActionSets(const std::vector<XrActionSet>& actionSets) const;
+    [[nodiscard]] AxrResult attachActionSets(std::unordered_map<std::string, AxrActionSet>& actionSets);
+    /// Detach all the attached action sets
+    void detachActionSets();
 
     /// Get the bool action state for the given action
     /// @param action Xr action
@@ -241,11 +232,6 @@ public:
     /// @param space Space to destroy
     void destroySpace(XrSpace& space) const;
 
-    /// Register the given pose actions to periodically update the location of
-    /// @param poseActions Pose actions
-    void registerPoseActions(const std::vector<PoseAction>& poseActions);
-    /// Reset all registered pose actions
-    void resetPoseActions();
     /// Update all pose actions with the given time
     /// @param time Predicted display time
     /// @param registryHandle Optional registry handle to process the AxrMirrorPoseInputActionComponent's
@@ -380,8 +366,7 @@ private:
     XrSpace m_StageReferenceSpace = XR_NULL_HANDLE;
     float m_NearClippingPlane = 0.01f;
     float m_FarClippingPlane = 1000.0f;
-
-    std::unordered_map<std::string, PoseAction> m_PoseActions;
+    std::unordered_map<std::string, AxrActionSet*> m_AttachedActionSets;
 
     // ----------------------------------------- //
     // Private Functions
@@ -549,10 +534,8 @@ private:
 
     // ---- Actions ----
 
-    /// Build the pose actions key from the given params
-    /// @param actionSetName Action set name
-    /// @param actionName Pose input action name
-    std::string buildPoseActionsKey(const char* actionSetName, const char* actionName) const;
+    /// Update the state of the attached input actions
+    void syncAttachedActions() const;
 
     // ----------------------------------------- //
     // Private Static Functions

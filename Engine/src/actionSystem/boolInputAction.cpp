@@ -210,11 +210,13 @@ const std::unordered_set<AxrBoolInputActionEnum>& AxrBoolInputAction::getBinding
     return m_Bindings;
 }
 
-bool AxrBoolInputAction::containsBinding(const AxrBoolInputActionEnum biding) const {
-    return m_Bindings.contains(biding);
+bool AxrBoolInputAction::containsBinding(const AxrBoolInputActionEnum binding) const {
+    return m_Bindings.contains(binding);
 }
 
 void AxrBoolInputAction::trigger(const bool value) {
+    if (!isEnabled()) return;
+
     m_Value = value;
 }
 

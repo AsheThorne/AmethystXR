@@ -98,10 +98,6 @@ public:
     /// Get the binding
     /// @returns The binding
     [[nodiscard]] AxrPoseInputActionEnum getBinding() const;
-    /// Get the pose data handle
-    /// @returns The pose data handle
-    [[nodiscard]] AxrPose* getPoseDataHandle();
-
 
     /// Trigger the input action
     /// @param value Value to use

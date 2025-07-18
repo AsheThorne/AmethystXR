@@ -279,6 +279,19 @@ void AxrActionSet::enable() {
 }
 
 void AxrActionSet::disable() {
+    for (AxrBoolInputAction& inputAction : m_BoolInputActions | std::views::values) {
+        inputAction.reset();
+    }
+    for (AxrFloatInputAction& inputAction : m_FloatInputActions | std::views::values) {
+        inputAction.reset();
+    }
+    for (AxrVec2InputAction& inputAction : m_Vec2InputActions | std::views::values) {
+        inputAction.reset();
+    }
+    for (AxrPoseInputAction& inputAction : m_PoseInputActions | std::views::values) {
+        inputAction.reset();
+    }
+
     m_IsEnabled = false;
 }
 
@@ -453,11 +466,93 @@ std::unordered_map<std::string, AxrPoseInputAction>& AxrActionSet::getPoseInputA
     return m_PoseInputActions;
 }
 
+bool AxrActionSet::containsBinding(const AxrBoolInputActionEnum binding) const {
+    for (const AxrBoolInputAction& inputAction : m_BoolInputActions | std::views::values) {
+        if (inputAction.containsBinding(binding)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool AxrActionSet::containsBinding(const AxrFloatInputActionEnum binding) const {
+    for (const AxrFloatInputAction& inputAction : m_FloatInputActions | std::views::values) {
+        if (inputAction.containsBinding(binding)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool AxrActionSet::containsBinding(const AxrVec2InputActionEnum binding) const {
+    for (const AxrVec2InputAction& inputAction : m_Vec2InputActions | std::views::values) {
+        if (inputAction.containsBinding(binding)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool AxrActionSet::containsBinding(const AxrPoseInputActionEnum binding) const {
+    for (const AxrPoseInputAction& inputAction : m_PoseInputActions | std::views::values) {
+        if (inputAction.getBinding() == binding) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void AxrActionSet::triggerBoolInputAction(const AxrBoolInputActionEnum inputActionEnum, const bool value) {
+    if (!isEnabled()) return;
+
+    for (AxrBoolInputAction& inputAction : m_BoolInputActions | std::ranges::views::values) {
+        if (inputAction.containsBinding(inputActionEnum)) {
+            inputAction.trigger(value);
+        }
+    }
+}
+
+void AxrActionSet::triggerFloatInputAction(const AxrFloatInputActionEnum inputActionEnum, const float value) {
+    if (!isEnabled()) return;
+
+    for (AxrFloatInputAction& inputAction : m_FloatInputActions | std::ranges::views::values) {
+        if (inputAction.containsBinding(inputActionEnum)) {
+            inputAction.trigger(value);
+        }
+    }
+}
+
+void AxrActionSet::triggerVec2InputAction(const AxrVec2InputActionEnum inputActionEnum, const AxrVec2& value) {
+    if (!isEnabled()) return;
+
+    for (AxrVec2InputAction& inputAction : m_Vec2InputActions | std::ranges::views::values) {
+        if (inputAction.containsBinding(inputActionEnum)) {
+            inputAction.trigger(value);
+        }
+    }
+}
+
+void AxrActionSet::triggerPoseInputAction(const AxrPoseInputActionEnum inputActionEnum, const AxrPose& value) {
+    if (!isEnabled()) return;
+
+    for (AxrPoseInputAction& inputAction : m_PoseInputActions | std::ranges::views::values) {
+        if (inputAction.getBinding() == inputActionEnum) {
+            inputAction.trigger(value);
+        }
+    }
+}
+
 XrActionSet AxrActionSet::getXrActionSet() const {
     return m_XrActionSet;
 }
 
 void AxrActionSet::updateXrActionValues() {
+    if (!isEnabled()) return;
+
     for (AxrBoolInputAction& inputAction : m_BoolInputActions | std::ranges::views::values) {
         inputAction.updateXrActionValue();
     }

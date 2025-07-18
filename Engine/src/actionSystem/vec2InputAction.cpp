@@ -235,11 +235,13 @@ const std::unordered_set<AxrVec2InputActionEnum>& AxrVec2InputAction::getBinding
     return m_Bindings;
 }
 
-bool AxrVec2InputAction::containsBinding(const AxrVec2InputActionEnum biding) const {
-    return m_Bindings.contains(biding);
+bool AxrVec2InputAction::containsBinding(const AxrVec2InputActionEnum binding) const {
+    return m_Bindings.contains(binding);
 }
 
 void AxrVec2InputAction::trigger(const AxrVec2& value) {
+    if (!isEnabled()) return;
+
     m_Value = value;
 }
 

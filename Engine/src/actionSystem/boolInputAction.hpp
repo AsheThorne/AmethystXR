@@ -100,9 +100,9 @@ public:
     /// @returns The bindings
     [[nodiscard]] const std::unordered_set<AxrBoolInputActionEnum>& getBindings() const;
     /// Check if this input action contains the given binding
-    /// @param biding Binding to check
+    /// @param binding Binding to check
     /// @returns True if this input action contains the given binding
-    [[nodiscard]] bool containsBinding(AxrBoolInputActionEnum biding) const;
+    [[nodiscard]] bool containsBinding(AxrBoolInputActionEnum binding) const;
 
     /// Trigger the input action
     /// @param value Value to use

@@ -136,23 +136,6 @@ void AxrActionSystem::newFrameStarted() {
 
 void AxrActionSystem::processEvents() {
     triggerRelativeActions();
-
-    if (m_XrSystem == nullptr || !m_AreXrActionsAttached) return;
-
-    std::vector<XrActiveActionSet> activeActionSets(m_XrActionSets.size());
-
-    for (uint32_t i = 0; i < m_XrActionSets.size(); ++i) {
-        activeActionSets[i] = XrActiveActionSet{
-            .actionSet = m_XrActionSets[i],
-            .subactionPath = XR_NULL_PATH,
-        };
-    }
-
-    m_XrSystem->syncActions(activeActionSets);
-
-    for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
-        actionSet.updateXrActionValues();
-    }
 }
 
 #ifdef AXR_USE_PLATFORM_WIN32
@@ -223,113 +206,89 @@ void AxrActionSystem::triggerBoolInputAction(const AxrBoolInputActionEnum inputA
     }
 
     uint32_t highestPriority = 0;
-    std::vector<AxrBoolInputAction*> inputActionsToTrigger;
+    std::vector<AxrActionSet*> actionSetsToTrigger;
 
     for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
-        if (actionSet.isEnabled()) {
-            // Only trigger actions on sets of the highest priority
-            const uint32_t priority = actionSet.getPriority();
-            if (priority > highestPriority) {
-                inputActionsToTrigger.clear();
-                highestPriority = priority;
-            }
+        if (!actionSet.containsBinding(inputActionEnum)) continue;
 
-            if (priority != highestPriority) continue;
+        // Only trigger actions on sets of the highest priority
+        const uint32_t priority = actionSet.getPriority();
+        if (priority > highestPriority) {
+            actionSetsToTrigger.clear();
+            highestPriority = priority;
+        } else if (priority < highestPriority) continue;
 
-            for (AxrBoolInputAction& inputAction : actionSet.getBoolInputActions() | std::ranges::views::values) {
-                if (inputAction.isEnabled() && inputAction.containsBinding(inputActionEnum)) {
-                    inputActionsToTrigger.push_back(&inputAction);
-                }
-            }
-        }
+        actionSetsToTrigger.push_back(&actionSet);
     }
 
-    for (AxrBoolInputAction* inputAction : inputActionsToTrigger) {
-        inputAction->trigger(value);
+    for (AxrActionSet* actionSet : actionSetsToTrigger) {
+        actionSet->triggerBoolInputAction(inputActionEnum, value);
     }
 }
 
 void AxrActionSystem::triggerFloatInputAction(const AxrFloatInputActionEnum inputActionEnum, const float value) {
     uint32_t highestPriority = 0;
-    std::vector<AxrFloatInputAction*> inputActionsToTrigger;
+    std::vector<AxrActionSet*> actionSetsToTrigger;
 
     for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
-        if (actionSet.isEnabled()) {
-            // Only trigger actions on sets of the highest priority
-            const uint32_t priority = actionSet.getPriority();
-            if (priority > highestPriority) {
-                inputActionsToTrigger.clear();
-                highestPriority = priority;
-            }
+        if (!actionSet.containsBinding(inputActionEnum)) continue;
 
-            if (priority != highestPriority) continue;
+        // Only trigger actions on sets of the highest priority
+        const uint32_t priority = actionSet.getPriority();
+        if (priority > highestPriority) {
+            actionSetsToTrigger.clear();
+            highestPriority = priority;
+        } else if (priority < highestPriority) continue;
 
-            for (AxrFloatInputAction& inputAction : actionSet.getFloatInputActions() | std::ranges::views::values) {
-                if (inputAction.isEnabled() && inputAction.containsBinding(inputActionEnum)) {
-                    inputActionsToTrigger.push_back(&inputAction);
-                }
-            }
-        }
+        actionSetsToTrigger.push_back(&actionSet);
     }
 
-    for (AxrFloatInputAction* inputAction : inputActionsToTrigger) {
-        inputAction->trigger(value);
+    for (AxrActionSet* actionSet : actionSetsToTrigger) {
+        actionSet->triggerFloatInputAction(inputActionEnum, value);
     }
 }
 
 void AxrActionSystem::triggerVec2InputAction(const AxrVec2InputActionEnum inputActionEnum, const AxrVec2& value) {
     uint32_t highestPriority = 0;
-    std::vector<AxrVec2InputAction*> inputActionsToTrigger;
+    std::vector<AxrActionSet*> actionSetsToTrigger;
 
     for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
-        if (actionSet.isEnabled()) {
-            // Only trigger actions on sets of the highest priority
-            const uint32_t priority = actionSet.getPriority();
-            if (priority > highestPriority) {
-                inputActionsToTrigger.clear();
-                highestPriority = priority;
-            }
+        if (!actionSet.containsBinding(inputActionEnum)) continue;
 
-            if (priority != highestPriority) continue;
+        // Only trigger actions on sets of the highest priority
+        const uint32_t priority = actionSet.getPriority();
+        if (priority > highestPriority) {
+            actionSetsToTrigger.clear();
+            highestPriority = priority;
+        } else if (priority < highestPriority) continue;
 
-            for (AxrVec2InputAction& inputAction : actionSet.getVec2InputActions() | std::ranges::views::values) {
-                if (inputAction.isEnabled() && inputAction.containsBinding(inputActionEnum)) {
-                    inputActionsToTrigger.push_back(&inputAction);
-                }
-            }
-        }
+        actionSetsToTrigger.push_back(&actionSet);
     }
 
-    for (AxrVec2InputAction* inputAction : inputActionsToTrigger) {
-        inputAction->trigger(value);
+    for (AxrActionSet* actionSet : actionSetsToTrigger) {
+        actionSet->triggerVec2InputAction(inputActionEnum, value);
     }
 }
 
 void AxrActionSystem::triggerPoseInputAction(const AxrPoseInputActionEnum inputActionEnum, const AxrPose& value) {
     uint32_t highestPriority = 0;
-    std::vector<AxrPoseInputAction*> inputActionsToTrigger;
+    std::vector<AxrActionSet*> actionSetsToTrigger;
 
     for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
-        if (actionSet.isEnabled()) {
-            // Only trigger actions on sets of the highest priority
-            const uint32_t priority = actionSet.getPriority();
-            if (priority > highestPriority) {
-                inputActionsToTrigger.clear();
-                highestPriority = priority;
-            }
+        if (!actionSet.containsBinding(inputActionEnum)) continue;
 
-            if (priority != highestPriority) continue;
+        // Only trigger actions on sets of the highest priority
+        const uint32_t priority = actionSet.getPriority();
+        if (priority > highestPriority) {
+            actionSetsToTrigger.clear();
+            highestPriority = priority;
+        } else if (priority < highestPriority) continue;
 
-            for (AxrPoseInputAction& inputAction : actionSet.getPoseInputActions() | std::ranges::views::values) {
-                if (inputAction.isEnabled() && inputAction.getBinding() == inputActionEnum) {
-                    inputActionsToTrigger.push_back(&inputAction);
-                }
-            }
-        }
+        actionSetsToTrigger.push_back(&actionSet);
     }
 
-    for (AxrPoseInputAction* inputAction : inputActionsToTrigger) {
-        inputAction->trigger(value);
+    for (AxrActionSet* actionSet : actionSetsToTrigger) {
+        actionSet->triggerPoseInputAction(inputActionEnum, value);
     }
 }
 
@@ -431,8 +390,6 @@ AxrResult AxrActionSystem::setupXrActions() {
         }
     }
 
-    m_XrActionSets = findXrActionSets();
-
     axrResult = suggestXrBindings();
     if (AXR_FAILED(axrResult)) {
         resetSetupXrActions();
@@ -452,25 +409,42 @@ void AxrActionSystem::resetSetupXrActions() {
     }
 
     m_XrSystem->OnXrSessionStateChangedCallbackActions.reset();
-    destroyXrSpaces();
-    resetXrPoseActions();
-    m_XrActionSets.clear();
+    resetSetupXrSessionData();
 
     for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
         actionSet.resetSetupXrActions();
     }
 }
 
-std::vector<XrActionSet> AxrActionSystem::findXrActionSets() const {
-    std::vector<XrActionSet> xrActionSets;
-
-    for (const AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
-        const XrActionSet xrActionSet = actionSet.getXrActionSet();
-        if (xrActionSet == XR_NULL_HANDLE) continue;
-        xrActionSets.push_back(xrActionSet);
+AxrResult AxrActionSystem::setupXrSessionData() {
+    if (m_XrSystem == nullptr) {
+        axrLogErrorLocation("XrSystem is null.");
+        return AXR_ERROR;
     }
 
-    return xrActionSets;
+    AxrResult axrResult = createXrSpaces();
+    if (AXR_FAILED(axrResult)) {
+        resetSetupXrActions();
+        return axrResult;
+    }
+
+    axrResult = m_XrSystem->attachActionSets(m_ActionSets);
+    if (AXR_FAILED(axrResult)) {
+        resetSetupXrActions();
+        return axrResult;
+    }
+    m_AreXrActionsAttached = true;
+
+    return AXR_SUCCESS;
+}
+
+void AxrActionSystem::resetSetupXrSessionData() {
+    m_AreXrActionsAttached = false;
+    if (m_XrSystem != nullptr) {
+        m_XrSystem->detachActionSets();
+    }
+
+    destroyXrSpaces();
 }
 
 AxrResult AxrActionSystem::suggestXrBindings() {
@@ -561,31 +535,10 @@ AxrResult AxrActionSystem::suggestXrBindings() {
 
 AxrResult AxrActionSystem::onXrSessionStateChangedCallback(const bool isSessionRunning) {
     if (isSessionRunning) {
-        if (m_XrSystem == nullptr) {
-            axrLogErrorLocation("XrSystem is null.");
-            return AXR_ERROR;
-        }
-
-        AxrResult axrResult = m_XrSystem->attachActionSets(m_XrActionSets);
-        if (AXR_FAILED(axrResult)) {
-            resetSetupXrActions();
-            return axrResult;
-        }
-        m_AreXrActionsAttached = true;
-
-        axrResult = createXrSpaces();
-        if (AXR_FAILED(axrResult)) {
-            resetSetupXrActions();
-            return axrResult;
-        }
-
-        registerXrPoseActions();
-    } else {
-        resetXrPoseActions();
-        destroyXrSpaces();
-        m_AreXrActionsAttached = false;
+        return setupXrSessionData();
     }
 
+    resetSetupXrSessionData();
     return AXR_SUCCESS;
 }
 
@@ -607,39 +560,6 @@ void AxrActionSystem::destroyXrSpaces() {
     for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
         actionSet.destroyXrSpaces();
     }
-}
-
-void AxrActionSystem::registerXrPoseActions() {
-    if (m_XrSystem == nullptr) {
-        axrLogErrorLocation("Xr system is null.");
-        return;
-    }
-
-    std::vector<AxrXrSystem::PoseAction> poseActions;
-
-    for (auto& [actionSetName, actionSet] : m_ActionSets) {
-        for (auto& [inputActionName, poseInputAction] : actionSet.getPoseInputActions()) {
-            poseActions.emplace_back(
-                AxrXrSystem::PoseAction{
-                    .ActionSetName = actionSetName.c_str(),
-                    .ActionName = inputActionName.c_str(),
-                    .Space = poseInputAction.getXrSpace(),
-                    .PoseData = poseInputAction.getPoseDataHandle()
-                }
-            );
-        }
-    }
-
-    m_XrSystem->registerPoseActions(poseActions);
-}
-
-void AxrActionSystem::resetXrPoseActions() const {
-    if (m_XrSystem == nullptr) {
-        axrLogWarningLocation("Xr system is null.");
-        return;
-    }
-
-    m_XrSystem->resetPoseActions();
 }
 
 #ifdef AXR_USE_PLATFORM_WIN32

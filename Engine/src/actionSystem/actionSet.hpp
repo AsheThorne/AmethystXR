@@ -120,7 +120,6 @@ public:
     /// Destroy the xr spaces
     void destroyXrSpaces();
 
-
     /// Signal that a new frame has started
     void newFrameStarted();
 
@@ -136,6 +135,40 @@ public:
     /// Get the pose input actions
     /// @returns The pose input actions
     [[nodiscard]] std::unordered_map<std::string, AxrPoseInputAction>& getPoseInputActions();
+
+    /// Check if this action set contains the given bool binding
+    /// @param binding Binding to check
+    /// @returns True if this action set contains the given bool binding
+    [[nodiscard]] bool containsBinding(AxrBoolInputActionEnum binding) const;
+    /// Check if this action set contains the given float binding
+    /// @param binding Binding to check
+    /// @returns True if this action set contains the given float binding
+    [[nodiscard]] bool containsBinding(AxrFloatInputActionEnum binding) const;
+    /// Check if this action set contains the given vec2 binding
+    /// @param binding Binding to check
+    /// @returns True if this action set contains the given vec2 binding
+    [[nodiscard]] bool containsBinding(AxrVec2InputActionEnum binding) const;
+    /// Check if this action set contains the given pose binding
+    /// @param binding Binding to check
+    /// @returns True if this action set contains the given pose binding
+    [[nodiscard]] bool containsBinding(AxrPoseInputActionEnum binding) const;
+
+    /// Trigger the given bool input action
+    /// @param inputActionEnum Bool input action
+    /// @param value Bool value
+    void triggerBoolInputAction(AxrBoolInputActionEnum inputActionEnum, bool value);
+    /// Trigger the given float input action
+    /// @param inputActionEnum Float input action
+    /// @param value Float value
+    void triggerFloatInputAction(AxrFloatInputActionEnum inputActionEnum, float value);
+    /// Trigger the given vec2 input action
+    /// @param inputActionEnum Vec2 input action
+    /// @param value Vec2 value
+    void triggerVec2InputAction(AxrVec2InputActionEnum inputActionEnum, const AxrVec2& value);
+    /// Trigger the given pose input action
+    /// @param inputActionEnum Pose input action
+    /// @param value Pose value
+    void triggerPoseInputAction(AxrPoseInputActionEnum inputActionEnum, const AxrPose& value);
 
     /// Get the xr action set
     /// @returns The xr action set

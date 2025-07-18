@@ -54,8 +54,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
                 "Test",
                 std::vector<axr::BoolInputActionConfig>{
                     axr::BoolInputActionConfig(
-                        "key",
-                        "Key",
+                        "click",
+                        "Click",
                         axr::ActionXrVisibilityEnum::Always,
                         std::vector{
                             axr::BoolInputActionEnum::KeyboardA,
@@ -74,8 +74,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
                         axr::PoseInputActionEnum::XrHMD
                     ),
                     axr::PoseInputActionConfig(
-                        "pose",
-                        "Pose",
+                        "righthand",
+                        "Right Hand",
                         axr::ActionXrVisibilityEnum::Auto,
                         axr::PoseInputActionEnum::XrController_Right_Grip
                     ),
@@ -145,10 +145,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     axr::GraphicsSystem graphicsSystem = app.getGraphicsSystem();
     graphicsSystem.setClearColor(axr::Color(0.2f, 0.05f, 0.2f, 1.0f));
 
-    axr::ActionSystem actionSystem = app.getActionSystem();
-    axr::ActionSet actionSet = actionSystem.getActionSet("test");
-    axr::BoolInputAction keyAction = actionSet.getBoolInputAction("key");
-
     while (app.isRunning()) {
         app.processEvents();
 
@@ -159,10 +155,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
             if (!app.isRunning()) {
                 break;
             }
-        }
-
-        if (keyAction.valueChanged()) {
-            axr::logWarning("Click: {0}", keyAction.getValue());
         }
 
         scene.update();
