@@ -814,6 +814,87 @@ AxrResult AxrXrSystem::updatePoseActions(const XrTime time, entt::registry* regi
     return AXR_SUCCESS;
 }
 
+AxrResult AxrXrSystem::applyHapticFeedback(
+    const XrAction action,
+    const int64_t duration,
+    const float frequency,
+    const float amplitude
+) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!isSessionActive()) return AXR_SUCCESS;
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const XrHapticActionInfo hapticActionInfo{
+        .type = XR_TYPE_HAPTIC_ACTION_INFO,
+        .next = nullptr,
+        .action = action,
+        .subactionPath = XR_NULL_PATH,
+    };
+
+    const XrHapticVibration vibration{
+        .type = XR_TYPE_HAPTIC_VIBRATION,
+        .next = nullptr,
+        .duration = duration,
+        .frequency = frequency,
+        .amplitude = amplitude,
+    };
+
+    const XrResult xrResult = xrApplyHapticFeedback(
+        m_Session,
+        &hapticActionInfo,
+        reinterpret_cast<const XrHapticBaseHeader*>(&vibration)
+    );
+    axrLogXrResult(xrResult, "xrApplyHapticFeedback");
+    if (XR_FAILED(xrResult)) {
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrXrSystem::stopHapticFeedback(const XrAction action) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!isSessionActive()) return AXR_SUCCESS;
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const XrHapticActionInfo hapticActionInfo{
+        .type = XR_TYPE_HAPTIC_ACTION_INFO,
+        .next = nullptr,
+        .action = action,
+        .subactionPath = XR_NULL_PATH,
+    };
+
+    const XrResult xrResult = xrStopHapticFeedback(m_Session, &hapticActionInfo);
+    axrLogXrResult(xrResult, "xrStopHapticFeedback");
+    if (XR_FAILED(xrResult)) {
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+
 AxrResult AxrXrSystem::createSwapchain(
     const XrSwapchainUsageFlags usageFlags,
     const int64_t format,

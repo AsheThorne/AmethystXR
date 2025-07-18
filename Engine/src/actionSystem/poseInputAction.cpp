@@ -27,7 +27,7 @@ void axrPoseInputActionConfigDestroy(AxrPoseInputActionConfig* inputActionConfig
     return AxrPoseInputAction::destroy(*inputActionConfig);
 }
 
-void axrPoseInputActionSetEnable(const AxrPoseInputAction_T inputAction) {
+void axrPoseInputActionEnable(const AxrPoseInputAction_T inputAction) {
     if (inputAction == nullptr) {
         axrLogErrorLocation("`inputAction` is null");
         return;
@@ -36,7 +36,7 @@ void axrPoseInputActionSetEnable(const AxrPoseInputAction_T inputAction) {
     return inputAction->enable();
 }
 
-void axrPoseInputActionSetDisable(const AxrPoseInputAction_T inputAction) {
+void axrPoseInputActionDisable(const AxrPoseInputAction_T inputAction) {
     if (inputAction == nullptr) {
         axrLogErrorLocation("`inputAction` is null");
         return;

@@ -27,7 +27,7 @@ void axrBoolInputActionConfigDestroy(AxrBoolInputActionConfig* inputActionConfig
     return AxrBoolInputAction::destroy(*inputActionConfig);
 }
 
-void axrBoolInputActionSetEnable(const AxrBoolInputAction_T inputAction) {
+void axrBoolInputActionEnable(const AxrBoolInputAction_T inputAction) {
     if (inputAction == nullptr) {
         axrLogErrorLocation("`inputAction` is null");
         return;
@@ -36,7 +36,7 @@ void axrBoolInputActionSetEnable(const AxrBoolInputAction_T inputAction) {
     return inputAction->enable();
 }
 
-void axrBoolInputActionSetDisable(const AxrBoolInputAction_T inputAction) {
+void axrBoolInputActionDisable(const AxrBoolInputAction_T inputAction) {
     if (inputAction == nullptr) {
         axrLogErrorLocation("`inputAction` is null");
         return;

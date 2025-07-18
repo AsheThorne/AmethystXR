@@ -238,6 +238,23 @@ public:
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult updatePoseActions(XrTime time, entt::registry* registryHandle) const;
 
+    /// Apply the haptic feedback to the given action
+    /// @param action Action to use
+    /// @param duration Haptic duration in nanoseconds
+    /// @param frequency Haptic frequency in Hz
+    /// @param amplitude Haptic amplitude from 0.0f to 1.0f
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult applyHapticFeedback(
+        XrAction action,
+        int64_t duration,
+        float frequency,
+        float amplitude
+    ) const;
+    /// Stop the haptic feedback to the given action
+    /// @param action Action to use
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult stopHapticFeedback(XrAction action) const;
+
     /// Create an xr swapchain
     /// @param usageFlags Usage flags
     /// @param format Format

@@ -27,7 +27,7 @@ void axrVec2InputActionConfigDestroy(AxrVec2InputActionConfig* inputActionConfig
     return AxrVec2InputAction::destroy(*inputActionConfig);
 }
 
-void axrVec2InputActionSetEnable(const AxrVec2InputAction_T inputAction) {
+void axrVec2InputActionEnable(const AxrVec2InputAction_T inputAction) {
     if (inputAction == nullptr) {
         axrLogErrorLocation("`inputAction` is null");
         return;
@@ -36,7 +36,7 @@ void axrVec2InputActionSetEnable(const AxrVec2InputAction_T inputAction) {
     return inputAction->enable();
 }
 
-void axrVec2InputActionSetDisable(const AxrVec2InputAction_T inputAction) {
+void axrVec2InputActionDisable(const AxrVec2InputAction_T inputAction) {
     if (inputAction == nullptr) {
         axrLogErrorLocation("`inputAction` is null");
         return;

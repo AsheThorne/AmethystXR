@@ -8,6 +8,7 @@
 #include "floatInputAction.hpp"
 #include "vec2InputAction.hpp"
 #include "poseInputAction.hpp"
+#include "hapticOutputAction.hpp"
 #include "../xrSystem/xrSystem.hpp"
 
 // ----------------------------------------- //
@@ -35,6 +36,8 @@ public:
         AxrVec2InputActionConfig* Vec2InputActions;
         uint32_t PoseInputActionCount;
         AxrPoseInputActionConfig* PoseInputActions;
+        uint32_t HapticOutputActionCount;
+        AxrHapticOutputActionConfig* HapticOutputActions;
     };
 
     // ----------------------------------------- //
@@ -103,6 +106,10 @@ public:
     /// @param name Pose input action name
     /// @returns The pose input action or nullptr if it wasn't found
     [[nodiscard]] AxrPoseInputAction_T getPoseInputAction(const std::string& name);
+    /// Get the named haptic output action
+    /// @param name Haptic output action name
+    /// @returns The haptic output action or nullptr if it wasn't found
+    [[nodiscard]] AxrHapticOutputAction_T getHapticOutputAction(const std::string& name);
 
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
@@ -135,6 +142,9 @@ public:
     /// Get the pose input actions
     /// @returns The pose input actions
     [[nodiscard]] std::unordered_map<std::string, AxrPoseInputAction>& getPoseInputActions();
+    /// Get the haptic output actions
+    /// @returns The haptic output actions
+    [[nodiscard]] std::unordered_map<std::string, AxrHapticOutputAction>& getHapticOutputActions();
 
     /// Check if this action set contains the given bool binding
     /// @param binding Binding to check
@@ -152,6 +162,10 @@ public:
     /// @param binding Binding to check
     /// @returns True if this action set contains the given pose binding
     [[nodiscard]] bool containsBinding(AxrPoseInputActionEnum binding) const;
+    /// Check if this action set contains the given haptic binding
+    /// @param binding Binding to check
+    /// @returns True if this action set contains the given haptic binding
+    [[nodiscard]] bool containsBinding(AxrHapticOutputActionEnum binding) const;
 
     /// Trigger the given bool input action
     /// @param inputActionEnum Bool input action
@@ -169,6 +183,19 @@ public:
     /// @param inputActionEnum Pose input action
     /// @param value Pose value
     void triggerPoseInputAction(AxrPoseInputActionEnum inputActionEnum, const AxrPose& value);
+
+    /// Reset the given bool input action
+    /// @param inputActionEnum Bool input action
+    void resetBoolInputAction(AxrBoolInputActionEnum inputActionEnum);
+    /// Reset the given float input action
+    /// @param inputActionEnum Float input action
+    void resetFloatInputAction(AxrFloatInputActionEnum inputActionEnum);
+    /// Reset the given vec2 input action
+    /// @param inputActionEnum Vec2 input action
+    void resetVec2InputAction(AxrVec2InputActionEnum inputActionEnum);
+    /// Reset the given pose input action
+    /// @param inputActionEnum Pose input action
+    void resetPoseInputAction(AxrPoseInputActionEnum inputActionEnum);
 
     /// Get the xr action set
     /// @returns The xr action set
@@ -201,6 +228,7 @@ private:
     std::unordered_map<std::string, AxrFloatInputAction> m_FloatInputActions;
     std::unordered_map<std::string, AxrVec2InputAction> m_Vec2InputActions;
     std::unordered_map<std::string, AxrPoseInputAction> m_PoseInputActions;
+    std::unordered_map<std::string, AxrHapticOutputAction> m_HapticOutputActions;
 
     // ---- Data ----
     bool m_IsEnabled;

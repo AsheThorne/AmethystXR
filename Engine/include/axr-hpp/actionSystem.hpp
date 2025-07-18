@@ -245,6 +245,17 @@ namespace axr {
         XrEnd = AXR_POSE_INPUT_ACTION_XR_END,
     };
 
+    /// Haptic output action enum
+    enum class HapticOutputActionEnum {
+        Undefined = AXR_HAPTIC_OUTPUT_ACTION_UNDEFINED,
+
+        // ---- XR - Max of 128 ----
+        XrStart = AXR_HAPTIC_OUTPUT_ACTION_XR_START,
+        XrController_Left = AXR_HAPTIC_OUTPUT_ACTION_XR_CONTROLLER_LEFT,
+        XrController_Right = AXR_HAPTIC_OUTPUT_ACTION_XR_CONTROLLER_RIGHT,
+        XrEnd = AXR_HAPTIC_OUTPUT_ACTION_XR_END,
+    };
+
     // ----------------------------------------- //
     // Structs
     // ----------------------------------------- //
@@ -1098,6 +1109,232 @@ namespace axr {
         "Original type and wrapper have different size!"
     );
 
+    /// Haptic output action config
+    struct HapticOutputActionConfig {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        char Name[AXR_MAX_ACTION_NAME_SIZE]{};
+        char LocalizedName[AXR_MAX_ACTION_LOCALIZED_NAME_SIZE]{};
+        axr::ActionXrVisibilityEnum XrVisibility = {};
+        uint32_t BindingCount = 0;
+        axr::HapticOutputActionEnum* Bindings = nullptr;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        HapticOutputActionConfig() = default;
+
+        /// Constructor
+        /// @param name Input action name
+        /// @param localizedName Input action localized name
+        /// @param xrVisibility Xr visibility
+        HapticOutputActionConfig(
+            const char* name,
+            const char* localizedName,
+            const axr::ActionXrVisibilityEnum xrVisibility
+        ): XrVisibility(xrVisibility) {
+            if (name != nullptr) {
+                strncpy_s(Name, name, AXR_MAX_ACTION_NAME_SIZE);
+            }
+            if (localizedName != nullptr) {
+                strncpy_s(LocalizedName, localizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
+            }
+        }
+
+        /// Constructor
+        /// @param name Input action name
+        /// @param localizedName Input action localized name
+        /// @param xrVisibility Xr visibility
+        /// @param bindings Haptic bindings
+        HapticOutputActionConfig(
+            const char* name,
+            const char* localizedName,
+            const axr::ActionXrVisibilityEnum xrVisibility,
+            const std::vector<axr::HapticOutputActionEnum>& bindings
+        ): XrVisibility(xrVisibility) {
+            if (name != nullptr) {
+                strncpy_s(Name, name, AXR_MAX_ACTION_NAME_SIZE);
+            }
+            if (localizedName != nullptr) {
+                strncpy_s(LocalizedName, localizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
+            }
+
+            addBindings(bindings);
+        }
+
+        /// Constructor
+        /// @param src Source HapticOutputActionConfig
+        explicit HapticOutputActionConfig(AxrHapticOutputActionConfig&& src) noexcept {
+            strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
+            XrVisibility = static_cast<axr::ActionXrVisibilityEnum>(src.XrVisibility);
+            BindingCount = src.BindingCount;
+            Bindings = reinterpret_cast<axr::HapticOutputActionEnum*>(src.Bindings);
+
+            memset(src.Name, 0, sizeof(src.Name));
+            memset(src.LocalizedName, 0, sizeof(src.LocalizedName));
+            src.XrVisibility = {};
+            src.BindingCount = 0;
+            src.Bindings = nullptr;
+        }
+
+        /// Copy Constructor
+        /// @param src Source HapticOutputActionConfig to copy from
+        HapticOutputActionConfig(const HapticOutputActionConfig& src) {
+            strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
+            XrVisibility = src.XrVisibility;
+            addBindings(src.BindingCount, src.Bindings);
+        }
+
+        /// Move Constructor
+        /// @param src Source HapticOutputActionConfig to move from
+        HapticOutputActionConfig(HapticOutputActionConfig&& src) noexcept {
+            strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+            strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
+            XrVisibility = src.XrVisibility;
+            BindingCount = src.BindingCount;
+            Bindings = src.Bindings;
+
+            memset(src.Name, 0, sizeof(src.Name));
+            memset(src.LocalizedName, 0, sizeof(src.LocalizedName));
+            src.XrVisibility = {};
+            src.BindingCount = 0;
+            src.Bindings = nullptr;
+        }
+
+        // ---- Destructor ----
+
+        ~HapticOutputActionConfig() {
+            cleanup();
+        }
+
+        // ---- Operator Overloads ----
+
+        /// Copy Assignment Operator
+        /// @param src Source HapticOutputActionConfig to copy from
+        HapticOutputActionConfig& operator=(const HapticOutputActionConfig& src) {
+            if (this != &src) {
+                cleanup();
+
+                strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+                strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
+                XrVisibility = src.XrVisibility;
+                addBindings(src.BindingCount, src.Bindings);
+            }
+            return *this;
+        }
+
+        /// Move Assignment Operator
+        /// @param src Source HapticOutputActionConfig to move from
+        HapticOutputActionConfig& operator=(HapticOutputActionConfig&& src) noexcept {
+            if (this != &src) {
+                cleanup();
+
+                strncpy_s(Name, src.Name, AXR_MAX_ACTION_NAME_SIZE);
+                strncpy_s(LocalizedName, src.LocalizedName, AXR_MAX_ACTION_LOCALIZED_NAME_SIZE);
+                XrVisibility = src.XrVisibility;
+                BindingCount = src.BindingCount;
+                Bindings = src.Bindings;
+
+                memset(src.Name, 0, sizeof(src.Name));
+                memset(src.LocalizedName, 0, sizeof(src.LocalizedName));
+                src.XrVisibility = {};
+                src.BindingCount = 0;
+                src.Bindings = nullptr;
+            }
+            return *this;
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the HapticOutputActionConfig as an AxrHapticOutputActionConfig
+        /// @returns This as an AxrHapticOutputActionConfig
+        const AxrHapticOutputActionConfig* toRaw() const {
+            return reinterpret_cast<const AxrHapticOutputActionConfig*>(this);
+        }
+
+        /// Get a handle to the HapticOutputActionConfig as an AxrHapticOutputActionConfig
+        /// @returns This as an AxrHapticOutputActionConfig
+        AxrHapticOutputActionConfig* toRaw() {
+            return reinterpret_cast<AxrHapticOutputActionConfig*>(this);
+        }
+
+        /// Add a bindings
+        /// @param bindings Haptic bindings
+        void addBindings(const std::vector<axr::HapticOutputActionEnum>& bindings) {
+            addBindings(bindings.size(), bindings.data());
+        }
+
+        /// Add a bindings
+        /// @param bindingCount Bindings count
+        /// @param bindings Haptic bindings
+        void addBindings(const uint32_t bindingCount, const axr::HapticOutputActionEnum* bindings) {
+            const uint32_t startingSize = BindingCount;
+            resizeBindings(BindingCount + bindingCount);
+
+            for (uint32_t i = 0; i < bindingCount; ++i) {
+                Bindings[startingSize + i] = bindings[i];
+            }
+        }
+
+        /// Add a binding
+        /// @param binding Haptic binding
+        void addBinding(const axr::HapticOutputActionEnum binding) {
+            resizeBindings(BindingCount + 1);
+
+            Bindings[BindingCount - 1] = binding;
+        }
+
+        /// Clear the bindings
+        void clearBindings() {
+            if (Bindings == nullptr) return;
+
+            delete[] Bindings;
+            Bindings = nullptr;
+            BindingCount = 0;
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Functions
+        // ----------------------------------------- //
+
+        /// Clean up this class
+        void cleanup() {
+            memset(Name, 0, sizeof(Name));
+            memset(LocalizedName, 0, sizeof(LocalizedName));
+            XrVisibility = {};
+
+            clearBindings();
+        }
+
+        /// Resize the bindings
+        /// @param size New size
+        void resizeBindings(const uint32_t size) {
+            const auto newBindings = new axr::HapticOutputActionEnum[size]{};
+            for (uint32_t i = 0; i < std::min(BindingCount, size); ++i) {
+                newBindings[i] = Bindings[i];
+                Bindings[i] = axr::HapticOutputActionEnum::Undefined;
+            }
+
+            clearBindings();
+            Bindings = newBindings;
+            BindingCount = size;
+        }
+    };
+
+    static_assert(
+        sizeof(AxrHapticOutputActionConfig) == sizeof(axr::HapticOutputActionConfig),
+        "Original type and wrapper have different size!"
+    );
 
     /// Action set config
     struct ActionSetConfig {
@@ -1114,6 +1351,8 @@ namespace axr {
         axr::Vec2InputActionConfig* Vec2InputActions = nullptr;
         uint32_t PoseInputActionCount = 0;
         axr::PoseInputActionConfig* PoseInputActions = nullptr;
+        uint32_t HapticOutputActionCount = 0;
+        axr::HapticOutputActionConfig* HapticOutputActions = nullptr;
 
         // ----------------------------------------- //
         // Special Functions
@@ -1146,13 +1385,15 @@ namespace axr {
         /// @param floatInputActions Float input actions
         /// @param vec2InputActions Vec2 input actions
         /// @param poseInputActions Pose input actions
+        /// @param hapticOutputActions Haptic Output actions
         ActionSetConfig(
             const char* name,
             const char* localizedName,
             const std::vector<axr::BoolInputActionConfig>& boolInputActions,
             const std::vector<axr::FloatInputActionConfig>& floatInputActions,
             const std::vector<axr::Vec2InputActionConfig>& vec2InputActions,
-            const std::vector<axr::PoseInputActionConfig>& poseInputActions
+            const std::vector<axr::PoseInputActionConfig>& poseInputActions,
+            const std::vector<axr::HapticOutputActionConfig>& hapticOutputActions
         ) {
             if (name != nullptr) {
                 strncpy_s(Name, name, AXR_MAX_ACTION_SET_NAME_SIZE);
@@ -1165,6 +1406,7 @@ namespace axr {
             addFloatInputActions(floatInputActions);
             addVec2InputActions(vec2InputActions);
             addPoseInputActions(poseInputActions);
+            addHapticOutputActions(hapticOutputActions);
         }
 
         /// Constructor
@@ -1180,6 +1422,8 @@ namespace axr {
             Vec2InputActions = reinterpret_cast<axr::Vec2InputActionConfig*>(src.Vec2InputActions);
             PoseInputActionCount = src.PoseInputActionCount;
             PoseInputActions = reinterpret_cast<axr::PoseInputActionConfig*>(src.PoseInputActions);
+            HapticOutputActionCount = src.HapticOutputActionCount;
+            HapticOutputActions = reinterpret_cast<axr::HapticOutputActionConfig*>(src.HapticOutputActions);
 
             memset(src.Name, 0, sizeof(src.Name));
             memset(src.LocalizedName, 0, sizeof(src.LocalizedName));
@@ -1191,6 +1435,8 @@ namespace axr {
             src.Vec2InputActions = nullptr;
             src.PoseInputActionCount = 0;
             src.PoseInputActions = nullptr;
+            src.HapticOutputActionCount = 0;
+            src.HapticOutputActions = nullptr;
         }
 
         /// Copy Constructor
@@ -1202,6 +1448,7 @@ namespace axr {
             addFloatInputActions(src.FloatInputActionCount, src.FloatInputActions);
             addVec2InputActions(src.Vec2InputActionCount, src.Vec2InputActions);
             addPoseInputActions(src.PoseInputActionCount, src.PoseInputActions);
+            addHapticOutputActions(src.HapticOutputActionCount, src.HapticOutputActions);
         }
 
         /// Move Constructor
@@ -1217,6 +1464,8 @@ namespace axr {
             Vec2InputActions = src.Vec2InputActions;
             PoseInputActionCount = src.PoseInputActionCount;
             PoseInputActions = src.PoseInputActions;
+            HapticOutputActionCount = src.HapticOutputActionCount;
+            HapticOutputActions = src.HapticOutputActions;
 
             memset(src.Name, 0, sizeof(src.Name));
             memset(src.LocalizedName, 0, sizeof(src.LocalizedName));
@@ -1228,6 +1477,8 @@ namespace axr {
             src.Vec2InputActions = nullptr;
             src.PoseInputActionCount = 0;
             src.PoseInputActions = nullptr;
+            src.HapticOutputActionCount = 0;
+            src.HapticOutputActions = nullptr;
         }
 
         // ---- Destructor ----
@@ -1250,6 +1501,7 @@ namespace axr {
                 addFloatInputActions(src.FloatInputActionCount, src.FloatInputActions);
                 addVec2InputActions(src.Vec2InputActionCount, src.Vec2InputActions);
                 addPoseInputActions(src.PoseInputActionCount, src.PoseInputActions);
+                addHapticOutputActions(src.HapticOutputActionCount, src.HapticOutputActions);
             }
             return *this;
         }
@@ -1270,6 +1522,8 @@ namespace axr {
                 Vec2InputActions = src.Vec2InputActions;
                 PoseInputActionCount = src.PoseInputActionCount;
                 PoseInputActions = src.PoseInputActions;
+                HapticOutputActionCount = src.HapticOutputActionCount;
+                HapticOutputActions = src.HapticOutputActions;
 
                 memset(src.Name, 0, sizeof(src.Name));
                 memset(src.LocalizedName, 0, sizeof(src.LocalizedName));
@@ -1281,6 +1535,8 @@ namespace axr {
                 src.Vec2InputActions = nullptr;
                 src.PoseInputActionCount = 0;
                 src.PoseInputActions = nullptr;
+                src.HapticOutputActionCount = 0;
+                src.HapticOutputActions = nullptr;
             }
             return *this;
         }
@@ -1421,6 +1677,38 @@ namespace axr {
             );
         }
 
+        /// Add the given haptic output actions
+        /// @param outputActions Haptic output actions
+        void addHapticOutputActions(const std::vector<axr::HapticOutputActionConfig>& outputActions) {
+            addHapticOutputActions(outputActions.size(), outputActions.data());
+        }
+
+        /// Add the given haptic output actions
+        /// @param outputActionCount Haptic output actions count
+        /// @param outputActions Haptic output actions
+        void addHapticOutputActions(
+            const uint32_t outputActionCount,
+            const axr::HapticOutputActionConfig* outputActions
+        ) {
+            const uint32_t startingSize = HapticOutputActionCount;
+            resizeHapticOutputActions(HapticOutputActionCount + outputActionCount);
+
+            for (uint32_t i = 0; i < outputActionCount; ++i) {
+                HapticOutputActions[startingSize + i] = axr::HapticOutputActionConfig(
+                    axrHapticOutputActionConfigClone(outputActions[i].toRaw())
+                );
+            }
+        }
+
+        /// Add a haptic output action
+        /// @param outputAction Haptic output action
+        void addHapticOutputAction(const axr::HapticOutputActionConfig& outputAction) {
+            resizeHapticOutputActions(HapticOutputActionCount + 1);
+
+            HapticOutputActions[HapticOutputActionCount - 1] = axr::HapticOutputActionConfig(
+                axrHapticOutputActionConfigClone(outputAction.toRaw())
+            );
+        }
 
         /// Clear the bool input actions
         void clearBoolInputActions() {
@@ -1474,6 +1762,19 @@ namespace axr {
             PoseInputActionCount = 0;
         }
 
+        /// Clear the haptic output actions
+        void clearHapticOutputActions() {
+            if (HapticOutputActions == nullptr) return;
+
+            for (uint32_t i = 0; i < HapticOutputActionCount; ++i) {
+                axrHapticOutputActionConfigDestroy(HapticOutputActions[i].toRaw());
+            }
+
+            delete[] HapticOutputActions;
+            HapticOutputActions = nullptr;
+            HapticOutputActionCount = 0;
+        }
+
     private:
         // ----------------------------------------- //
         // Private Functions
@@ -1488,6 +1789,7 @@ namespace axr {
             clearFloatInputActions();
             clearVec2InputActions();
             clearPoseInputActions();
+            clearHapticOutputActions();
         }
 
         /// Resize the bool input actions
@@ -1565,6 +1867,25 @@ namespace axr {
             clearPoseInputActions();
             PoseInputActions = newInputActions;
             PoseInputActionCount = size;
+        }
+
+        /// Resize the haptic output actions
+        /// @param size New size
+        void resizeHapticOutputActions(const uint32_t size) {
+            if (size == 0) {
+                clearHapticOutputActions();
+                return;
+            }
+
+            const auto newInputActions = new axr::HapticOutputActionConfig[size]{};
+            for (uint32_t i = 0; i < std::min(HapticOutputActionCount, size); ++i) {
+                newInputActions[i] = HapticOutputActions[i];
+                HapticOutputActions[i] = {};
+            }
+
+            clearHapticOutputActions();
+            HapticOutputActions = newInputActions;
+            HapticOutputActionCount = size;
         }
     };
 
@@ -1834,12 +2155,12 @@ namespace axr {
 
         /// Enable the bool action set
         void enable() const {
-            axrBoolInputActionSetEnable(m_BoolInputAction);
+            axrBoolInputActionEnable(m_BoolInputAction);
         }
 
         /// Disable the bool action set
         void disable() const {
-            axrBoolInputActionSetDisable(m_BoolInputAction);
+            axrBoolInputActionDisable(m_BoolInputAction);
         }
 
         /// Check if the action is enabled
@@ -1892,12 +2213,12 @@ namespace axr {
 
         /// Enable the float action set
         void enable() const {
-            axrFloatInputActionSetEnable(m_FloatInputAction);
+            axrFloatInputActionEnable(m_FloatInputAction);
         }
 
         /// Disable the float action set
         void disable() const {
-            axrFloatInputActionSetDisable(m_FloatInputAction);
+            axrFloatInputActionDisable(m_FloatInputAction);
         }
 
         /// Check if the action is enabled
@@ -1950,12 +2271,12 @@ namespace axr {
 
         /// Enable the vec2 action set
         void enable() const {
-            axrVec2InputActionSetEnable(m_Vec2InputAction);
+            axrVec2InputActionEnable(m_Vec2InputAction);
         }
 
         /// Disable the vec2 action set
         void disable() const {
-            axrVec2InputActionSetDisable(m_Vec2InputAction);
+            axrVec2InputActionDisable(m_Vec2InputAction);
         }
 
         /// Check if the action is enabled
@@ -2008,12 +2329,12 @@ namespace axr {
 
         /// Enable the pose action set
         void enable() const {
-            axrPoseInputActionSetEnable(m_PoseInputAction);
+            axrPoseInputActionEnable(m_PoseInputAction);
         }
 
         /// Disable the pose action set
         void disable() const {
-            axrPoseInputActionSetDisable(m_PoseInputAction);
+            axrPoseInputActionDisable(m_PoseInputAction);
         }
 
         /// Check if the action is enabled
@@ -2035,6 +2356,68 @@ namespace axr {
         AxrPoseInputAction_T m_PoseInputAction;
     };
 
+    // ----------------------------------------- //
+    // Haptic Output Action Definition
+    // ----------------------------------------- //
+
+    /// Haptic Output Action
+    class HapticOutputAction {
+    public:
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Constructor
+        /// @param hapticOutputAction Haptic output action handle
+        explicit HapticOutputAction(const AxrHapticOutputAction_T hapticOutputAction):
+            m_HapticOutputAction(hapticOutputAction) {
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Enable the haptic output set
+        void enable() const {
+            axrHapticOutputActionEnable(m_HapticOutputAction);
+        }
+
+        /// Disable the haptic output set
+        void disable() const {
+            axrHapticOutputActionDisable(m_HapticOutputAction);
+        }
+
+        /// Check if the action is enabled
+        /// @returns True if the action is enabled
+        [[nodiscard]] bool isEnabled() const {
+            return axrHapticOutputActionIsEnabled(m_HapticOutputAction);
+        }
+
+        /// Activate the action haptics
+        /// @param duration Haptic duration in nanoseconds
+        /// @param frequency Haptic frequency in Hz
+        /// @param amplitude Haptic amplitude from 0.0f to 1.0f
+        void activate(
+            const int64_t duration,
+            const float frequency,
+            const float amplitude
+        ) const {
+            axrHapticOutputActionActivate(m_HapticOutputAction, duration, frequency, amplitude);
+        }
+
+        /// Deactivate the action haptics
+        void deactivate() const {
+            axrHapticOutputActionDeactivate(m_HapticOutputAction);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Variables
+        // ----------------------------------------- //
+        AxrHapticOutputAction_T m_HapticOutputAction;
+    };
 
     // ----------------------------------------- //
     // Action Set Definition
@@ -2114,6 +2497,14 @@ namespace axr {
         [[nodiscard]] axr::PoseInputAction getPoseInputAction(const char* name) const {
             return axr::PoseInputAction(axrActionSetGetPoseInputAction(m_ActionSet, name));
         }
+
+        /// Get the named haptic output action
+        /// @param name Haptic output action name
+        /// @returns The haptic output action or nullptr if it wasn't found
+        [[nodiscard]] axr::HapticOutputAction getHapticOutputAction(const char* name) const {
+            return axr::HapticOutputAction(axrActionSetGetHapticOutputAction(m_ActionSet, name));
+        }
+
 
     private:
         // ----------------------------------------- //

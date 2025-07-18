@@ -249,6 +249,17 @@ enum AxrPoseInputActionEnum {
     AXR_POSE_INPUT_ACTION_XR_END = AXR_POSE_INPUT_ACTION_XR_START + 127,
 };
 
+/// Haptic output action enum
+enum AxrHapticOutputActionEnum {
+    AXR_HAPTIC_OUTPUT_ACTION_UNDEFINED = 0,
+
+    // ---- XR - Max of 128 ----
+    AXR_HAPTIC_OUTPUT_ACTION_XR_START = AXR_HAPTIC_OUTPUT_ACTION_UNDEFINED + 1,
+    AXR_HAPTIC_OUTPUT_ACTION_XR_CONTROLLER_LEFT = AXR_HAPTIC_OUTPUT_ACTION_XR_START + 0,
+    AXR_HAPTIC_OUTPUT_ACTION_XR_CONTROLLER_RIGHT = AXR_HAPTIC_OUTPUT_ACTION_XR_START + 1,
+    AXR_HAPTIC_OUTPUT_ACTION_XR_END = AXR_HAPTIC_OUTPUT_ACTION_XR_START + 127,
+};
+
 // ----------------------------------------- //
 // Structs
 // ----------------------------------------- //
@@ -288,6 +299,15 @@ struct AxrPoseInputActionConfig {
     AxrPoseInputActionEnum Binding;
 };
 
+/// Haptic Output Action Config
+struct AxrHapticOutputActionConfig {
+    char Name[AXR_MAX_ACTION_NAME_SIZE];
+    char LocalizedName[AXR_MAX_ACTION_LOCALIZED_NAME_SIZE];
+    AxrActionXrVisibilityEnum XrVisibility;
+    uint32_t BindingCount;
+    AxrHapticOutputActionEnum* Bindings;
+};
+
 /// Action set config
 struct AxrActionSetConfig {
     char Name[AXR_MAX_ACTION_SET_NAME_SIZE];
@@ -300,6 +320,8 @@ struct AxrActionSetConfig {
     AxrVec2InputActionConfig* Vec2InputActions;
     uint32_t PoseInputActionCount;
     AxrPoseInputActionConfig* PoseInputActions;
+    uint32_t HapticOutputActionCount;
+    AxrHapticOutputActionConfig* HapticOutputActions;
 };
 
 /// Action system config
@@ -334,6 +356,11 @@ typedef class AxrPoseInputAction* AxrPoseInputAction_T;
 /// const AxrPoseInputAction Handle
 typedef const AxrPoseInputAction* AxrPoseInputActionConst_T;
 
+/// AxrHapticOutputAction Handle
+typedef class AxrHapticOutputAction* AxrHapticOutputAction_T;
+/// const AxrHapticOutputAction Handle
+typedef const AxrHapticOutputAction* AxrHapticOutputActionConst_T;
+
 /// AxrActionSet Handle
 typedef class AxrActionSet* AxrActionSet_T;
 /// const AxrActionSet Handle
@@ -358,12 +385,12 @@ extern "C" {
     /// @param inputActionConfig Bool input action config to destroy
     AXR_API void axrBoolInputActionConfigDestroy(AxrBoolInputActionConfig* inputActionConfig);
 
-    /// Enable the bool action set
+    /// Enable the bool action
     /// @param inputAction Bool input action to use
-    AXR_API void axrBoolInputActionSetEnable(AxrBoolInputAction_T inputAction);
-    /// Disable the bool action set
+    AXR_API void axrBoolInputActionEnable(AxrBoolInputAction_T inputAction);
+    /// Disable the bool action
     /// @param inputAction Bool input action to use
-    AXR_API void axrBoolInputActionSetDisable(AxrBoolInputAction_T inputAction);
+    AXR_API void axrBoolInputActionDisable(AxrBoolInputAction_T inputAction);
     /// Check if the action is enabled
     /// @param inputAction Bool input action to use
     /// @returns True if the action is enabled
@@ -390,12 +417,12 @@ extern "C" {
     /// @param inputActionConfig Float input action config to destroy
     AXR_API void axrFloatInputActionConfigDestroy(AxrFloatInputActionConfig* inputActionConfig);
 
-    /// Enable the float action set
+    /// Enable the float action
     /// @param inputAction Float input action to use
-    AXR_API void axrFloatInputActionSetEnable(AxrFloatInputAction_T inputAction);
-    /// Disable the float action set
+    AXR_API void axrFloatInputActionEnable(AxrFloatInputAction_T inputAction);
+    /// Disable the float action
     /// @param inputAction Float input action to use
-    AXR_API void axrFloatInputActionSetDisable(AxrFloatInputAction_T inputAction);
+    AXR_API void axrFloatInputActionDisable(AxrFloatInputAction_T inputAction);
     /// Check if the action is enabled
     /// @param inputAction Float input action to use
     /// @returns True if the action is enabled
@@ -420,12 +447,12 @@ extern "C" {
     /// @param inputActionConfig Vec2 input action config to destroy
     AXR_API void axrVec2InputActionConfigDestroy(AxrVec2InputActionConfig* inputActionConfig);
 
-    /// Enable the vec2 action set
+    /// Enable the vec2 action
     /// @param inputAction Vec2 input action to use
-    AXR_API void axrVec2InputActionSetEnable(AxrVec2InputAction_T inputAction);
-    /// Disable the vec2 action set
+    AXR_API void axrVec2InputActionEnable(AxrVec2InputAction_T inputAction);
+    /// Disable the vec2 action
     /// @param inputAction Vec2 input action to use
-    AXR_API void axrVec2InputActionSetDisable(AxrVec2InputAction_T inputAction);
+    AXR_API void axrVec2InputActionDisable(AxrVec2InputAction_T inputAction);
     /// Check if the action is enabled
     /// @param inputAction Vec2 input action to use
     /// @returns True if the action is enabled
@@ -450,12 +477,12 @@ extern "C" {
     /// @param inputActionConfig Pose input action config to destroy
     AXR_API void axrPoseInputActionConfigDestroy(AxrPoseInputActionConfig* inputActionConfig);
 
-    /// Enable the pose action set
+    /// Enable the pose action
     /// @param inputAction Pose input action to use
-    AXR_API void axrPoseInputActionSetEnable(AxrPoseInputAction_T inputAction);
-    /// Disable the pose action set
+    AXR_API void axrPoseInputActionEnable(AxrPoseInputAction_T inputAction);
+    /// Disable the pose action
     /// @param inputAction Pose input action to use
-    AXR_API void axrPoseInputActionSetDisable(AxrPoseInputAction_T inputAction);
+    AXR_API void axrPoseInputActionDisable(AxrPoseInputAction_T inputAction);
     /// Check if the action is enabled
     /// @param inputAction Pose input action to use
     /// @returns True if the action is enabled
@@ -465,6 +492,44 @@ extern "C" {
     /// @param inputAction Pose input action to use
     /// @returns The current value of this input action
     AXR_API AxrPose axrPoseInputActionGetValue(AxrPoseInputActionConst_T inputAction);
+
+    // ---- Haptic Output Action ----
+
+    /// Clone the given haptic output action config
+    /// @param outputActionConfig Haptic output action config to clone
+    /// @returns The cloned haptic output action
+    AXR_API AxrHapticOutputActionConfig axrHapticOutputActionConfigClone(
+        const AxrHapticOutputActionConfig* outputActionConfig
+    );
+    /// Destroy the given haptic output action config
+    /// @param outputActionConfig Haptic output action config to destroy
+    AXR_API void axrHapticOutputActionConfigDestroy(AxrHapticOutputActionConfig* outputActionConfig);
+
+    /// Enable the haptic action
+    /// @param outputAction Haptic output action to use
+    AXR_API void axrHapticOutputActionEnable(AxrHapticOutputAction_T outputAction);
+    /// Disable the haptic action
+    /// @param outputAction Haptic output action to use
+    AXR_API void axrHapticOutputActionDisable(AxrHapticOutputAction_T outputAction);
+    /// Check if the action is enabled
+    /// @param outputAction Haptic output action to use
+    /// @returns True if the action is enabled
+    AXR_API bool axrHapticOutputActionIsEnabled(AxrHapticOutputActionConst_T outputAction);
+
+    /// Activate the action haptics
+    /// @param outputAction Haptic output action to use
+    /// @param duration Haptic duration in nanoseconds
+    /// @param frequency Haptic frequency in Hz
+    /// @param amplitude Haptic amplitude from 0.0f to 1.0f
+    AXR_API void axrHapticOutputActionActivate(
+        AxrHapticOutputAction_T outputAction,
+        int64_t duration,
+        float frequency,
+        float amplitude
+    );
+    /// Deactivate the action haptics
+    /// @param outputAction Haptic output action to use
+    AXR_API void axrHapticOutputActionDeactivate(AxrHapticOutputAction_T outputAction);
 
     // ---- Action Set ----
 
@@ -516,6 +581,11 @@ extern "C" {
     /// @param name Pose input action name
     /// @returns The pose input action or nullptr if it wasn't found
     AXR_API AxrPoseInputAction_T axrActionSetGetPoseInputAction(AxrActionSet_T actionSet, const char* name);
+    /// Get the named haptic output action
+    /// @param actionSet Action set to use
+    /// @param name Haptic output action name
+    /// @returns The haptic output action or nullptr if it wasn't found
+    AXR_API AxrHapticOutputAction_T axrActionSetGetHapticOutputAction(AxrActionSet_T actionSet, const char* name);
 
     // ---- Action System ----
 

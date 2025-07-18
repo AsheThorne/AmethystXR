@@ -27,7 +27,7 @@ void axrFloatInputActionConfigDestroy(AxrFloatInputActionConfig* inputActionConf
     return AxrFloatInputAction::destroy(*inputActionConfig);
 }
 
-void axrFloatInputActionSetEnable(const AxrFloatInputAction_T inputAction) {
+void axrFloatInputActionEnable(const AxrFloatInputAction_T inputAction) {
     if (inputAction == nullptr) {
         axrLogErrorLocation("`inputAction` is null");
         return;
@@ -36,7 +36,7 @@ void axrFloatInputActionSetEnable(const AxrFloatInputAction_T inputAction) {
     return inputAction->enable();
 }
 
-void axrFloatInputActionSetDisable(const AxrFloatInputAction_T inputAction) {
+void axrFloatInputActionDisable(const AxrFloatInputAction_T inputAction) {
     if (inputAction == nullptr) {
         axrLogErrorLocation("`inputAction` is null");
         return;

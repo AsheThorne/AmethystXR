@@ -143,33 +143,33 @@ private:
     // Private Functions
     // ----------------------------------------- //
 
-    /// Trigger a bool input action
+    /// Trigger the given bool input action
     /// @param inputActionEnum Bool input action
     /// @param value Bool value
     void triggerBoolInputAction(AxrBoolInputActionEnum inputActionEnum, bool value);
-    /// Trigger a float input action
+    /// Trigger the given float input action
     /// @param inputActionEnum Float input action
     /// @param value Float value
     void triggerFloatInputAction(AxrFloatInputActionEnum inputActionEnum, float value);
-    /// Trigger a vec2 input action
+    /// Trigger the given vec2 input action
     /// @param inputActionEnum Vec2 input action
     /// @param value Vec2 value
     void triggerVec2InputAction(AxrVec2InputActionEnum inputActionEnum, const AxrVec2& value);
-    /// Trigger a pose input action
+    /// Trigger the given pose input action
     /// @param inputActionEnum Pose input action
     /// @param value Pose value
     void triggerPoseInputAction(AxrPoseInputActionEnum inputActionEnum, const AxrPose& value);
 
-    /// Reset a bool input action
+    /// Reset the given bool input action
     /// @param inputActionEnum Bool input action
     void resetBoolInputAction(AxrBoolInputActionEnum inputActionEnum);
-    /// Reset a float input action
+    /// Reset the given float input action
     /// @param inputActionEnum Float input action
     void resetFloatInputAction(AxrFloatInputActionEnum inputActionEnum);
-    /// Reset a vec2 input action
+    /// Reset the given vec2 input action
     /// @param inputActionEnum Vec2 input action
     void resetVec2InputAction(AxrVec2InputActionEnum inputActionEnum);
-    /// Reset a pose input action
+    /// Reset the given pose input action
     /// @param inputActionEnum Pose input action
     void resetPoseInputAction(AxrPoseInputActionEnum inputActionEnum);
 

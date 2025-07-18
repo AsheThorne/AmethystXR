@@ -79,6 +79,17 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
                         axr::ActionXrVisibilityEnum::Auto,
                         axr::PoseInputActionEnum::XrController_Right_Grip
                     ),
+                },
+                std::vector<axr::HapticOutputActionConfig>{
+                    axr::HapticOutputActionConfig(
+                        "controller",
+                        "Controller",
+                        axr::ActionXrVisibilityEnum::Auto,
+                        std::vector{
+                            axr::HapticOutputActionEnum::XrController_Left,
+                            axr::HapticOutputActionEnum::XrController_Right,
+                        }
+                    ),
                 }
             )
         },

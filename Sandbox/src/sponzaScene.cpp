@@ -309,13 +309,9 @@ void SponzaScene::update() {
     const axr::ActionSystem actionSystem = m_Application.getActionSystem();
     const axr::ActionSet actionSet = actionSystem.getActionSet("test");
     const axr::BoolInputAction keyAction = actionSet.getBoolInputAction("click");
-    const axr::PoseInputAction headAction = actionSet.getPoseInputAction("righthand");
+    const axr::HapticOutputAction hapticAction = actionSet.getHapticOutputAction("controller");
 
     if (keyAction.valueChanged() && keyAction.getValue()) {
-        if (headAction.isEnabled()) {
-            headAction.disable();
-        } else {
-            headAction.enable();
-        }
+        hapticAction.activate(AXR_HAPTIC_ACTION_MIN_DURATION, AXR_HAPTIC_ACTION_UNSPECIFIED_FREQUENCY, 1.0f);
     }
 }

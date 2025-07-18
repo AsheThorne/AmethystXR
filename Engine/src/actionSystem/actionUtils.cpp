@@ -346,6 +346,11 @@ bool axrIsXrPoseInputAction(const AxrPoseInputActionEnum inputAction) {
         inputAction <= AXR_POSE_INPUT_ACTION_XR_END;
 }
 
+bool axrIsXrHapticOutputAction(const AxrHapticOutputActionEnum outputAction) {
+    return outputAction >= AXR_HAPTIC_OUTPUT_ACTION_XR_START &&
+        outputAction <= AXR_HAPTIC_OUTPUT_ACTION_XR_END;
+}
+
 const char* axrGetXrBoolInputActionName(const AxrBoolInputActionEnum inputAction) {
     if (!axrIsXrBoolInputAction(inputAction)) {
         axrLogErrorLocation("Input action is not an xr action.");
@@ -543,6 +548,26 @@ const char* axrGetXrPoseInputActionName(const AxrPoseInputActionEnum inputAction
     }
 }
 
+const char* axrGetXrHapticOutputActionName(const AxrHapticOutputActionEnum outputAction) {
+    if (!axrIsXrHapticOutputAction(outputAction)) {
+        axrLogErrorLocation("Output action is not an xr action.");
+        return "";
+    }
+
+    switch (outputAction) {
+        case AXR_HAPTIC_OUTPUT_ACTION_XR_CONTROLLER_LEFT: {
+            return "/user/hand/left/output/haptic";
+        }
+        case AXR_HAPTIC_OUTPUT_ACTION_XR_CONTROLLER_RIGHT: {
+            return "/user/hand/right/output/haptic";
+        }
+        default: {
+            axrLogErrorLocation("Unknown xr output action.");
+            return "";
+        }
+    }
+}
+
 std::unordered_set<AxrBoolInputActionEnum> axrGetXrInteractionProfileBoolInputActionBindings(
     const AxrXrInteractionProfileEnum xrInteractionProfile
 ) {
@@ -671,6 +696,30 @@ std::unordered_set<AxrPoseInputActionEnum> axrGetXrInteractionProfilePoseInputAc
     }
 }
 
+std::unordered_set<AxrHapticOutputActionEnum> axrGetXrInteractionProfileHapticOutputActionBindings(
+    const AxrXrInteractionProfileEnum xrInteractionProfile
+) {
+    switch (xrInteractionProfile) {
+        case AXR_XR_INTERACTION_PROFILE_KHR_SIMPLE_CONTROLLER: {
+            return {
+                AXR_HAPTIC_OUTPUT_ACTION_XR_CONTROLLER_LEFT,
+                AXR_HAPTIC_OUTPUT_ACTION_XR_CONTROLLER_RIGHT,
+            };
+        }
+        case AXR_XR_INTERACTION_PROFILE_VALVE_INDEX_CONTROLLER: {
+            return {
+                AXR_HAPTIC_OUTPUT_ACTION_XR_CONTROLLER_LEFT,
+                AXR_HAPTIC_OUTPUT_ACTION_XR_CONTROLLER_RIGHT,
+            };
+        }
+        case AXR_XR_INTERACTION_PROFILE_UNDEFINED:
+        default: {
+            axrLogErrorLocation("Unknown xr interaction profile.");
+            return {};
+        }
+    }
+}
+
 std::unordered_set<const char*> axrGetXrInteractionProfileBindingNames(
     const AxrXrInteractionProfileEnum xrInteractionProfile
 ) {
@@ -710,6 +759,15 @@ std::unordered_set<const char*> axrGetXrInteractionProfileBindingNames(
         if (axrStringIsEmpty(inputActionName)) continue;
 
         xrInteractionProfileBindingNames.insert(inputActionName);
+    }
+
+    for (const AxrHapticOutputActionEnum outputAction : axrGetXrInteractionProfileHapticOutputActionBindings(
+             xrInteractionProfile
+         )) {
+        const char* outputActionName = axrGetXrHapticOutputActionName(outputAction);
+        if (axrStringIsEmpty(outputActionName)) continue;
+
+        xrInteractionProfileBindingNames.insert(outputActionName);
     }
 
     return xrInteractionProfileBindingNames;

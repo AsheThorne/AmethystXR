@@ -131,6 +131,20 @@ AxrPoseInputAction_T axrActionSetGetPoseInputAction(const AxrActionSet_T actionS
     return actionSet->getPoseInputAction(name);
 }
 
+AxrHapticOutputAction_T axrActionSetGetHapticOutputAction(const AxrActionSet_T actionSet, const char* name) {
+    if (actionSet == nullptr) {
+        axrLogErrorLocation("`actionSet` is null");
+        return nullptr;
+    }
+
+    if (name == nullptr) {
+        axrLogErrorLocation("`name` is null");
+        return nullptr;
+    }
+
+    return actionSet->getHapticOutputAction(name);
+}
+
 // ----------------------------------------- //
 // Internal Functions
 // ----------------------------------------- //
@@ -215,6 +229,24 @@ AxrActionSet::AxrActionSet(const Config& config):
             );
         }
     }
+    if (config.HapticOutputActions != nullptr) {
+        for (uint32_t i = 0; i < config.HapticOutputActionCount; ++i) {
+            m_HapticOutputActions.insert(
+                std::pair(
+                    config.HapticOutputActions[i].Name,
+                    AxrHapticOutputAction(
+                        AxrHapticOutputAction::Config{
+                            .Name = config.HapticOutputActions[i].Name,
+                            .LocalizedName = config.HapticOutputActions[i].LocalizedName,
+                            .XrVisibility = config.HapticOutputActions[i].XrVisibility,
+                            .BindingCount = config.HapticOutputActions[i].BindingCount,
+                            .Bindings = config.HapticOutputActions[i].Bindings,
+                        }
+                    )
+                )
+            );
+        }
+    }
 }
 
 AxrActionSet::AxrActionSet(AxrActionSet&& src) noexcept {
@@ -224,6 +256,7 @@ AxrActionSet::AxrActionSet(AxrActionSet&& src) noexcept {
     m_FloatInputActions = std::move(src.m_FloatInputActions);
     m_Vec2InputActions = std::move(src.m_Vec2InputActions);
     m_PoseInputActions = std::move(src.m_PoseInputActions);
+    m_HapticOutputActions = std::move(src.m_HapticOutputActions);
 
     m_IsEnabled = src.m_IsEnabled;
     m_Priority = src.m_Priority;
@@ -250,6 +283,7 @@ AxrActionSet& AxrActionSet::operator=(AxrActionSet&& src) noexcept {
         m_FloatInputActions = std::move(src.m_FloatInputActions);
         m_Vec2InputActions = std::move(src.m_Vec2InputActions);
         m_PoseInputActions = std::move(src.m_PoseInputActions);
+        m_HapticOutputActions = std::move(src.m_HapticOutputActions);
 
         m_IsEnabled = src.m_IsEnabled;
         m_Priority = src.m_Priority;
@@ -290,6 +324,9 @@ void AxrActionSet::disable() {
     }
     for (AxrPoseInputAction& inputAction : m_PoseInputActions | std::views::values) {
         inputAction.reset();
+    }
+    for (AxrHapticOutputAction& inputAction : m_HapticOutputActions | std::views::values) {
+        inputAction.deactivate();
     }
 
     m_IsEnabled = false;
@@ -333,6 +370,15 @@ AxrPoseInputAction_T AxrActionSet::getPoseInputAction(const std::string& name) {
     }
 
     return &foundInputAction->second;
+}
+
+AxrHapticOutputAction_T AxrActionSet::getHapticOutputAction(const std::string& name) {
+    const auto foundOutputAction = m_HapticOutputActions.find(name);
+    if (foundOutputAction == m_HapticOutputActions.end()) {
+        return nullptr;
+    }
+
+    return &foundOutputAction->second;
 }
 
 AxrResult AxrActionSet::setupXrActions(const AxrXrSystem_T xrSystem) {
@@ -389,6 +435,14 @@ AxrResult AxrActionSet::setupXrActions(const AxrXrSystem_T xrSystem) {
         }
     }
 
+    for (AxrHapticOutputAction& outputAction : m_HapticOutputActions | std::ranges::views::values) {
+        axrResult = outputAction.setupXrAction(m_XrSystem, m_XrActionSet);
+        if (AXR_FAILED(axrResult)) {
+            resetSetupXrActions();
+            return axrResult;
+        }
+    }
+
     return AXR_SUCCESS;
 }
 
@@ -400,19 +454,18 @@ void AxrActionSet::resetSetupXrActions() {
     for (AxrBoolInputAction& inputAction : m_BoolInputActions | std::ranges::views::values) {
         inputAction.resetSetupXrAction();
     }
-
     for (AxrFloatInputAction& inputAction : m_FloatInputActions | std::ranges::views::values) {
         inputAction.resetSetupXrAction();
     }
-
     for (AxrVec2InputAction& inputAction : m_Vec2InputActions | std::ranges::views::values) {
         inputAction.resetSetupXrAction();
     }
-
     for (AxrPoseInputAction& inputAction : m_PoseInputActions | std::ranges::views::values) {
         inputAction.resetSetupXrAction();
     }
-
+    for (AxrHapticOutputAction& outputAction : m_HapticOutputActions | std::ranges::views::values) {
+        outputAction.resetSetupXrAction();
+    }
     m_XrSystem->destroyActionSet(m_XrActionSet);
 
     m_XrSystem = nullptr;
@@ -466,6 +519,10 @@ std::unordered_map<std::string, AxrPoseInputAction>& AxrActionSet::getPoseInputA
     return m_PoseInputActions;
 }
 
+std::unordered_map<std::string, AxrHapticOutputAction>& AxrActionSet::getHapticOutputActions() {
+    return m_HapticOutputActions;
+}
+
 bool AxrActionSet::containsBinding(const AxrBoolInputActionEnum binding) const {
     for (const AxrBoolInputAction& inputAction : m_BoolInputActions | std::views::values) {
         if (inputAction.containsBinding(binding)) {
@@ -499,6 +556,16 @@ bool AxrActionSet::containsBinding(const AxrVec2InputActionEnum binding) const {
 bool AxrActionSet::containsBinding(const AxrPoseInputActionEnum binding) const {
     for (const AxrPoseInputAction& inputAction : m_PoseInputActions | std::views::values) {
         if (inputAction.getBinding() == binding) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool AxrActionSet::containsBinding(const AxrHapticOutputActionEnum binding) const {
+    for (const AxrHapticOutputAction& outputAction : m_HapticOutputActions | std::views::values) {
+        if (outputAction.containsBinding(binding)) {
             return true;
         }
     }
@@ -546,6 +613,38 @@ void AxrActionSet::triggerPoseInputAction(const AxrPoseInputActionEnum inputActi
     }
 }
 
+void AxrActionSet::resetBoolInputAction(const AxrBoolInputActionEnum inputActionEnum) {
+    for (AxrBoolInputAction& inputAction : m_BoolInputActions | std::ranges::views::values) {
+        if (inputAction.containsBinding(inputActionEnum)) {
+            inputAction.reset();
+        }
+    }
+}
+
+void AxrActionSet::resetFloatInputAction(const AxrFloatInputActionEnum inputActionEnum) {
+    for (AxrFloatInputAction& inputAction : m_FloatInputActions | std::ranges::views::values) {
+        if (inputAction.containsBinding(inputActionEnum)) {
+            inputAction.reset();
+        }
+    }
+}
+
+void AxrActionSet::resetVec2InputAction(const AxrVec2InputActionEnum inputActionEnum) {
+    for (AxrVec2InputAction& inputAction : m_Vec2InputActions | std::ranges::views::values) {
+        if (inputAction.containsBinding(inputActionEnum)) {
+            inputAction.reset();
+        }
+    }
+}
+
+void AxrActionSet::resetPoseInputAction(const AxrPoseInputActionEnum inputActionEnum) {
+    for (AxrPoseInputAction& inputAction : m_PoseInputActions | std::ranges::views::values) {
+        if (inputAction.getBinding() == inputActionEnum) {
+            inputAction.reset();
+        }
+    }
+}
+
 XrActionSet AxrActionSet::getXrActionSet() const {
     return m_XrActionSet;
 }
@@ -580,6 +679,8 @@ AxrActionSetConfig AxrActionSet::clone(const AxrActionSetConfig& actionSetConfig
         .Vec2InputActions = nullptr,
         .PoseInputActionCount = actionSetConfig.PoseInputActionCount,
         .PoseInputActions = nullptr,
+        .HapticOutputActionCount = actionSetConfig.HapticOutputActionCount,
+        .HapticOutputActions = nullptr,
     };
 
     strncpy_s(config.Name, actionSetConfig.Name, AXR_MAX_ACTION_SET_NAME_SIZE);
@@ -614,6 +715,14 @@ AxrActionSetConfig AxrActionSet::clone(const AxrActionSetConfig& actionSetConfig
 
         for (uint32_t i = 0; i < actionSetConfig.PoseInputActionCount; ++i) {
             config.PoseInputActions[i] = AxrPoseInputAction::clone(actionSetConfig.PoseInputActions[i]);
+        }
+    }
+
+    if (actionSetConfig.HapticOutputActionCount != 0 && actionSetConfig.HapticOutputActions != nullptr) {
+        config.HapticOutputActions = new AxrHapticOutputActionConfig[actionSetConfig.HapticOutputActionCount]{};
+
+        for (uint32_t i = 0; i < actionSetConfig.HapticOutputActionCount; ++i) {
+            config.HapticOutputActions[i] = AxrHapticOutputAction::clone(actionSetConfig.HapticOutputActions[i]);
         }
     }
 
@@ -663,6 +772,16 @@ void AxrActionSet::destroy(AxrActionSetConfig& actionSetConfig) {
         actionSetConfig.PoseInputActions = nullptr;
     }
     actionSetConfig.PoseInputActionCount = 0;
+
+    if (actionSetConfig.HapticOutputActions != nullptr) {
+        for (uint32_t i = 0; i < actionSetConfig.HapticOutputActionCount; ++i) {
+            AxrHapticOutputAction::destroy(actionSetConfig.HapticOutputActions[i]);
+        }
+
+        delete[] actionSetConfig.HapticOutputActions;
+        actionSetConfig.HapticOutputActions = nullptr;
+    }
+    actionSetConfig.HapticOutputActionCount = 0;
 }
 
 void AxrActionSet::cleanup() {
@@ -674,6 +793,7 @@ void AxrActionSet::cleanup() {
     m_FloatInputActions.clear();
     m_Vec2InputActions.clear();
     m_PoseInputActions.clear();
+    m_HapticOutputActions.clear();
     m_IsEnabled = false;
     m_Priority = 0;
 }
@@ -695,6 +815,10 @@ bool AxrActionSet::isVisibleToXrSession() const {
 
     for (const AxrPoseInputAction& inputAction : m_PoseInputActions | std::views::values) {
         if (inputAction.isVisibleToXrSession()) return true;
+    }
+
+    for (const AxrHapticOutputAction& outputAction : m_HapticOutputActions | std::views::values) {
+        if (outputAction.isVisibleToXrSession()) return true;
     }
 
     return false;

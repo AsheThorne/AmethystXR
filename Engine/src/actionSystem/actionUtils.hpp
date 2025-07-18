@@ -40,6 +40,10 @@
 /// @param inputAction Pose input action
 /// @returns True if the given pose input action is an xr pose input action
 [[nodiscard]] bool axrIsXrPoseInputAction(AxrPoseInputActionEnum inputAction);
+/// Check if the given haptic output action is an xr haptic output action
+/// @param outputAction Haptic output action
+/// @returns True if the given haptic output action is an xr haptic output action
+[[nodiscard]] bool axrIsXrHapticOutputAction(AxrHapticOutputActionEnum outputAction);
 
 /// Get the xr path name for the given bool input action
 /// @param inputAction Input action
@@ -57,6 +61,10 @@
 /// @param inputAction Input action
 /// @returns The action xr path name
 [[nodiscard]] const char* axrGetXrPoseInputActionName(AxrPoseInputActionEnum inputAction);
+/// Get the xr path name for the given haptic output action
+/// @param outputAction Output action
+/// @returns The action xr path name
+[[nodiscard]] const char* axrGetXrHapticOutputActionName(AxrHapticOutputActionEnum outputAction);
 
 /// Get all the bool input actions for the given interaction profile
 /// @param xrInteractionProfile Interaction profile
@@ -80,6 +88,12 @@
 /// @param xrInteractionProfile Interaction profile
 /// @returns The collection of pose input actions
 [[nodiscard]] std::unordered_set<AxrPoseInputActionEnum> axrGetXrInteractionProfilePoseInputActionBindings(
+    AxrXrInteractionProfileEnum xrInteractionProfile
+);
+/// Get all the haptic output actions for the given interaction profile
+/// @param xrInteractionProfile Interaction profile
+/// @returns The collection of haptic output actions
+[[nodiscard]] std::unordered_set<AxrHapticOutputActionEnum> axrGetXrInteractionProfileHapticOutputActionBindings(
     AxrXrInteractionProfileEnum xrInteractionProfile
 );
 
