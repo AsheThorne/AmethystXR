@@ -108,3 +108,8 @@
 /// @param interactionProfileEnum Interaction profile
 /// @returns The interaction profile name
 const char* axrGetXrInteractionProfileName(AxrXrInteractionProfileEnum interactionProfileEnum);
+
+/// Check if the given null terminated string is valid as an action set or action name
+/// @param actionName Action name
+/// @returns True if the given string is valid
+[[nodiscard]] bool axrIsActionNameValid(const char* actionName);

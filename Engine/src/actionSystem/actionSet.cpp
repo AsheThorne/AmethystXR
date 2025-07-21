@@ -2,10 +2,13 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "actionSet.hpp"
-
-#include <ranges>
-
 #include "axr/logger.h"
+#include "actionUtils.hpp"
+
+// ----------------------------------------- //
+// C/C++ Headers
+// ----------------------------------------- //
+#include <ranges>
 
 // ----------------------------------------- //
 // External Functions
@@ -160,6 +163,11 @@ AxrActionSet::AxrActionSet(const Config& config):
     m_XrActionSet(XR_NULL_HANDLE) {
     if (config.BoolInputActions != nullptr) {
         for (uint32_t i = 0; i < config.BoolInputActionCount; ++i) {
+            if (!axrIsActionNameValid(config.BoolInputActions[i].Name)) {
+                axrLogErrorLocation("Bool Action name: {0} is invalid.", config.BoolInputActions[i].Name);
+                continue;
+            }
+
             m_BoolInputActions.insert(
                 std::pair(
                     config.BoolInputActions[i].Name,
@@ -178,6 +186,11 @@ AxrActionSet::AxrActionSet(const Config& config):
     }
     if (config.FloatInputActions != nullptr) {
         for (uint32_t i = 0; i < config.FloatInputActionCount; ++i) {
+            if (!axrIsActionNameValid(config.FloatInputActions[i].Name)) {
+                axrLogErrorLocation("Float Action name: {0} is invalid.", config.FloatInputActions[i].Name);
+                continue;
+            }
+
             m_FloatInputActions.insert(
                 std::pair(
                     config.FloatInputActions[i].Name,
@@ -196,6 +209,11 @@ AxrActionSet::AxrActionSet(const Config& config):
     }
     if (config.Vec2InputActions != nullptr) {
         for (uint32_t i = 0; i < config.Vec2InputActionCount; ++i) {
+            if (!axrIsActionNameValid(config.Vec2InputActions[i].Name)) {
+                axrLogErrorLocation("Vec2 Action name: {0} is invalid.", config.Vec2InputActions[i].Name);
+                continue;
+            }
+
             m_Vec2InputActions.insert(
                 std::pair(
                     config.Vec2InputActions[i].Name,
@@ -214,6 +232,11 @@ AxrActionSet::AxrActionSet(const Config& config):
     }
     if (config.PoseInputActions != nullptr) {
         for (uint32_t i = 0; i < config.PoseInputActionCount; ++i) {
+            if (!axrIsActionNameValid(config.PoseInputActions[i].Name)) {
+                axrLogErrorLocation("Pose Action name: {0} is invalid.", config.PoseInputActions[i].Name);
+                continue;
+            }
+
             m_PoseInputActions.insert(
                 std::pair(
                     config.PoseInputActions[i].Name,
@@ -231,6 +254,11 @@ AxrActionSet::AxrActionSet(const Config& config):
     }
     if (config.HapticOutputActions != nullptr) {
         for (uint32_t i = 0; i < config.HapticOutputActionCount; ++i) {
+            if (!axrIsActionNameValid(config.HapticOutputActions[i].Name)) {
+                axrLogErrorLocation("Haptics Action name: {0} is invalid.", config.HapticOutputActions[i].Name);
+                continue;
+            }
+
             m_HapticOutputActions.insert(
                 std::pair(
                     config.HapticOutputActions[i].Name,

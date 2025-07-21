@@ -62,6 +62,11 @@ AxrActionSystem::AxrActionSystem(const Config& config):
     m_AreXrActionsAttached(false) {
     if (config.ActionSets != nullptr) {
         for (uint32_t i = 0; i < config.ActionSetCount; ++i) {
+            if (!axrIsActionNameValid(config.ActionSets[i].Name)) {
+                axrLogErrorLocation("Action name: {0} is invalid.", config.ActionSets[i].Name);
+                continue;
+            }
+            
             m_ActionSets.insert(
                 std::pair(
                     config.ActionSets[i].Name,

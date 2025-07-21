@@ -788,3 +788,31 @@ const char* axrGetXrInteractionProfileName(const AxrXrInteractionProfileEnum int
         }
     }
 }
+
+bool axrIsActionNameValid(const char* actionName) {
+    if (actionName == nullptr) return false;
+
+    uint32_t index = 0;
+    char currentChar = actionName[index];
+    while (currentChar != '\0') {
+        // Action names can only contain:
+        // lower case ascii letters: a-z
+        // Numeric digits: 0-9
+        // Dash: -
+        // Underscore: _
+        // Period: .
+        if ((currentChar >= 'a' && currentChar <= 'z') ||
+            (currentChar >= '0' && currentChar <= '9') ||
+            currentChar == '-' ||
+            currentChar == '_' ||
+            currentChar == '.') {
+            index++;
+            currentChar = actionName[index];
+            continue;
+        }
+
+        return false;
+    }
+
+    return true;
+}

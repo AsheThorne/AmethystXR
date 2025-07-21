@@ -49,7 +49,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     axr::ActionSystemConfig actionSystemConfig(
         std::vector{
             axr::ActionSetConfig(
-                // TODO: Validate all action set and action names: https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#well-formed-path-strings
                 "test",
                 "Test",
                 std::vector<axr::BoolInputActionConfig>{
@@ -93,7 +92,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
                 }
             )
         },
-        std::vector{
+        std::vector<axr::XrInteractionProfileEnum>{
             axr::XrInteractionProfileEnum::ValveIndexController,
         }
     );
