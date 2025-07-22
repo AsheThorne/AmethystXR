@@ -52,6 +52,7 @@ axr::Result TestScene::setup() {
     strcpy_s(submesh.MaterialName, materialName);
 
     // TODO: We need a better solution than this. The entity doesn't clone the data so once this goes out of scope, we need to hold on to the data so it doesn't delete
+    //  Maybe we change the components to take std::vector instead of pointers??
     m_ComponentSubmeshes = {
         submesh,
     };

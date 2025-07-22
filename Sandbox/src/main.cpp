@@ -158,7 +158,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     while (app.isRunning()) {
         app.processEvents();
 
-        // TODO: Closing steamVR while the app is running, closes the vr session (good) but also closes the whole app. See if we can stop that
         if (!windowSystem.isWindowOpen()) {
             xrSystem.stopXrSession();
             app.processEvents();
