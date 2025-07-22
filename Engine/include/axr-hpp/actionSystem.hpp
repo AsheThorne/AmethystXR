@@ -469,6 +469,11 @@ namespace axr {
         /// Resize the bindings
         /// @param size New size
         void resizeBindings(const uint32_t size) {
+            if (size == 0) {
+                clearBindings();
+                return;
+            }
+
             const auto newBindings = new axr::BoolInputActionEnum[size]{};
             for (uint32_t i = 0; i < std::min(BindingCount, size); ++i) {
                 newBindings[i] = Bindings[i];
@@ -696,6 +701,11 @@ namespace axr {
         /// Resize the bindings
         /// @param size New size
         void resizeBindings(const uint32_t size) {
+            if (size == 0) {
+                clearBindings();
+                return;
+            }
+
             const auto newBindings = new axr::FloatInputActionEnum[size]{};
             for (uint32_t i = 0; i < std::min(BindingCount, size); ++i) {
                 newBindings[i] = Bindings[i];
@@ -923,6 +933,11 @@ namespace axr {
         /// Resize the bindings
         /// @param size New size
         void resizeBindings(const uint32_t size) {
+            if (size == 0) {
+                clearBindings();
+                return;
+            }
+
             const auto newBindings = new axr::Vec2InputActionEnum[size]{};
             for (uint32_t i = 0; i < std::min(BindingCount, size); ++i) {
                 newBindings[i] = Bindings[i];
@@ -1319,6 +1334,11 @@ namespace axr {
         /// Resize the bindings
         /// @param size New size
         void resizeBindings(const uint32_t size) {
+            if (size == 0) {
+                clearBindings();
+                return;
+            }
+
             const auto newBindings = new axr::HapticOutputActionEnum[size]{};
             for (uint32_t i = 0; i < std::min(BindingCount, size); ++i) {
                 newBindings[i] = Bindings[i];
@@ -1795,7 +1815,6 @@ namespace axr {
         /// Resize the bool input actions
         /// @param size New size
         void resizeBoolInputActions(const uint32_t size) {
-            // TODO: Add this size check for any other hpp struct that resizes in this way
             if (size == 0) {
                 clearBoolInputActions();
                 return;
@@ -2099,6 +2118,11 @@ namespace axr {
         /// Resize the action sets
         /// @param size New size
         void resizeActionSets(const uint32_t size) {
+            if (size == 0) {
+                clearActionSets();
+                return;
+            }
+
             const auto newActionSets = new axr::ActionSetConfig[size]{};
             for (uint32_t i = 0; i < std::min(ActionSetCount, size); ++i) {
                 newActionSets[i] = ActionSets[i];
@@ -2113,6 +2137,11 @@ namespace axr {
         /// Resize the xr interaction profiles
         /// @param size New size
         void resizeXrInteractionProfiles(const uint32_t size) {
+            if (size == 0) {
+                clearXrInteractionProfiles();
+                return;
+            }
+
             const auto newXrInteractionProfiles = new axr::XrInteractionProfileEnum[size]{};
             for (uint32_t i = 0; i < std::min(XrInteractionProfileCount, size); ++i) {
                 newXrInteractionProfiles[i] = XrInteractionProfiles[i];
@@ -2504,7 +2533,6 @@ namespace axr {
         [[nodiscard]] axr::HapticOutputAction getHapticOutputAction(const char* name) const {
             return axr::HapticOutputAction(axrActionSetGetHapticOutputAction(m_ActionSet, name));
         }
-
 
     private:
         // ----------------------------------------- //
