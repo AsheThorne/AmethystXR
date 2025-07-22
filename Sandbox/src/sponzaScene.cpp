@@ -28,7 +28,7 @@ axr::Result SponzaScene::setup() {
     const std::string modelName = "SponzaModel";
     const axr::ModelConfig modelConfig(
         modelName.c_str(),
-        "P:/C++/AmethystXR/Sandbox/assets/sample-models/2.0/Sponza/glTF/Sponza.gltf"
+        "sample-models/2.0/Sponza/glTF/Sponza.gltf"
     );
 
     if (AXR_FAILED(assetCollection.createModel(modelConfig))) return axr::Result::Error;
