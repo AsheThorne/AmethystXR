@@ -44,6 +44,60 @@ void axrWindowSystemCloseWindow(const AxrWindowSystem_T windowSystem) {
     windowSystem->closeWindow();
 }
 
+bool axrWindowSystemIsCursorHidden(const AxrWindowSystemConst_T windowSystem) {
+    if (windowSystem == nullptr) {
+        axrLogErrorLocation("`windowSystem` is null.");
+        return false;
+    }
+
+    return windowSystem->isCursorHidden();
+}
+
+void axrWindowSystemShowCursor(const AxrWindowSystem_T windowSystem) {
+    if (windowSystem == nullptr) {
+        axrLogErrorLocation("`windowSystem` is null.");
+        return;
+    }
+
+    windowSystem->showCursor();
+}
+
+void axrWindowSystemHideCursor(const AxrWindowSystem_T windowSystem) {
+    if (windowSystem == nullptr) {
+        axrLogErrorLocation("`windowSystem` is null.");
+        return;
+    }
+
+    windowSystem->hideCursor();
+}
+
+bool axrWindowSystemIsCursorLocked(const AxrWindowSystemConst_T windowSystem) {
+    if (windowSystem == nullptr) {
+        axrLogErrorLocation("`windowSystem` is null.");
+        return false;
+    }
+
+    return windowSystem->isCursorLocked();
+}
+
+void axrWindowSystemLockCursor(const AxrWindowSystem_T windowSystem) {
+    if (windowSystem == nullptr) {
+        axrLogErrorLocation("`windowSystem` is null.");
+        return;
+    }
+
+    windowSystem->lockCursor();
+}
+
+void axrWindowSystemUnlockCursor(const AxrWindowSystem_T windowSystem) {
+    if (windowSystem == nullptr) {
+        axrLogErrorLocation("`windowSystem` is null.");
+        return;
+    }
+
+    windowSystem->unlockCursor();
+}
+
 // ----------------------------------------- //
 // Internal Functions
 // ----------------------------------------- //
@@ -136,6 +190,90 @@ void AxrWindowSystem::closeWindow() {
     if (AXR_FAILED(OnWindowOpenStateChangedCallbackGraphics(false))) {
         axrLogErrorLocation("Failed to clean up window graphics.");
     }
+}
+
+bool AxrWindowSystem::isCursorHidden() const {
+#ifdef AXR_USE_PLATFORM_WIN32
+    if (m_Win32WindowSystem == nullptr) {
+        axrLogErrorLocation("Win32WindowSystem is null.");
+        return false;
+    }
+
+    return m_Win32WindowSystem->isCursorHidden();
+#else
+    axrLogErrorLocation("Unknown platform.");
+    return false;
+#endif
+}
+
+void AxrWindowSystem::showCursor() {
+#ifdef AXR_USE_PLATFORM_WIN32
+    if (m_Win32WindowSystem == nullptr) {
+        axrLogErrorLocation("Win32WindowSystem is null.");
+        return;
+    }
+
+    m_Win32WindowSystem->showCursor();
+#else
+    axrLogErrorLocation("Unknown platform.");
+    return;
+#endif
+}
+
+void AxrWindowSystem::hideCursor() {
+#ifdef AXR_USE_PLATFORM_WIN32
+    if (m_Win32WindowSystem == nullptr) {
+        axrLogErrorLocation("Win32WindowSystem is null.");
+        return;
+    }
+
+    m_Win32WindowSystem->hideCursor();
+#else
+    axrLogErrorLocation("Unknown platform.");
+    return;
+#endif
+}
+
+bool AxrWindowSystem::isCursorLocked() const {
+#ifdef AXR_USE_PLATFORM_WIN32
+    if (m_Win32WindowSystem == nullptr) {
+        axrLogErrorLocation("Win32WindowSystem is null.");
+        return false;
+    }
+
+    return m_Win32WindowSystem->isCursorLocked();
+#else
+    axrLogErrorLocation("Unknown platform.");
+    return false;
+#endif
+}
+
+void AxrWindowSystem::lockCursor() {
+#ifdef AXR_USE_PLATFORM_WIN32
+    if (m_Win32WindowSystem == nullptr) {
+        axrLogErrorLocation("Win32WindowSystem is null.");
+        return;
+    }
+
+    m_Win32WindowSystem->lockCursor();
+#else
+    axrLogErrorLocation("Unknown platform.");
+    return;
+#endif
+}
+
+void AxrWindowSystem::unlockCursor() {
+#ifdef AXR_USE_PLATFORM_WIN32
+    if (m_Win32WindowSystem == nullptr) {
+        axrLogErrorLocation("Win32WindowSystem is null.");
+        return;
+    }
+
+    m_Win32WindowSystem->unlockCursor();
+#else
+    axrLogErrorLocation("Unknown platform.");
+    return;
+#endif
 }
 
 AxrResult AxrWindowSystem::setup() {

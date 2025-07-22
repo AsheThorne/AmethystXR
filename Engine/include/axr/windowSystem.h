@@ -48,4 +48,24 @@ extern "C" {
     /// Signal that we want to close the window
     /// @param windowSystem The window system to use
     AXR_API void axrWindowSystemCloseWindow(AxrWindowSystem_T windowSystem);
+    /// Check if the cursor is hidden
+    /// @param windowSystem The window system to use
+    /// @returns True if the cursor is hidden
+    AXR_API bool axrWindowSystemIsCursorHidden(AxrWindowSystemConst_T windowSystem);
+    /// Unhide the cursor
+    /// @param windowSystem The window system to use
+    AXR_API void axrWindowSystemShowCursor(AxrWindowSystem_T windowSystem);
+    /// Hide the cursor
+    /// @param windowSystem The window system to use
+    AXR_API void axrWindowSystemHideCursor(AxrWindowSystem_T windowSystem);
+    /// Check if the cursor's position is locked
+    /// @param windowSystem The window system to use
+    /// @returns True if the cursor's position is locked
+    AXR_API bool axrWindowSystemIsCursorLocked(AxrWindowSystemConst_T windowSystem);
+    /// Lock the cursor's position
+    /// @param windowSystem The window system to use
+    AXR_API void axrWindowSystemLockCursor(AxrWindowSystem_T windowSystem);
+    /// Unlock the cursor's position
+    /// @param windowSystem The window system to use
+    AXR_API void axrWindowSystemUnlockCursor(AxrWindowSystem_T windowSystem);
 }

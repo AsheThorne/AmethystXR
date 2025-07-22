@@ -680,9 +680,6 @@ void AxrActionSystem::processWin32MouseMovedInput(const HWND windowHandle, const
                 .y = static_cast<float>(cursorPosition.y)
             }
         );
-
-        // TODO: Add ability to lock the cursor to the center of the screen
-        // resetLockedCursorPosition(WindowHandle);
     }
 
     // If the mouse device itself sends relative movement data
@@ -705,9 +702,6 @@ void AxrActionSystem::processWin32MouseMovedInput(const HWND windowHandle, const
                 }
             );
         }
-
-        // TODO: Add ability to lock the cursor to the center of the screen
-        // resetLockedCursorPosition(WindowHandle);
     }
 }
 

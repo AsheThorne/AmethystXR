@@ -17,7 +17,17 @@ AxrWin32WindowSystem::AxrWin32WindowSystem(const Config& config) :
     m_OnWindowResizedCallback(config.OnWindowResizedCallback),
     m_WindowClassName(axrToWString(config.ApplicationName + "_Class")),
     m_Instance(nullptr),
-    m_WindowHandle(nullptr) {
+    m_WindowHandle(nullptr),
+    m_IsCursorLocked(false),
+    m_IsCursorHidden(false),
+    m_UnlockedCursorClipRect(
+        RECT{
+            .left = 0,
+            .top = 0,
+            .right = 0,
+            .bottom = 0,
+        }
+    ) {
 }
 
 AxrWin32WindowSystem::~AxrWin32WindowSystem() {
@@ -101,6 +111,93 @@ void AxrWin32WindowSystem::closeWindow() {
     if (!isWindowOpen()) return;
 
     PostMessage(m_WindowHandle, WM_CLOSE, 0, 0);
+}
+
+bool AxrWin32WindowSystem::isCursorHidden() const {
+    return m_IsCursorHidden;
+}
+
+void AxrWin32WindowSystem::showCursor() {
+    CURSORINFO cursorInfo{
+        .cbSize = sizeof(CURSORINFO),
+    };
+
+    if (GetCursorInfo(&cursorInfo) == FALSE) {
+        axrLogErrorLocation("Failed to get cursor info. Error: {0}.", GetLastError());
+        return;
+    }
+
+    // If the cursor is hidden
+    if (cursorInfo.flags == 0) {
+        // Continue to show the cursor until it's count returns 0 or more
+        // For more info, visit https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-showcursor#remarks
+        while (ShowCursor(TRUE) < 0);
+    }
+
+    m_IsCursorHidden = false;
+}
+
+void AxrWin32WindowSystem::hideCursor() {
+    CURSORINFO cursorInfo{
+        .cbSize = sizeof(CURSORINFO),
+    };
+
+    if (GetCursorInfo(&cursorInfo) == FALSE) {
+        axrLogErrorLocation("Failed to get cursor info. Error: {0}.", GetLastError());
+        return;
+    }
+
+    // If the cursor is visible
+    if (cursorInfo.flags == CURSOR_SHOWING) {
+        // Continue to hide the cursor until it's count returns less than 0
+        // For more info, visit https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-showcursor#remarks
+        while (ShowCursor(FALSE) >= 0);
+    }
+
+    m_IsCursorHidden = true;
+}
+
+bool AxrWin32WindowSystem::isCursorLocked() const {
+    return m_IsCursorLocked;
+}
+
+void AxrWin32WindowSystem::lockCursor() {
+    CURSORINFO cursorInfo{
+        .cbSize = sizeof(CURSORINFO),
+    };
+
+    if (GetCursorInfo(&cursorInfo) == FALSE) {
+        axrLogErrorLocation("Failed to get cursor info. Error: {0}.", GetLastError());
+        return;
+    }
+
+    if (GetClipCursor(&m_UnlockedCursorClipRect) == FALSE) {
+        axrLogErrorLocation("Failed to get clip cursor rect. Error: {0}.", GetLastError());
+        return;
+    }
+
+    const RECT windowRect{
+        .left = cursorInfo.ptScreenPos.x,
+        .top = cursorInfo.ptScreenPos.y,
+        .right = cursorInfo.ptScreenPos.x,
+        .bottom = cursorInfo.ptScreenPos.y,
+    };
+
+    if (ClipCursor(&windowRect) == FALSE) {
+        axrLogErrorLocation("Failed to restrict the cursor's position. Error: {0}.", GetLastError());
+        return;
+    }
+
+    m_IsCursorLocked = true;
+}
+
+void AxrWin32WindowSystem::unlockCursor() {
+    if (ClipCursor(&m_UnlockedCursorClipRect) == FALSE) {
+        axrLogErrorLocation("Failed to restrict the cursor's position. Error: {0}.", GetLastError());
+        return;
+    }
+
+    m_IsCursorLocked = false;
 }
 
 bool AxrWin32WindowSystem::processEvents() {
