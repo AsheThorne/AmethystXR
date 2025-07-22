@@ -111,7 +111,7 @@ public:
 
     /// Set the clear color
     /// @param color Clear color
-    void setClearColor(const glm::vec4& color);
+    void setClearColor(const AxrColor& color);
 
     /// Set up vulkan xr graphics
     /// @param config Setup config
@@ -154,9 +154,10 @@ public:
     ) const;
 
     /// Begin rendering
+    /// @param sceneData Active scene data
     /// @returns AXR_SUCCESS if the function succeeded
     /// @returns AXR_DONT_RENDER if we should skip rendering this frame.
-    [[nodiscard]] AxrResult beginRendering();
+    [[nodiscard]] AxrResult beginRendering(const AxrVulkanSceneData* sceneData);
     /// End rendering
     /// @returns AXR_SUCCESS if the function succeeded
     AxrResult endRendering();
@@ -245,7 +246,7 @@ private:
     std::vector<vk::Format> m_SwapchainDepthFormatOptions;
 
     // ---- Data ----
-    glm::vec4 m_ClearColor;
+    AxrColor m_ClearColor;
     bool m_IsReady;
     vk::Format m_SwapchainColorFormat;
     vk::Format m_SwapchainDepthFormat;

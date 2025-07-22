@@ -7,6 +7,7 @@
 #include "../extensionCollection.hpp"
 #include "axr/graphicsSystem.h"
 #include "axr/common/callback.h"
+#include "axr/actionSystem.h"
 
 // Vulkan headers are required for <openxr/openxr_platform.h>
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
@@ -22,6 +23,10 @@
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 
+// ----------------------------------------- //
+// EnTT Headers
+// ----------------------------------------- //
+#include "entt/entt.hpp"
 
 /// Axr Xr System
 class AxrXrSystem {
@@ -42,6 +47,12 @@ public:
         AxrXrExtension_T* Extensions;
     };
 
+    /// Action binding
+    struct ActionBinding {
+        XrAction Action;
+        const char* bindingName;
+    };
+
     // ----------------------------------------- //
     // Types
     // ----------------------------------------- //
@@ -56,6 +67,8 @@ public:
 
     /// On xr session state changed for the graphics system
     OnXrSessionStateChangedCallback_T OnXrSessionStateChangedCallbackGraphics;
+    /// On xr session state changed for the action system
+    OnXrSessionStateChangedCallback_T OnXrSessionStateChangedCallbackActions;
 
     // ----------------------------------------- //
     // Special Functions
@@ -143,6 +156,104 @@ public:
     /// Get the far clipping plane
     /// @returns The far clipping plane
     [[nodiscard]] float getFarClippingPlane() const;
+
+    /// Create an XrActionSet
+    /// @param name Action set name
+    /// @param localizedName Localized action set name
+    /// @param priority Priority
+    /// @param actionSet Output action set
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createActionSet(
+        const std::string& name,
+        const std::string& localizedName,
+        uint32_t priority,
+        XrActionSet& actionSet
+    ) const;
+    /// Destroy the given action set
+    /// @param actionSet Action set to destroy
+    void destroyActionSet(XrActionSet& actionSet) const;
+    /// Create an XrAction
+    /// @param name Action name
+    /// @param localizedName Localized action name
+    /// @param actionType Action type
+    /// @param actionSet Action set
+    /// @param action Output action
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createAction(
+        const std::string& name,
+        const std::string& localizedName,
+        XrActionType actionType,
+        XrActionSet actionSet,
+        XrAction& action
+    ) const;
+    /// Destroy the given action
+    /// @param action Action to destroy
+    void destroyAction(XrAction& action) const;
+
+    /// Suggest the given action bindings for the given interaction profile
+    /// @param interactionProfileEnum Interaction profile
+    /// @param actionBindings Action bindings
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult suggestBindings(
+        AxrXrInteractionProfileEnum interactionProfileEnum,
+        const std::vector<ActionBinding>& actionBindings
+    ) const;
+
+    /// Attach the given action sets to the xr session
+    /// @param actionSets Action sets
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult attachActionSets(std::unordered_map<std::string, AxrActionSet>& actionSets);
+    /// Detach all the attached action sets
+    void detachActionSets();
+
+    /// Get the bool action state for the given action
+    /// @param action Xr action
+    /// @returns The bool action state
+    [[nodiscard]] XrActionStateBoolean getBoolActionState(XrAction action) const;
+    /// Get the float action state for the given action
+    /// @param action Xr action
+    /// @returns The float action state
+    [[nodiscard]] XrActionStateFloat getFloatActionState(XrAction action) const;
+    /// Get the vec2 action state for the given action
+    /// @param action Xr action
+    /// @returns The vec2 action state
+    [[nodiscard]] XrActionStateVector2f getVec2ActionState(XrAction action) const;
+
+    /// Create a new action space
+    /// @param action XrAction to use
+    /// @param space Output created action space
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createActionSpace(XrAction action, XrSpace& space) const;
+    /// Create a new HMD view space
+    /// @param space Output created action space
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createViewSpace(XrSpace& space) const;
+    /// Destroy the given XrSpace
+    /// @param space Space to destroy
+    void destroySpace(XrSpace& space) const;
+
+    /// Update all pose actions with the given time
+    /// @param time Predicted display time
+    /// @param registryHandle Optional registry handle to process the AxrMirrorPoseInputActionComponent's
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult updatePoseActions(XrTime time, entt::registry* registryHandle) const;
+
+    /// Apply the haptic feedback to the given action
+    /// @param action Action to use
+    /// @param duration Haptic duration in nanoseconds
+    /// @param frequency Haptic frequency in Hz
+    /// @param amplitude Haptic amplitude from 0.0f to 1.0f
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult applyHapticFeedback(
+        XrAction action,
+        int64_t duration,
+        float frequency,
+        float amplitude
+    ) const;
+    /// Stop the haptic feedback to the given action
+    /// @param action Action to use
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult stopHapticFeedback(XrAction action) const;
 
     /// Create an xr swapchain
     /// @param usageFlags Usage flags
@@ -272,6 +383,7 @@ private:
     XrSpace m_StageReferenceSpace = XR_NULL_HANDLE;
     float m_NearClippingPlane = 0.01f;
     float m_FarClippingPlane = 1000.0f;
+    std::unordered_map<std::string, AxrActionSet*> m_AttachedActionSets;
 
     // ----------------------------------------- //
     // Private Functions
@@ -418,9 +530,6 @@ private:
         XrReferenceSpaceType referenceSpaceType,
         XrSpace& referenceSpace
     ) const;
-    /// Destroy the given XrSpace
-    /// @param space Space to destroy
-    void destroySpace(XrSpace& space) const;
 
     // ---- Events ----
 
@@ -439,6 +548,11 @@ private:
     /// OpenXR 'Session State Changed' event handler
     /// @param eventData Event data
     void xrEvent_SessionStateChanged(const XrEventDataSessionStateChanged& eventData);
+
+    // ---- Actions ----
+
+    /// Update the state of the attached input actions
+    void syncAttachedActions() const;
 
     // ----------------------------------------- //
     // Private Static Functions

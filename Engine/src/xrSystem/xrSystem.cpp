@@ -7,6 +7,9 @@
 #include "../common.hpp"
 #include "../utils.hpp"
 #include "xrExtensionFunctions.hpp"
+#include "../actionSystem/actionSet.hpp"
+#include "../actionSystem/actionUtils.hpp"
+#include "axr/scene.h"
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 #include "../graphicsSystem/vulkan/vulkanUtils.hpp"
@@ -241,6 +244,8 @@ void AxrXrSystem::processEvents() {
             }
         }
     }
+
+    syncAttachedActions();
 }
 
 AxrResult AxrXrSystem::getSupportedSwapchainFormats(std::vector<int64_t>& formats) const {
@@ -299,6 +304,595 @@ float AxrXrSystem::getNearClippingPlane() const {
 
 float AxrXrSystem::getFarClippingPlane() const {
     return m_FarClippingPlane;
+}
+
+AxrResult AxrXrSystem::createActionSet(
+    const std::string& name,
+    const std::string& localizedName,
+    const uint32_t priority,
+    XrActionSet& actionSet
+) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_Instance == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Instance is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    XrActionSetCreateInfo actionSetCreateInfo{
+        .type = XR_TYPE_ACTION_SET_CREATE_INFO,
+        .next = nullptr,
+        .actionSetName = {},
+        .localizedActionSetName = {},
+        .priority = priority,
+    };
+
+    strncpy_s(
+        actionSetCreateInfo.actionSetName,
+        name.c_str(),
+        XR_MAX_ACTION_SET_NAME_SIZE
+    );
+    strncpy_s(
+        actionSetCreateInfo.localizedActionSetName,
+        localizedName.c_str(),
+        XR_MAX_LOCALIZED_ACTION_SET_NAME_SIZE
+    );
+
+    const XrResult xrResult = xrCreateActionSet(m_Instance, &actionSetCreateInfo, &actionSet);
+    axrLogXrResult(xrResult, "xrSyncActions");
+    if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+    return AXR_SUCCESS;
+}
+
+void AxrXrSystem::destroyActionSet(XrActionSet& actionSet) const {
+    if (actionSet == XR_NULL_HANDLE) return;
+
+    const XrResult xrResult = xrDestroyActionSet(actionSet);
+    axrLogXrResult(xrResult, "xrDestroyActionSet");
+    if (XR_SUCCEEDED(xrResult)) {
+        actionSet = XR_NULL_HANDLE;
+    }
+}
+
+AxrResult AxrXrSystem::createAction(
+    const std::string& name,
+    const std::string& localizedName,
+    const XrActionType actionType,
+    const XrActionSet actionSet,
+    XrAction& action
+) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (actionSet == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Action set is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    XrActionCreateInfo actionCreateInfo{
+        .type = XR_TYPE_ACTION_CREATE_INFO,
+        .next = nullptr,
+        .actionName = {},
+        .actionType = actionType,
+        .countSubactionPaths = 0,
+        .subactionPaths = nullptr,
+        .localizedActionName = {},
+    };
+
+    strncpy_s(
+        actionCreateInfo.actionName,
+        name.c_str(),
+        XR_MAX_ACTION_NAME_SIZE
+    );
+    strncpy_s(
+        actionCreateInfo.localizedActionName,
+        localizedName.c_str(),
+        XR_MAX_LOCALIZED_ACTION_NAME_SIZE
+    );
+
+    const XrResult xrResult = xrCreateAction(actionSet, &actionCreateInfo, &action);
+    axrLogXrResult(xrResult, "xrSyncActions");
+    if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+    return AXR_SUCCESS;
+}
+
+void AxrXrSystem::destroyAction(XrAction& action) const {
+    if (action == XR_NULL_HANDLE) return;
+
+    const XrResult xrResult = xrDestroyAction(action);
+    axrLogXrResult(xrResult, "xrDestroyAction");
+    if (XR_SUCCEEDED(xrResult)) {
+        action = XR_NULL_HANDLE;
+    }
+}
+
+AxrResult AxrXrSystem::suggestBindings(
+    const AxrXrInteractionProfileEnum interactionProfileEnum,
+    const std::vector<ActionBinding>& actionBindings
+) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (actionBindings.empty()) {
+        return AXR_SUCCESS;
+    }
+
+    if (m_Instance == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Instance is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+    const char* interactionProfileName = axrGetXrInteractionProfileName(interactionProfileEnum);
+    if (axrStringIsEmpty(interactionProfileName)) {
+        return AXR_ERROR;
+    }
+
+    XrPath interactionProfilePath = XR_NULL_PATH;
+    XrResult xrResult = xrStringToPath(m_Instance, interactionProfileName, &interactionProfilePath);
+    axrLogXrResult(xrResult, "xrStringToPath");
+    if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+    const std::unordered_set<const char*> availableBindings = axrGetXrInteractionProfileBindingNames(
+        interactionProfileEnum
+    );
+
+    std::vector<XrActionSuggestedBinding> suggestedBindings;
+    suggestedBindings.reserve(actionBindings.size());
+    for (const ActionBinding& actionBinding : actionBindings) {
+        if (!availableBindings.contains(actionBinding.bindingName)) continue;
+
+        XrPath path = XR_NULL_PATH;
+        xrResult = xrStringToPath(m_Instance, actionBinding.bindingName, &path);
+        axrLogXrResult(xrResult, "xrStringToPath");
+        if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+        suggestedBindings.push_back(
+            XrActionSuggestedBinding{
+                .action = actionBinding.Action,
+                .binding = path,
+            }
+        );
+    }
+
+    if (suggestedBindings.empty()) {
+        return AXR_SUCCESS;
+    }
+
+    const XrInteractionProfileSuggestedBinding interactionProfileSuggestedBindings{
+        .type = XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING,
+        .next = nullptr,
+        .interactionProfile = interactionProfilePath,
+        .countSuggestedBindings = static_cast<uint32_t>(suggestedBindings.size()),
+        .suggestedBindings = suggestedBindings.data(),
+    };
+
+    xrResult = xrSuggestInteractionProfileBindings(m_Instance, &interactionProfileSuggestedBindings);
+    axrLogXrResult(xrResult, "xrSuggestInteractionProfileBindings");
+    if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrXrSystem::attachActionSets(std::unordered_map<std::string, AxrActionSet>& actionSets) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (actionSets.empty()) return AXR_SUCCESS;
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    std::vector<XrActionSet> xrActionSets;
+    xrActionSets.reserve(actionSets.size());
+
+    for (auto& [actionSetName, actionSet] : actionSets) {
+        const XrActionSet xrActionSet = actionSet.getXrActionSet();
+        if (xrActionSet == XR_NULL_HANDLE) continue;
+
+        xrActionSets.push_back(xrActionSet);
+        m_AttachedActionSets.insert(std::pair(actionSetName, &actionSet));
+    }
+
+    const XrSessionActionSetsAttachInfo attachInfo{
+        .type = XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO,
+        .next = nullptr,
+        .countActionSets = static_cast<uint32_t>(xrActionSets.size()),
+        .actionSets = xrActionSets.data(),
+    };
+
+    const XrResult xrResult = xrAttachSessionActionSets(m_Session, &attachInfo);
+    axrLogXrResult(xrResult, "xrAttachSessionActionSets");
+    if (XR_FAILED(xrResult)) {
+        detachActionSets();
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrXrSystem::detachActionSets() {
+    m_AttachedActionSets.clear();
+}
+
+XrActionStateBoolean AxrXrSystem::getBoolActionState(const XrAction action) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!isSessionActive()) return {};
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return {};
+    }
+
+    if (action == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Action is null.");
+        return {};
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const XrActionStateGetInfo actionStateGetInfo{
+        .type = XR_TYPE_ACTION_STATE_GET_INFO,
+        .next = nullptr,
+        .action = action,
+        .subactionPath = XR_NULL_PATH,
+    };
+
+    XrActionStateBoolean actionState{
+        .type = XR_TYPE_ACTION_STATE_BOOLEAN,
+    };
+
+    const XrResult xrResult = xrGetActionStateBoolean(m_Session, &actionStateGetInfo, &actionState);
+    axrLogXrResult(xrResult, "xrGetActionStateBoolean");
+    if (XR_FAILED(xrResult)) return {};
+
+    return actionState;
+}
+
+XrActionStateFloat AxrXrSystem::getFloatActionState(const XrAction action) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!isSessionActive()) return {};
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return {};
+    }
+
+    if (action == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Action is null.");
+        return {};
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const XrActionStateGetInfo actionStateGetInfo{
+        .type = XR_TYPE_ACTION_STATE_GET_INFO,
+        .next = nullptr,
+        .action = action,
+        .subactionPath = XR_NULL_PATH,
+    };
+
+    XrActionStateFloat actionState{
+        .type = XR_TYPE_ACTION_STATE_FLOAT,
+    };
+
+    const XrResult xrResult = xrGetActionStateFloat(m_Session, &actionStateGetInfo, &actionState);
+    axrLogXrResult(xrResult, "xrGetActionStateFloat");
+    if (XR_FAILED(xrResult)) return {};
+
+    return actionState;
+}
+
+XrActionStateVector2f AxrXrSystem::getVec2ActionState(const XrAction action) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!isSessionActive()) return {};
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return {};
+    }
+
+    if (action == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Action is null.");
+        return {};
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const XrActionStateGetInfo actionStateGetInfo{
+        .type = XR_TYPE_ACTION_STATE_GET_INFO,
+        .next = nullptr,
+        .action = action,
+        .subactionPath = XR_NULL_PATH,
+    };
+
+    XrActionStateVector2f actionState{
+        .type = XR_TYPE_ACTION_STATE_VECTOR2F,
+    };
+
+    const XrResult xrResult = xrGetActionStateVector2f(m_Session, &actionStateGetInfo, &actionState);
+    axrLogXrResult(xrResult, "xrGetActionStateVector2f");
+    if (XR_FAILED(xrResult)) return {};
+
+    return actionState;
+}
+
+AxrResult AxrXrSystem::createActionSpace(const XrAction action, XrSpace& space) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (space != XR_NULL_HANDLE) {
+        axrLogErrorLocation("Space already exists.");
+        return AXR_ERROR;
+    }
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const XrActionSpaceCreateInfo actionSpaceCreateInfo{
+        .type = XR_TYPE_ACTION_SPACE_CREATE_INFO,
+        .next = nullptr,
+        .action = action,
+        .subactionPath = XR_NULL_PATH,
+        .poseInActionSpace = XrPosef{
+            .orientation = XrQuaternionf{
+                .x = 0.0f,
+                .y = 0.0f,
+                .z = 0.0f,
+                .w = 1.0f
+            },
+            .position = XrVector3f{
+                .x = 0.0f,
+                .y = 0.0f,
+                .z = 0.0f
+            },
+        },
+    };
+
+    const XrResult xrResult = xrCreateActionSpace(m_Session, &actionSpaceCreateInfo, &space);
+    axrLogXrResult(xrResult, "xrLocateSpace");
+    if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrXrSystem::createViewSpace(XrSpace& space) const {
+    return createReferenceSpace(XR_REFERENCE_SPACE_TYPE_VIEW, space);
+}
+
+void AxrXrSystem::destroySpace(XrSpace& space) const {
+    if (space == XR_NULL_HANDLE) return;
+
+    const XrResult xrResult = xrDestroySpace(space);
+    axrLogXrResult(xrResult, "xrDestroySpace");
+
+    if (XR_SUCCEEDED(xrResult)) {
+        space = XR_NULL_HANDLE;
+    }
+}
+
+AxrResult AxrXrSystem::updatePoseActions(const XrTime time, entt::registry* registryHandle) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_AttachedActionSets.empty()) return AXR_SUCCESS;
+
+    if (m_StageReferenceSpace == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Stage reference space is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    for (AxrActionSet* actionSet : m_AttachedActionSets | std::views::values) {
+        if (actionSet == nullptr || !actionSet->isEnabled()) continue;
+
+        for (AxrPoseInputAction& poseAction : actionSet->getPoseInputActions() | std::views::values) {
+            if (!poseAction.isEnabled()) continue;
+
+            const XrSpace xrSpace = poseAction.getXrSpace();
+            if (xrSpace == XR_NULL_HANDLE) {
+                axrLogWarningLocation("XrSpace is null.");
+                continue;
+            }
+
+            XrSpaceVelocity spaceVelocity{
+                .type = XR_TYPE_SPACE_VELOCITY,
+            };
+
+            XrSpaceLocation spaceLocation{
+                .type = XR_TYPE_SPACE_LOCATION,
+                .next = &spaceVelocity,
+            };
+
+            const XrResult xrResult = xrLocateSpace(xrSpace, m_StageReferenceSpace, time, &spaceLocation);
+            axrLogXrResult(xrResult, "xrLocateSpace");
+            if (XR_FAILED(xrResult)) return AXR_ERROR;
+
+            poseAction.trigger(
+                AxrPose{
+                    .position = AxrVec3{
+                        .x = spaceLocation.pose.position.x,
+                        .y = spaceLocation.pose.position.y,
+                        .z = spaceLocation.pose.position.z,
+                    },
+                    .orientation = AxrQuaternion{
+                        .x = spaceLocation.pose.orientation.x,
+                        .y = spaceLocation.pose.orientation.y,
+                        .z = spaceLocation.pose.orientation.z,
+                        .w = spaceLocation.pose.orientation.w,
+                    }
+                }
+            );
+        }
+    }
+
+    if (registryHandle != nullptr) {
+        for (const auto& [entity, poseInputActionComponent, transformComponent] :
+             registryHandle->view<AxrMirrorPoseInputActionComponent, AxrTransformComponent>().each()) {
+            registryHandle->patch<AxrTransformComponent>(
+                entity,
+                [&](AxrTransformComponent& transform) {
+                    const auto foundActionSet = m_AttachedActionSets.find(poseInputActionComponent.ActionSetName);
+                    if (foundActionSet == m_AttachedActionSets.end()) {
+                        return;
+                    }
+
+                    const auto foundPoseAction = foundActionSet->second->getPoseInputAction(
+                        poseInputActionComponent.PoseInputActionName
+                    );
+                    if (foundPoseAction == nullptr) {
+                        return;
+                    }
+
+                    const AxrPose poseValue = foundPoseAction->getValue();
+
+                    transform.Position = poseInputActionComponent.OffsetPosition + glm::vec3(
+                        poseValue.position.x,
+                        poseValue.position.y,
+                        poseValue.position.z
+                    );
+                    transform.Orientation = poseInputActionComponent.OffsetOrientation * glm::quat(
+                        poseValue.orientation.w,
+                        poseValue.orientation.x,
+                        poseValue.orientation.y,
+                        poseValue.orientation.z
+                    );
+                }
+            );
+        }
+    }
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrXrSystem::applyHapticFeedback(
+    const XrAction action,
+    const int64_t duration,
+    const float frequency,
+    const float amplitude
+) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!isSessionActive()) return AXR_SUCCESS;
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const XrHapticActionInfo hapticActionInfo{
+        .type = XR_TYPE_HAPTIC_ACTION_INFO,
+        .next = nullptr,
+        .action = action,
+        .subactionPath = XR_NULL_PATH,
+    };
+
+    const XrHapticVibration vibration{
+        .type = XR_TYPE_HAPTIC_VIBRATION,
+        .next = nullptr,
+        .duration = duration,
+        .frequency = frequency,
+        .amplitude = amplitude,
+    };
+
+    const XrResult xrResult = xrApplyHapticFeedback(
+        m_Session,
+        &hapticActionInfo,
+        reinterpret_cast<const XrHapticBaseHeader*>(&vibration)
+    );
+    axrLogXrResult(xrResult, "xrApplyHapticFeedback");
+    if (XR_FAILED(xrResult)) {
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrXrSystem::stopHapticFeedback(const XrAction action) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!isSessionActive()) return AXR_SUCCESS;
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const XrHapticActionInfo hapticActionInfo{
+        .type = XR_TYPE_HAPTIC_ACTION_INFO,
+        .next = nullptr,
+        .action = action,
+        .subactionPath = XR_NULL_PATH,
+    };
+
+    const XrResult xrResult = xrStopHapticFeedback(m_Session, &hapticActionInfo);
+    axrLogXrResult(xrResult, "xrStopHapticFeedback");
+    if (XR_FAILED(xrResult)) {
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
 }
 
 AxrResult AxrXrSystem::createSwapchain(
@@ -1545,6 +2139,9 @@ void AxrXrSystem::destroyGraphicsBinding() {
 }
 
 void AxrXrSystem::destroySessionData() {
+    detachActionSets();
+
+    OnXrSessionStateChangedCallbackActions(false);
     OnXrSessionStateChangedCallbackGraphics(false);
     destroySpace(m_StageReferenceSpace);
     destroySession();
@@ -1714,17 +2311,6 @@ AxrResult AxrXrSystem::createReferenceSpace(
     return AXR_SUCCESS;
 }
 
-void AxrXrSystem::destroySpace(XrSpace& space) const {
-    if (space == XR_NULL_HANDLE) return;
-
-    const XrResult xrResult = xrDestroySpace(space);
-    axrLogXrResult(xrResult, "xrDestroySpace");
-
-    if (XR_SUCCEEDED(xrResult)) {
-        space = XR_NULL_HANDLE;
-    }
-}
-
 void AxrXrSystem::xrEvent_EventsLost(const XrEventDataEventsLost& eventData) {
     axrLogWarningLocation("OpenXR - Events Lost: {0}", eventData.lostEventCount);
 }
@@ -1767,6 +2353,7 @@ void AxrXrSystem::xrEvent_SessionStateChanged(const XrEventDataSessionStateChang
             axrLogXrResult(xrResult, "xrBeginSession");
             if (XR_SUCCEEDED(xrResult)) {
                 OnXrSessionStateChangedCallbackGraphics(true);
+                OnXrSessionStateChangedCallbackActions(true);
             }
             break;
         }
@@ -1784,6 +2371,62 @@ void AxrXrSystem::xrEvent_SessionStateChanged(const XrEventDataSessionStateChang
         default: {
             break;
         }
+    }
+}
+
+void AxrXrSystem::syncAttachedActions() const {
+    // ----------------------------------------- //
+    // Validate
+    // ----------------------------------------- //
+
+    if (m_AttachedActionSets.empty()) {
+        return;
+    }
+
+    if (m_Session == XR_NULL_HANDLE) {
+        axrLogErrorLocation("Session is null.");
+        return;
+    }
+
+    // The xrSyncActions function returns XR_SESSION_NOT_FOCUSED if application isn't focused.
+    // So it's not worth calling it in this case
+    if (!isSessionActive()) {
+        return;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    std::vector<XrActiveActionSet> activeActionSets;
+    activeActionSets.reserve(m_AttachedActionSets.size());
+
+    for (const AxrActionSet* actionSet : m_AttachedActionSets | std::ranges::views::values) {
+        if (actionSet == nullptr) continue;
+
+        activeActionSets.push_back(
+            XrActiveActionSet{
+                .actionSet = actionSet->getXrActionSet(),
+                .subactionPath = XR_NULL_PATH,
+            }
+        );
+    }
+
+    const XrActionsSyncInfo actionsSyncInfo = {
+        .type = XR_TYPE_ACTIONS_SYNC_INFO,
+        .next = nullptr,
+        .countActiveActionSets = static_cast<uint32_t>(activeActionSets.size()),
+        .activeActionSets = activeActionSets.data(),
+    };
+
+    const XrResult xrResult = xrSyncActions(m_Session, &actionsSyncInfo);
+    axrLogXrResult(xrResult, "xrSyncActions");
+    if (XR_FAILED(xrResult)) return;
+
+    for (AxrActionSet* actionSet : m_AttachedActionSets | std::ranges::views::values) {
+        if (actionSet == nullptr) continue;
+
+        actionSet->updateXrActionValues();
     }
 }
 

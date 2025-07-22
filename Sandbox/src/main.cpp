@@ -46,6 +46,57 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         axr::SamplerAnisotropyQualityEnum::High
     );
 
+    axr::ActionSystemConfig actionSystemConfig(
+        std::vector{
+            axr::ActionSetConfig(
+                "test",
+                "Test",
+                std::vector<axr::BoolInputActionConfig>{
+                    axr::BoolInputActionConfig(
+                        "click",
+                        "Click",
+                        axr::ActionXrVisibilityEnum::Always,
+                        std::vector{
+                            axr::BoolInputActionEnum::KeyboardA,
+                            axr::BoolInputActionEnum::XrController_Left_A_Click,
+                            axr::BoolInputActionEnum::XrController_Right_A_Click,
+                        }
+                    ),
+                },
+                std::vector<axr::FloatInputActionConfig>{},
+                std::vector<axr::Vec2InputActionConfig>{},
+                std::vector<axr::PoseInputActionConfig>{
+                    axr::PoseInputActionConfig(
+                        "head",
+                        "Head",
+                        axr::ActionXrVisibilityEnum::Auto,
+                        axr::PoseInputActionEnum::XrHMD
+                    ),
+                    axr::PoseInputActionConfig(
+                        "righthand",
+                        "Right Hand",
+                        axr::ActionXrVisibilityEnum::Auto,
+                        axr::PoseInputActionEnum::XrController_Right_Grip
+                    ),
+                },
+                std::vector<axr::HapticOutputActionConfig>{
+                    axr::HapticOutputActionConfig(
+                        "controller",
+                        "Controller",
+                        axr::ActionXrVisibilityEnum::Auto,
+                        std::vector{
+                            axr::HapticOutputActionEnum::XrController_Left,
+                            axr::HapticOutputActionEnum::XrController_Right,
+                        }
+                    ),
+                }
+            )
+        },
+        std::vector<axr::XrInteractionProfileEnum>{
+            axr::XrInteractionProfileEnum::ValveIndexController,
+        }
+    );
+
     const axr::WindowSystemConfig windowSystemConfig(
         800,
         600
@@ -72,6 +123,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         applicationName.c_str(),
         AXR_MAKE_VERSION(1, 0, 0),
         graphicsSystemConfig,
+        actionSystemConfig,
         &windowSystemConfig,
         &xrSystemConfig
     );
@@ -101,7 +153,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     }
 
     axr::GraphicsSystem graphicsSystem = app.getGraphicsSystem();
-    graphicsSystem.setClearColor(glm::vec4(0.2f, 0.05f, 0.2f, 1.0f));
+    graphicsSystem.setClearColor(axr::Color(0.2f, 0.05f, 0.2f, 1.0f));
 
     while (app.isRunning()) {
         app.processEvents();

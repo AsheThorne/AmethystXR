@@ -5,6 +5,7 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/common.h"
+#include "../../actionSystem/actionSystem.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -28,7 +29,7 @@ public:
     /// @param 1: New window width 
     /// @param 2: New window height
     using OnWindowResizedCallback_T = AxrCallback<void(uint32_t, uint32_t)>;
-    
+
     // ----------------------------------------- //
     // Structs
     // ----------------------------------------- //
@@ -36,6 +37,7 @@ public:
     /// Win32 Window System Config
     struct Config {
         std::string ApplicationName;
+        AxrActionSystem_T ActionSystem;
         uint32_t Width;
         uint32_t Height;
         OnWindowResizedCallback_T OnWindowResizedCallback;
@@ -86,6 +88,21 @@ public:
     [[nodiscard]] AxrResult openWindow();
     /// Signal that we want to close the window
     void closeWindow();
+    /// Check if the cursor is hidden
+    /// @returns True if the cursor is hidden
+    [[nodiscard]] bool isCursorHidden() const;
+    /// Unhide the cursor
+    void showCursor();
+    /// Hide the cursor
+    void hideCursor();
+    /// Check if the cursor's position is locked
+    /// @returns True if the cursor's position is locked
+    [[nodiscard]] bool isCursorLocked() const;
+    /// Lock the cursor's position
+    void lockCursor();
+    /// Unlock the cursor's position
+    void unlockCursor();
+    
     /// Process the window message queue
     /// @returns False if the window was closed
     [[nodiscard]] bool processEvents();
@@ -109,6 +126,7 @@ private:
 
     // ---- Config Variables ----
     std::string m_ApplicationName;
+    AxrActionSystem_T m_ActionSystem;
     uint32_t m_Width;
     uint32_t m_Height;
     OnWindowResizedCallback_T m_OnWindowResizedCallback;
@@ -116,6 +134,9 @@ private:
     std::wstring m_WindowClassName;
     HINSTANCE m_Instance;
     HWND m_WindowHandle;
+    bool m_IsCursorLocked;
+    bool m_IsCursorHidden;
+    RECT m_UnlockedCursorClipRect;
 
     // ----------------------------------------- //
     // Private Functions

@@ -9,6 +9,7 @@
 #include "assets.hpp"
 #include "scene.hpp"
 #include "xrSystem.hpp"
+#include "actionSystem.hpp"
 
 namespace axr {
     // ----------------------------------------- //
@@ -23,6 +24,7 @@ namespace axr {
         char ApplicationName[AXR_MAX_APPLICATION_NAME_SIZE]{};
         uint32_t ApplicationVersion;
         axr::GraphicsSystemConfig GraphicsSystemConfig;
+        axr::ActionSystemConfig ActionSystemConfig;
         const axr::WindowSystemConfig* WindowSystemConfig;
         const axr::XrSystemConfig* XrSystemConfig;
 
@@ -36,6 +38,7 @@ namespace axr {
         ApplicationConfig() :
             ApplicationVersion(0),
             GraphicsSystemConfig({}),
+            ActionSystemConfig({}),
             WindowSystemConfig(nullptr),
             XrSystemConfig(nullptr) {
         }
@@ -44,16 +47,19 @@ namespace axr {
         /// @param applicationName The application name
         /// @param applicationVersion The application version
         /// @param graphicsSystemConfig The graphics system config
+        /// @param actionSystemConfig The action system config
         /// @param windowSystemConfig The window system config
         /// @param xrSystemConfig The xr system config
         ApplicationConfig(
             const char* applicationName,
             const uint32_t applicationVersion,
             const axr::GraphicsSystemConfig& graphicsSystemConfig,
+            const axr::ActionSystemConfig& actionSystemConfig,
             const axr::WindowSystemConfig* windowSystemConfig,
             const axr::XrSystemConfig* xrSystemConfig
         ) : ApplicationVersion(applicationVersion),
             GraphicsSystemConfig(graphicsSystemConfig),
+            ActionSystemConfig(actionSystemConfig),
             WindowSystemConfig(windowSystemConfig),
             XrSystemConfig(xrSystemConfig) {
             if (applicationName != nullptr) {
@@ -161,6 +167,12 @@ namespace axr {
         /// @returns A handle to the graphics system
         [[nodiscard]] axr::GraphicsSystem getGraphicsSystem() const {
             return axrApplicationGetGraphicsSystem(m_Application);
+        }
+
+        /// Get the action system
+        /// @returns A handle to the action system
+        [[nodiscard]] axr::ActionSystem getActionSystem() const {
+            return axr::ActionSystem(axrApplicationGetActionSystem(m_Application));
         }
 
         /// Get the global asset collection

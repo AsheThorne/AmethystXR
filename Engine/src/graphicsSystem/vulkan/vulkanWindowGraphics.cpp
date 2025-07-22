@@ -25,7 +25,7 @@ AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
     m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
     m_GraphicsCommandPool(VK_NULL_HANDLE),
-    m_ClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)),
+    m_ClearColor(AxrColor(0.0f, 0.0f, 0.0f, 1.0f)),
     m_SwapchainImageLayout(vk::ImageLayout::ePresentSrcKHR),
     m_Surface(VK_NULL_HANDLE),
     m_SwapchainColorFormat(vk::Format::eUndefined),
@@ -72,7 +72,7 @@ void AxrVulkanWindowGraphics::addRequiredDeviceExtensions(
     extensions.add(reinterpret_cast<AxrVulkanExtension_T>(&swapchainExtension));
 }
 
-void AxrVulkanWindowGraphics::setClearColor(const glm::vec4& color) {
+void AxrVulkanWindowGraphics::setClearColor(const AxrColor& color) {
     m_ClearColor = color;
 }
 
@@ -173,7 +173,7 @@ bool AxrVulkanWindowGraphics::isReady() const {
     return m_IsReady;
 }
 
-AxrResult AxrVulkanWindowGraphics::beginRendering() {
+AxrResult AxrVulkanWindowGraphics::beginRendering(const AxrVulkanSceneData* sceneData) {
     // Nothing needed here
     return AXR_SUCCESS;
 }

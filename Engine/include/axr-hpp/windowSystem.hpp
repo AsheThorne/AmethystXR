@@ -109,6 +109,38 @@ namespace axr {
             axrWindowSystemCloseWindow(m_WindowSystem);
         }
 
+        /// Check if the cursor is hidden
+        /// @returns True if the cursor is hidden
+        [[nodiscard]] bool isCursorHidden() const {
+            return axrWindowSystemIsCursorHidden(m_WindowSystem);
+        }
+
+        /// Unhide the cursor
+        void showCursor() const {
+            axrWindowSystemShowCursor(m_WindowSystem);
+        }
+
+        /// Hide the cursor
+        void hideCursor() const {
+            axrWindowSystemHideCursor(m_WindowSystem);
+        }
+
+        /// Check if the cursor's position is locked
+        /// @returns True if the cursor's position is locked
+        [[nodiscard]] bool isCursorLocked() const {
+            return axrWindowSystemIsCursorLocked(m_WindowSystem);
+        }
+
+        /// Lock the cursor's position
+        void lockCursor() const {
+            axrWindowSystemLockCursor(m_WindowSystem);
+        }
+
+        /// Unlock the cursor's position
+        void unlockCursor() const {
+            axrWindowSystemUnlockCursor(m_WindowSystem);
+        }
+
     private:
         // ----------------------------------------- //
         // Private Variables

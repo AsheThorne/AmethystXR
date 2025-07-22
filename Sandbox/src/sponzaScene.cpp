@@ -28,7 +28,7 @@ axr::Result SponzaScene::setup() {
     const std::string modelName = "SponzaModel";
     const axr::ModelConfig modelConfig(
         modelName.c_str(),
-        "P:/C++/AmethystXR/Sandbox/assets/sample-models/2.0/Sponza/glTF/Sponza.gltf"
+        "sample-models/2.0/Sponza/glTF/Sponza.gltf"
     );
 
     if (AXR_FAILED(assetCollection.createModel(modelConfig))) return axr::Result::Error;
@@ -173,6 +173,127 @@ axr::Result SponzaScene::setup() {
 
     m_Scene.setMainCamera(m_CameraEntity);
 
+    // ---- XR Head ----
+
+    const char* testCubeImageName = "UvTesterImage";
+    if (AXR_FAILED(
+        m_Scene.getAssetCollection().createImage(testCubeImageName, axr::EngineAssetEnum::ImageUvTester)
+    )) {
+        return axr::Result::Error;
+    }
+
+    const char* testCubeMaterialName = "HandMaterial";
+    if (AXR_FAILED(
+        assetCollection.createMaterial(
+            testCubeMaterialName,
+            axr::EngineAssetMaterial_DefaultMaterial(
+                testCubeImageName,
+                axr::engineAssetGetName(axr::EngineAssetEnum::ImageSamplerNearestRepeat)
+            )
+        )
+    )) {
+        return axr::Result::Error;
+    }
+
+    const char* testCubeModelName = "TestCube";
+    if (AXR_FAILED(assetCollection.createModel(testCubeModelName, axr::EngineAssetEnum::ModelCube))) {
+        return axr::Result::Error;
+    }
+
+    m_XrHeadEntity = m_Scene.createEntity();
+    m_XrHeadEntity.emplace<AxrTransformComponent>(
+        AxrTransformComponent{
+            .Position = glm::vec3(0.0f, 0.0f, 0.0f),
+            .Scale = glm::vec3(0.3f, 0.3f, 0.3f),
+            .Orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+        }
+    );
+    m_XrHeadEntity.emplace<AxrMirrorPoseInputActionComponent>(
+        AxrMirrorPoseInputActionComponent{
+            .ActionSetName = "test",
+            .PoseInputActionName = "head",
+            .OffsetPosition = glm::vec3(0.0f, 0.0f, 0.0f),
+            .OffsetOrientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+        }
+    );
+
+    AxrModelComponent::Mesh::Submesh headSubmesh{
+        .MaterialName = {},
+    };
+    strcpy_s(headSubmesh.MaterialName, testCubeMaterialName);
+
+    m_HeadComponentSubmeshes = {
+        headSubmesh,
+    };
+    m_HeadComponentMeshes = {
+        AxrModelComponent::Mesh{
+            .SubmeshCount = static_cast<uint32_t>(m_HeadComponentSubmeshes.size()),
+            .Submeshes = m_HeadComponentSubmeshes.data(),
+        }
+    };
+
+    AxrModelComponent headModelComponent{
+        .ModelName = {},
+        .MeshCount = static_cast<uint32_t>(m_HeadComponentMeshes.size()),
+        .Meshes = m_HeadComponentMeshes.data(),
+        .PushConstantBufferName = {},
+    };
+    strcpy_s(headModelComponent.ModelName, testCubeModelName);
+    strcpy_s(
+        headModelComponent.PushConstantBufferName,
+        axr::engineAssetGetName(axr::EngineAssetEnum::PushConstantBufferModelMatrix)
+    );
+
+    m_XrHeadEntity.emplace<AxrModelComponent>(headModelComponent);
+
+    // ---- XR Hand ----
+
+    m_XrHandEntity = m_Scene.createEntity();
+    m_XrHandEntity.emplace<AxrTransformComponent>(
+        AxrTransformComponent{
+            .Position = glm::vec3(0.0f, 0.0f, 0.0f),
+            .Scale = glm::vec3(0.1f, 0.1f, 0.1f),
+            .Orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+        }
+    );
+    m_XrHandEntity.emplace<AxrMirrorPoseInputActionComponent>(
+        AxrMirrorPoseInputActionComponent{
+            .ActionSetName = "test",
+            .PoseInputActionName = "righthand",
+            .OffsetPosition = glm::vec3(0.0f, 0.2f, 0.0f),
+            .OffsetOrientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+        }
+    );
+
+    AxrModelComponent::Mesh::Submesh handSubmesh{
+        .MaterialName = {},
+    };
+    strcpy_s(handSubmesh.MaterialName, testCubeMaterialName);
+
+    m_HandComponentSubmeshes = {
+        handSubmesh,
+    };
+    m_HandComponentMeshes = {
+        AxrModelComponent::Mesh{
+            .SubmeshCount = static_cast<uint32_t>(m_HandComponentSubmeshes.size()),
+            .Submeshes = m_HandComponentSubmeshes.data(),
+        }
+    };
+
+    AxrModelComponent handModelComponent{
+        .ModelName = {},
+        .MeshCount = static_cast<uint32_t>(m_HandComponentMeshes.size()),
+        .Meshes = m_HandComponentMeshes.data(),
+        .PushConstantBufferName = {},
+    };
+    strcpy_s(handModelComponent.ModelName, testCubeModelName);
+    strcpy_s(
+        handModelComponent.PushConstantBufferName,
+        axr::engineAssetGetName(axr::EngineAssetEnum::PushConstantBufferModelMatrix)
+    );
+
+    m_XrHandEntity.emplace<AxrModelComponent>(handModelComponent);
+
     return axr::Result::Success;
 }
 
@@ -185,4 +306,18 @@ axr::Result SponzaScene::setAsActiveScene() const {
 }
 
 void SponzaScene::update() {
+    const axr::ActionSystem actionSystem = m_Application.getActionSystem();
+    const axr::ActionSet actionSet = actionSystem.getActionSet("test");
+    const axr::BoolInputAction keyAction = actionSet.getBoolInputAction("click");
+    const axr::WindowSystem windowSystem = m_Application.getWindowSystem();
+
+    if (keyAction.valueChanged() && keyAction.getValue()) {
+        if (windowSystem.isCursorHidden() || windowSystem.isCursorLocked()) {
+            windowSystem.showCursor();
+            windowSystem.unlockCursor();
+        } else {
+            windowSystem.hideCursor();
+            windowSystem.lockCursor();
+        }
+    }
 }

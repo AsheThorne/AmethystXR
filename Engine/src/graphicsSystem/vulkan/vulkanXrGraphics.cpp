@@ -20,7 +20,7 @@ AxrVulkanXrGraphics::AxrVulkanXrGraphics(const Config& config):
     m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
     m_GraphicsCommandPool(VK_NULL_HANDLE),
-    m_ClearColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)),
+    m_ClearColor(AxrColor(0.0f, 0.0f, 0.0f, 1.0f)),
     m_IsReady(false),
     m_SwapchainColorFormat(vk::Format::eUndefined),
     m_SwapchainDepthFormat(vk::Format::eUndefined),
@@ -37,7 +37,7 @@ AxrVulkanXrGraphics::~AxrVulkanXrGraphics() {
 
 // ---- Public Functions ----
 
-void AxrVulkanXrGraphics::setClearColor(const glm::vec4& color) {
+void AxrVulkanXrGraphics::setClearColor(const AxrColor& color) {
     m_ClearColor = color;
 }
 
@@ -171,7 +171,7 @@ AxrResult AxrVulkanXrGraphics::createVulkanDevice(
     );
 }
 
-AxrResult AxrVulkanXrGraphics::beginRendering() {
+AxrResult AxrVulkanXrGraphics::beginRendering(const AxrVulkanSceneData* sceneData) {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -213,6 +213,8 @@ AxrResult AxrVulkanXrGraphics::beginRendering() {
             },
         };
     }
+
+    axrResult = m_XrSystem.updatePoseActions(m_FrameRenderData.PredictedDisplayTime, sceneData->getEcsRegistryHandle());
 
     return AXR_SUCCESS;
 }

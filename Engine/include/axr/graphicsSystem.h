@@ -4,15 +4,11 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/common/defines.h"
+#include "axr/common/types.h"
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 #include "vulkanApi.h"
 #endif
-
-// ----------------------------------------- //
-// GLM Headers
-// ----------------------------------------- //
-#include <glm/glm.hpp>
 
 // ----------------------------------------- //
 // Enums
@@ -87,5 +83,5 @@ extern "C" {
     /// Set the clear color
     /// @param graphicsSystem Graphics system to use
     /// @param color Clear color
-    AXR_API void axrGraphicsSystemSetClearColor(AxrGraphicsSystemConst_T graphicsSystem, glm::vec4 color);
+    AXR_API void axrGraphicsSystemSetClearColor(AxrGraphicsSystemConst_T graphicsSystem, AxrColor color);
 }

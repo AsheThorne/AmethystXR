@@ -122,6 +122,9 @@ public:
     /// Get the scene name
     /// @returns The scene name
     [[nodiscard]] const std::string& getSceneName() const;
+    /// Get the ecs registry handle
+    /// @returns The ecs registry handle
+    [[nodiscard]] entt::registry* getEcsRegistryHandle() const;
 
     /// Load the scene data
     /// @returns AXR_SUCCESS if the function succeeded

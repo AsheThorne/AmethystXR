@@ -481,6 +481,11 @@ namespace axr {
         /// Resize the vertex attributes
         /// @param size New size
         void resizeVertexAttributes(const uint32_t size) {
+            if (size == 0) {
+                clearVertexAttributes();
+                return;
+            }
+
             auto newVertexAttributes = new AxrShaderVertexAttribute[size]{};
             for (uint32_t i = 0; i < std::min(VertexAttributeCount, size); ++i) {
                 // Move vertex attributes to new array
@@ -498,6 +503,11 @@ namespace axr {
         /// Resize the buffer layouts
         /// @param size New size
         void resizeBufferLayouts(const uint32_t size) {
+            if (size == 0) {
+                clearBufferLayouts();
+                return;
+            }
+
             auto newBufferLayouts = new AxrShaderBufferLayout_T[size]{};
             for (uint32_t i = 0; i < std::min(BufferLayoutCount, size); ++i) {
                 // Move buffer layouts to new array
@@ -658,6 +668,11 @@ namespace axr {
         /// Resize the buffer layouts
         /// @param size New size
         void resizeBufferLayouts(const uint32_t size) {
+            if (size == 0) {
+                clearBufferLayouts();
+                return;
+            }
+
             auto newBufferLayouts = new AxrShaderBufferLayout_T[size]{};
             for (uint32_t i = 0; i < std::min(BufferLayoutCount, size); ++i) {
                 // Move buffer layouts to new array
@@ -1063,6 +1078,11 @@ namespace axr {
         /// Resize the buffer links
         /// @param size New size
         void resizeBufferLinks(const uint32_t size) {
+            if (size == 0) {
+                clearBufferLinks();
+                return;
+            }
+
             auto newBufferLinks = new AxrShaderBufferLink_T[size]{};
             for (uint32_t i = 0; i < std::min(BufferLinkCount, size); ++i) {
                 // Move buffer links to new array
