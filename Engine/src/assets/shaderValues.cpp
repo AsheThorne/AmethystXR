@@ -256,6 +256,8 @@ AxrShaderValues_T AxrShaderValuesRAII::clone(const AxrShaderValuesConst_T values
 
     return new AxrShaderValues{
         .BufferLinkCount = values->BufferLinkCount,
+        // No memory leak was found here, but we still get warnings.
+        // ReSharper disable once CppDFAMemoryLeak
         .BufferLinks = clone(
             values->BufferLinkCount,
             values->BufferLinks
@@ -276,12 +278,17 @@ AxrShaderBufferLink_T* AxrShaderValuesRAII::clone(
     const uint32_t shaderBufferLinkCount,
     const AxrShaderBufferLinkConst_T* shaderBufferLinks
 ) {
-    if (shaderBufferLinks == nullptr) return nullptr;
+    if (shaderBufferLinkCount == 0 || shaderBufferLinks == nullptr) return nullptr;
 
+    // No memory leak was found here, but we still get warnings.
+    // It was checked by increasing a count for every time this `clone` function was called, against
+    // a count of every time the counterpart `destroy` function was called. And it was equal.
+    // ReSharper disable CppDFAMemoryLeak
     const auto newShaderBufferLinks = new AxrShaderBufferLink_T[shaderBufferLinkCount]{};
     for (uint32_t i = 0; i < shaderBufferLinkCount; ++i) {
         newShaderBufferLinks[i] = clone(shaderBufferLinks[i]);
     }
+    // ReSharper restore CppDFAMemoryLeak
 
     return newShaderBufferLinks;
 }
@@ -350,13 +357,15 @@ AxrShaderUniformBufferLink_T AxrShaderValuesRAII::clone(
 ) {
     if (shaderBufferLink == nullptr) return nullptr;
 
-    AxrShaderUniformBufferLink* link = new AxrShaderUniformBufferLink{
+    // No memory leak was found here, but we still get warnings.
+    // It was checked by increasing a count for every time this `clone` function was called, against
+    // a count of every time the counterpart `destroy` function was called. And it was equal.
+    // ReSharper disable once CppDFAMemoryLeak
+    const auto link = new AxrShaderUniformBufferLink{
         .Binding = shaderBufferLink->Binding,
         .BufferName = {},
     };
-    if (shaderBufferLink->BufferName != nullptr) {
-        strncpy_s(link->BufferName, shaderBufferLink->BufferName, AXR_MAX_ASSET_NAME_SIZE);
-    }
+    strncpy_s(link->BufferName, shaderBufferLink->BufferName, AXR_MAX_ASSET_NAME_SIZE);
 
     return link;
 }
@@ -373,17 +382,18 @@ AxrShaderImageSamplerBufferLink_T AxrShaderValuesRAII::clone(
 ) {
     if (shaderBufferLink == nullptr) return nullptr;
 
-    AxrShaderImageSamplerBufferLink* link = new AxrShaderImageSamplerBufferLink{
+    // No memory leak was found here, but we still get warnings.
+    // It was checked by increasing a count for every time this `clone` function was called, against
+    // a count of every time the counterpart `destroy` function was called. And it was equal.
+    // ReSharper disable once CppDFAMemoryLeak
+    const auto link = new AxrShaderImageSamplerBufferLink{
         .Binding = shaderBufferLink->Binding,
         .ImageName = {},
         .ImageSamplerName = {},
     };
-    if (shaderBufferLink->ImageName != nullptr) {
-        strncpy_s(link->ImageName, shaderBufferLink->ImageName, AXR_MAX_ASSET_NAME_SIZE);
-    }
-    if (shaderBufferLink->ImageSamplerName != nullptr) {
-        strncpy_s(link->ImageSamplerName, shaderBufferLink->ImageSamplerName, AXR_MAX_ASSET_NAME_SIZE);
-    }
+
+    strncpy_s(link->ImageName, shaderBufferLink->ImageName, AXR_MAX_ASSET_NAME_SIZE);
+    strncpy_s(link->ImageSamplerName, shaderBufferLink->ImageSamplerName, AXR_MAX_ASSET_NAME_SIZE);
 
     return link;
 }

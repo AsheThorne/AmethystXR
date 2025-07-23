@@ -144,7 +144,7 @@ AxrModelFileMeshInfo axrModelFileMeshInfoClone(
 
     AxrModelFileSubmeshInfo* submeshes = nullptr;
 
-    if (modelFileMeshInfo->Submeshes != nullptr) {
+    if (modelFileMeshInfo->SubmeshCount != 0 && modelFileMeshInfo->Submeshes != nullptr) {
         submeshes = new AxrModelFileSubmeshInfo[modelFileMeshInfo->SubmeshCount]{};
 
         for (uint32_t i = 0; i < modelFileMeshInfo->SubmeshCount; ++i) {
@@ -179,7 +179,7 @@ AxrModelFileInfo axrModelFileInfoClone(const AxrModelFileInfo* modelFileInfo) {
     AxrModelFileMaterialInfo* materials = nullptr;
     AxrModelFileMeshInfo* meshes = nullptr;
 
-    if (modelFileInfo->ImageSamplers != nullptr) {
+    if (modelFileInfo->ImageSamplerCount != 0 && modelFileInfo->ImageSamplers != nullptr) {
         imageSamplers = new AxrModelFileImageSamplerInfo[modelFileInfo->ImageSamplerCount]{};
 
         for (uint32_t i = 0; i < modelFileInfo->ImageSamplerCount; ++i) {
@@ -187,7 +187,7 @@ AxrModelFileInfo axrModelFileInfoClone(const AxrModelFileInfo* modelFileInfo) {
         }
     }
 
-    if (modelFileInfo->Images != nullptr) {
+    if (modelFileInfo->ImageCount != 0 && modelFileInfo->Images != nullptr) {
         images = new AxrModelFileImageInfo[modelFileInfo->ImageCount]{};
 
         for (uint32_t i = 0; i < modelFileInfo->ImageCount; ++i) {
@@ -195,7 +195,7 @@ AxrModelFileInfo axrModelFileInfoClone(const AxrModelFileInfo* modelFileInfo) {
         }
     }
 
-    if (modelFileInfo->Materials != nullptr) {
+    if (modelFileInfo->MaterialCount != 0 && modelFileInfo->Materials != nullptr) {
         materials = new AxrModelFileMaterialInfo[modelFileInfo->MaterialCount]{};
 
         for (uint32_t i = 0; i < modelFileInfo->MaterialCount; ++i) {
@@ -203,7 +203,7 @@ AxrModelFileInfo axrModelFileInfoClone(const AxrModelFileInfo* modelFileInfo) {
         }
     }
 
-    if (modelFileInfo->Meshes != nullptr) {
+    if (modelFileInfo->MeshCount != 0 && modelFileInfo->Meshes != nullptr) {
         meshes = new AxrModelFileMeshInfo[modelFileInfo->MeshCount]{};
 
         for (uint32_t i = 0; i < modelFileInfo->MeshCount; ++i) {

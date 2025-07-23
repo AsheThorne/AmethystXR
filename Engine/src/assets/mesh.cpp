@@ -89,9 +89,9 @@ void AxrMeshRAII::destroyMesh(AxrMesh& mesh) {
 }
 
 AxrSubmesh* AxrMeshRAII::cloneSubmeshes(const uint32_t submeshCount, const AxrSubmesh* submeshes) {
-    if (submeshes == nullptr) return nullptr;
+    if (submeshCount == 0 || submeshes == nullptr) return nullptr;
 
-    AxrSubmesh* newSubmeshes = new AxrSubmesh[submeshCount]{};
+    const auto newSubmeshes = new AxrSubmesh[submeshCount]{};
     for (uint32_t i = 0; i < submeshCount; ++i) {
         newSubmeshes[i] = AxrSubmeshRAII::cloneSubmesh(submeshes[i]);
     }

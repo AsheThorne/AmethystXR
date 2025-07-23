@@ -353,11 +353,15 @@ AxrVertexShaderProperties_T AxrShaderPropertiesRAII::clone(const AxrVertexShader
 
     return new AxrVertexShaderProperties{
         .VertexAttributeCount = properties->VertexAttributeCount,
+        // No memory leak was found here, but we still get warnings.
+        // ReSharper disable once CppDFAMemoryLeak
         .VertexAttributes = clone(
             properties->VertexAttributeCount,
             properties->VertexAttributes
         ),
         .BufferLayoutCount = properties->BufferLayoutCount,
+        // No memory leak was found here, but we still get warnings.
+        // ReSharper disable once CppDFAMemoryLeak
         .BufferLayouts = clone(
             properties->BufferLayoutCount,
             properties->BufferLayouts
@@ -380,6 +384,8 @@ AxrFragmentShaderProperties_T AxrShaderPropertiesRAII::clone(const AxrFragmentSh
 
     return new AxrFragmentShaderProperties{
         .BufferLayoutCount = properties->BufferLayoutCount,
+        // No memory leak was found here, but we still get warnings.
+        // ReSharper disable once CppDFAMemoryLeak
         .BufferLayouts = clone(
             properties->BufferLayoutCount,
             properties->BufferLayouts
@@ -400,12 +406,17 @@ AxrShaderBufferLayout_T* AxrShaderPropertiesRAII::clone(
     const uint32_t shaderBufferLayoutCount,
     const AxrShaderBufferLayoutConst_T* shaderBufferLayouts
 ) {
-    if (shaderBufferLayouts == nullptr) return nullptr;
+    if (shaderBufferLayoutCount == 0 || shaderBufferLayouts == nullptr) return nullptr;
 
+    // No memory leak was found here, but we still get warnings.
+    // It was checked by increasing a count for every time this `clone` function was called, against
+    // a count of every time the counterpart `destroy` function was called. And it was equal.
+    // ReSharper disable CppDFAMemoryLeak
     const auto newShaderBufferLayouts = new AxrShaderBufferLayout_T[shaderBufferLayoutCount]{};
     for (uint32_t i = 0; i < shaderBufferLayoutCount; ++i) {
         newShaderBufferLayouts[i] = clone(shaderBufferLayouts[i]);
     }
+    // ReSharper restore CppDFAMemoryLeak
 
     return newShaderBufferLayouts;
 }
@@ -494,6 +505,10 @@ AxrShaderUniformBufferLayout_T AxrShaderPropertiesRAII::clone(
 ) {
     if (shaderBufferLayout == nullptr) return nullptr;
 
+    // No memory leak was found here, but we still get warnings.
+    // It was checked by increasing a count for every time this `clone` function was called, against
+    // a count of every time the counterpart `destroy` function was called. And it was equal.
+    // ReSharper disable once CppDFAMemoryLeak
     return new AxrShaderUniformBufferLayout{
         .Binding = shaderBufferLayout->Binding,
         .BufferSize = shaderBufferLayout->BufferSize,
@@ -501,6 +516,8 @@ AxrShaderUniformBufferLayout_T AxrShaderPropertiesRAII::clone(
 }
 
 void AxrShaderPropertiesRAII::destroy(AxrShaderUniformBufferLayout_T& shaderBufferLayout) {
+    if (shaderBufferLayout == nullptr) return;
+
     delete shaderBufferLayout;
     shaderBufferLayout = nullptr;
 }
@@ -510,12 +527,18 @@ AxrShaderImageSamplerBufferLayout_T AxrShaderPropertiesRAII::clone(
 ) {
     if (shaderBufferLayout == nullptr) return nullptr;
 
+    // No memory leak was found here, but we still get warnings.
+    // It was checked by increasing a count for every time this `clone` function was called, against
+    // a count of every time the counterpart `destroy` function was called. And it was equal.
+    // ReSharper disable once CppDFAMemoryLeak
     return new AxrShaderImageSamplerBufferLayout{
         .Binding = shaderBufferLayout->Binding,
     };
 }
 
 void AxrShaderPropertiesRAII::destroy(AxrShaderImageSamplerBufferLayout_T& shaderBufferLayout) {
+    if (shaderBufferLayout == nullptr) return;
+
     delete shaderBufferLayout;
     shaderBufferLayout = nullptr;
 }
@@ -526,12 +549,18 @@ AxrShaderPushConstantBufferLayout_T AxrShaderPropertiesRAII::clone(
 ) {
     if (shaderBufferLayout == nullptr) return nullptr;
 
+    // No memory leak was found here, but we still get warnings.
+    // It was checked by increasing a count for every time this `clone` function was called, against
+    // a count of every time the counterpart `destroy` function was called. And it was equal.
+    // ReSharper disable once CppDFAMemoryLeak
     return new AxrShaderPushConstantBufferLayout{
         .BufferSize = shaderBufferLayout->BufferSize,
     };
 }
 
 void AxrShaderPropertiesRAII::destroy(AxrShaderPushConstantBufferLayout_T& shaderBufferLayout) {
+    if (shaderBufferLayout == nullptr) return;
+
     delete shaderBufferLayout;
     shaderBufferLayout = nullptr;
 }
@@ -541,8 +570,12 @@ AxrShaderVertexAttribute* AxrShaderPropertiesRAII::clone(
     const uint32_t vertexAttributeCount,
     const AxrShaderVertexAttribute* vertexAttributes
 ) {
-    if (vertexAttributes == nullptr) return nullptr;
+    if (vertexAttributeCount == 0 || vertexAttributes == nullptr) return nullptr;
 
+    // No memory leak was found here, but we still get warnings.
+    // It was checked by increasing a count for every time this `clone` function was called, against
+    // a count of every time the counterpart `destroy` function was called. And it was equal.
+    // ReSharper disable once CppDFAMemoryLeak
     const auto newVertexAttributes = new AxrShaderVertexAttribute[vertexAttributeCount]{};
     for (uint32_t i = 0; i < vertexAttributeCount; ++i) {
         newVertexAttributes[i] = clone(vertexAttributes[i]);

@@ -101,6 +101,8 @@ const std::string& AxrUniformBuffer::getName() const {
 }
 
 void* AxrUniformBuffer::cloneData(const uint64_t size, const void* data) {
+    if (size == 0 || data == nullptr) return nullptr;
+    
     void* newData = createData(size);
     memcpy_s(newData, size, data, size);
     return newData;
@@ -115,7 +117,7 @@ void AxrUniformBuffer::destroyData(uint64_t& size, void*& data) {
 }
 
 void* AxrUniformBuffer::createData(const uint64_t size) {
-    return malloc(size);
+    return calloc(1, size);
 }
 
 const uint64_t& AxrUniformBuffer::getSize() const {

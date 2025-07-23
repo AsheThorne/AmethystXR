@@ -276,7 +276,6 @@ AxrBoolInputActionConfig AxrBoolInputAction::clone(const AxrBoolInputActionConfi
     strncpy_s(config.Name, inputActionConfig.Name, AXR_MAX_ACTION_NAME_SIZE);
     strncpy_s(config.LocalizedName, inputActionConfig.LocalizedName, AXR_MAX_ACTION_NAME_SIZE);
 
-    // TODO: Add this check for any other similar cloning function. like assets
     if (inputActionConfig.BindingCount != 0 && inputActionConfig.Bindings != nullptr) {
         config.Bindings = new AxrBoolInputActionEnum[inputActionConfig.BindingCount]{};
 

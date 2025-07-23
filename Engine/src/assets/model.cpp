@@ -176,9 +176,9 @@ const std::vector<AxrMeshRAII>& AxrModel::getMeshes() const {
 // ---- Public Static Functions ----
 
 AxrMesh* AxrModel::cloneMeshes(const uint32_t meshCount, const AxrMesh* meshes) {
-    if (meshes == nullptr) return nullptr;
+    if (meshCount == 0 || meshes == nullptr) return nullptr;
 
-    AxrMesh* newMeshes = new AxrMesh[meshCount]{};
+    const auto newMeshes = new AxrMesh[meshCount]{};
     for (uint32_t i = 0; i < meshCount; ++i) {
         newMeshes[i] = AxrMeshRAII::cloneMesh(meshes[i]);
     }

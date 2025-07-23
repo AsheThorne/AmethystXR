@@ -104,7 +104,7 @@ const std::string& AxrPushConstantBuffer::getName() const {
 }
 
 void* AxrPushConstantBuffer::cloneData(const uint32_t size, const void* data) {
-    if (data == nullptr) return nullptr;
+    if (size == 0 || data == nullptr) return nullptr;
 
     void* newData = malloc(size);
     memcpy_s(newData, size, data, size);
