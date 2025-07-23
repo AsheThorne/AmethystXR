@@ -2106,10 +2106,11 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
         return AXR_ERROR;
     }
 
-    for (uint32_t meshIndex = 0; meshIndex < modelComponent.MeshCount; ++meshIndex) {
-        for (int submeshIndex = 0; submeshIndex < modelComponent.Meshes[meshIndex].SubmeshCount; ++submeshIndex) {
-            const AxrModelComponent::Mesh::Submesh& currentSubmesh = modelComponent.Meshes[meshIndex].Submeshes[
-                submeshIndex];
+    for (size_t meshIndex = 0; meshIndex < modelComponent.Meshes.size(); ++meshIndex) {
+        for (size_t submeshIndex = 0;
+             submeshIndex < modelComponent.Meshes[meshIndex].Submeshes.size();
+             ++submeshIndex) {
+            const AxrModelComponent::Submesh& currentSubmesh = modelComponent.Meshes[meshIndex].Submeshes[submeshIndex];
 
             const AxrVulkanMaterialData* foundMaterialData = findMaterialData_shared(currentSubmesh.MaterialName);
             if (foundMaterialData == nullptr) {

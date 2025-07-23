@@ -46,26 +46,20 @@ axr::Result TestScene::setup() {
             .Orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
         }
     );
-    AxrModelComponent::Mesh::Submesh submesh{
+    AxrModelComponent::Submesh submesh{
         .MaterialName = {},
     };
     strcpy_s(submesh.MaterialName, materialName);
 
-    // TODO: We need a better solution than this. The entity doesn't clone the data so once this goes out of scope, we need to hold on to the data so it doesn't delete
-    //  Maybe we change the components to take std::vector instead of pointers??
-    m_ComponentSubmeshes = {
-        submesh,
-    };
-    m_ComponentMeshes = {
-        AxrModelComponent::Mesh{
-            .SubmeshCount = static_cast<uint32_t>(m_ComponentSubmeshes.size()),
-            .Submeshes = m_ComponentSubmeshes.data(),
-        }
-    };
     AxrModelComponent modelComponent{
         .ModelName = {},
-        .MeshCount = static_cast<uint32_t>(m_ComponentMeshes.size()),
-        .Meshes = m_ComponentMeshes.data(),
+        .Meshes = std::vector{
+            AxrModelComponent::Mesh{
+                .Submeshes = std::vector{
+                    submesh,
+                },
+            },
+        },
         .PushConstantBufferName = {},
     };
     strcpy_s(modelComponent.ModelName, modelName);

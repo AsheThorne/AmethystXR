@@ -114,8 +114,10 @@ axr::Result SponzaScene::setup() {
         }
     );
 
-    m_ComponentMeshes = std::vector<AxrModelComponent::Mesh>(modelInfo.MeshCount);
+    std::vector<AxrModelComponent::Mesh> meshes(modelInfo.MeshCount);
     for (uint32_t meshIndex = 0; meshIndex < modelInfo.MeshCount; ++meshIndex) {
+        std::vector<AxrModelComponent::Submesh> submeshes(modelInfo.Meshes[meshIndex].SubmeshCount);
+
         for (int submeshIndex = 0; submeshIndex < modelInfo.Meshes[meshIndex].SubmeshCount; ++submeshIndex) {
             const char* materialName = nullptr;
 
@@ -125,24 +127,22 @@ axr::Result SponzaScene::setup() {
                 materialName = defaultMaterialName;
             }
 
-            AxrModelComponent::Mesh::Submesh submesh{
+            AxrModelComponent::Submesh submesh{
                 .MaterialName = {},
             };
             strcpy_s(submesh.MaterialName, materialName);
 
-            m_ComponentSubmeshes.emplace_back(submesh);
+            submeshes[submeshIndex] = submesh;
         }
 
-        m_ComponentMeshes[meshIndex] = AxrModelComponent::Mesh{
-            .SubmeshCount = static_cast<uint32_t>(m_ComponentSubmeshes.size()),
-            .Submeshes = m_ComponentSubmeshes.data()
+        meshes[meshIndex] = AxrModelComponent::Mesh{
+            .Submeshes = submeshes
         };
     }
 
     AxrModelComponent modelComponent{
         .ModelName = {},
-        .MeshCount = static_cast<uint32_t>(m_ComponentMeshes.size()),
-        .Meshes = m_ComponentMeshes.data(),
+        .Meshes = meshes,
         .PushConstantBufferName = {},
     };
     strcpy_s(modelComponent.ModelName, modelName.c_str());
@@ -217,25 +217,20 @@ axr::Result SponzaScene::setup() {
         }
     );
 
-    AxrModelComponent::Mesh::Submesh headSubmesh{
+    AxrModelComponent::Submesh testCubeSubmesh{
         .MaterialName = {},
     };
-    strcpy_s(headSubmesh.MaterialName, testCubeMaterialName);
-
-    m_HeadComponentSubmeshes = {
-        headSubmesh,
-    };
-    m_HeadComponentMeshes = {
-        AxrModelComponent::Mesh{
-            .SubmeshCount = static_cast<uint32_t>(m_HeadComponentSubmeshes.size()),
-            .Submeshes = m_HeadComponentSubmeshes.data(),
-        }
-    };
+    strcpy_s(testCubeSubmesh.MaterialName, testCubeMaterialName);
 
     AxrModelComponent headModelComponent{
         .ModelName = {},
-        .MeshCount = static_cast<uint32_t>(m_HeadComponentMeshes.size()),
-        .Meshes = m_HeadComponentMeshes.data(),
+        .Meshes = std::vector{
+            AxrModelComponent::Mesh{
+                .Submeshes = std::vector{
+                    testCubeSubmesh,
+                },
+            },
+        },
         .PushConstantBufferName = {},
     };
     strcpy_s(headModelComponent.ModelName, testCubeModelName);
@@ -265,25 +260,15 @@ axr::Result SponzaScene::setup() {
         }
     );
 
-    AxrModelComponent::Mesh::Submesh handSubmesh{
-        .MaterialName = {},
-    };
-    strcpy_s(handSubmesh.MaterialName, testCubeMaterialName);
-
-    m_HandComponentSubmeshes = {
-        handSubmesh,
-    };
-    m_HandComponentMeshes = {
-        AxrModelComponent::Mesh{
-            .SubmeshCount = static_cast<uint32_t>(m_HandComponentSubmeshes.size()),
-            .Submeshes = m_HandComponentSubmeshes.data(),
-        }
-    };
-
     AxrModelComponent handModelComponent{
         .ModelName = {},
-        .MeshCount = static_cast<uint32_t>(m_HandComponentMeshes.size()),
-        .Meshes = m_HandComponentMeshes.data(),
+        .Meshes = std::vector{
+            AxrModelComponent::Mesh{
+                .Submeshes = std::vector{
+                    testCubeSubmesh,
+                }
+            },
+        },
         .PushConstantBufferName = {},
     };
     strcpy_s(handModelComponent.ModelName, testCubeModelName);

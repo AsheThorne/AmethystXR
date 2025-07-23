@@ -52,6 +52,4 @@ private:
     axr::Scene m_Scene;
     axr::Entity_T m_Entity;
     axr::Entity_T m_CameraEntity;
-    std::vector<AxrModelComponent::Mesh::Submesh> m_ComponentSubmeshes;
-    std::vector<AxrModelComponent::Mesh> m_ComponentMeshes;
 };
