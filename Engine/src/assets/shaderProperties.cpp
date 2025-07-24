@@ -602,7 +602,6 @@ void AxrShaderPropertiesRAII::destroy(
 AxrShaderVertexAttribute AxrShaderPropertiesRAII::clone(const AxrShaderVertexAttribute vertexAttribute) {
     return AxrShaderVertexAttribute{
         .Type = vertexAttribute.Type,
-        .Binding = vertexAttribute.Binding,
         .Location = vertexAttribute.Location,
     };
 }

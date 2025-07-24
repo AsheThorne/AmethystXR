@@ -601,26 +601,17 @@ AxrResult AxrVulkanMaterialData::createPipeline(
     std::vector<AxrShaderVertexAttribute> vertexAttributes = m_VertexShaderHandle->getProperties().
         getVertexAttributes();
 
-    std::unordered_set<uint32_t> vertexAttributeBindings;
-    for (const AxrShaderVertexAttribute& vertexAttribute : vertexAttributes) {
-        vertexAttributeBindings.insert(vertexAttribute.Binding);
-    }
-
-    std::vector<vk::VertexInputBindingDescription> vertexBindingDescriptions(vertexAttributeBindings.size());
-    for (uint32_t vertexAttributeBindingIndex = 0; uint32_t vertexAttributeBinding : vertexAttributeBindings) {
-        vertexBindingDescriptions[vertexAttributeBindingIndex] = vk::VertexInputBindingDescription(
-            vertexAttributeBinding,
-            sizeof(AxrVertex),
-            vk::VertexInputRate::eVertex
-        );
-        ++vertexAttributeBindingIndex;
-    }
+    vk::VertexInputBindingDescription vertexBindingDescription(
+        0,
+        sizeof(AxrVertex),
+        vk::VertexInputRate::eVertex
+    );
 
     std::vector<vk::VertexInputAttributeDescription> vertexAttributeDescriptions(vertexAttributes.size());
     for (size_t i = 0; i < vertexAttributeDescriptions.size(); ++i) {
         vertexAttributeDescriptions[i] = vk::VertexInputAttributeDescription(
             vertexAttributes[i].Location,
-            vertexAttributes[i].Binding,
+            vertexBindingDescription.binding,
             getVertexAttributeFormat(vertexAttributes[i].Type),
             getVertexAttributeOffset(vertexAttributes[i].Type)
         );
@@ -628,8 +619,8 @@ AxrResult AxrVulkanMaterialData::createPipeline(
 
     const vk::PipelineVertexInputStateCreateInfo vertexInputStateCreateInfo(
         {},
-        static_cast<uint32_t>(vertexBindingDescriptions.size()),
-        vertexBindingDescriptions.data(),
+        1,
+        &vertexBindingDescription,
         static_cast<uint32_t>(vertexAttributeDescriptions.size()),
         vertexAttributeDescriptions.data()
     );

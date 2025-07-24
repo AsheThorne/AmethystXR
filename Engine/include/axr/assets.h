@@ -212,7 +212,6 @@ typedef const AxrShaderPushConstantBufferLayout* AxrShaderPushConstantBufferLayo
 /// Shader Vertex Attribute
 struct AxrShaderVertexAttribute {
     AxrShaderVertexAttributeEnum Type;
-    uint32_t Binding;
     uint32_t Location;
 };
 

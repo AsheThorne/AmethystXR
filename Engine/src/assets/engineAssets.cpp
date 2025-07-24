@@ -217,17 +217,14 @@ AxrResult axrEngineAssetCreateShader_DefaultVert(AxrShader& shader) {
     std::array vertexAttributes{
         AxrShaderVertexAttribute{
             .Type = AXR_SHADER_VERTEX_ATTRIBUTE_POSITION,
-            .Binding = 0,
             .Location = 0,
         },
         AxrShaderVertexAttribute{
             .Type = AXR_SHADER_VERTEX_ATTRIBUTE_COLOR,
-            .Binding = 0,
             .Location = 1,
         },
         AxrShaderVertexAttribute{
-            .Type = AXR_SHADER_VERTEX_ATTRIBUTE_TEX_COORDS,
-            .Binding = 0,
+            .Type = AXR_SHADER_VERTEX_ATTRIBUTE_TEXCOORD_0,
             .Location = 2,
         }
     };

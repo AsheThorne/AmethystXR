@@ -381,18 +381,15 @@ namespace axr {
 
         /// Add a vertex attribute
         /// @param type Vertex attribute type
-        /// @param binding Vertex attribute binding
         /// @param location Vertex attribute location
         void addVertexAttribute(
             const axr::ShaderVertexAttributeEnum type,
-            const uint32_t binding,
             const uint32_t location
         ) {
             resizeVertexAttributes(VertexAttributeCount + 1);
 
             const AxrShaderVertexAttribute vertexAttribute{
                 .Type = static_cast<AxrShaderVertexAttributeEnum>(type),
-                .Binding = binding,
                 .Location = location
             };
             VertexAttributes[VertexAttributeCount - 1] = axrShaderVertexAttributeClone(vertexAttribute);
