@@ -152,7 +152,10 @@ enum AxrShaderVertexAttributeEnum {
     AXR_SHADER_VERTEX_ATTRIBUTE_UNDEFINED = 0,
     AXR_SHADER_VERTEX_ATTRIBUTE_POSITION,
     AXR_SHADER_VERTEX_ATTRIBUTE_COLOR,
-    AXR_SHADER_VERTEX_ATTRIBUTE_TEX_COORDS,
+    AXR_SHADER_VERTEX_ATTRIBUTE_TEXCOORD_0,
+    AXR_SHADER_VERTEX_ATTRIBUTE_TEXCOORD_1,
+    AXR_SHADER_VERTEX_ATTRIBUTE_TEXCOORD_2,
+    AXR_SHADER_VERTEX_ATTRIBUTE_TEXCOORD_3,
 };
 
 // ----------------------------------------- //
@@ -559,7 +562,11 @@ extern "C" {
 struct AxrVertex {
     glm::vec3 Position;
     glm::vec3 Color;
-    glm::vec2 TexCoords;
+    // NOTE: We could go up to 8 TexCoords but 4 is enough for now
+    glm::vec2 TexCoord_0;
+    glm::vec2 TexCoord_1;
+    glm::vec2 TexCoord_2;
+    glm::vec2 TexCoord_3;
 };
 
 /// Submesh

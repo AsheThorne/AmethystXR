@@ -518,35 +518,44 @@ AxrResult axrLoadModel_glTF(const std::filesystem::path& path, std::vector<AxrMe
             );
 
             std::vector<glm::vec4> vertexColors;
-
             if (model.meshes[meshIndex].primitives[submeshIndex].attributes.contains("COLOR_0")) {
                 vertexColors = axrGetGltfBufferData<glm::vec4>(
                     model,
                     model.meshes[meshIndex].primitives[submeshIndex].attributes["COLOR_0"]
                 );
-            } else {
-                vertexColors = std::vector<glm::vec4>(vertexPositions.size(), glm::vec4(1.0f));
             }
 
-            std::vector<glm::vec2> vertexTexCoords;
+            // We only go up to a max of 4 tex coord channels for now
+            std::vector<std::vector<glm::vec2>> vertexTexCoords(4);
+            for (size_t i = 0; i < vertexTexCoords.size(); ++i) {
+                const std::string attributeName = "TEXCOORD_" + std::to_string(i);
 
-            if (model.meshes[meshIndex].primitives[submeshIndex].attributes.contains("TEXCOORD_0")) {
-                vertexTexCoords = axrGetGltfBufferData<glm::vec2>(
-                    model,
-                    model.meshes[meshIndex].primitives[submeshIndex].attributes["TEXCOORD_0"]
-                );
-            } else {
-                vertexTexCoords = std::vector<glm::vec2>(vertexPositions.size(), glm::vec2(0.0f));
+                if (model.meshes[meshIndex].primitives[submeshIndex].attributes.contains(attributeName)) {
+                    vertexTexCoords[i] = axrGetGltfBufferData<glm::vec2>(
+                        model,
+                        model.meshes[meshIndex].primitives[submeshIndex].attributes[attributeName]
+                    );
+                }
             }
 
-            // TODO: I think we need a better way to define vertex attributes. maybe something similar to this file and use maps.
-            //  So that we don't need default values for vertex colors or texcoords.
-            //  And so we can have multiple texcoords and colors. like COLOR_0, COLOR_1, TEXCOORD_0 and TEXCOORD_1.
             submesh.Vertices.resize(vertexPositions.size());
-            for (size_t j = 0; j < vertexPositions.size(); ++j) {
-                submesh.Vertices[j].Position = modelMatrix * glm::vec4(vertexPositions[j], 1.0f);
-                submesh.Vertices[j].Color = vertexColors[j];
-                submesh.Vertices[j].TexCoords = vertexTexCoords[j];
+            for (size_t vertexIndex = 0; vertexIndex < vertexPositions.size(); ++vertexIndex) {
+                submesh.Vertices[vertexIndex].Position = modelMatrix * glm::vec4(vertexPositions[vertexIndex], 1.0f);
+                submesh.Vertices[vertexIndex].Color = !vertexColors.empty()
+                                                          ? vertexColors[vertexIndex]
+                                                          : glm::vec4(1.0f);
+                submesh.Vertices[vertexIndex].TexCoord_0 = !vertexTexCoords[0].empty()
+                                                               ? vertexTexCoords[0][vertexIndex]
+                                                               : glm::vec2(0.0f);
+                submesh.Vertices[vertexIndex].TexCoord_1 = !vertexTexCoords[1].empty()
+                                                               ? vertexTexCoords[1][vertexIndex]
+                                                               : glm::vec2(0.0f);
+                submesh.Vertices[vertexIndex].TexCoord_2 = !vertexTexCoords[2].empty()
+                                                               ? vertexTexCoords[2][vertexIndex]
+                                                               : glm::vec2(0.0f);
+                submesh.Vertices[vertexIndex].TexCoord_3 = !vertexTexCoords[3].empty()
+                                                               ? vertexTexCoords[3][vertexIndex]
+                                                               : glm::vec2(0.0f);
             }
         }
     }

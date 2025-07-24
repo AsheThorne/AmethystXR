@@ -836,7 +836,10 @@ vk::Format AxrVulkanMaterialData::getVertexAttributeFormat(const AxrShaderVertex
         case AXR_SHADER_VERTEX_ATTRIBUTE_COLOR: {
             return vk::Format::eR32G32B32Sfloat;
         }
-        case AXR_SHADER_VERTEX_ATTRIBUTE_TEX_COORDS: {
+        case AXR_SHADER_VERTEX_ATTRIBUTE_TEXCOORD_0:
+        case AXR_SHADER_VERTEX_ATTRIBUTE_TEXCOORD_1:
+        case AXR_SHADER_VERTEX_ATTRIBUTE_TEXCOORD_2:
+        case AXR_SHADER_VERTEX_ATTRIBUTE_TEXCOORD_3: {
             return vk::Format::eR32G32Sfloat;
         }
         case AXR_SHADER_VERTEX_ATTRIBUTE_UNDEFINED:
@@ -854,8 +857,17 @@ uint32_t AxrVulkanMaterialData::getVertexAttributeOffset(const AxrShaderVertexAt
         case AXR_SHADER_VERTEX_ATTRIBUTE_COLOR: {
             return offsetof(AxrVertex, Color);
         }
-        case AXR_SHADER_VERTEX_ATTRIBUTE_TEX_COORDS: {
-            return offsetof(AxrVertex, TexCoords);
+        case AXR_SHADER_VERTEX_ATTRIBUTE_TEXCOORD_0: {
+            return offsetof(AxrVertex, TexCoord_0);
+        }
+        case AXR_SHADER_VERTEX_ATTRIBUTE_TEXCOORD_1: {
+            return offsetof(AxrVertex, TexCoord_1);
+        }
+        case AXR_SHADER_VERTEX_ATTRIBUTE_TEXCOORD_2: {
+            return offsetof(AxrVertex, TexCoord_2);
+        }
+        case AXR_SHADER_VERTEX_ATTRIBUTE_TEXCOORD_3: {
+            return offsetof(AxrVertex, TexCoord_3);
         }
         case AXR_SHADER_VERTEX_ATTRIBUTE_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)

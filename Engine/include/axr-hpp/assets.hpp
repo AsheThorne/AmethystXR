@@ -291,7 +291,10 @@ namespace axr {
         Undefined = AXR_SHADER_VERTEX_ATTRIBUTE_UNDEFINED,
         Position = AXR_SHADER_VERTEX_ATTRIBUTE_POSITION,
         Color = AXR_SHADER_VERTEX_ATTRIBUTE_COLOR,
-        TexCoords = AXR_SHADER_VERTEX_ATTRIBUTE_TEX_COORDS,
+        TexCoord_0 = AXR_SHADER_VERTEX_ATTRIBUTE_TEXCOORD_0,
+        TexCoord_1 = AXR_SHADER_VERTEX_ATTRIBUTE_TEXCOORD_1,
+        TexCoord_2 = AXR_SHADER_VERTEX_ATTRIBUTE_TEXCOORD_2,
+        TexCoord_3 = AXR_SHADER_VERTEX_ATTRIBUTE_TEXCOORD_3,
     };
 
     // ----------------------------------------- //
@@ -1435,7 +1438,10 @@ namespace axr {
 
         glm::vec3 Position;
         glm::vec3 Color;
-        glm::vec2 TexCoords;
+        glm::vec2 TexCoord_0;
+        glm::vec2 TexCoord_1;
+        glm::vec2 TexCoord_2;
+        glm::vec2 TexCoord_3;
 
         // ----------------------------------------- //
         // Special Functions
@@ -1446,17 +1452,33 @@ namespace axr {
         /// Default Constructor
         Vertex(): Position(0.0f),
             Color(0.0f),
-            TexCoords(0.0f) {
+            TexCoord_0(0.0f),
+            TexCoord_1(0.0f),
+            TexCoord_2(0.0f),
+            TexCoord_3(0.0f) {
         }
 
         /// Constructor
         /// @param position Vertex position
         /// @param color Vertex color
-        /// @param texCoords Vertex Texture Coordinates
-        Vertex(const glm::vec3 position, const glm::vec3 color, const glm::vec2 texCoords):
+        /// @param texCoord_0 Vertex Texture Coordinates (Channel 0)
+        /// @param texCoord_1 Vertex Texture Coordinates (Channel 1)
+        /// @param texCoord_2 Vertex Texture Coordinates (Channel 2)
+        /// @param texCoord_3 Vertex Texture Coordinates (Channel 3)
+        Vertex(
+            const glm::vec3 position,
+            const glm::vec3 color,
+            const glm::vec2 texCoord_0 = glm::vec2(0.0f),
+            const glm::vec2 texCoord_1 = glm::vec2(0.0f),
+            const glm::vec2 texCoord_2 = glm::vec2(0.0f),
+            const glm::vec2 texCoord_3 = glm::vec2(0.0f)
+        ):
             Position(position),
             Color(color),
-            TexCoords(texCoords) {
+            TexCoord_0(texCoord_0),
+            TexCoord_1(texCoord_1),
+            TexCoord_2(texCoord_2),
+            TexCoord_3(texCoord_3) {
         }
 
         /// Copy Constructor
@@ -1464,7 +1486,10 @@ namespace axr {
         Vertex(const Vertex& src) {
             Position = src.Position;
             Color = src.Color;
-            TexCoords = src.TexCoords;
+            TexCoord_0 = src.TexCoord_0;
+            TexCoord_1 = src.TexCoord_1;
+            TexCoord_2 = src.TexCoord_2;
+            TexCoord_3 = src.TexCoord_3;
         }
 
         /// Move Constructor
@@ -1472,11 +1497,17 @@ namespace axr {
         Vertex(Vertex&& src) noexcept {
             Position = src.Position;
             Color = src.Color;
-            TexCoords = src.TexCoords;
+            TexCoord_0 = src.TexCoord_0;
+            TexCoord_1 = src.TexCoord_1;
+            TexCoord_2 = src.TexCoord_2;
+            TexCoord_3 = src.TexCoord_3;
 
             src.Position = glm::vec3(0.0f);
             src.Color = glm::vec3(0.0f);
-            src.TexCoords = glm::vec3(0.0f);
+            src.TexCoord_0 = glm::vec3(0.0f);
+            src.TexCoord_1 = glm::vec3(0.0f);
+            src.TexCoord_2 = glm::vec3(0.0f);
+            src.TexCoord_3 = glm::vec3(0.0f);
         }
 
         // ---- Destructor ----
@@ -1496,7 +1527,10 @@ namespace axr {
 
                 Position = src.Position;
                 Color = src.Color;
-                TexCoords = src.TexCoords;
+                TexCoord_0 = src.TexCoord_0;
+                TexCoord_1 = src.TexCoord_1;
+                TexCoord_2 = src.TexCoord_2;
+                TexCoord_3 = src.TexCoord_3;
             }
 
             return *this;
@@ -1510,11 +1544,17 @@ namespace axr {
 
                 Position = src.Position;
                 Color = src.Color;
-                TexCoords = src.TexCoords;
+                TexCoord_0 = src.TexCoord_0;
+                TexCoord_1 = src.TexCoord_1;
+                TexCoord_2 = src.TexCoord_2;
+                TexCoord_3 = src.TexCoord_3;
 
                 src.Position = glm::vec3(0.0f);
                 src.Color = glm::vec3(0.0f);
-                src.TexCoords = glm::vec3(0.0f);
+                src.TexCoord_0 = glm::vec3(0.0f);
+                src.TexCoord_1 = glm::vec3(0.0f);
+                src.TexCoord_2 = glm::vec3(0.0f);
+                src.TexCoord_3 = glm::vec3(0.0f);
             }
 
             return *this;
@@ -1545,7 +1585,10 @@ namespace axr {
         void cleanup() {
             Position = glm::vec3(0.0f);
             Color = glm::vec3(0.0f);
-            TexCoords = glm::vec3(0.0f);
+            TexCoord_0 = glm::vec3(0.0f);
+            TexCoord_1 = glm::vec3(0.0f);
+            TexCoord_2 = glm::vec3(0.0f);
+            TexCoord_3 = glm::vec3(0.0f);
         }
     };
 

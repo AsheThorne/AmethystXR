@@ -534,17 +534,17 @@ AxrResult axrEngineAssetCreateModel_Triangle(const std::string& modelName, AxrMo
         AxrVertex{
             .Position = {0.0f, 0.866f, 0.0f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {0.5f, 0.0f},
+            .TexCoord_0 = {0.5f, 0.0f},
         },
         AxrVertex{
             .Position = {-0.5f, 0.0f, 0.0f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {0.0f, 1.0f},
+            .TexCoord_0 = {0.0f, 1.0f},
         },
         AxrVertex{
             .Position = {0.5f, 0.0f, 0.0f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {1.0f, 1.0f},
+            .TexCoord_0 = {1.0f, 1.0f},
         },
     };
 
@@ -585,22 +585,22 @@ AxrResult axrEngineAssetCreateModel_Square(const std::string& modelName, AxrMode
         AxrVertex{
             .Position = {0.5f, 1.0f, 0.0f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {1.0f, 0.0f},
+            .TexCoord_0 = {1.0f, 0.0f},
         },
         AxrVertex{
             .Position = {-0.5f, 1.0f, 0.0f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {0.0f, 0.0f},
+            .TexCoord_0 = {0.0f, 0.0f},
         },
         AxrVertex{
             .Position = {-0.5f, 0.0f, 0.0f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {0.0f, 1.0f},
+            .TexCoord_0 = {0.0f, 1.0f},
         },
         AxrVertex{
             .Position = {0.5f, 0.0f, 0.0f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {1.0f, 1.0f},
+            .TexCoord_0 = {1.0f, 1.0f},
         },
     };
 
@@ -643,132 +643,132 @@ AxrResult axrEngineAssetCreateModel_Cube(const std::string& modelName, AxrModel&
         AxrVertex{
             .Position = {0.5f, 0.5f, 0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {1.0f, 0.0f},
+            .TexCoord_0 = {1.0f, 0.0f},
         },
         AxrVertex{
             .Position = {-0.5f, 0.5f, 0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {0.0f, 0.0f},
+            .TexCoord_0 = {0.0f, 0.0f},
         },
         AxrVertex{
             .Position = {-0.5f, -0.5f, 0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {0.0f, 1.0f},
+            .TexCoord_0 = {0.0f, 1.0f},
         },
         AxrVertex{
             .Position = {0.5f, -0.5f, 0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {1.0f, 1.0f},
+            .TexCoord_0 = {1.0f, 1.0f},
         },
 
         // Back face
         AxrVertex{
             .Position = {-0.5f, 0.5f, -0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {1.0f, 0.0f},
+            .TexCoord_0 = {1.0f, 0.0f},
         },
         AxrVertex{
             .Position = {0.5f, 0.5f, -0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {0.0f, 0.0f},
+            .TexCoord_0 = {0.0f, 0.0f},
         },
         AxrVertex{
             .Position = {0.5f, -0.5f, -0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {0.0f, 1.0f},
+            .TexCoord_0 = {0.0f, 1.0f},
         },
         AxrVertex{
             .Position = {-0.5f, -0.5f, -0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {1.0f, 1.0f},
+            .TexCoord_0 = {1.0f, 1.0f},
         },
 
         // Top face
         AxrVertex{
             .Position = {0.5f, 0.5f, -0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {1.0f, 0.0f},
+            .TexCoord_0 = {1.0f, 0.0f},
         },
         AxrVertex{
             .Position = {-0.5f, 0.5f, -0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {0.0f, 0.0f},
+            .TexCoord_0 = {0.0f, 0.0f},
         },
         AxrVertex{
             .Position = {-0.5f, 0.5f, 0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {0.0f, 1.0f},
+            .TexCoord_0 = {0.0f, 1.0f},
         },
         AxrVertex{
             .Position = {0.5f, 0.5f, 0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {1.0f, 1.0f},
+            .TexCoord_0 = {1.0f, 1.0f},
         },
 
         // Bottom face
         AxrVertex{
             .Position = {-0.5f, -0.5f, -0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {1.0f, 0.0f},
+            .TexCoord_0 = {1.0f, 0.0f},
         },
         AxrVertex{
             .Position = {0.5f, -0.5f, -0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {0.0f, 0.0f},
+            .TexCoord_0 = {0.0f, 0.0f},
         },
         AxrVertex{
             .Position = {0.5f, -0.5f, 0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {0.0f, 1.0f},
+            .TexCoord_0 = {0.0f, 1.0f},
         },
         AxrVertex{
             .Position = {-0.5f, -0.5f, 0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {1.0f, 1.0f},
+            .TexCoord_0 = {1.0f, 1.0f},
         },
 
         // Left face
         AxrVertex{
             .Position = {-0.5f, 0.5f, 0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {1.0f, 0.0f},
+            .TexCoord_0 = {1.0f, 0.0f},
         },
         AxrVertex{
             .Position = {-0.5f, 0.5f, -0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {0.0f, 0.0f},
+            .TexCoord_0 = {0.0f, 0.0f},
         },
         AxrVertex{
             .Position = {-0.5f, -0.5f, -0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {0.0f, 1.0f},
+            .TexCoord_0 = {0.0f, 1.0f},
         },
         AxrVertex{
             .Position = {-0.5f, -0.5f, 0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {1.0f, 1.0f},
+            .TexCoord_0 = {1.0f, 1.0f},
         },
 
         // Right face
         AxrVertex{
             .Position = {0.5f, 0.5f, -0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {1.0f, 0.0f},
+            .TexCoord_0 = {1.0f, 0.0f},
         },
         AxrVertex{
             .Position = {0.5f, 0.5f, 0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {0.0f, 0.0f},
+            .TexCoord_0 = {0.0f, 0.0f},
         },
         AxrVertex{
             .Position = {0.5f, -0.5f, 0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {0.0f, 1.0f},
+            .TexCoord_0 = {0.0f, 1.0f},
         },
         AxrVertex{
             .Position = {0.5f, -0.5f, -0.5f},
             .Color = {1.0f, 1.0f, 1.0f},
-            .TexCoords = {1.0f, 1.0f},
+            .TexCoord_0 = {1.0f, 1.0f},
         },
     };
 
