@@ -70,6 +70,10 @@ public:
     /// @param color Clear color
     void setClearColor(const AxrColor& color) const;
 
+    /// Set the window render source
+    /// @param renderSource Window render source
+    void setWindowRenderSource(AxrWindowRenderSourceEnum renderSource) const;
+
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
     // They have not been given a publicly accessible function in the 'include headers' to be used by an application.

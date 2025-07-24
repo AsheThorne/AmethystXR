@@ -39,6 +39,14 @@ enum AxrMsaaSampleCountEnum {
     AXR_MSAA_SAMPLE_COUNT_64 = 64,
 };
 
+/// Window render source enum
+enum AxrWindowRenderSourceEnum {
+    AXR_WINDOW_RENDER_SOURCE_SCENE_MAIN_CAMERA = 0,
+    AXR_WINDOW_RENDER_SOURCE_XR_DEVICE_LEFT_EYE,
+    AXR_WINDOW_RENDER_SOURCE_XR_DEVICE_RIGHT_EYE,
+    AXR_WINDOW_RENDER_SOURCE_XR_DEVICE_BOTH_EYES,
+};
+
 // ----------------------------------------- //
 // Structs
 // ----------------------------------------- //
@@ -84,4 +92,11 @@ extern "C" {
     /// @param graphicsSystem Graphics system to use
     /// @param color Clear color
     AXR_API void axrGraphicsSystemSetClearColor(AxrGraphicsSystemConst_T graphicsSystem, AxrColor color);
+    /// Set the window render source
+    /// @param graphicsSystem Graphics system to use
+    /// @param renderSource Window render source
+    AXR_API void axrGraphicsSystemSetWindowRenderSource(
+        AxrGraphicsSystemConst_T graphicsSystem,
+        AxrWindowRenderSourceEnum renderSource
+    );
 }

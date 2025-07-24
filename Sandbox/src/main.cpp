@@ -154,6 +154,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
     axr::GraphicsSystem graphicsSystem = app.getGraphicsSystem();
     graphicsSystem.setClearColor(axr::Color(0.2f, 0.05f, 0.2f, 1.0f));
+    graphicsSystem.setWindowRenderSource(axr::WindowRenderSourceEnum::SceneMainCamera);
 
     while (app.isRunning()) {
         app.processEvents();

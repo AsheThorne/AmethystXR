@@ -26,8 +26,10 @@ AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
     m_Device(VK_NULL_HANDLE),
     m_GraphicsCommandPool(VK_NULL_HANDLE),
     m_ClearColor(AxrColor(0.0f, 0.0f, 0.0f, 1.0f)),
+    m_RenderSource(AXR_WINDOW_RENDER_SOURCE_SCENE_MAIN_CAMERA),
     m_SwapchainImageLayout(vk::ImageLayout::ePresentSrcKHR),
     m_Surface(VK_NULL_HANDLE),
+    m_DoesSwapchainSupportBlitting(false),
     m_SwapchainColorFormat(vk::Format::eUndefined),
     m_SwapchainDepthFormat(vk::Format::eUndefined),
     m_SwapchainPresentationMode(static_cast<vk::PresentModeKHR>(VK_PRESENT_MODE_MAX_ENUM_KHR)),
@@ -74,6 +76,10 @@ void AxrVulkanWindowGraphics::addRequiredDeviceExtensions(
 
 void AxrVulkanWindowGraphics::setClearColor(const AxrColor& color) {
     m_ClearColor = color;
+}
+
+void AxrVulkanWindowGraphics::setRenderSource(const AxrWindowRenderSourceEnum renderSource) {
+    m_RenderSource = renderSource;
 }
 
 AxrResult AxrVulkanWindowGraphics::setup(const SetupConfig& config) {
@@ -660,14 +666,29 @@ AxrResult AxrVulkanWindowGraphics::setSwapchainFormatOptions(
             surfaceFormat.format,
             vk::ImageTiling::eOptimal,
             vk::FormatFeatureFlagBits::eSampledImage &
-            vk::FormatFeatureFlagBits::eColorAttachment,
-            // TODO: Check if we're rendering directly to the surface first for asking for these.
-            // vk::FormatFeatureFlagBits::eBlitDst &
-            // vk::FormatFeatureFlagBits::eTransferDst,
+            vk::FormatFeatureFlagBits::eColorAttachment &
+            vk::FormatFeatureFlagBits::eBlitDst &
+            vk::FormatFeatureFlagBits::eTransferDst,
             physicalDevice,
             m_Dispatch
         )) {
             m_SwapchainColorFormatOptions.push_back(surfaceFormat);
+        }
+    }
+
+    // No format with BlitDst and TransferDst was found. Try to find formats without them.
+    if (m_SwapchainColorFormatOptions.empty()) {
+        for (const vk::SurfaceFormatKHR surfaceFormat : swapchainColorFormatOptions) {
+            if (axrAreFormatFeaturesSupported(
+                surfaceFormat.format,
+                vk::ImageTiling::eOptimal,
+                vk::FormatFeatureFlagBits::eSampledImage &
+                vk::FormatFeatureFlagBits::eColorAttachment,
+                physicalDevice,
+                m_Dispatch
+            )) {
+                m_SwapchainColorFormatOptions.push_back(surfaceFormat);
+            }
         }
     }
 
@@ -741,6 +762,17 @@ AxrResult AxrVulkanWindowGraphics::setSwapchainFormats(const std::vector<vk::Sur
         return AXR_ERROR;
     }
 
+    if (axrAreFormatFeaturesSupported(
+        m_SwapchainColorFormat.format,
+        vk::ImageTiling::eOptimal,
+        vk::FormatFeatureFlagBits::eBlitDst &
+        vk::FormatFeatureFlagBits::eTransferDst,
+        m_PhysicalDevice,
+        m_Dispatch
+    )) {
+        m_DoesSwapchainSupportBlitting = true;
+    }
+
     // We don't need to check surface compatibility for the depth format.
     // As long as the options we're given are supported by the physical device, that's all we need.
     // And we just pick the first option since they're already ordered from most desired to least desired.
@@ -750,6 +782,7 @@ AxrResult AxrVulkanWindowGraphics::setSwapchainFormats(const std::vector<vk::Sur
 }
 
 void AxrVulkanWindowGraphics::resetSwapchainFormats() {
+    m_DoesSwapchainSupportBlitting = false;
     m_SwapchainColorFormat = vk::Format::eUndefined;
     m_SwapchainDepthFormat = vk::Format::eUndefined;
 }
@@ -882,8 +915,11 @@ AxrResult AxrVulkanWindowGraphics::createSwapchain(const vk::SurfaceCapabilities
         minImageCount = surfaceCapabilities.maxImageCount;
     }
 
-    // TODO: Use vk::ImageUsageFlagBits::eTransferDst if we aren't rendering directly to the surface
-    constexpr vk::ImageUsageFlags imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
+    vk::ImageUsageFlags imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
+
+    if (m_DoesSwapchainSupportBlitting) {
+        imageUsage |= vk::ImageUsageFlagBits::eTransferDst;
+    }
 
     vk::SwapchainCreateInfoKHR swapchainCreateInfo(
         {},

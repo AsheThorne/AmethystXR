@@ -26,6 +26,18 @@ void axrGraphicsSystemSetClearColor(const AxrGraphicsSystemConst_T graphicsSyste
     graphicsSystem->setClearColor(color);
 }
 
+void axrGraphicsSystemSetWindowRenderSource(
+    const AxrGraphicsSystemConst_T graphicsSystem,
+    const AxrWindowRenderSourceEnum renderSource
+) {
+    if (graphicsSystem == nullptr) {
+        axrLogErrorLocation("`graphicsSystem` is null.");
+        return;
+    }
+
+    graphicsSystem->setWindowRenderSource(renderSource);
+}
+
 // ----------------------------------------- //
 // Internal Functions
 // ----------------------------------------- //
@@ -131,6 +143,30 @@ void AxrGraphicsSystem::setClearColor(const AxrColor& color) const {
             }
 
             m_VulkanGraphicsSystem->setClearColor(color);
+            return;
+#elif
+            axrLogErrorLocation("Vulkan not supported.");
+            return;
+#endif
+        }
+        case AXR_GRAPHICS_API_UNDEFINED:
+        default: { // NOLINT(clang-diagnostic-covered-switch-default)
+            axrLogErrorLocation("Unknown platform.");
+            return;
+        }
+    }
+}
+
+void AxrGraphicsSystem::setWindowRenderSource(const AxrWindowRenderSourceEnum renderSource) const {
+    switch (m_GraphicsApi) {
+        case AXR_GRAPHICS_API_VULKAN: {
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+            if (m_VulkanGraphicsSystem == nullptr) {
+                axrLogErrorLocation("VulkanGraphicsSystem is null.");
+                return;
+            }
+
+            m_VulkanGraphicsSystem->setWindowRenderSource(renderSource);
             return;
 #elif
             axrLogErrorLocation("Vulkan not supported.");

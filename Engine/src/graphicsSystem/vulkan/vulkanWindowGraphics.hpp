@@ -94,6 +94,10 @@ public:
     /// @param color Clear color
     void setClearColor(const AxrColor& color);
 
+    /// Set the window render source
+    /// @param renderSource Window render source
+    void setRenderSource(AxrWindowRenderSourceEnum renderSource);
+
     /// Set up vulkan window graphics
     /// @param config Setup config
     /// @returns AXR_SUCCESS if the function succeeded
@@ -198,8 +202,10 @@ private:
     std::vector<vk::Format> m_SwapchainDepthFormatOptions;
 
     AxrColor m_ClearColor;
+    AxrWindowRenderSourceEnum m_RenderSource;
     vk::ImageLayout m_SwapchainImageLayout;
     vk::SurfaceKHR m_Surface;
+    bool m_DoesSwapchainSupportBlitting;
     vk::SurfaceFormatKHR m_SwapchainColorFormat;
     vk::Format m_SwapchainDepthFormat;
     vk::PresentModeKHR m_SwapchainPresentationMode;

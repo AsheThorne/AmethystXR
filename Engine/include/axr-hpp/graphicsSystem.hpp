@@ -40,6 +40,14 @@ namespace axr {
         SampleCount64 = AXR_MSAA_SAMPLE_COUNT_64,
     };
 
+    /// Window render source enum
+    enum class WindowRenderSourceEnum {
+        SceneMainCamera = AXR_WINDOW_RENDER_SOURCE_SCENE_MAIN_CAMERA,
+        XrDeviceLeftEye = AXR_WINDOW_RENDER_SOURCE_XR_DEVICE_LEFT_EYE,
+        XrDeviceRightEye = AXR_WINDOW_RENDER_SOURCE_XR_DEVICE_RIGHT_EYE,
+        XrDeviceBothEyes = AXR_WINDOW_RENDER_SOURCE_XR_DEVICE_BOTH_EYES,
+    };
+
     // ----------------------------------------- //
     // Structs
     // ----------------------------------------- //
@@ -236,6 +244,15 @@ namespace axr {
         /// @param color Clear color
         void setClearColor(const axr::Color& color) const {
             axrGraphicsSystemSetClearColor(m_GraphicsSystem, *color.toRaw());
+        }
+
+        /// Set the window render source
+        /// @param renderSource Window render source
+        void setWindowRenderSource(axr::WindowRenderSourceEnum renderSource) const {
+            axrGraphicsSystemSetWindowRenderSource(
+                m_GraphicsSystem,
+                static_cast<AxrWindowRenderSourceEnum>(renderSource)
+            );
         }
 
     private:

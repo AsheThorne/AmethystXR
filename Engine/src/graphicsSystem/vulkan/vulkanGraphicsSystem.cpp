@@ -196,6 +196,12 @@ void AxrVulkanGraphicsSystem::setClearColor(const AxrColor& color) const {
     }
 }
 
+void AxrVulkanGraphicsSystem::setWindowRenderSource(const AxrWindowRenderSourceEnum renderSource) const {
+    if (m_WindowGraphics != nullptr) {
+        m_WindowGraphics->setRenderSource(renderSource);
+    }
+}
+
 AxrResult AxrVulkanGraphicsSystem::loadScene(const AxrScene_T scene) {
     // ----------------------------------------- //
     // Validation

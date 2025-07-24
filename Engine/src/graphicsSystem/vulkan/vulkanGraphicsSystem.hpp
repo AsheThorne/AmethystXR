@@ -112,6 +112,10 @@ public:
     /// @param color Clear color
     void setClearColor(const AxrColor& color) const;
 
+    /// Set the window render source
+    /// @param renderSource Window render source
+    void setWindowRenderSource(AxrWindowRenderSourceEnum renderSource) const;
+
     /// Load the named scene
     /// @param scene Scene to load
     /// @returns AXR_SUCCESS if the function succeeded
