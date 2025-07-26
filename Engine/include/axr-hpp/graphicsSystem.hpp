@@ -255,6 +255,12 @@ namespace axr {
             );
         }
 
+        /// Get the window render source
+        /// @returns The renderSource Window render source
+        [[nodiscard]] axr::WindowRenderSourceEnum getWindowRenderSource() const {
+            return static_cast<axr::WindowRenderSourceEnum>(axrGraphicsSystemGetWindowRenderSource(m_GraphicsSystem));
+        }
+
     private:
         // ----------------------------------------- //
         // Private Variables

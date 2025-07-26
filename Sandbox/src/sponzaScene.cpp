@@ -291,18 +291,4 @@ axr::Result SponzaScene::setAsActiveScene() const {
 }
 
 void SponzaScene::update() {
-    const axr::ActionSystem actionSystem = m_Application.getActionSystem();
-    const axr::ActionSet actionSet = actionSystem.getActionSet("test");
-    const axr::BoolInputAction keyAction = actionSet.getBoolInputAction("click");
-    const axr::WindowSystem windowSystem = m_Application.getWindowSystem();
-
-    if (keyAction.valueChanged() && keyAction.getValue()) {
-        if (windowSystem.isCursorHidden() || windowSystem.isCursorLocked()) {
-            windowSystem.showCursor();
-            windowSystem.unlockCursor();
-        } else {
-            windowSystem.hideCursor();
-            windowSystem.lockCursor();
-        }
-    }
 }

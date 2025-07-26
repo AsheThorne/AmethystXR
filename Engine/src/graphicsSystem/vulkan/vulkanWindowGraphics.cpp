@@ -82,6 +82,10 @@ void AxrVulkanWindowGraphics::setRenderSource(const AxrWindowRenderSourceEnum re
     m_RenderSource = renderSource;
 }
 
+AxrWindowRenderSourceEnum AxrVulkanWindowGraphics::getRenderSource() const {
+    return m_RenderSource;
+}
+
 AxrResult AxrVulkanWindowGraphics::setup(const SetupConfig& config) {
     // ----------------------------------------- //
     // Validation
@@ -235,6 +239,18 @@ vk::Fence AxrVulkanWindowGraphics::getRenderingFence(const uint32_t viewIndex) c
 
 uint32_t AxrVulkanWindowGraphics::getCurrentRenderingFrame() const {
     return m_CurrentFrame;
+}
+
+vk::Image AxrVulkanWindowGraphics::getSwapchainImage(uint32_t viewIndex) const {
+    return m_SwapchainColorImages[m_CurrentImageIndex];
+}
+
+vk::Format AxrVulkanWindowGraphics::getSwapchainImageFormat() const {
+    return m_SwapchainColorFormat.format;
+}
+
+vk::ImageLayout AxrVulkanWindowGraphics::getSwapchainImageLayout() const {
+    return m_SwapchainImageLayout;
 }
 
 AxrResult AxrVulkanWindowGraphics::acquireNextSwapchainImage(const uint32_t viewIndex) {

@@ -305,6 +305,24 @@ uint32_t AxrVulkanXrGraphics::getCurrentRenderingFrame() const {
     return m_CurrentFrame;
 }
 
+vk::Image AxrVulkanXrGraphics::getSwapchainImage(const uint32_t viewIndex) const {
+    if (viewIndex > m_Views.size() - 1) {
+        axrLogErrorLocation("View index out of bounds.");
+        return VK_NULL_HANDLE;
+    }
+
+    const View::SwapchainData& swapchain = m_Views[viewIndex].ColorSwapchain;
+    return swapchain.Images[swapchain.AcquiredImageIndex];
+}
+
+vk::Format AxrVulkanXrGraphics::getSwapchainImageFormat() const {
+    return m_SwapchainColorFormat;
+}
+
+vk::ImageLayout AxrVulkanXrGraphics::getSwapchainImageLayout() const {
+    return m_SwapchainImageLayout;
+}
+
 AxrResult AxrVulkanXrGraphics::acquireNextSwapchainImage(const uint32_t viewIndex) {
     if (viewIndex > m_Views.size() - 1) {
         axrLogErrorLocation("View index out of bounds.");

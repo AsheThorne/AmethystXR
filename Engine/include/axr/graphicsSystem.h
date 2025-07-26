@@ -99,4 +99,8 @@ extern "C" {
         AxrGraphicsSystemConst_T graphicsSystem,
         AxrWindowRenderSourceEnum renderSource
     );
+    /// Get the window render source
+    /// @param graphicsSystem Graphics system to use
+    /// @returns The renderSource Window render source
+    AXR_API AxrWindowRenderSourceEnum axrGraphicsSystemGetWindowRenderSource(AxrGraphicsSystemConst_T graphicsSystem);
 }

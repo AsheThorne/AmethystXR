@@ -154,7 +154,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
     axr::GraphicsSystem graphicsSystem = app.getGraphicsSystem();
     graphicsSystem.setClearColor(axr::Color(0.2f, 0.05f, 0.2f, 1.0f));
-    graphicsSystem.setWindowRenderSource(axr::WindowRenderSourceEnum::SceneMainCamera);
+    graphicsSystem.setWindowRenderSource(axr::WindowRenderSourceEnum::XrDeviceBothEyes);
+
+    axr::ActionSystem actionSystem = app.getActionSystem();
+    axr::ActionSet actionSet = actionSystem.getActionSet("test");
+    axr::BoolInputAction clickAction = actionSet.getBoolInputAction("click");
 
     while (app.isRunning()) {
         app.processEvents();
@@ -164,6 +168,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
             app.processEvents();
             if (!app.isRunning()) {
                 break;
+            }
+        }
+
+        if (clickAction.valueChanged() && clickAction.getValue()) {
+            if (graphicsSystem.getWindowRenderSource() == axr::WindowRenderSourceEnum::XrDeviceBothEyes) {
+                graphicsSystem.setWindowRenderSource(axr::WindowRenderSourceEnum::SceneMainCamera);
+            } else {
+                graphicsSystem.setWindowRenderSource(axr::WindowRenderSourceEnum::XrDeviceBothEyes);
             }
         }
 
