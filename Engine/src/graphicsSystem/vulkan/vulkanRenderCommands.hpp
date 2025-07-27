@@ -593,6 +593,24 @@ public:
             m_Dispatch
         );
 
+        std::array clearColorRanges{
+            vk::ImageSubresourceRange(
+                vk::ImageAspectFlagBits::eColor,
+                0,
+                1,
+                0,
+                1
+            )
+        };
+
+        commandBuffer.clearColorImage(
+            dstImage,
+            vk::ImageLayout::eTransferDstOptimal,
+            vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f),
+            clearColorRanges,
+            m_Dispatch
+        );
+
         auto blitFilter = vk::Filter::eLinear;
 
         // If linear filter isn't supported, use nearest
@@ -606,11 +624,72 @@ public:
             blitFilter = vk::Filter::eNearest;
         }
 
-        for (int32_t currentIndex = 0; auto [srcImage, srcExtent] : srcImages) {
-            const int32_t dstImageWidth = static_cast<int32_t>(dstImageExtent.width) /
-                static_cast<int32_t>(srcImages.size());
+        for (int32_t currentIndex = 0; auto [srcImage, srcImageExtent] : srcImages) {
+            std::array srcOffsets{
+                vk::Offset3D(0, 0, 0),
+                vk::Offset3D(
+                    static_cast<int32_t>(srcImageExtent.width),
+                    static_cast<int32_t>(srcImageExtent.height),
+                    1
+                ),
+            };
+            std::array dstOffsets{
+                vk::Offset3D(0, 0, 0),
+                vk::Offset3D(
+                    static_cast<int32_t>(dstImageExtent.width),
+                    static_cast<int32_t>(dstImageExtent.height),
+                    1
+                ),
+            };
 
-            // TODO: Don't squish the original src images when the window aspect ratio doesn't fit it. 
+            if (windowRenderSource == AXR_WINDOW_RENDER_SOURCE_XR_DEVICE_BOTH_EYES) {
+                float aspectRatio = std::min(
+                    static_cast<float>(dstImageExtent.width) /
+                    static_cast<float>(srcImages.size()) /
+                    static_cast<float>(srcImageExtent.width),
+                    static_cast<float>(dstImageExtent.height) /
+                    static_cast<float>(srcImageExtent.height)
+                );
+
+                auto srcWidth = static_cast<int32_t>(static_cast<float>(srcImageExtent.width) * aspectRatio);
+                auto srcHeight = static_cast<int32_t>(static_cast<float>(srcImageExtent.height) * aspectRatio);
+
+                int32_t xOffset = static_cast<int32_t>(dstImageExtent.width - srcWidth * srcImages.size()) / 2;
+                int32_t yOffset = static_cast<int32_t>(dstImageExtent.height - srcHeight) / 2;
+
+                dstOffsets = std::array{
+                    vk::Offset3D(xOffset + srcWidth * currentIndex, yOffset, 0),
+                    vk::Offset3D(
+                        xOffset + srcWidth * (1 + currentIndex),
+                        yOffset + srcHeight,
+                        1
+                    ),
+                };
+            } else if (windowRenderSource == AXR_WINDOW_RENDER_SOURCE_XR_DEVICE_LEFT_EYE ||
+                windowRenderSource == AXR_WINDOW_RENDER_SOURCE_XR_DEVICE_RIGHT_EYE) {
+                float aspectRatio = std::min(
+                    static_cast<float>(srcImageExtent.width) /
+                    static_cast<float>(dstImageExtent.width),
+                    static_cast<float>(srcImageExtent.height) /
+                    static_cast<float>(dstImageExtent.height)
+                );
+
+                auto dstWidth = static_cast<int32_t>(static_cast<float>(dstImageExtent.width) * aspectRatio);
+                auto dstHeight = static_cast<int32_t>(static_cast<float>(dstImageExtent.height) * aspectRatio);
+
+                int32_t xOffset = static_cast<int32_t>(srcImageExtent.width - dstWidth) / 2;
+                int32_t yOffset = static_cast<int32_t>(srcImageExtent.height - dstHeight) / 2;
+
+                srcOffsets = std::array{
+                    vk::Offset3D(xOffset, yOffset, 0),
+                    vk::Offset3D(
+                        xOffset + dstWidth,
+                        yOffset + dstHeight,
+                        1
+                    ),
+                };
+            }
+
             const vk::ImageBlit imageBlit(
                 vk::ImageSubresourceLayers(
                     vk::ImageAspectFlagBits::eColor,
@@ -618,28 +697,14 @@ public:
                     0,
                     1
                 ),
-                std::array{
-                    vk::Offset3D(0, 0, 0),
-                    vk::Offset3D(
-                        static_cast<int32_t>(srcExtent.width),
-                        static_cast<int32_t>(srcExtent.height),
-                        1
-                    ),
-                },
+                srcOffsets,
                 vk::ImageSubresourceLayers(
                     vk::ImageAspectFlagBits::eColor,
                     0,
                     0,
                     1
                 ),
-                std::array{
-                    vk::Offset3D(dstImageWidth * currentIndex, 0, 0),
-                    vk::Offset3D(
-                        dstImageWidth * (1 + currentIndex),
-                        static_cast<int32_t>(dstImageExtent.height),
-                        1
-                    ),
-                }
+                dstOffsets
             );
 
             commandBuffer.blitImage(
