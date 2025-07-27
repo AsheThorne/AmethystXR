@@ -204,6 +204,16 @@ public:
     /// Get the current rendering frame index
     /// @returns The current rendering frame index
     [[nodiscard]] uint32_t getCurrentRenderingFrame() const;
+    /// Get the vk::image for the current swapchain image
+    /// @param viewIndex View index
+    /// @returns The vk::image for the current swapchain image
+    [[nodiscard]] vk::Image getSwapchainImage(uint32_t viewIndex) const;
+    /// Get the swapchain image format
+    /// @returns The swapchain image format
+    [[nodiscard]] vk::Format getSwapchainImageFormat() const;
+    /// Get the swapchain image layout
+    /// @returns The swapchain image layout
+    [[nodiscard]] vk::ImageLayout getSwapchainImageLayout() const;
 
     /// Acquire the next swapchain image
     /// @param viewIndex View index

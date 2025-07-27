@@ -47,14 +47,17 @@ public:
 
     /// Constructor
     /// @param renderTarget Render target to use
+    /// @param physicalDevice Physical device to use
     /// @param device Device to use
     /// @param dispatch Dispatch to use
     AxrVulkanRenderCommands(
         RenderTarget& renderTarget,
+        const vk::PhysicalDevice physicalDevice,
         const vk::Device device,
         const vk::DispatchLoaderDynamic& dispatch
     ):
         m_RenderTarget(renderTarget),
+        m_PhysicalDevice(physicalDevice),
         m_Device(device),
         m_Dispatch(dispatch) {
     }
@@ -416,7 +419,8 @@ public:
                 break;
             }
             case AXR_PLATFORM_TYPE_XR_DEVICE: {
-                const uint32_t framesInFlight = descriptorSets.XrSessionDescriptorSets.size() / m_RenderTarget.getViewCount();
+                const uint32_t framesInFlight = descriptorSets.XrSessionDescriptorSets.size() / m_RenderTarget.
+                    getViewCount();
                 const uint32_t viewIndexOffset = framesInFlight * viewIndex;
                 descriptorSet = descriptorSets.XrSessionDescriptorSets[viewIndexOffset + currentFrame];
                 break;
@@ -453,6 +457,337 @@ public:
         commandBuffer.drawIndexed(mesh.IndexCount, 1, 0, 0, 0, m_Dispatch);
     }
 
+    /// Add commands to blit from the given xr device render source to the render target
+    /// @tparam RenderSource Source render target class. Like a window or xr device
+    /// @param windowRenderSource The window render source
+    /// @param renderSource Source render target to use
+    template <typename RenderSource>
+    void blitFromXrDevice(
+        const AxrWindowRenderSourceEnum windowRenderSource,
+        RenderSource& renderSource
+    ) const {
+        constexpr uint32_t windowViewIndex = 0;
+        const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer(windowViewIndex);
+        if (commandBuffer == VK_NULL_HANDLE) return;
+        const vk::Image dstImage = m_RenderTarget.getSwapchainImage(windowViewIndex);
+        if (dstImage == VK_NULL_HANDLE) return;
+
+        std::vector<std::pair<vk::Image, vk::Extent2D>> srcImages;
+        switch (windowRenderSource) {
+            case AXR_WINDOW_RENDER_SOURCE_XR_DEVICE_LEFT_EYE: {
+                const vk::Extent2D extent = renderSource.getSwapchainExtent(0);
+                const vk::Image image = renderSource.getSwapchainImage(0);
+                if (image == VK_NULL_HANDLE) {
+                    axrLogErrorLocation("Xr device left eye swapchain image is null.");
+                    return;
+                }
+
+                srcImages.emplace_back(image, extent);
+                break;
+            }
+            case AXR_WINDOW_RENDER_SOURCE_XR_DEVICE_RIGHT_EYE: {
+                const vk::Extent2D extent = renderSource.getSwapchainExtent(1);
+                const vk::Image image = renderSource.getSwapchainImage(1);
+                if (image == VK_NULL_HANDLE) {
+                    axrLogErrorLocation("Xr device right eye swapchain image is null.");
+                    return;
+                }
+
+                srcImages.emplace_back(image, extent);
+                break;
+            }
+            case AXR_WINDOW_RENDER_SOURCE_XR_DEVICE_BOTH_EYES: {
+                const vk::Extent2D extent1 = renderSource.getSwapchainExtent(0);
+                const vk::Image image1 = renderSource.getSwapchainImage(0);
+                if (image1 == VK_NULL_HANDLE) {
+                    axrLogErrorLocation("Xr device left eye swapchain image is null.");
+                    return;
+                }
+
+                const vk::Extent2D extent2 = renderSource.getSwapchainExtent(1);
+                const vk::Image image2 = renderSource.getSwapchainImage(1);
+                if (image2 == VK_NULL_HANDLE) {
+                    axrLogErrorLocation("Xr device right eye swapchain image is null.");
+                    return;
+                }
+
+                srcImages.emplace_back(image1, extent1);
+                srcImages.emplace_back(image2, extent2);
+                break;
+            }
+            case AXR_WINDOW_RENDER_SOURCE_SCENE_MAIN_CAMERA: {
+                axrLogErrorLocation("Window render source cannot be the main camera for blitting.");
+                return;
+            }
+            default: {
+                axrLogErrorLocation("Unknown window render source type.");
+                return;
+            }
+        }
+
+        const vk::Format srcImageFormat = renderSource.getSwapchainImageFormat();
+        constexpr vk::ImageLayout srcFinalImageLayout = vk::ImageLayout::eTransferSrcOptimal;
+        const vk::ImageLayout dstFinalImageLayout = m_RenderTarget.getSwapchainImageLayout();
+        const vk::Extent2D dstImageExtent = m_RenderTarget.getSwapchainExtent(windowViewIndex);
+        vk::ImageMemoryBarrier imageMemoryBarrier;
+
+        for (auto& srcImage : srcImages | std::views::keys) {
+            imageMemoryBarrier = vk::ImageMemoryBarrier(
+                vk::AccessFlagBits::eNone,
+                vk::AccessFlagBits::eTransferRead,
+                vk::ImageLayout::eUndefined,
+                vk::ImageLayout::eTransferSrcOptimal,
+                vk::QueueFamilyIgnored,
+                vk::QueueFamilyIgnored,
+                srcImage,
+                vk::ImageSubresourceRange(
+                    vk::ImageAspectFlagBits::eColor,
+                    0,
+                    1,
+                    0,
+                    1
+                )
+            );
+
+            commandBuffer.pipelineBarrier(
+                vk::PipelineStageFlagBits::eTopOfPipe,
+                vk::PipelineStageFlagBits::eTransfer,
+                static_cast<vk::DependencyFlags>(0),
+                0,
+                nullptr,
+                0,
+                nullptr,
+                1,
+                &imageMemoryBarrier,
+                m_Dispatch
+            );
+        }
+
+        imageMemoryBarrier = vk::ImageMemoryBarrier(
+            vk::AccessFlagBits::eNone,
+            vk::AccessFlagBits::eTransferWrite,
+            vk::ImageLayout::eUndefined,
+            vk::ImageLayout::eTransferDstOptimal,
+            vk::QueueFamilyIgnored,
+            vk::QueueFamilyIgnored,
+            dstImage,
+            vk::ImageSubresourceRange(
+                vk::ImageAspectFlagBits::eColor,
+                0,
+                1,
+                0,
+                1
+            )
+        );
+
+        commandBuffer.pipelineBarrier(
+            vk::PipelineStageFlagBits::eTopOfPipe,
+            vk::PipelineStageFlagBits::eTransfer,
+            static_cast<vk::DependencyFlags>(0),
+            0,
+            nullptr,
+            0,
+            nullptr,
+            1,
+            &imageMemoryBarrier,
+            m_Dispatch
+        );
+
+        std::array clearColorRanges{
+            vk::ImageSubresourceRange(
+                vk::ImageAspectFlagBits::eColor,
+                0,
+                1,
+                0,
+                1
+            )
+        };
+
+        commandBuffer.clearColorImage(
+            dstImage,
+            vk::ImageLayout::eTransferDstOptimal,
+            vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f),
+            clearColorRanges,
+            m_Dispatch
+        );
+
+        auto blitFilter = vk::Filter::eLinear;
+
+        // If linear filter isn't supported, use nearest
+        if (!axrAreFormatFeaturesSupported(
+            srcImageFormat,
+            vk::ImageTiling::eOptimal,
+            vk::FormatFeatureFlagBits::eBlitSrc | vk::FormatFeatureFlagBits::eSampledImageFilterLinear,
+            m_PhysicalDevice,
+            m_Dispatch
+        )) {
+            blitFilter = vk::Filter::eNearest;
+        }
+
+        for (int32_t currentIndex = 0; auto [srcImage, srcImageExtent] : srcImages) {
+            std::array srcOffsets{
+                vk::Offset3D(0, 0, 0),
+                vk::Offset3D(
+                    static_cast<int32_t>(srcImageExtent.width),
+                    static_cast<int32_t>(srcImageExtent.height),
+                    1
+                ),
+            };
+            std::array dstOffsets{
+                vk::Offset3D(0, 0, 0),
+                vk::Offset3D(
+                    static_cast<int32_t>(dstImageExtent.width),
+                    static_cast<int32_t>(dstImageExtent.height),
+                    1
+                ),
+            };
+
+            if (windowRenderSource == AXR_WINDOW_RENDER_SOURCE_XR_DEVICE_BOTH_EYES) {
+                float aspectRatio = std::min(
+                    static_cast<float>(dstImageExtent.width) /
+                    static_cast<float>(srcImages.size()) /
+                    static_cast<float>(srcImageExtent.width),
+                    static_cast<float>(dstImageExtent.height) /
+                    static_cast<float>(srcImageExtent.height)
+                );
+
+                auto srcWidth = static_cast<int32_t>(static_cast<float>(srcImageExtent.width) * aspectRatio);
+                auto srcHeight = static_cast<int32_t>(static_cast<float>(srcImageExtent.height) * aspectRatio);
+
+                int32_t xOffset = static_cast<int32_t>(dstImageExtent.width - srcWidth * srcImages.size()) / 2;
+                int32_t yOffset = static_cast<int32_t>(dstImageExtent.height - srcHeight) / 2;
+
+                dstOffsets = std::array{
+                    vk::Offset3D(xOffset + srcWidth * currentIndex, yOffset, 0),
+                    vk::Offset3D(
+                        xOffset + srcWidth * (1 + currentIndex),
+                        yOffset + srcHeight,
+                        1
+                    ),
+                };
+            } else if (windowRenderSource == AXR_WINDOW_RENDER_SOURCE_XR_DEVICE_LEFT_EYE ||
+                windowRenderSource == AXR_WINDOW_RENDER_SOURCE_XR_DEVICE_RIGHT_EYE) {
+                float aspectRatio = std::min(
+                    static_cast<float>(srcImageExtent.width) /
+                    static_cast<float>(dstImageExtent.width),
+                    static_cast<float>(srcImageExtent.height) /
+                    static_cast<float>(dstImageExtent.height)
+                );
+
+                auto dstWidth = static_cast<int32_t>(static_cast<float>(dstImageExtent.width) * aspectRatio);
+                auto dstHeight = static_cast<int32_t>(static_cast<float>(dstImageExtent.height) * aspectRatio);
+
+                int32_t xOffset = static_cast<int32_t>(srcImageExtent.width - dstWidth) / 2;
+                int32_t yOffset = static_cast<int32_t>(srcImageExtent.height - dstHeight) / 2;
+
+                srcOffsets = std::array{
+                    vk::Offset3D(xOffset, yOffset, 0),
+                    vk::Offset3D(
+                        xOffset + dstWidth,
+                        yOffset + dstHeight,
+                        1
+                    ),
+                };
+            }
+
+            const vk::ImageBlit imageBlit(
+                vk::ImageSubresourceLayers(
+                    vk::ImageAspectFlagBits::eColor,
+                    0,
+                    0,
+                    1
+                ),
+                srcOffsets,
+                vk::ImageSubresourceLayers(
+                    vk::ImageAspectFlagBits::eColor,
+                    0,
+                    0,
+                    1
+                ),
+                dstOffsets
+            );
+
+            commandBuffer.blitImage(
+                srcImage,
+                vk::ImageLayout::eTransferSrcOptimal,
+                dstImage,
+                vk::ImageLayout::eTransferDstOptimal,
+                1,
+                &imageBlit,
+                blitFilter,
+                m_Dispatch
+            );
+
+            currentIndex++;
+        }
+
+        if (srcFinalImageLayout != vk::ImageLayout::eTransferSrcOptimal) {
+            for (auto srcImage : srcImages | std::views::keys) {
+                imageMemoryBarrier = vk::ImageMemoryBarrier(
+                    vk::AccessFlagBits::eTransferRead,
+                    vk::AccessFlagBits::eNone,
+                    vk::ImageLayout::eTransferSrcOptimal,
+                    srcFinalImageLayout,
+                    vk::QueueFamilyIgnored,
+                    vk::QueueFamilyIgnored,
+                    srcImage,
+                    vk::ImageSubresourceRange(
+                        vk::ImageAspectFlagBits::eColor,
+                        0,
+                        1,
+                        0,
+                        1
+                    )
+                );
+
+                commandBuffer.pipelineBarrier(
+                    vk::PipelineStageFlagBits::eTransfer,
+                    vk::PipelineStageFlagBits::eBottomOfPipe,
+                    static_cast<vk::DependencyFlags>(0),
+                    0,
+                    nullptr,
+                    0,
+                    nullptr,
+                    1,
+                    &imageMemoryBarrier,
+                    m_Dispatch
+                );
+            }
+        }
+
+        if (dstFinalImageLayout != vk::ImageLayout::eTransferDstOptimal) {
+            imageMemoryBarrier = vk::ImageMemoryBarrier(
+                vk::AccessFlagBits::eTransferWrite,
+                vk::AccessFlagBits::eNone,
+                vk::ImageLayout::eTransferDstOptimal,
+                dstFinalImageLayout,
+                vk::QueueFamilyIgnored,
+                vk::QueueFamilyIgnored,
+                dstImage,
+                vk::ImageSubresourceRange(
+                    vk::ImageAspectFlagBits::eColor,
+                    0,
+                    1,
+                    0,
+                    1
+                )
+            );
+
+            commandBuffer.pipelineBarrier(
+                vk::PipelineStageFlagBits::eTransfer,
+                vk::PipelineStageFlagBits::eBottomOfPipe,
+                static_cast<vk::DependencyFlags>(0),
+                0,
+                nullptr,
+                0,
+                nullptr,
+                1,
+                &imageMemoryBarrier,
+                m_Dispatch
+            );
+        }
+    }
+
     /// Present the current frame
     /// @param viewIndex The view index
     /// @returns AXR_SUCCESS if the function succeeded.
@@ -472,6 +807,7 @@ private:
     // Private Variables
     // ----------------------------------------- //
     RenderTarget& m_RenderTarget;
+    vk::PhysicalDevice m_PhysicalDevice;
     vk::Device m_Device;
     const vk::DispatchLoaderDynamic& m_Dispatch;
 };

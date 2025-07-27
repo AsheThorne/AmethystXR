@@ -112,6 +112,13 @@ public:
     /// @param color Clear color
     void setClearColor(const AxrColor& color) const;
 
+    /// Set the window render source
+    /// @param renderSource Window render source
+    void setWindowRenderSource(AxrWindowRenderSourceEnum renderSource) const;
+    /// Get the window render source
+    /// @returns The renderSource Window render source
+    [[nodiscard]] AxrWindowRenderSourceEnum getWindowRenderSource() const;
+
     /// Load the named scene
     /// @param scene Scene to load
     /// @returns AXR_SUCCESS if the function succeeded
@@ -359,10 +366,13 @@ private:
 
     /// Render the current frame using the given render target specific commands
     /// @tparam RenderTarget Render target class. Like a window or xr device
-    /// @param renderCommands Render commands to use
+    /// @param renderTarget Render target to use
     /// @returns AXR_SUCCESS if the function succeeded
     template <typename RenderTarget>
-    [[nodiscard]] AxrResult renderCurrentFrame(const AxrVulkanRenderCommands<RenderTarget>& renderCommands) const;
+    [[nodiscard]] AxrResult renderCurrentFrame(RenderTarget& renderTarget) const;
+    /// Blit the current frame from the xr graphics to the window graphics
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult blitToWindowFromXrDevice() const;
 
     // ----------------------------------------- //
     // Private Static Functions

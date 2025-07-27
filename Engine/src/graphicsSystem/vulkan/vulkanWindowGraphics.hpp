@@ -94,6 +94,13 @@ public:
     /// @param color Clear color
     void setClearColor(const AxrColor& color);
 
+    /// Set the window render source option
+    /// @param renderSource Window render source
+    void setRenderSource(AxrWindowRenderSourceEnum renderSource);
+    /// Get the window render source option
+    /// @returns The window render source option
+    [[nodiscard]] AxrWindowRenderSourceEnum getRenderSource() const;
+
     /// Set up vulkan window graphics
     /// @param config Setup config
     /// @returns AXR_SUCCESS if the function succeeded
@@ -155,6 +162,16 @@ public:
     /// Get the current rendering frame index
     /// @returns The current rendering frame index
     [[nodiscard]] uint32_t getCurrentRenderingFrame() const;
+    /// Get the vk::image for the current swapchain image
+    /// @param viewIndex View index
+    /// @returns The vk::image for the current swapchain image
+    [[nodiscard]] vk::Image getSwapchainImage(uint32_t viewIndex) const;
+    /// Get the swapchain image format
+    /// @returns The swapchain image format
+    [[nodiscard]] vk::Format getSwapchainImageFormat() const;
+    /// Get the swapchain image layout
+    /// @returns The swapchain image layout
+    [[nodiscard]] vk::ImageLayout getSwapchainImageLayout() const;
 
     /// Acquire the next swapchain image
     /// @param viewIndex View index
@@ -198,8 +215,10 @@ private:
     std::vector<vk::Format> m_SwapchainDepthFormatOptions;
 
     AxrColor m_ClearColor;
+    AxrWindowRenderSourceEnum m_RenderSource;
     vk::ImageLayout m_SwapchainImageLayout;
     vk::SurfaceKHR m_Surface;
+    bool m_DoesSwapchainSupportBlitting;
     vk::SurfaceFormatKHR m_SwapchainColorFormat;
     vk::Format m_SwapchainDepthFormat;
     vk::PresentModeKHR m_SwapchainPresentationMode;
@@ -275,7 +294,7 @@ private:
     );
     /// Reset the setSwapchainFormatOptions() function 
     void resetSwapchainFormatOptions();
-    
+
     /// Set the swapchain color and depth formats
     /// @param surfaceFormats Collection of surface formats that are available to us
     /// @returns AXR_SUCCESS if the function succeeded

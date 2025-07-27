@@ -165,10 +165,13 @@ AxrResult AxrVulkanGraphicsSystem::setup() {
 void AxrVulkanGraphicsSystem::drawFrame() const {
     AxrResult axrResult = AXR_SUCCESS;
 
-    if (m_WindowGraphics != nullptr && m_WindowGraphics->isReady()) {
-        const AxrVulkanRenderCommands windowRenderCommands(*m_WindowGraphics, m_Device, m_Dispatch);
-
-        axrResult = renderCurrentFrame(windowRenderCommands);
+    // If we're rendering to the window using the scene camera, make sure we do that before rendering the xr session.
+    // This is because the xr rendering halts the main thread while it's waiting for the next frame.
+    // But if we're blitting from the xr view, we obviously need to do that after the xr session has rendered.
+    if (m_WindowGraphics != nullptr &&
+        m_WindowGraphics->isReady() &&
+        m_WindowGraphics->getRenderSource() == AXR_WINDOW_RENDER_SOURCE_SCENE_MAIN_CAMERA) {
+        axrResult = renderCurrentFrame(*m_WindowGraphics);
         if (AXR_FAILED(axrResult)) {
             axrLogErrorLocation("Failed to render current frame.");
             return;
@@ -176,11 +179,21 @@ void AxrVulkanGraphicsSystem::drawFrame() const {
     }
 
     if (m_XrGraphics != nullptr && m_XrGraphics->isReady()) {
-        const AxrVulkanRenderCommands xrRenderCommands(*m_XrGraphics, m_Device, m_Dispatch);
-
-        axrResult = renderCurrentFrame(xrRenderCommands);
+        axrResult = renderCurrentFrame(*m_XrGraphics);
         if (AXR_FAILED(axrResult)) {
             axrLogErrorLocation("Failed to render current frame.");
+            return;
+        }
+    }
+
+    if (m_WindowGraphics != nullptr &&
+        m_WindowGraphics->isReady() &&
+        m_WindowGraphics->getRenderSource() != AXR_WINDOW_RENDER_SOURCE_SCENE_MAIN_CAMERA &&
+        m_XrGraphics != nullptr &&
+        m_XrGraphics->isReady()) {
+        axrResult = blitToWindowFromXrDevice();
+        if (AXR_FAILED(axrResult)) {
+            axrLogErrorLocation("Failed to blit current frame.");
             return;
         }
     }
@@ -194,6 +207,23 @@ void AxrVulkanGraphicsSystem::setClearColor(const AxrColor& color) const {
     if (m_XrGraphics != nullptr) {
         m_XrGraphics->setClearColor(color);
     }
+}
+
+void AxrVulkanGraphicsSystem::setWindowRenderSource(const AxrWindowRenderSourceEnum renderSource) const {
+    if (m_WindowGraphics == nullptr) return;
+
+    if (renderSource != AXR_WINDOW_RENDER_SOURCE_SCENE_MAIN_CAMERA && m_XrGraphics == nullptr) {
+        axrLogErrorLocation("Window render source not supported. There's no xr session.");
+        return;
+    }
+
+    m_WindowGraphics->setRenderSource(renderSource);
+}
+
+AxrWindowRenderSourceEnum AxrVulkanGraphicsSystem::getWindowRenderSource() const {
+    if (m_WindowGraphics == nullptr) return {};
+
+    return m_WindowGraphics->getRenderSource();
 }
 
 AxrResult AxrVulkanGraphicsSystem::loadScene(const AxrScene_T scene) {
@@ -1306,8 +1336,10 @@ void AxrVulkanGraphicsSystem::resetSetupXrGraphics() {
 
 template <typename RenderTarget>
 AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
-    const AxrVulkanRenderCommands<RenderTarget>& renderCommands
+    RenderTarget& renderTarget
 ) const {
+    const AxrVulkanRenderCommands renderCommands(renderTarget, m_PhysicalDevice, m_Device, m_Dispatch);
+
     AxrVulkanSceneData* sceneData = m_LoadedScenes.getActiveSceneData();
     if (sceneData == nullptr) {
         // Nothing to render
@@ -1379,6 +1411,60 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
     }
 
     axrResult = renderCommands.endRendering();
+    if (AXR_FAILED(axrResult)) return axrResult;
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrVulkanGraphicsSystem::blitToWindowFromXrDevice() const {
+    if (m_WindowGraphics == nullptr ||
+        !m_WindowGraphics->isReady() ||
+        m_XrGraphics == nullptr ||
+        !m_XrGraphics->isReady()
+    ) {
+        return AXR_ERROR;
+    }
+
+    const AxrVulkanSceneData* sceneData = m_LoadedScenes.getActiveSceneData();
+    if (sceneData == nullptr) {
+        // Nothing to render
+        return AXR_SUCCESS;
+    }
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    const AxrVulkanRenderCommands windowRenderCommands(*m_WindowGraphics, m_PhysicalDevice, m_Device, m_Dispatch);
+
+    axrResult = windowRenderCommands.beginRendering(sceneData);
+    if (axrResult == AXR_DONT_RENDER) return AXR_SUCCESS;
+    if (AXR_FAILED(axrResult)) return axrResult;
+
+    axrResult = windowRenderCommands.waitForFrameFence(0);
+    if (AXR_FAILED(axrResult)) return axrResult;
+
+    axrResult = windowRenderCommands.acquireNextSwapchainImage(0);
+    if (axrResult == AXR_DONT_RENDER) return AXR_SUCCESS;
+    if (AXR_FAILED(axrResult)) return axrResult;
+
+    axrResult = windowRenderCommands.resetCommandBuffer(0);
+    if (AXR_FAILED(axrResult)) return axrResult;
+
+    axrResult = windowRenderCommands.beginCommandBuffer(0);
+    if (AXR_FAILED(axrResult)) return axrResult;
+
+    windowRenderCommands.blitFromXrDevice(m_WindowGraphics->getRenderSource(), *m_XrGraphics);
+
+    axrResult = windowRenderCommands.endCommandBuffer(0);
+    if (AXR_FAILED(axrResult)) return axrResult;
+
+    axrResult = windowRenderCommands.submitCommandBuffer(0, m_QueueFamilies.GraphicsQueue);
+    if (AXR_FAILED(axrResult)) return axrResult;
+
+    axrResult = windowRenderCommands.presentFrame(0);
+    if (axrResult == AXR_DONT_RENDER) return AXR_SUCCESS;
+    if (AXR_FAILED(axrResult)) return axrResult;
+
+    axrResult = windowRenderCommands.endRendering();
     if (AXR_FAILED(axrResult)) return axrResult;
 
     return AXR_SUCCESS;
