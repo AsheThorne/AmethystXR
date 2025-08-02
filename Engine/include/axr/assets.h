@@ -17,108 +17,6 @@
 #include <stb_image.h>
 
 // ---------------------------------------------------------------------------------- //
-//                               Engine Defined Assets                                //
-// ---------------------------------------------------------------------------------- //
-
-// ----------------------------------------- //
-// Enums
-// ----------------------------------------- //
-
-/// Axr engine defined assets enum
-enum AxrEngineAssetEnum {
-    AXR_ENGINE_ASSET_UNDEFINED = 0,
-
-    // ---- Shaders - Max of 64 ----
-    AXR_ENGINE_ASSET_SHADER_START = 1,
-    AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT = 1,
-    AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG = 2,
-    AXR_ENGINE_ASSET_SHADER_END = 64,
-
-    // ---- Uniform Buffers - Max of 32 ----
-    AXR_ENGINE_ASSET_UNIFORM_BUFFER_START = 65,
-    AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA = 65,
-    AXR_ENGINE_ASSET_UNIFORM_BUFFER_END = 96,
-
-    // ---- Push Constant Buffers - Max of 32 ----
-    AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_START = 97,
-    AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX = 97,
-    AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_END = 128,
-
-    // ---- Images - Max of 64 ----
-    AXR_ENGINE_ASSET_IMAGE_START = 129,
-    AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE = 129,
-    AXR_ENGINE_ASSET_IMAGE_UV_TESTER = 130,
-    AXR_ENGINE_ASSET_IMAGE_END = 192,
-
-    // ---- Image Samplers - Max of 8 ----
-    AXR_ENGINE_ASSET_IMAGE_SAMPLER_START = 193,
-    AXR_ENGINE_ASSET_IMAGE_SAMPLER_NEAREST_REPEAT = 193,
-    AXR_ENGINE_ASSET_IMAGE_SAMPLER_LINEAR_REPEAT = 194,
-    AXR_ENGINE_ASSET_IMAGE_SAMPLER_END = 200,
-
-    // ---- Models - Max of 64 ----
-    AXR_ENGINE_ASSET_MODEL_START = 201,
-    AXR_ENGINE_ASSET_MODEL_TRIANGLE = 201,
-    AXR_ENGINE_ASSET_MODEL_SQUARE = 202,
-    AXR_ENGINE_ASSET_MODEL_CUBE = 203,
-    AXR_ENGINE_ASSET_MODEL_END = 264,
-};
-
-// ----------------------------------------- //
-// Structs
-// ----------------------------------------- //
-
-// ---- Buffers ----
-
-/// Engine asset uniform buffer named 'Scene Data' structure
-struct AxrEngineAssetUniformBuffer_SceneData {
-    alignas(16) glm::mat4 ViewMatrix;
-    alignas(16) glm::mat4 ProjectionMatrix;
-};
-
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-/// Engine asset push constant buffer named 'Model Matrix' structure
-struct AxrEngineAssetPushConstantBuffer_ModelMatrix {
-    glm::mat4 ModelMatrix;
-};
-#endif
-
-// ---- Materials ----
-
-/// Engine asset material named 'Default Material' values
-struct AxrEngineAssetMaterial_DefaultMaterial {
-    char ImageName[AXR_MAX_ASSET_NAME_SIZE];
-    char ImageSamplerName[AXR_MAX_ASSET_NAME_SIZE];
-};
-
-// ----------------------------------------- //
-// External Function Definitions
-// ----------------------------------------- //
-extern "C" {
-    /// Check if the given name is reserved for an engine asset
-    /// @param name Name to check
-    /// @returns True if the given name is reserved for an engine asset
-    AXR_API bool axrEngineAssetIsNameReserved(const char* name);
-    /// Get the name for the given engine asset
-    /// @param engineAssetEnum Engine asset to get the name of
-    /// @returns The name of the given engine asset
-    AXR_API const char* axrEngineAssetGetName(AxrEngineAssetEnum engineAssetEnum);
-
-    // ---- Buffers ----
-
-    /// Get the size for the given uniform buffer engine asset
-    /// @param engineAssetEnum Engine asset to use
-    /// @returns The size for the given uniform buffer engine asset
-    AXR_API uint64_t axrEngineAssetGetUniformBufferSize(AxrEngineAssetEnum engineAssetEnum);
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    /// Get the size for the given push constant buffer engine asset
-    /// @param engineAssetEnum Engine asset to use
-    /// @returns The size for the given push constant buffer engine asset
-    AXR_API uint32_t axrEngineAssetGetPushConstantBufferSize(AxrEngineAssetEnum engineAssetEnum);
-#endif
-}
-
-// ---------------------------------------------------------------------------------- //
 //                                  Shader Properties                                 //
 // ---------------------------------------------------------------------------------- //
 
@@ -847,6 +745,108 @@ extern "C" {
         AxrImageColorChannelsEnum colorChannels,
         const stbi_uc* data
     );
+}
+
+// ---------------------------------------------------------------------------------- //
+//                               Engine Defined Assets                                //
+// ---------------------------------------------------------------------------------- //
+
+// ----------------------------------------- //
+// Enums
+// ----------------------------------------- //
+
+/// Axr engine defined assets enum
+enum AxrEngineAssetEnum {
+    AXR_ENGINE_ASSET_UNDEFINED = 0,
+
+    // ---- Shaders - Max of 64 ----
+    AXR_ENGINE_ASSET_SHADER_START = 1,
+    AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT = 1,
+    AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG = 2,
+    AXR_ENGINE_ASSET_SHADER_END = 64,
+
+    // ---- Uniform Buffers - Max of 32 ----
+    AXR_ENGINE_ASSET_UNIFORM_BUFFER_START = 65,
+    AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA = 65,
+    AXR_ENGINE_ASSET_UNIFORM_BUFFER_END = 96,
+
+    // ---- Push Constant Buffers - Max of 32 ----
+    AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_START = 97,
+    AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX = 97,
+    AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_END = 128,
+
+    // ---- Images - Max of 64 ----
+    AXR_ENGINE_ASSET_IMAGE_START = 129,
+    AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE = 129,
+    AXR_ENGINE_ASSET_IMAGE_UV_TESTER = 130,
+    AXR_ENGINE_ASSET_IMAGE_END = 192,
+
+    // ---- Image Samplers - Max of 8 ----
+    AXR_ENGINE_ASSET_IMAGE_SAMPLER_START = 193,
+    AXR_ENGINE_ASSET_IMAGE_SAMPLER_NEAREST_REPEAT = 193,
+    AXR_ENGINE_ASSET_IMAGE_SAMPLER_LINEAR_REPEAT = 194,
+    AXR_ENGINE_ASSET_IMAGE_SAMPLER_END = 200,
+
+    // ---- Models - Max of 64 ----
+    AXR_ENGINE_ASSET_MODEL_START = 201,
+    AXR_ENGINE_ASSET_MODEL_TRIANGLE = 201,
+    AXR_ENGINE_ASSET_MODEL_SQUARE = 202,
+    AXR_ENGINE_ASSET_MODEL_CUBE = 203,
+    AXR_ENGINE_ASSET_MODEL_END = 264,
+};
+
+// ----------------------------------------- //
+// Structs
+// ----------------------------------------- //
+
+// ---- Buffers ----
+
+/// Engine asset uniform buffer named 'Scene Data' structure
+struct AxrEngineAssetUniformBuffer_SceneData {
+    alignas(16) glm::mat4 ViewMatrix;
+    alignas(16) glm::mat4 ProjectionMatrix;
+};
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+/// Engine asset push constant buffer named 'Model Matrix' structure
+struct AxrEngineAssetPushConstantBuffer_ModelMatrix {
+    glm::mat4 ModelMatrix;
+};
+#endif
+
+// ---- Materials ----
+
+/// Engine asset material named 'Default Material' values
+struct AxrEngineAssetMaterial_DefaultMaterial {
+    char ImageName[AXR_MAX_ASSET_NAME_SIZE];
+    char ImageSamplerName[AXR_MAX_ASSET_NAME_SIZE];
+};
+
+// ----------------------------------------- //
+// External Function Definitions
+// ----------------------------------------- //
+extern "C" {
+    /// Check if the given name is reserved for an engine asset
+    /// @param name Name to check
+    /// @returns True if the given name is reserved for an engine asset
+    AXR_API bool axrEngineAssetIsNameReserved(const char* name);
+    /// Get the name for the given engine asset
+    /// @param engineAssetEnum Engine asset to get the name of
+    /// @returns The name of the given engine asset
+    AXR_API const char* axrEngineAssetGetName(AxrEngineAssetEnum engineAssetEnum);
+
+    // ---- Buffers ----
+
+    /// Get the size for the given uniform buffer engine asset
+    /// @param engineAssetEnum Engine asset to use
+    /// @returns The size for the given uniform buffer engine asset
+    AXR_API uint64_t axrEngineAssetGetUniformBufferSize(AxrEngineAssetEnum engineAssetEnum);
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    /// Get the size for the given push constant buffer engine asset
+    /// @param engineAssetEnum Engine asset to use
+    /// @returns The size for the given push constant buffer engine asset
+    AXR_API uint32_t axrEngineAssetGetPushConstantBufferSize(AxrEngineAssetEnum engineAssetEnum);
+#endif
 }
 
 // ---------------------------------------------------------------------------------- //
