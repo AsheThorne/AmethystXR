@@ -1883,26 +1883,25 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    const auto& descriptorSetItemLocations = materialLayoutData->getDescriptorSetItemLocations();
+    const std::vector<vk::DescriptorSetLayoutBinding>& descriptorSetLayoutBindings =
+        materialLayoutData->getDescriptorSetLayoutBindings();
     std::vector<vk::WriteDescriptorSet> descriptorWrites;
     std::vector<vk::DescriptorBufferInfo> descriptorBufferInfos;
     std::vector<vk::DescriptorImageInfo> descriptorImageInfos;
 
-    // Make sure there's enough space for all these vectors. We don't want the 'info' vectors to resize and change
-    // their pointers
-    descriptorWrites.reserve(descriptorSetItemLocations.size() + m_MaxFramesInFlight * viewCount);
-    descriptorBufferInfos.reserve(descriptorSetItemLocations.size() + m_MaxFramesInFlight * viewCount);
-    descriptorImageInfos.reserve(descriptorSetItemLocations.size() + m_MaxFramesInFlight * viewCount);
+    descriptorWrites.reserve(descriptorSetLayoutBindings.size() + m_MaxFramesInFlight * viewCount);
+    descriptorBufferInfos.reserve(descriptorSetLayoutBindings.size() + m_MaxFramesInFlight * viewCount);
+    descriptorImageInfos.reserve(descriptorSetLayoutBindings.size() + m_MaxFramesInFlight * viewCount);
 
-    for (auto descriptorSetItemLocation : descriptorSetItemLocations) {
-        if (descriptorSetItemLocation.DescriptorType == vk::DescriptorType::eUniformBuffer) {
+    for (const vk::DescriptorSetLayoutBinding& descriptorSetLayoutBinding : descriptorSetLayoutBindings) {
+        if (descriptorSetLayoutBinding.descriptorType == vk::DescriptorType::eUniformBuffer) {
             const AxrShaderUniformBufferLinkConst_T uniformBuffer = material->findShaderUniformBuffer(
-                descriptorSetItemLocation.ShaderBinding
+                descriptorSetLayoutBinding.binding
             );
             if (uniformBuffer == nullptr) {
                 axrLogErrorLocation(
                     "Failed to get uniform buffer at binding: {0}.",
-                    descriptorSetItemLocation.ShaderBinding
+                    descriptorSetLayoutBinding.binding
                 );
                 axrResult = AXR_ERROR;
                 break;
@@ -1932,10 +1931,10 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
 
                     descriptorWrites.emplace_back(
                         descriptorSets[viewIndexOffset + frameIndex],
-                        descriptorSetItemLocation.ItemIndex,
+                        descriptorSetLayoutBinding.binding,
                         0,
                         1,
-                        descriptorSetItemLocation.DescriptorType,
+                        descriptorSetLayoutBinding.descriptorType,
                         nullptr,
                         &descriptorBufferInfos.back(),
                         nullptr
@@ -1946,14 +1945,14 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
                     break;
                 }
             }
-        } else if (descriptorSetItemLocation.DescriptorType == vk::DescriptorType::eCombinedImageSampler) {
+        } else if (descriptorSetLayoutBinding.descriptorType == vk::DescriptorType::eCombinedImageSampler) {
             const AxrShaderImageSamplerBufferLinkConst_T imageSamplerBuffer = material->findShaderImageSamplerBuffer(
-                descriptorSetItemLocation.ShaderBinding
+                descriptorSetLayoutBinding.binding
             );
             if (imageSamplerBuffer == nullptr) {
                 axrLogErrorLocation(
                     "Failed to get image sampler buffer at binding: {0}.",
-                    descriptorSetItemLocation.ShaderBinding
+                    descriptorSetLayoutBinding.binding
                 );
                 axrResult = AXR_ERROR;
                 break;
@@ -2010,10 +2009,10 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
 
                     descriptorWrites.emplace_back(
                         descriptorSets[viewIndexOffset + frameIndex],
-                        descriptorSetItemLocation.ItemIndex,
+                        descriptorSetLayoutBinding.binding,
                         0,
                         1,
-                        descriptorSetItemLocation.DescriptorType,
+                        descriptorSetLayoutBinding.descriptorType,
                         &descriptorImageInfos.back(),
                         nullptr,
                         nullptr

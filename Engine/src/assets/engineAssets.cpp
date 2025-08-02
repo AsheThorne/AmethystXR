@@ -282,8 +282,14 @@ AxrResult axrEngineAssetCreateShader_DefaultFrag(AxrShader& shader) {
         .Binding = 1,
     };
 
+    AxrShaderUniformBufferLayout uniformBufferLayout{
+        .Binding = 2,
+        .BufferSize = sizeof(float),
+    };
+
     std::array bufferLayouts{
         reinterpret_cast<AxrShaderBufferLayout_T>(&imageSamplerBufferLayout),
+        reinterpret_cast<AxrShaderBufferLayout_T>(&uniformBufferLayout),
     };
 
     AxrFragmentShaderProperties shaderProperties{
@@ -408,7 +414,7 @@ bool axrEngineAssetIsPushConstantBufferNameReserved(const char* name) {
 
 AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
     const std::string& materialName,
-    const AxrEngineAssetMaterial_DefaultMaterial materialValues,
+    const AxrEngineAssetMaterial_DefaultMaterial& materialValues,
     AxrMaterial& material
 ) {
     AxrShaderUniformBufferLink sceneDataBufferLink{
@@ -435,15 +441,22 @@ AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
         .ImageName = {},
         .ImageSamplerName = {},
     };
-    if (materialValues.ImageName != nullptr) {
-        strncpy_s(imageSamplerBufferLink.ImageName, materialValues.ImageName, AXR_MAX_ASSET_NAME_SIZE);
-    }
-    if (materialValues.ImageSamplerName != nullptr) {
-        strncpy_s(imageSamplerBufferLink.ImageSamplerName, materialValues.ImageSamplerName, AXR_MAX_ASSET_NAME_SIZE);
-    }
+    strncpy_s(imageSamplerBufferLink.ImageName, materialValues.ImageName, AXR_MAX_ASSET_NAME_SIZE);
+    strncpy_s(imageSamplerBufferLink.ImageSamplerName, materialValues.ImageSamplerName, AXR_MAX_ASSET_NAME_SIZE);
+
+    // TODO: Maybe try to allow this to optional?
+    //  Just so we don't need to create a buffer if we aren't using an alpha mask.
+    //  We'll need to test if it's ok to have an undefined uniform buffer in the shader
+    //  even if we don't use it.
+    AxrShaderUniformBufferLink uniformBufferLink{
+        .Binding = 2,
+        .BufferName = {},
+    };
+    strncpy_s(uniformBufferLink.BufferName, materialValues.AlphaCutoffBufferName, AXR_MAX_ASSET_NAME_SIZE);
 
     std::array fragmentBufferLinks{
         reinterpret_cast<AxrShaderBufferLink_T>(&imageSamplerBufferLink),
+        reinterpret_cast<AxrShaderBufferLink_T>(&uniformBufferLink),
     };
 
     AxrShaderValues fragmentShaderValues{
@@ -457,7 +470,9 @@ AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
         .FragmentShaderName = {},
         .PushConstantBufferName = {},
         .VertexShaderValues = &vertexShaderValues,
-        .FragmentShaderValues = &fragmentShaderValues
+        .FragmentShaderValues = &fragmentShaderValues,
+        .BackfaceCullMode = materialValues.BackfaceCullMode,
+        .AlphaRenderMode = materialValues.AlphaRenderMode,
     };
     strncpy_s(
         materialConfig.Name,
@@ -469,6 +484,8 @@ AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
         axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT),
         AXR_MAX_ASSET_NAME_SIZE
     );
+    // TODO: Do we need to use a different frag shader for alpha??
+    //  Maybe we just have a different main function?? so it's all in the same file and uses common functions.
     strncpy_s(
         materialConfig.FragmentShaderName,
         axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG),

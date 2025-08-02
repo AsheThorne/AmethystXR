@@ -856,6 +856,30 @@ namespace axr {
     // ---------------------------------------------------------------------------------- //
 
     // ----------------------------------------- //
+    // Enums
+    // ----------------------------------------- //
+
+    /// Material backface culling mode enum
+    enum class MaterialBackfaceCullModeEnum {
+        None = AXR_MATERIAL_BACKFACE_CULL_MODE_NONE,
+        Front = AXR_MATERIAL_BACKFACE_CULL_MODE_FRONT,
+        Back = AXR_MATERIAL_BACKFACE_CULL_MODE_BACK,
+        FrontAndBack = AXR_MATERIAL_BACKFACE_CULL_MODE_FRONT_AND_BACK,
+    };
+
+    /// Material alpha rendering mode enum
+    enum class MaterialAlphaRenderModeEnum {
+        Opaque = AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE,
+        /// Depth sorted alpha blending transparency.
+        /// Useful for glass windows or objects with minimal or no overlapping transparency.
+        SimpleTransparency = AXR_MATERIAL_ALPHA_RENDER_MODE_SIMPLE_TRANSPARENCY,
+        /// Order independent transparency.
+        /// Useful when there are multiple layers of transparency overlapping.
+        /// Whether it's multiple objects or a single complex object. 
+        AdvancedTransparency = AXR_MATERIAL_ALPHA_RENDER_MODE_ADVANCED_TRANSPARENCY,
+    };
+
+    // ----------------------------------------- //
     // Structs
     // ----------------------------------------- //
 
@@ -870,8 +894,10 @@ namespace axr {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
         char PushConstantBufferName[AXR_MAX_ASSET_NAME_SIZE]{};
 #endif
-        AxrShaderValues_T VertexShaderValues;
-        AxrShaderValues_T FragmentShaderValues;
+        AxrShaderValues_T VertexShaderValues = nullptr;
+        AxrShaderValues_T FragmentShaderValues = nullptr;
+        axr::MaterialBackfaceCullModeEnum BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
+        axr::MaterialAlphaRenderModeEnum AlphaRenderMode = axr::MaterialAlphaRenderModeEnum::Opaque;
 
         // ----------------------------------------- //
         // Special Functions
@@ -880,10 +906,7 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        MaterialConfig() :
-            VertexShaderValues(nullptr),
-            FragmentShaderValues(nullptr) {
-        }
+        MaterialConfig() = default;
 
         /// Constructor
         /// @param name The material name
@@ -891,14 +914,20 @@ namespace axr {
         /// @param fragmentShaderName The fragment shader name
         /// @param vertexShaderValues The vertex shader values to use
         /// @param fragmentShaderValues The fragment shader values to use
+        /// @param backfaceCullMode The material backface culling mode
+        /// @param alphaRenderMode The material alpha rendering mode
         MaterialConfig(
             const char* name,
             const char* vertexShaderName,
             const char* fragmentShaderName,
             const axr::ShaderValues& vertexShaderValues,
-            const axr::ShaderValues& fragmentShaderValues
+            const axr::ShaderValues& fragmentShaderValues,
+            const axr::MaterialBackfaceCullModeEnum backfaceCullMode,
+            const axr::MaterialAlphaRenderModeEnum alphaRenderMode
         ) : VertexShaderValues(vertexShaderValues.cloneRaw()),
-            FragmentShaderValues(fragmentShaderValues.cloneRaw()) {
+            FragmentShaderValues(fragmentShaderValues.cloneRaw()),
+            BackfaceCullMode(backfaceCullMode),
+            AlphaRenderMode(alphaRenderMode) {
             if (name != nullptr) {
                 strncpy_s(Name, name, AXR_MAX_ASSET_NAME_SIZE);
             }
@@ -918,15 +947,21 @@ namespace axr {
         /// @param pushConstantBufferName The push constant buffer name
         /// @param vertexShaderValues The vertex shader values to use
         /// @param fragmentShaderValues The fragment shader values to use
+        /// @param backfaceCullMode The material backface culling mode
+        /// @param alphaRenderMode The material alpha rendering mode
         MaterialConfig(
             const char* name,
             const char* vertexShaderName,
             const char* fragmentShaderName,
             const char* pushConstantBufferName,
             const axr::ShaderValues& vertexShaderValues,
-            const axr::ShaderValues& fragmentShaderValues
+            const axr::ShaderValues& fragmentShaderValues,
+            const axr::MaterialBackfaceCullModeEnum backfaceCullMode,
+            const axr::MaterialAlphaRenderModeEnum alphaRenderMode
         ) : VertexShaderValues(vertexShaderValues.cloneRaw()),
-            FragmentShaderValues(fragmentShaderValues.cloneRaw()) {
+            FragmentShaderValues(fragmentShaderValues.cloneRaw()),
+            BackfaceCullMode(backfaceCullMode),
+            AlphaRenderMode(alphaRenderMode) {
             if (name != nullptr) {
                 strncpy_s(Name, name, AXR_MAX_ASSET_NAME_SIZE);
             }
@@ -971,6 +1006,9 @@ namespace axr {
             } else {
                 FragmentShaderValues = nullptr;
             }
+
+            BackfaceCullMode = src.BackfaceCullMode;
+            AlphaRenderMode = src.AlphaRenderMode;
         }
 
         /// Move Constructor
@@ -992,6 +1030,8 @@ namespace axr {
 #endif
             VertexShaderValues = src.VertexShaderValues;
             FragmentShaderValues = src.FragmentShaderValues;
+            BackfaceCullMode = src.BackfaceCullMode;
+            AlphaRenderMode = src.AlphaRenderMode;
 
 
             memset(src.Name, 0, sizeof(src.Name));
@@ -1002,6 +1042,8 @@ namespace axr {
 #endif
             src.VertexShaderValues = nullptr;
             src.FragmentShaderValues = nullptr;
+            src.BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
+            src.AlphaRenderMode = axr::MaterialAlphaRenderModeEnum::Opaque;
         }
 
         // ---- Destructor ----
@@ -1045,6 +1087,9 @@ namespace axr {
                 } else {
                     FragmentShaderValues = nullptr;
                 }
+
+                BackfaceCullMode = src.BackfaceCullMode;
+                AlphaRenderMode = src.AlphaRenderMode;
             }
 
             return *this;
@@ -1072,6 +1117,8 @@ namespace axr {
 #endif
                 VertexShaderValues = src.VertexShaderValues;
                 FragmentShaderValues = src.FragmentShaderValues;
+                BackfaceCullMode = src.BackfaceCullMode;
+                AlphaRenderMode = src.AlphaRenderMode;
 
                 memset(src.Name, 0, sizeof(src.Name));
                 memset(src.VertexShaderName, 0, sizeof(src.VertexShaderName));
@@ -1081,6 +1128,8 @@ namespace axr {
 #endif
                 src.VertexShaderValues = nullptr;
                 src.FragmentShaderValues = nullptr;
+                src.BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
+                src.AlphaRenderMode = axr::MaterialAlphaRenderModeEnum::Opaque;
             }
 
             return *this;
@@ -1128,6 +1177,8 @@ namespace axr {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
             memset(PushConstantBufferName, 0, sizeof(PushConstantBufferName));
 #endif
+            BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
+            AlphaRenderMode = axr::MaterialAlphaRenderModeEnum::Opaque;
         }
     };
 
@@ -2709,6 +2760,9 @@ namespace axr {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
+        axr::MaterialBackfaceCullModeEnum BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
+        axr::MaterialAlphaRenderModeEnum AlphaRenderMode = axr::MaterialAlphaRenderModeEnum::Opaque;
+        char AlphaCutoffBufferName[AXR_MAX_ASSET_NAME_SIZE]{};
         char ImageName[AXR_MAX_ASSET_NAME_SIZE]{};
         char ImageSamplerName[AXR_MAX_ASSET_NAME_SIZE]{};
 
@@ -2719,16 +2773,25 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        EngineAssetMaterial_DefaultMaterial() {
-        }
+        EngineAssetMaterial_DefaultMaterial() = default;
 
         /// Constructor
+        /// @param backfaceCullMode The image backface cull mode
+        /// @param alphaRenderMode The image alpha render mode
+        /// @param alphaCutoffBufferName The image alpha cut off buffer name
         /// @param imageName The image name
         /// @param imageSamplerName The image sampler name
         EngineAssetMaterial_DefaultMaterial(
+            const axr::MaterialBackfaceCullModeEnum backfaceCullMode,
+            const axr::MaterialAlphaRenderModeEnum alphaRenderMode,
+            const char* alphaCutoffBufferName,
             const char* imageName,
             const char* imageSamplerName
-        ) {
+        ): BackfaceCullMode(backfaceCullMode),
+            AlphaRenderMode(alphaRenderMode) {
+            if (alphaCutoffBufferName != nullptr) {
+                strncpy_s(AlphaCutoffBufferName, alphaCutoffBufferName, AXR_MAX_ASSET_NAME_SIZE);
+            }
             if (imageName != nullptr) {
                 strncpy_s(ImageName, imageName, AXR_MAX_ASSET_NAME_SIZE);
             }
@@ -2861,7 +2924,7 @@ namespace axr {
         /// @returns AXR_SUCCESS if the function succeeded
         axr::Result createMaterial(
             const char* materialName,
-            const axr::EngineAssetMaterial_DefaultMaterial materialValues
+            const axr::EngineAssetMaterial_DefaultMaterial& materialValues
         ) const {
             char materialNameBuffer[AXR_MAX_ASSET_NAME_SIZE]{};
             strncpy_s(materialNameBuffer, materialName, AXR_MAX_ASSET_NAME_SIZE);
@@ -2870,7 +2933,7 @@ namespace axr {
                 axrAssetCollectionCreateEngineAssetMaterial_DefaultMaterial(
                     m_AssetCollection,
                     materialNameBuffer,
-                    *materialValues.toRaw()
+                    materialValues.toRaw()
                 )
             );
         }
@@ -2993,6 +3056,17 @@ namespace axr {
     // ---------------------------------------------------------------------------------- //
     //                                    Asset Utils                                     //
     // ---------------------------------------------------------------------------------- //
+
+    // ----------------------------------------- //
+    // Enums
+    // ----------------------------------------- //
+
+    /// Model file material info alpha mode
+    enum class ModelFileMaterialInfoAlphaModeEnum {
+        Opaque = AXR_MODEL_FILE_MATERIAL_INFO_ALPHA_MODE_OPAQUE,
+        Blend = AXR_MODEL_FILE_MATERIAL_INFO_ALPHA_MODE_BLEND,
+        Mask = AXR_MODEL_FILE_MATERIAL_INFO_ALPHA_MODE_MASK,
+    };
 
     // ----------------------------------------- //
     // Structs
@@ -3280,9 +3354,12 @@ namespace axr {
         // Public Variables
         // ----------------------------------------- //
         char Name[AXR_MAX_ASSET_NAME_SIZE]{};
-        int32_t ColorImageIndex;
-        int32_t ColorImageSamplerIndex;
-        glm::vec4 ColorFactor;
+        int32_t ColorImageIndex = -1;
+        int32_t ColorImageSamplerIndex = -1;
+        glm::vec4 ColorFactor = {};
+        axr::MaterialBackfaceCullModeEnum BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
+        axr::ModelFileMaterialInfoAlphaModeEnum AlphaMode = axr::ModelFileMaterialInfoAlphaModeEnum::Opaque;
+        float AlphaCutoff = 0.0f;
 
         // ----------------------------------------- //
         // Special Functions
@@ -3291,11 +3368,7 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        ModelFileMaterialInfo() :
-            ColorImageIndex(-1),
-            ColorImageSamplerIndex(-1),
-            ColorFactor({}) {
-        }
+        ModelFileMaterialInfo() = default;
 
         /// Constructor
         /// @param src Source ModelFileMaterialInfo
@@ -3306,11 +3379,17 @@ namespace axr {
             ColorImageIndex = src.ColorImageIndex;
             ColorImageSamplerIndex = src.ColorImageSamplerIndex;
             ColorFactor = src.ColorFactor;
+            BackfaceCullMode = static_cast<axr::MaterialBackfaceCullModeEnum>(src.BackfaceCullMode);
+            AlphaMode = static_cast<axr::ModelFileMaterialInfoAlphaModeEnum>(src.AlphaMode);
+            AlphaCutoff = src.AlphaCutoff;
 
             memset(src.Name, 0, sizeof(src.Name));
             src.ColorImageIndex = -1;
             src.ColorImageSamplerIndex = -1;
             src.ColorFactor = {};
+            src.BackfaceCullMode = AXR_MATERIAL_BACKFACE_CULL_MODE_NONE;
+            src.AlphaMode = AXR_MODEL_FILE_MATERIAL_INFO_ALPHA_MODE_OPAQUE;
+            src.AlphaCutoff = 0.0f;
         }
 
         /// Copy Constructor
@@ -3328,11 +3407,17 @@ namespace axr {
             ColorImageIndex = src.ColorImageIndex;
             ColorImageSamplerIndex = src.ColorImageSamplerIndex;
             ColorFactor = src.ColorFactor;
+            BackfaceCullMode = src.BackfaceCullMode;
+            AlphaMode = src.AlphaMode;
+            AlphaCutoff = src.AlphaCutoff;
 
             memset(src.Name, 0, sizeof(src.Name));
             src.ColorImageIndex = -1;
             src.ColorImageSamplerIndex = -1;
             src.ColorFactor = {};
+            src.BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
+            src.AlphaMode = axr::ModelFileMaterialInfoAlphaModeEnum::Opaque;
+            src.AlphaCutoff = 0.0f;
         }
 
         // ---- Destructor ----
@@ -3368,11 +3453,17 @@ namespace axr {
                 ColorImageIndex = src.ColorImageIndex;
                 ColorImageSamplerIndex = src.ColorImageSamplerIndex;
                 ColorFactor = src.ColorFactor;
+                BackfaceCullMode = src.BackfaceCullMode;
+                AlphaMode = src.AlphaMode;
+                AlphaCutoff = src.AlphaCutoff;
 
                 memset(src.Name, 0, sizeof(src.Name));
                 src.ColorImageIndex = -1;
                 src.ColorImageSamplerIndex = -1;
                 src.ColorFactor = {};
+                src.BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
+                src.AlphaMode = axr::ModelFileMaterialInfoAlphaModeEnum::Opaque;
+                src.AlphaCutoff = 0.0f;
             }
 
             return *this;

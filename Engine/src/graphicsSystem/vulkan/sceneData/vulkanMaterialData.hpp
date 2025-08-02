@@ -45,7 +45,7 @@ public:
     AxrVulkanMaterialData();
     /// Constructor
     /// @param config Material data config
-    AxrVulkanMaterialData(const Config& config);
+    explicit AxrVulkanMaterialData(const Config& config);
     /// Copy Constructor
     /// @param src Source AxrVulkanMaterialData to copy from
     AxrVulkanMaterialData(const AxrVulkanMaterialData& src) = delete;

@@ -46,6 +46,27 @@ vk::PresentModeKHR axrToVkPresentMode(const AxrVulkanPresentationModeEnum presen
     }
 }
 
+vk::CullModeFlags axrToVkCullMode(const AxrMaterialBackfaceCullModeEnum backfaceCullMode) {
+    switch (backfaceCullMode) {
+        case AXR_MATERIAL_BACKFACE_CULL_MODE_NONE: {
+            return vk::CullModeFlagBits::eNone;
+        }
+        case AXR_MATERIAL_BACKFACE_CULL_MODE_FRONT: {
+            return vk::CullModeFlagBits::eFront;
+        }
+        case AXR_MATERIAL_BACKFACE_CULL_MODE_BACK: {
+            return vk::CullModeFlagBits::eBack;
+        }
+        case AXR_MATERIAL_BACKFACE_CULL_MODE_FRONT_AND_BACK: {
+            return vk::CullModeFlagBits::eFrontAndBack;
+        }
+        default: {
+            axrLogErrorLocation("Unknown material backface culling mode: {0}", static_cast<int32_t>(backfaceCullMode));
+            return vk::CullModeFlagBits::eNone;
+        }
+    }
+}
+
 const char* axrGetVulkanApiLayerName(const AxrVulkanApiLayerTypeEnum apiLayerType) {
     switch (apiLayerType) {
         case AXR_VULKAN_API_LAYER_TYPE_CORE_VALIDATION: {

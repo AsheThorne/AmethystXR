@@ -36,7 +36,7 @@ AxrVulkanMaterialLayoutData::AxrVulkanMaterialLayoutData(const Config& config):
 
 AxrVulkanMaterialLayoutData::AxrVulkanMaterialLayoutData(AxrVulkanMaterialLayoutData&& src) noexcept {
     m_Name = std::move(src.m_Name);
-    m_DescriptorSetItemLocations = std::move(src.m_DescriptorSetItemLocations);
+    m_DescriptorSetLayoutBindings = std::move(src.m_DescriptorSetLayoutBindings);
 
     m_VertexShaderHandle = src.m_VertexShaderHandle;
     m_FragmentShaderHandle = src.m_FragmentShaderHandle;
@@ -64,7 +64,7 @@ AxrVulkanMaterialLayoutData& AxrVulkanMaterialLayoutData::operator=(AxrVulkanMat
         cleanup();
 
         m_Name = std::move(src.m_Name);
-        m_DescriptorSetItemLocations = std::move(src.m_DescriptorSetItemLocations);
+        m_DescriptorSetLayoutBindings = std::move(src.m_DescriptorSetLayoutBindings);
 
         m_VertexShaderHandle = src.m_VertexShaderHandle;
         m_FragmentShaderHandle = src.m_FragmentShaderHandle;
@@ -104,13 +104,12 @@ const vk::DescriptorSetLayout& AxrVulkanMaterialLayoutData::getDescriptorSetLayo
     return m_DescriptorSetLayout;
 }
 
-const std::vector<AxrVulkanMaterialLayoutData::DescriptorSetItemLocation>&
-AxrVulkanMaterialLayoutData::getDescriptorSetItemLocations() const {
-    return m_DescriptorSetItemLocations;
+const std::vector<vk::DescriptorSetLayoutBinding>& AxrVulkanMaterialLayoutData::getDescriptorSetLayoutBindings() const {
+    return m_DescriptorSetLayoutBindings;
 }
 
 bool AxrVulkanMaterialLayoutData::doesDataExist() const {
-    return !m_DescriptorSetItemLocations.empty() ||
+    return !m_DescriptorSetLayoutBindings.empty() ||
         m_DescriptorSetLayout != VK_NULL_HANDLE ||
         m_PipelineLayout != VK_NULL_HANDLE;
 }
@@ -172,7 +171,7 @@ void AxrVulkanMaterialLayoutData::cleanup() {
     m_DispatchHandle = nullptr;
 }
 
-AxrResult AxrVulkanMaterialLayoutData::validateMaterialLayoutShaders() {
+AxrResult AxrVulkanMaterialLayoutData::validateMaterialLayoutShaders() const {
     if (m_VertexShaderHandle == nullptr) {
         axrLogErrorLocation("Vertex shader handle is null.");
         return AXR_ERROR;
@@ -215,8 +214,8 @@ AxrResult AxrVulkanMaterialLayoutData::createDescriptorSetLayout() {
         return AXR_ERROR;
     }
 
-    if (!m_DescriptorSetItemLocations.empty()) {
-        axrLogErrorLocation("Descriptor set item locations already exist.");
+    if (!m_DescriptorSetLayoutBindings.empty()) {
+        axrLogErrorLocation("Descriptor set layout bindings already exist.");
         return AXR_ERROR;
     }
 
@@ -244,8 +243,6 @@ AxrResult AxrVulkanMaterialLayoutData::createDescriptorSetLayout() {
     // Process
     // ----------------------------------------- //
 
-    std::vector<vk::DescriptorSetLayoutBinding> bindings;
-
     // ---- Uniform buffer bindings ----
 
     const std::vector<AxrShaderUniformBufferLayoutConst_T> vertexUniformBufferLayouts =
@@ -260,8 +257,7 @@ AxrResult AxrVulkanMaterialLayoutData::createDescriptorSetLayout() {
             uniformBufferLayout->Binding,
             vk::DescriptorType::eUniformBuffer,
             vk::ShaderStageFlagBits::eVertex,
-            bindings,
-            m_DescriptorSetItemLocations
+            m_DescriptorSetLayoutBindings
         );
     }
 
@@ -272,8 +268,7 @@ AxrResult AxrVulkanMaterialLayoutData::createDescriptorSetLayout() {
             uniformBufferLayout->Binding,
             vk::DescriptorType::eUniformBuffer,
             vk::ShaderStageFlagBits::eFragment,
-            bindings,
-            m_DescriptorSetItemLocations
+            m_DescriptorSetLayoutBindings
         );
     }
 
@@ -291,8 +286,7 @@ AxrResult AxrVulkanMaterialLayoutData::createDescriptorSetLayout() {
             imageSamplerBufferLayout->Binding,
             vk::DescriptorType::eCombinedImageSampler,
             vk::ShaderStageFlagBits::eVertex,
-            bindings,
-            m_DescriptorSetItemLocations
+            m_DescriptorSetLayoutBindings
         );
     }
 
@@ -303,8 +297,7 @@ AxrResult AxrVulkanMaterialLayoutData::createDescriptorSetLayout() {
             imageSamplerBufferLayout->Binding,
             vk::DescriptorType::eCombinedImageSampler,
             vk::ShaderStageFlagBits::eFragment,
-            bindings,
-            m_DescriptorSetItemLocations
+            m_DescriptorSetLayoutBindings
         );
     }
 
@@ -312,8 +305,8 @@ AxrResult AxrVulkanMaterialLayoutData::createDescriptorSetLayout() {
 
     const vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo(
         {},
-        static_cast<uint32_t>(bindings.size()),
-        bindings.data()
+        static_cast<uint32_t>(m_DescriptorSetLayoutBindings.size()),
+        m_DescriptorSetLayoutBindings.data()
     );
 
     const vk::Result vkResult = m_Device.createDescriptorSetLayout(
@@ -336,20 +329,19 @@ void AxrVulkanMaterialLayoutData::destroyDescriptorSetLayout() {
         m_Device.destroyDescriptorSetLayout(m_DescriptorSetLayout, nullptr, *m_DispatchHandle);
         m_DescriptorSetLayout = VK_NULL_HANDLE;
     }
-    m_DescriptorSetItemLocations.clear();
+    m_DescriptorSetLayoutBindings.clear();
 }
 
 void AxrVulkanMaterialLayoutData::addDescriptorSetLayoutItem(
     const uint32_t binding,
     const vk::DescriptorType descriptorType,
     const vk::ShaderStageFlagBits stageFlag,
-    std::vector<vk::DescriptorSetLayoutBinding>& bindings,
-    std::vector<DescriptorSetItemLocation>& descriptorSetItemLocations
+    std::vector<vk::DescriptorSetLayoutBinding>& bindings
 ) const {
     // Check if the binding has already been added, and if it has, just include the shader stage
-    for (const DescriptorSetItemLocation& itemLocation : descriptorSetItemLocations) {
-        if (itemLocation.ShaderBinding == binding) {
-            bindings[itemLocation.ItemIndex].stageFlags |= stageFlag;
+    for (vk::DescriptorSetLayoutBinding& layout : bindings) {
+        if (layout.binding == binding) {
+            layout.stageFlags |= stageFlag;
             return;
         }
     }
@@ -361,14 +353,6 @@ void AxrVulkanMaterialLayoutData::addDescriptorSetLayoutItem(
         stageFlag
     );
     bindings.push_back(descriptorSetLayoutBinding);
-
-    const DescriptorSetItemLocation descriptorSetItemLocation{
-        .DescriptorType = descriptorType,
-        .ShaderBinding = binding,
-        .ItemIndex = static_cast<uint32_t>(bindings.size()) - 1,
-    };
-
-    descriptorSetItemLocations.push_back(descriptorSetItemLocation);
 }
 
 AxrResult AxrVulkanMaterialLayoutData::createPipelineLayout() {

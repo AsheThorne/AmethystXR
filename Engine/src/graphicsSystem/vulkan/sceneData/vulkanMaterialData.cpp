@@ -543,6 +543,11 @@ AxrResult AxrVulkanMaterialData::createPipeline(
         return AXR_ERROR;
     }
 
+    if (m_MaterialHandle == nullptr) {
+        axrLogErrorLocation("Material handle is null.");
+        return AXR_ERROR;
+    }
+
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //
@@ -645,12 +650,12 @@ AxrResult AxrVulkanMaterialData::createPipeline(
 
     // ---- Rasterization State ----
 
-    constexpr vk::PipelineRasterizationStateCreateInfo rasterizationStateCreateInfo(
+    const vk::PipelineRasterizationStateCreateInfo rasterizationStateCreateInfo(
         {},
         vk::False,
         vk::False,
         vk::PolygonMode::eFill,
-        vk::CullModeFlagBits::eBack,
+        axrToVkCullMode(m_MaterialHandle->getBackfaceCullMode()),
         vk::FrontFace::eCounterClockwise,
         vk::False,
         0.0f,
@@ -688,8 +693,8 @@ AxrResult AxrVulkanMaterialData::createPipeline(
 
     // ---- Color Blend State ----
 
-    constexpr vk::PipelineColorBlendAttachmentState colorBlendAttachment(
-        vk::False,
+    const vk::PipelineColorBlendAttachmentState colorBlendAttachment(
+        m_MaterialHandle->getAlphaRenderMode() == AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE ? vk::False : vk::True,
         vk::BlendFactor::eSrcAlpha,
         vk::BlendFactor::eOneMinusSrcAlpha,
         vk::BlendOp::eAdd,

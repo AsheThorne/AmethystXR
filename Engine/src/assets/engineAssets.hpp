@@ -99,7 +99,7 @@ bool axrEngineAssetIsPushConstantBufferNameReserved(const char* name);
 /// @returns AXR_SUCCESS if the function succeeded
 AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
     const std::string& materialName,
-    AxrEngineAssetMaterial_DefaultMaterial materialValues,
+    const AxrEngineAssetMaterial_DefaultMaterial& materialValues,
     AxrMaterial& material
 );
 

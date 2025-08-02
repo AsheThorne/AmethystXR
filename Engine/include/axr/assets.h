@@ -410,6 +410,31 @@ extern "C" {
 // ---------------------------------------------------------------------------------- //
 
 // ----------------------------------------- //
+// Enums
+// ----------------------------------------- //
+
+
+/// Material backface culling mode enum
+enum AxrMaterialBackfaceCullModeEnum {
+    AXR_MATERIAL_BACKFACE_CULL_MODE_NONE = 0,
+    AXR_MATERIAL_BACKFACE_CULL_MODE_FRONT,
+    AXR_MATERIAL_BACKFACE_CULL_MODE_BACK,
+    AXR_MATERIAL_BACKFACE_CULL_MODE_FRONT_AND_BACK,
+};
+
+/// Material alpha rendering mode enum
+enum AxrMaterialAlphaRenderModeEnum {
+    AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE = 0,
+    /// Depth sorted alpha blending transparency.
+    /// Useful for glass windows or objects with minimal or no overlapping transparency.
+    AXR_MATERIAL_ALPHA_RENDER_MODE_SIMPLE_TRANSPARENCY,
+    /// Order independent transparency.
+    /// Useful when there are multiple layers of transparency overlapping.
+    /// Whether it's multiple objects or a single complex object. 
+    AXR_MATERIAL_ALPHA_RENDER_MODE_ADVANCED_TRANSPARENCY,
+};
+
+// ----------------------------------------- //
 // Structs
 // ----------------------------------------- //
 
@@ -423,6 +448,8 @@ struct AxrMaterialConfig {
 #endif
     AxrShaderValues_T VertexShaderValues;
     AxrShaderValues_T FragmentShaderValues;
+    AxrMaterialBackfaceCullModeEnum BackfaceCullMode;
+    AxrMaterialAlphaRenderModeEnum AlphaRenderMode;
 };
 
 // ----------------------------------------- //
@@ -818,6 +845,9 @@ struct AxrEngineAssetPushConstantBuffer_ModelMatrix {
 
 /// Engine asset material named 'Default Material' values
 struct AxrEngineAssetMaterial_DefaultMaterial {
+    AxrMaterialBackfaceCullModeEnum BackfaceCullMode;
+    AxrMaterialAlphaRenderModeEnum AlphaRenderMode;
+    char AlphaCutoffBufferName[AXR_MAX_ASSET_NAME_SIZE];
     char ImageName[AXR_MAX_ASSET_NAME_SIZE];
     char ImageSamplerName[AXR_MAX_ASSET_NAME_SIZE];
 };
@@ -902,8 +932,8 @@ extern "C" {
     /// @returns AXR_SUCCESS if the function succeeded
     AXR_API AxrResult axrAssetCollectionCreateEngineAssetMaterial_DefaultMaterial(
         AxrAssetCollection_T assetCollection,
-        char materialName[AXR_MAX_ASSET_NAME_SIZE],
-        AxrEngineAssetMaterial_DefaultMaterial materialValues
+        const char materialName[AXR_MAX_ASSET_NAME_SIZE],
+        const AxrEngineAssetMaterial_DefaultMaterial* materialValues
     );
 
     // ---- Model ----
@@ -991,6 +1021,17 @@ extern "C" {
 // ---------------------------------------------------------------------------------- //
 
 // ----------------------------------------- //
+// Enums
+// ----------------------------------------- //
+
+/// Model file material info alpha mode
+enum AxrModelFileMaterialInfoAlphaModeEnum {
+    AXR_MODEL_FILE_MATERIAL_INFO_ALPHA_MODE_OPAQUE = 0,
+    AXR_MODEL_FILE_MATERIAL_INFO_ALPHA_MODE_BLEND,
+    AXR_MODEL_FILE_MATERIAL_INFO_ALPHA_MODE_MASK,
+};
+
+// ----------------------------------------- //
 // Structs
 // ----------------------------------------- //
 
@@ -1016,6 +1057,9 @@ struct AxrModelFileMaterialInfo {
     int32_t ColorImageIndex;
     int32_t ColorImageSamplerIndex;
     glm::vec4 ColorFactor;
+    AxrMaterialBackfaceCullModeEnum BackfaceCullMode;
+    AxrModelFileMaterialInfoAlphaModeEnum AlphaMode;
+    float AlphaCutoff;
 };
 
 /// Model file submesh info

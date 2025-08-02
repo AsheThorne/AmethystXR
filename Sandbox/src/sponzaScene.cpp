@@ -13,11 +13,28 @@ axr::Result SponzaScene::setup() {
     m_Scene = m_Application.findScene(m_SceneName.c_str());
     axr::AssetCollection assetCollection = m_Scene.getAssetCollection();
 
+    const char* defaultAlphaCutoffBufferName = "SponzaDefaultAlphaCutoffBuffer";
+    constexpr float defaultAlphaCutoff = 0.0f;
+    if (AXR_FAILED(
+            assetCollection.createUniformBuffer(
+                axr::UniformBufferConfig(
+                    defaultAlphaCutoffBufferName,
+                    sizeof(float),
+                    &defaultAlphaCutoff
+                )
+            )
+        )
+    )
+        return axr::Result::Error;
+
     const char* defaultMaterialName = "SponzaDefaultMaterial";
     if (AXR_FAILED(
         assetCollection.createMaterial(
             defaultMaterialName,
             axr::EngineAssetMaterial_DefaultMaterial(
+                axr::MaterialBackfaceCullModeEnum::Back,
+                axr::MaterialAlphaRenderModeEnum::Opaque,
+                defaultAlphaCutoffBufferName,
                 axr::engineAssetGetName(axr::EngineAssetEnum::ImageMissingTexture),
                 axr::engineAssetGetName(axr::EngineAssetEnum::ImageSamplerNearestRepeat)
             )
@@ -71,6 +88,7 @@ axr::Result SponzaScene::setup() {
     }
 
     std::vector<std::string> materialNames(modelInfo.MaterialCount, "");
+    std::vector<std::string> alphaCutoffUniformBufferNames;
     for (uint32_t i = 0; i < modelInfo.MaterialCount; ++i) {
         if (!axrStringIsEmpty(modelInfo.Materials[i].Name)) {
             materialNames[i] = modelInfo.Materials[i].Name;
@@ -91,10 +109,45 @@ axr::Result SponzaScene::setup() {
             imageSamplerName = axr::engineAssetGetName(axr::EngineAssetEnum::ImageSamplerLinearRepeat);
         }
 
+        axr::MaterialAlphaRenderModeEnum alphaRenderMode;
+        switch (modelInfo.Materials[i].AlphaMode) {
+            case axr::ModelFileMaterialInfoAlphaModeEnum::Mask:
+            case axr::ModelFileMaterialInfoAlphaModeEnum::Opaque: {
+                alphaRenderMode = axr::MaterialAlphaRenderModeEnum::Opaque;
+                break;
+            }
+            case axr::ModelFileMaterialInfoAlphaModeEnum::Blend: {
+                alphaRenderMode = axr::MaterialAlphaRenderModeEnum::SimpleTransparency;
+                break;
+            }
+        }
+
+        if (modelInfo.Materials[i].AlphaCutoff > 0.0f) {
+            alphaCutoffUniformBufferNames.emplace_back(
+                modelName + "_AlphaCutoff(" + std::to_string(alphaCutoffUniformBufferNames.size() + 1) + ")"
+            );
+            if (AXR_FAILED(
+                    assetCollection.createUniformBuffer(
+                        axr::UniformBufferConfig(
+                            alphaCutoffUniformBufferNames.back().c_str(),
+                            sizeof(float),
+                            &modelInfo.Materials[i].AlphaCutoff
+                        )
+                    )
+                )
+            )
+                return axr::Result::Error;
+        }
+
         if (AXR_FAILED(
             assetCollection.createMaterial(
                 materialNames[i].c_str(),
                 axr::EngineAssetMaterial_DefaultMaterial(
+                    modelInfo.Materials[i].BackfaceCullMode,
+                    alphaRenderMode,
+                    modelInfo.Materials[i].AlphaCutoff > 0.0f ?
+                    alphaCutoffUniformBufferNames.back().c_str() :
+                    defaultAlphaCutoffBufferName,
                     imageName,
                     imageSamplerName
                 )
@@ -187,6 +240,9 @@ axr::Result SponzaScene::setup() {
         assetCollection.createMaterial(
             testCubeMaterialName,
             axr::EngineAssetMaterial_DefaultMaterial(
+                axr::MaterialBackfaceCullModeEnum::Back,
+                axr::MaterialAlphaRenderModeEnum::Opaque,
+                defaultAlphaCutoffBufferName,
                 testCubeImageName,
                 axr::engineAssetGetName(axr::EngineAssetEnum::ImageSamplerNearestRepeat)
             )

@@ -38,9 +38,8 @@ const char* axrMaterialGetName(const AxrMaterialConst_T material) {
 // ---- Special Functions ----
 
 AxrMaterial::AxrMaterial():
-    m_Name(""),
-    m_VertexShaderName(""),
-    m_FragmentShaderName("") {
+    m_BackfaceCullMode(AXR_MATERIAL_BACKFACE_CULL_MODE_NONE),
+    m_AlphaRenderMode(AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE) {
 }
 
 AxrMaterial::AxrMaterial(const AxrMaterialConfig& config):
@@ -51,7 +50,9 @@ AxrMaterial::AxrMaterial(const AxrMaterialConfig& config):
     m_PushConstantBufferName(config.PushConstantBufferName),
 #endif
     m_VertexShaderValues(config.VertexShaderValues),
-    m_FragmentShaderValues(config.FragmentShaderValues) {
+    m_FragmentShaderValues(config.FragmentShaderValues),
+    m_BackfaceCullMode(config.BackfaceCullMode),
+    m_AlphaRenderMode(config.AlphaRenderMode) {
     if (!axrMaterialConfigIsValid(&config)) {
         axrLogErrorLocation("Material config is invalid.");
     }
@@ -66,6 +67,8 @@ AxrMaterial::AxrMaterial(const AxrMaterial& src) {
 #endif
     m_VertexShaderValues = src.m_VertexShaderValues;
     m_FragmentShaderValues = src.m_FragmentShaderValues;
+    m_BackfaceCullMode = src.m_BackfaceCullMode;
+    m_AlphaRenderMode = src.m_AlphaRenderMode;
 }
 
 AxrMaterial::AxrMaterial(AxrMaterial&& src) noexcept {
@@ -78,10 +81,14 @@ AxrMaterial::AxrMaterial(AxrMaterial&& src) noexcept {
     m_Name = src.m_Name;
     m_VertexShaderName = src.m_VertexShaderName;
     m_FragmentShaderName = src.m_FragmentShaderName;
+    m_BackfaceCullMode = src.m_BackfaceCullMode;
+    m_AlphaRenderMode = src.m_AlphaRenderMode;
 
     src.m_Name = "";
     src.m_VertexShaderName = "";
     src.m_FragmentShaderName = "";
+    src.m_BackfaceCullMode = AXR_MATERIAL_BACKFACE_CULL_MODE_NONE;
+    src.m_AlphaRenderMode = AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE;
 }
 
 AxrMaterial::~AxrMaterial() {
@@ -100,6 +107,8 @@ AxrMaterial& AxrMaterial::operator=(const AxrMaterial& src) {
 #endif
         m_VertexShaderValues = src.m_VertexShaderValues;
         m_FragmentShaderValues = src.m_FragmentShaderValues;
+        m_BackfaceCullMode = src.m_BackfaceCullMode;
+        m_AlphaRenderMode = src.m_AlphaRenderMode;
     }
 
     return *this;
@@ -118,10 +127,14 @@ AxrMaterial& AxrMaterial::operator=(AxrMaterial&& src) noexcept {
         m_Name = src.m_Name;
         m_VertexShaderName = src.m_VertexShaderName;
         m_FragmentShaderName = src.m_FragmentShaderName;
+        m_BackfaceCullMode = src.m_BackfaceCullMode;
+        m_AlphaRenderMode = src.m_AlphaRenderMode;
 
         src.m_Name = "";
         src.m_VertexShaderName = "";
         src.m_FragmentShaderName = "";
+        src.m_BackfaceCullMode = AXR_MATERIAL_BACKFACE_CULL_MODE_NONE;
+        src.m_AlphaRenderMode = AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE;
     }
 
     return *this;
@@ -147,6 +160,14 @@ const AxrShaderValuesRAII& AxrMaterial::getVertexShaderValues() const {
 
 const AxrShaderValuesRAII& AxrMaterial::getFragmentShaderValues() const {
     return m_FragmentShaderValues;
+}
+
+AxrMaterialBackfaceCullModeEnum AxrMaterial::getBackfaceCullMode() const {
+    return m_BackfaceCullMode;
+}
+
+AxrMaterialAlphaRenderModeEnum AxrMaterial::getAlphaRenderMode() const {
+    return m_AlphaRenderMode;
 }
 
 AxrShaderUniformBufferLinkConst_T AxrMaterial::findShaderUniformBuffer(const uint32_t binding) const {
@@ -207,4 +228,7 @@ void AxrMaterial::cleanup() {
 
     m_VertexShaderValues.cleanup();
     m_FragmentShaderValues.cleanup();
+
+    m_BackfaceCullMode = AXR_MATERIAL_BACKFACE_CULL_MODE_NONE;
+    m_AlphaRenderMode = AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE;
 }

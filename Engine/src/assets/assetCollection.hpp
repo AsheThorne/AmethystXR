@@ -121,7 +121,7 @@ public:
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult createMaterial(
         const std::string& materialName,
-        AxrEngineAssetMaterial_DefaultMaterial materialValues
+        const AxrEngineAssetMaterial_DefaultMaterial& materialValues
     );
 
     // ---- Model ----

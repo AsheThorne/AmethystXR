@@ -61,15 +61,20 @@ AxrResult axrAssetCollectionCreateMaterial(
 
 AxrResult axrAssetCollectionCreateEngineAssetMaterial_DefaultMaterial(
     const AxrAssetCollection_T assetCollection,
-    char materialName[AXR_MAX_ASSET_NAME_SIZE],
-    const AxrEngineAssetMaterial_DefaultMaterial materialValues
+    const char materialName[AXR_MAX_ASSET_NAME_SIZE],
+    const AxrEngineAssetMaterial_DefaultMaterial* materialValues
 ) {
     if (assetCollection == nullptr) {
         axrLogErrorLocation("`assetCollection` is null.");
         return AXR_ERROR;
     }
 
-    return assetCollection->createMaterial(materialName == nullptr ? "" : materialName, materialValues);
+    if (materialValues == nullptr) {
+        axrLogErrorLocation("`materialValues` is null.");
+        return AXR_ERROR;
+    }
+
+    return assetCollection->createMaterial(materialName, *materialValues);
 }
 
 AxrResult axrAssetCollectionCreateModel(
@@ -356,7 +361,7 @@ AxrResult AxrAssetCollection::createMaterial(const AxrMaterialConfig& materialCo
 
 AxrResult AxrAssetCollection::createMaterial(
     const std::string& materialName,
-    const AxrEngineAssetMaterial_DefaultMaterial materialValues
+    const AxrEngineAssetMaterial_DefaultMaterial& materialValues
 ) {
     // ----------------------------------------- //
     // Validation
