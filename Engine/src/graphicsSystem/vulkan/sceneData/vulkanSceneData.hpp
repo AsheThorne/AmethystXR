@@ -147,8 +147,11 @@ public:
     void unloadXrSessionData();
 
     /// Get the materials, organized specifically for rendering
+    /// @param alphaRenderMode Alpha render mode to get the materials for
     /// @returns The collection of materials for rendering
-    [[nodiscard]] const std::unordered_map<std::string, MaterialForRendering>& getMaterialsForRendering() const;
+    [[nodiscard]] const std::unordered_map<std::string, MaterialForRendering>& getMaterialsForRendering(
+        AxrMaterialAlphaRenderModeEnum alphaRenderMode
+    ) const;
 
     /// Set platform specific uniform buffer data
     /// @param platformType Platform type
@@ -216,7 +219,9 @@ private:
     std::unordered_map<std::string, AxrVulkanImageSamplerData> m_ImageSamplerData;
     std::unordered_map<std::string, AxrVulkanMaterialLayoutData> m_MaterialLayoutData;
     std::unordered_map<std::string, AxrVulkanMaterialData> m_MaterialData;
-    std::unordered_map<std::string, MaterialForRendering> m_MaterialsForRendering;
+    std::unordered_map<std::string, MaterialForRendering> m_OpaqueMaterialsForRendering;
+    std::unordered_map<std::string, MaterialForRendering> m_SimpleTransparencyMaterialsForRendering;
+    std::unordered_map<std::string, MaterialForRendering> m_AdvancedTransparencyMaterialsForRendering;
 
     // ----------------------------------------- //
     // Private Functions
@@ -504,16 +509,15 @@ private:
     /// Destroy all materials for rendering
     void destroyAllMaterialsForRendering();
 
-    /// Add a material for rendering to the given collection
+    /// Add a material for rendering to either m_OpaqueMaterialsForRendering, m_SimpleTransparencyMaterialsForRendering
+    /// or m_AdvancedTransparencyMaterialsForRendering depending on it's alpha rendering mode. 
     /// @param transformComponent Transform component
     /// @param modelComponent Model component
-    /// @param materialsForRendering Collection to add to
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult addMaterialForRendering(
         const AxrTransformComponent& transformComponent,
-        const AxrModelComponent& modelComponent,
-        std::unordered_map<std::string, MaterialForRendering>& materialsForRendering
-    ) const;
+        const AxrModelComponent& modelComponent
+    );
 
     /// 'On new renderable entity' callback for the entt registry
     /// @param registry The entt registry 

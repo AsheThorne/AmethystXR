@@ -256,8 +256,22 @@ void AxrVulkanSceneData::unloadXrSessionData() {
 }
 
 const std::unordered_map<std::string, AxrVulkanSceneData::MaterialForRendering>&
-AxrVulkanSceneData::getMaterialsForRendering() const {
-    return m_MaterialsForRendering;
+AxrVulkanSceneData::getMaterialsForRendering(const AxrMaterialAlphaRenderModeEnum alphaRenderMode) const {
+    switch (alphaRenderMode) {
+        case AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE: {
+            return m_OpaqueMaterialsForRendering;
+        }
+        case AXR_MATERIAL_ALPHA_RENDER_MODE_SIMPLE_TRANSPARENCY: {
+            return m_SimpleTransparencyMaterialsForRendering;
+        }
+        case AXR_MATERIAL_ALPHA_RENDER_MODE_ADVANCED_TRANSPARENCY: {
+            return m_AdvancedTransparencyMaterialsForRendering;
+        }
+        default: {
+            axrLogWarningLocation("Unknown alpha render mode: {0}.", static_cast<int32_t>(alphaRenderMode));
+            return m_OpaqueMaterialsForRendering;
+        }
+    }
 }
 
 AxrResult AxrVulkanSceneData::setPlatformUniformBufferData(
@@ -2056,8 +2070,18 @@ AxrResult AxrVulkanSceneData::createAllMaterialsForRendering() {
     // Validation
     // ----------------------------------------- //
 
-    if (!m_MaterialsForRendering.empty()) {
-        axrLogErrorLocation("Materials for rendering already exist.");
+    if (!m_OpaqueMaterialsForRendering.empty()) {
+        axrLogErrorLocation("Opaque materials for rendering already exist.");
+        return AXR_ERROR;
+    }
+
+    if (!m_SimpleTransparencyMaterialsForRendering.empty()) {
+        axrLogErrorLocation("Simple transparency materials for rendering already exist.");
+        return AXR_ERROR;
+    }
+
+    if (!m_AdvancedTransparencyMaterialsForRendering.empty()) {
+        axrLogErrorLocation("Advanced transparency materials for rendering already exist.");
         return AXR_ERROR;
     }
 
@@ -2074,7 +2098,7 @@ AxrResult AxrVulkanSceneData::createAllMaterialsForRendering() {
 
     for (const auto [entity, transformComponent, modelComponent] :
          m_EcsRegistryHandle->view<AxrTransformComponent, AxrModelComponent>().each()) {
-        axrResult = addMaterialForRendering(transformComponent, modelComponent, m_MaterialsForRendering);
+        axrResult = addMaterialForRendering(transformComponent, modelComponent);
         if (AXR_FAILED(axrResult)) {
             break;
         }
@@ -2090,15 +2114,16 @@ AxrResult AxrVulkanSceneData::createAllMaterialsForRendering() {
 }
 
 void AxrVulkanSceneData::destroyAllMaterialsForRendering() {
-    // m_MaterialsForRendering only contain references to objects so we don't need to explicitly clean up any objects
-    m_MaterialsForRendering.clear();
+    // Materials for rendering only contain references to objects so we don't need to explicitly clean up any objects
+    m_OpaqueMaterialsForRendering.clear();
+    m_SimpleTransparencyMaterialsForRendering.clear();
+    m_AdvancedTransparencyMaterialsForRendering.clear();
 }
 
 AxrResult AxrVulkanSceneData::addMaterialForRendering(
     const AxrTransformComponent& transformComponent,
-    const AxrModelComponent& modelComponent,
-    std::unordered_map<std::string, MaterialForRendering>& materialsForRendering
-) const {
+    const AxrModelComponent& modelComponent
+) {
     const AxrVulkanModelData* foundModelData = findModelData_shared(modelComponent.ModelName);
     if (foundModelData == nullptr) {
         axrLogErrorLocation("Failed to find model data for model: {0}.", modelComponent.ModelName);
@@ -2117,7 +2142,36 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
                 continue;
             }
 
-            auto foundMaterialForRendering = materialsForRendering.find(currentSubmesh.MaterialName);
+            std::unordered_map<std::string, MaterialForRendering>* materialsForRendering = nullptr;
+            const AxrMaterial* materialHandle = foundMaterialData->getMaterial();
+            if (materialHandle == nullptr) {
+                axrLogErrorLocation("Material handle is null.");
+                continue;
+            }
+
+            switch (materialHandle->getAlphaRenderMode()) {
+                case AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE: {
+                    materialsForRendering = &m_OpaqueMaterialsForRendering;
+                    break;
+                }
+                case AXR_MATERIAL_ALPHA_RENDER_MODE_SIMPLE_TRANSPARENCY: {
+                    materialsForRendering = &m_SimpleTransparencyMaterialsForRendering;
+                    break;
+                }
+                case AXR_MATERIAL_ALPHA_RENDER_MODE_ADVANCED_TRANSPARENCY: {
+                    materialsForRendering = &m_AdvancedTransparencyMaterialsForRendering;
+                    break;
+                }
+                default: {
+                    axrLogWarningLocation(
+                        "Unknown alpha render mode: {0}.",
+                        static_cast<int32_t>(materialHandle->getAlphaRenderMode())
+                    );
+                    materialsForRendering = &m_OpaqueMaterialsForRendering;
+                }
+            }
+
+            auto foundMaterialForRendering = materialsForRendering->find(currentSubmesh.MaterialName);
             const vk::ShaderStageFlags& pushConstantStageFlags = foundMaterialData->getMaterialLayoutData()
                 ->getPushConstantShaderStages();
 
@@ -2136,10 +2190,10 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
                                     },
             };
 
-            if (foundMaterialForRendering == materialsForRendering.end()) {
+            if (foundMaterialForRendering == materialsForRendering->end()) {
                 const std::string& materialPushConstantBufferName = foundMaterialData->getPushConstantBufferName();
 
-                materialsForRendering.insert(
+                materialsForRendering->insert(
                     std::pair(
                         currentSubmesh.MaterialName,
                         MaterialForRendering{
@@ -2177,7 +2231,7 @@ void AxrVulkanSceneData::onNewRenderableEntityCallback(entt::registry& registry,
         return;
     }
 
-    AXR_FAILED(addMaterialForRendering(*transformComponent, *modelComponent, m_MaterialsForRendering));
+    AXR_FAILED(addMaterialForRendering(*transformComponent, *modelComponent));
 }
 
 #endif

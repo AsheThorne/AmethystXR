@@ -413,7 +413,6 @@ extern "C" {
 // Enums
 // ----------------------------------------- //
 
-
 /// Material backface culling mode enum
 enum AxrMaterialBackfaceCullModeEnum {
     AXR_MATERIAL_BACKFACE_CULL_MODE_NONE = 0,

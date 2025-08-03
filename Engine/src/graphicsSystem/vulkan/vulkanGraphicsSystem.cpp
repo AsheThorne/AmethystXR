@@ -1373,7 +1373,9 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
         renderCommands.setViewport(viewIndex);
         renderCommands.setScissor(viewIndex);
 
-        for (auto& [materialName, material] : sceneData->getMaterialsForRendering()) {
+        auto renderMaterial = [renderCommands, viewIndex, sceneData](
+            const AxrVulkanSceneData::MaterialForRendering& material
+        ) {
             renderCommands.bindPipeline(
                 viewIndex,
                 AxrVulkanRenderCommandPipelines{
@@ -1395,6 +1397,20 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
                 renderCommands.pushConstants(viewIndex, material.PipelineLayout, mesh.PushConstant, sceneData);
                 renderCommands.draw(viewIndex, mesh);
             }
+        };
+
+        for (const AxrVulkanSceneData::MaterialForRendering& material :
+             sceneData->getMaterialsForRendering(AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE) | std::views::values) {
+            renderMaterial(material);
+        }
+
+        // TODO: Sort transparent objects by depth. Furthest away first
+        //  Maybe as a config param. so that we don't need to waste extra performance if the user doesn't care
+
+        for (const AxrVulkanSceneData::MaterialForRendering& material :
+             sceneData->getMaterialsForRendering(AXR_MATERIAL_ALPHA_RENDER_MODE_SIMPLE_TRANSPARENCY) |
+             std::views::values) {
+            renderMaterial(material);
         }
 
         renderCommands.endRenderPass(viewIndex);

@@ -2973,7 +2973,7 @@ namespace axr {
         // ---- Uniform Buffer ----
 
         /// Create a new uniform buffer
-        /// @param uniformBufferConfig Unuform buffer config
+        /// @param uniformBufferConfig Uniform buffer config
         /// @returns AXR_SUCCESS if the function succeeded
         [[nodiscard]] axr::Result createUniformBuffer(
             const axr::UniformBufferConfig& uniformBufferConfig
