@@ -1373,6 +1373,8 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
         renderCommands.setViewport(viewIndex);
         renderCommands.setScissor(viewIndex);
 
+        // TODO: Use Forward+ rendering technique
+
         auto renderMaterial = [renderCommands, viewIndex, sceneData](
             const AxrVulkanSceneData::MaterialForRendering& material
         ) {
@@ -1404,14 +1406,19 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
             renderMaterial(material);
         }
 
-        // TODO: Sort transparent objects by depth. Furthest away first
+        // TODO: Sort transparent objects by depth. Furthest away first, via Merge sort.
         //  Maybe as a config param. so that we don't need to waste extra performance if the user doesn't care
+        //  Maybe it's not necessary... maybe if you care about overlapping transparent objects at all, just use advanced transparency.
+        //  How do we mix both simple and advanced together though? we don't just always want advanced drawn on top od simple or vise versa.
+        //  We might need a separate render pass for simple
 
         for (const AxrVulkanSceneData::MaterialForRendering& material :
              sceneData->getMaterialsForRendering(AXR_MATERIAL_ALPHA_RENDER_MODE_SIMPLE_TRANSPARENCY) |
              std::views::values) {
             renderMaterial(material);
         }
+
+        // TODO: Advanced transparency with Weighted Blended OIT
 
         renderCommands.endRenderPass(viewIndex);
 
