@@ -122,7 +122,7 @@ bool AxrShader::isLoaded() const {
     return !m_FileData.empty();
 }
 
-AxrResult AxrShader::loadFile(const AxrGraphicsApiEnum graphicsApi) const {
+AxrResult AxrShader::loadFile() const {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -140,14 +140,7 @@ AxrResult AxrShader::loadFile(const AxrGraphicsApiEnum graphicsApi) const {
     // Process
     // ----------------------------------------- //
 
-    std::filesystem::path path(m_FilePath);
-    const std::string extension = path.extension().string();
-
-    if (graphicsApi == AXR_GRAPHICS_API_VULKAN && extension != ".spv") {
-        path.replace_extension(extension + ".spv");
-    }
-
-    return readShaderFile(path, m_FileData);
+    return readShaderFile(m_FilePath, m_FileData);
 }
 
 void AxrShader::unloadFile() const {

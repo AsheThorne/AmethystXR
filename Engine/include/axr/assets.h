@@ -789,6 +789,7 @@ enum AxrEngineAssetEnum {
     AXR_ENGINE_ASSET_SHADER_START = 1,
     AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT = 1,
     AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG = 2,
+    AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG_MASK = 3,
     AXR_ENGINE_ASSET_SHADER_END = 64,
 
     // ---- Uniform Buffers - Max of 32 ----
@@ -846,6 +847,7 @@ struct AxrEngineAssetPushConstantBuffer_ModelMatrix {
 struct AxrEngineAssetMaterial_DefaultMaterial {
     AxrMaterialBackfaceCullModeEnum BackfaceCullMode;
     AxrMaterialAlphaRenderModeEnum AlphaRenderMode;
+    /// This can be an empty string
     char AlphaCutoffBufferName[AXR_MAX_ASSET_NAME_SIZE];
     char ImageName[AXR_MAX_ASSET_NAME_SIZE];
     char ImageSamplerName[AXR_MAX_ASSET_NAME_SIZE];

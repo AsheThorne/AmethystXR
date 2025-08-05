@@ -5,7 +5,6 @@
 // ----------------------------------------- //
 #include "axr/assets.h"
 #include "shaderProperties.hpp"
-#include "axr/graphicsSystem.h"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -68,9 +67,8 @@ public:
     /// @returns True if this shader is loaded
     [[nodiscard]] bool isLoaded() const;
     /// Load this shader file
-    /// @param graphicsApi The graphics api to use this shader with
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult loadFile(AxrGraphicsApiEnum graphicsApi) const;
+    [[nodiscard]] AxrResult loadFile() const;
     /// Unload this shader file
     void unloadFile() const;
 

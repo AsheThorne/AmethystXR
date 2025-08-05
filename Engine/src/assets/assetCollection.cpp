@@ -196,7 +196,8 @@ AxrResult axrAssetCollectionCreateImageSampler(
 
 // ---- Special Functions ----
 
-AxrAssetCollection::AxrAssetCollection() = default;
+AxrAssetCollection::AxrAssetCollection(const AxrGraphicsApiEnum graphicsApi): m_GraphicsApi(graphicsApi) {
+};
 
 AxrAssetCollection::AxrAssetCollection(AxrAssetCollection&& src) noexcept {
     OnMaterialCreatedCallbackGraphics = std::move(src.OnMaterialCreatedCallbackGraphics);
@@ -216,6 +217,10 @@ AxrAssetCollection::AxrAssetCollection(AxrAssetCollection&& src) noexcept {
     m_PushConstantBuffers = std::move(src.m_PushConstantBuffers);
 #endif
     m_Images = std::move(src.m_Images);
+
+    m_GraphicsApi = src.m_GraphicsApi;
+
+    src.m_GraphicsApi = AXR_GRAPHICS_API_UNDEFINED;
 }
 
 AxrAssetCollection::~AxrAssetCollection() {
@@ -243,6 +248,10 @@ AxrAssetCollection& AxrAssetCollection::operator=(AxrAssetCollection&& src) noex
         m_PushConstantBuffers = std::move(src.m_PushConstantBuffers);
 #endif
         m_Images = std::move(src.m_Images);
+
+        m_GraphicsApi = src.m_GraphicsApi;
+
+        src.m_GraphicsApi = AXR_GRAPHICS_API_UNDEFINED;
     }
 
     return *this;
@@ -305,7 +314,7 @@ AxrResult AxrAssetCollection::createShader(const AxrEngineAssetEnum engineAssetE
     }
 
     AxrShader shader;
-    const AxrResult axrResult = axrEngineAssetCreateShader(engineAssetEnum, shader);
+    const AxrResult axrResult = axrEngineAssetCreateShader(m_GraphicsApi, engineAssetEnum, shader);
     if (AXR_FAILED(axrResult)) {
         axrLogErrorLocation("Failed to create shader engine asset.");
         return axrResult;
@@ -778,9 +787,9 @@ bool AxrAssetCollection::isLoaded() {
     return true;
 }
 
-AxrResult AxrAssetCollection::loadAssets(const AxrGraphicsApiEnum graphicsApi) {
+AxrResult AxrAssetCollection::loadAssets() {
     for (auto& [shaderName, shader] : m_Shaders) {
-        const AxrResult axrResult = shader.loadFile(graphicsApi);
+        const AxrResult axrResult = shader.loadFile();
         if (AXR_FAILED(axrResult)) {
             unloadAssets();
             return axrResult;

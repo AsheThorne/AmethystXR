@@ -60,12 +60,12 @@ void axrSceneSetMainCamera(const AxrScene_T scene, const AxrEntityConst_T entity
 // ---- Special Functions ----
 
 AxrScene::AxrScene():
-    m_Name(""),
     m_MainCamera({m_Registry, entt::null}) {
 }
 
-AxrScene::AxrScene(const std::string& name):
+AxrScene::AxrScene(const std::string& name, const AxrGraphicsApiEnum graphicsApi):
     m_Name(name),
+    m_AssetCollection(graphicsApi),
     m_MainCamera(m_Registry, entt::null) {
 }
 

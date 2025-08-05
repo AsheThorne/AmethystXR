@@ -2612,6 +2612,7 @@ namespace axr {
         ShaderStart = AXR_ENGINE_ASSET_SHADER_START,
         ShaderDefaultVert = AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT,
         ShaderDefaultFrag = AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG,
+        ShaderDefaultFrag_Mask = AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG_MASK,
         ShaderEnd = AXR_ENGINE_ASSET_SHADER_END,
 
         // ---- Uniform Buffers ----
@@ -2762,6 +2763,7 @@ namespace axr {
         // ----------------------------------------- //
         axr::MaterialBackfaceCullModeEnum BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
         axr::MaterialAlphaRenderModeEnum AlphaRenderMode = axr::MaterialAlphaRenderModeEnum::Opaque;
+        /// This can be an empty string
         char AlphaCutoffBufferName[AXR_MAX_ASSET_NAME_SIZE]{};
         char ImageName[AXR_MAX_ASSET_NAME_SIZE]{};
         char ImageSamplerName[AXR_MAX_ASSET_NAME_SIZE]{};
@@ -2778,7 +2780,7 @@ namespace axr {
         /// Constructor
         /// @param backfaceCullMode The image backface cull mode
         /// @param alphaRenderMode The image alpha render mode
-        /// @param alphaCutoffBufferName The image alpha cut off buffer name
+        /// @param alphaCutoffBufferName The image alpha cut off buffer name. This can be an empty string.
         /// @param imageName The image name
         /// @param imageSamplerName The image sampler name
         EngineAssetMaterial_DefaultMaterial(

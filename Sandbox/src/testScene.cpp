@@ -19,20 +19,6 @@ axr::Result TestScene::setup() {
         return axr::Result::Error;
     }
 
-    const char* alphaCutoffBufferName = "AlphaCutoffBuffer";
-    constexpr float alphaCutoff = 0.0f;;
-    if (AXR_FAILED(
-            m_Scene.getAssetCollection().createUniformBuffer(
-                axr::UniformBufferConfig(
-                    alphaCutoffBufferName,
-                    sizeof(float),
-                    &alphaCutoff
-                )
-            )
-        )
-    )
-        return axr::Result::Error;
-
     const char* materialName = "MyMaterial";
     if (AXR_FAILED(
         m_Scene.getAssetCollection().createMaterial(
@@ -40,7 +26,7 @@ axr::Result TestScene::setup() {
             axr::EngineAssetMaterial_DefaultMaterial(
                 axr::MaterialBackfaceCullModeEnum::Back,
                 axr::MaterialAlphaRenderModeEnum::Opaque,
-                alphaCutoffBufferName,
+                "",
                 imageName,
                 axr::engineAssetGetName(axr::EngineAssetEnum::ImageSamplerNearestRepeat)
             )

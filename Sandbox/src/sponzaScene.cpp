@@ -13,20 +13,6 @@ axr::Result SponzaScene::setup() {
     m_Scene = m_Application.findScene(m_SceneName.c_str());
     axr::AssetCollection assetCollection = m_Scene.getAssetCollection();
 
-    const char* defaultAlphaCutoffBufferName = "SponzaDefaultAlphaCutoffBuffer";
-    constexpr float defaultAlphaCutoff = 0.0f;
-    if (AXR_FAILED(
-            assetCollection.createUniformBuffer(
-                axr::UniformBufferConfig(
-                    defaultAlphaCutoffBufferName,
-                    sizeof(float),
-                    &defaultAlphaCutoff
-                )
-            )
-        )
-    )
-        return axr::Result::Error;
-
     const char* defaultMaterialName = "SponzaDefaultMaterial";
     if (AXR_FAILED(
         assetCollection.createMaterial(
@@ -34,7 +20,7 @@ axr::Result SponzaScene::setup() {
             axr::EngineAssetMaterial_DefaultMaterial(
                 axr::MaterialBackfaceCullModeEnum::Back,
                 axr::MaterialAlphaRenderModeEnum::Opaque,
-                defaultAlphaCutoffBufferName,
+                "",
                 axr::engineAssetGetName(axr::EngineAssetEnum::ImageMissingTexture),
                 axr::engineAssetGetName(axr::EngineAssetEnum::ImageSamplerNearestRepeat)
             )
@@ -147,7 +133,7 @@ axr::Result SponzaScene::setup() {
                     alphaRenderMode,
                     modelInfo.Materials[i].AlphaCutoff > 0.0f ?
                     alphaCutoffUniformBufferNames.back().c_str() :
-                    defaultAlphaCutoffBufferName,
+                    "",
                     imageName,
                     imageSamplerName
                 )
@@ -242,7 +228,7 @@ axr::Result SponzaScene::setup() {
             axr::EngineAssetMaterial_DefaultMaterial(
                 axr::MaterialBackfaceCullModeEnum::Back,
                 axr::MaterialAlphaRenderModeEnum::Opaque,
-                defaultAlphaCutoffBufferName,
+                "",
                 testCubeImageName,
                 axr::engineAssetGetName(axr::EngineAssetEnum::ImageSamplerNearestRepeat)
             )

@@ -211,6 +211,7 @@ AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
             .XrInteractionProfiles = config.ActionSystemConfig.XrInteractionProfiles
         }
     ),
+    m_GlobalAssetCollection(config.GraphicsSystemConfig.GraphicsApi),
     m_DeltaTime(0) {
 }
 
@@ -321,7 +322,9 @@ AxrResult AxrApplication::createScene(const std::string& sceneName) {
     // Process
     // ----------------------------------------- //
 
-    const auto insertResult = m_Scenes.insert(std::pair(sceneName, AxrScene(sceneName)));
+    const auto insertResult = m_Scenes.insert(
+        std::pair(sceneName, AxrScene(sceneName, m_GraphicsSystem.getGraphicsApi()))
+    );
     if (!insertResult.second) {
         // If the insertion failed
         return AXR_ERROR;

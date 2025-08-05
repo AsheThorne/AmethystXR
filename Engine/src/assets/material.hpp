@@ -79,6 +79,13 @@ public:
     /// @returns The alpha rendering mode mode
     [[nodiscard]] AxrMaterialAlphaRenderModeEnum getAlphaRenderMode() const;
 
+    /// Get all uniform buffer links
+    /// @returns A collection of uniform buffer links
+    [[nodiscard]] std::vector<AxrShaderUniformBufferLinkConst_T> getUniformBufferLinks() const;
+    /// Get all image sampler buffer links
+    /// @returns A collection of image sampler buffer links
+    [[nodiscard]] std::vector<AxrShaderImageSamplerBufferLinkConst_T> getImageSamplerBufferLinks() const;
+
     /// Find the shader uniform buffer at the given binding
     /// @param binding Binding to use
     /// @returns The uniform buffer at the given binding

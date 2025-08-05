@@ -87,6 +87,10 @@ public:
     /// Reset setup()
     void resetSetup();
 
+    /// Get the graphics api
+    /// @returns The graphics api
+    [[nodiscard]] AxrGraphicsApiEnum getGraphicsApi() const;
+
     /// Load the named scene
     /// @param scene Scene to load
     /// @returns AXR_SUCCESS if the function succeeded

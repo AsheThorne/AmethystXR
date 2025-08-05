@@ -62,7 +62,7 @@ AxrResult AxrVulkanSceneData::loadScene() {
     // ----------------------------------------- //
     AxrResult axrResult = AXR_SUCCESS;
 
-    axrResult = m_AssetCollection->loadAssets(AXR_GRAPHICS_API_VULKAN);
+    axrResult = m_AssetCollection->loadAssets();
     if (AXR_FAILED(axrResult)) {
         unloadScene();
         return axrResult;
@@ -1897,146 +1897,124 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    const std::vector<vk::DescriptorSetLayoutBinding>& descriptorSetLayoutBindings =
-        materialLayoutData->getDescriptorSetLayoutBindings();
+    const std::vector<AxrShaderUniformBufferLinkConst_T> uniformBufferLinks = material->getUniformBufferLinks();
+    const std::vector<AxrShaderImageSamplerBufferLinkConst_T> imageSamplerBufferLinks =
+        material->getImageSamplerBufferLinks();
     std::vector<vk::WriteDescriptorSet> descriptorWrites;
     std::vector<vk::DescriptorBufferInfo> descriptorBufferInfos;
     std::vector<vk::DescriptorImageInfo> descriptorImageInfos;
+    const size_t maxWrites =
+        uniformBufferLinks.size() +
+        imageSamplerBufferLinks.size() +
+        m_MaxFramesInFlight *
+        viewCount;
 
-    descriptorWrites.reserve(descriptorSetLayoutBindings.size() + m_MaxFramesInFlight * viewCount);
-    descriptorBufferInfos.reserve(descriptorSetLayoutBindings.size() + m_MaxFramesInFlight * viewCount);
-    descriptorImageInfos.reserve(descriptorSetLayoutBindings.size() + m_MaxFramesInFlight * viewCount);
+    descriptorWrites.reserve(maxWrites);
+    descriptorBufferInfos.reserve(maxWrites);
+    descriptorImageInfos.reserve(maxWrites);
 
-    for (const vk::DescriptorSetLayoutBinding& descriptorSetLayoutBinding : descriptorSetLayoutBindings) {
-        if (descriptorSetLayoutBinding.descriptorType == vk::DescriptorType::eUniformBuffer) {
-            const AxrShaderUniformBufferLinkConst_T uniformBuffer = material->findShaderUniformBuffer(
-                descriptorSetLayoutBinding.binding
-            );
-            if (uniformBuffer == nullptr) {
-                axrLogErrorLocation(
-                    "Failed to get uniform buffer at binding: {0}.",
-                    descriptorSetLayoutBinding.binding
-                );
-                axrResult = AXR_ERROR;
-                break;
-            }
-
-            for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex) {
-                for (uint32_t frameIndex = 0; frameIndex < m_MaxFramesInFlight; ++frameIndex) {
-                    const AxrVulkanUniformBufferData* foundUniformBufferData = findUniformBufferData_shared(
-                        uniformBuffer->BufferName,
-                        platformType,
-                        viewIndex
-                    );
-
-                    if (foundUniformBufferData == nullptr) {
-                        axrLogErrorLocation("Failed to find uniform buffer named: {0}.", uniformBuffer->BufferName);
-                        axrResult = AXR_ERROR;
-                        break;
-                    }
-
-                    descriptorBufferInfos.emplace_back(
-                        foundUniformBufferData->getBuffer(frameIndex).getBuffer(),
-                        0,
-                        foundUniformBufferData->getBufferSize()
-                    );
-
-                    const uint32_t viewIndexOffset = m_MaxFramesInFlight * viewIndex;
-
-                    descriptorWrites.emplace_back(
-                        descriptorSets[viewIndexOffset + frameIndex],
-                        descriptorSetLayoutBinding.binding,
-                        0,
-                        1,
-                        descriptorSetLayoutBinding.descriptorType,
-                        nullptr,
-                        &descriptorBufferInfos.back(),
-                        nullptr
-                    );
-                }
-
-                if (AXR_FAILED(axrResult)) {
-                    break;
-                }
-            }
-        } else if (descriptorSetLayoutBinding.descriptorType == vk::DescriptorType::eCombinedImageSampler) {
-            const AxrShaderImageSamplerBufferLinkConst_T imageSamplerBuffer = material->findShaderImageSamplerBuffer(
-                descriptorSetLayoutBinding.binding
-            );
-            if (imageSamplerBuffer == nullptr) {
-                axrLogErrorLocation(
-                    "Failed to get image sampler buffer at binding: {0}.",
-                    descriptorSetLayoutBinding.binding
-                );
-                axrResult = AXR_ERROR;
-                break;
-            }
-
-            const AxrVulkanImageSamplerData* foundImageSamplerData = findImageSamplerData_shared(
-                imageSamplerBuffer->ImageSamplerName
-            );
-
-            if (foundImageSamplerData == nullptr) {
-                axrLogErrorLocation("Failed to find image sampler named: {0}.", imageSamplerBuffer->ImageSamplerName);
-                axrResult = AXR_ERROR;
-                break;
-            }
-
-            const AxrVulkanImageData* foundImageData = nullptr;
-            // We check if the image name is null because findImageData_shared takes an std::string.
-            // Which can't be initialized with null.
-            if (imageSamplerBuffer->ImageName != nullptr) {
-                foundImageData = findImageData_shared(imageSamplerBuffer->ImageName);
-            }
-
-            if (foundImageData == nullptr) {
-                // If image data wasn't found, use the "Missing Texture" image
-                foundImageData = findImageData_shared(
-                    axrEngineAssetGetImageName(AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE)
+    for (const AxrShaderUniformBufferLinkConst_T uniformBuffer : uniformBufferLinks) {
+        for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex) {
+            for (uint32_t frameIndex = 0; frameIndex < m_MaxFramesInFlight; ++frameIndex) {
+                const AxrVulkanUniformBufferData* foundUniformBufferData = findUniformBufferData_shared(
+                    uniformBuffer->BufferName,
+                    platformType,
+                    viewIndex
                 );
 
-                if (foundImageData == nullptr) {
-                    axrLogErrorLocation("Failed to find image named: {0}.", imageSamplerBuffer->ImageName);
+                if (foundUniformBufferData == nullptr) {
+                    axrLogErrorLocation("Failed to find uniform buffer named: {0}.", uniformBuffer->BufferName);
                     axrResult = AXR_ERROR;
                     break;
                 }
 
-                // When we use the 'missing texture', try to use the image sampler options NEAREST and REPEAT. otherwise it looks weird
-                const AxrVulkanImageSamplerData* missingTextureImageSamplerData = findImageSamplerData_shared(
-                    axrEngineAssetGetImageSamplerName(AXR_ENGINE_ASSET_IMAGE_SAMPLER_NEAREST_REPEAT)
+                descriptorBufferInfos.emplace_back(
+                    foundUniformBufferData->getBuffer(frameIndex).getBuffer(),
+                    0,
+                    foundUniformBufferData->getBufferSize()
                 );
 
-                if (missingTextureImageSamplerData != nullptr) {
-                    foundImageSamplerData = missingTextureImageSamplerData;
-                }
+                const uint32_t viewIndexOffset = m_MaxFramesInFlight * viewIndex;
+
+                descriptorWrites.emplace_back(
+                    descriptorSets[viewIndexOffset + frameIndex],
+                    uniformBuffer->Binding,
+                    0,
+                    1,
+                    vk::DescriptorType::eUniformBuffer,
+                    nullptr,
+                    &descriptorBufferInfos.back(),
+                    nullptr
+                );
             }
 
-            descriptorImageInfos.emplace_back(
-                foundImageSamplerData->getSampler(foundImageData->getImageFormat()),
-                foundImageData->getImageView(),
-                vk::ImageLayout::eShaderReadOnlyOptimal
+            if (AXR_FAILED(axrResult)) {
+                break;
+            }
+        }
+    }
+
+    for (const AxrShaderImageSamplerBufferLinkConst_T imageSamplerBuffer : imageSamplerBufferLinks) {
+        const AxrVulkanImageSamplerData* foundImageSamplerData = findImageSamplerData_shared(
+            imageSamplerBuffer->ImageSamplerName
+        );
+
+        if (foundImageSamplerData == nullptr) {
+            axrLogErrorLocation("Failed to find image sampler named: {0}.", imageSamplerBuffer->ImageSamplerName);
+            axrResult = AXR_ERROR;
+            break;
+        }
+
+        const AxrVulkanImageData* foundImageData = nullptr;
+        // We check if the image name is null because findImageData_shared takes an std::string.
+        // Which can't be initialized with null.
+        if (imageSamplerBuffer->ImageName != nullptr) {
+            foundImageData = findImageData_shared(imageSamplerBuffer->ImageName);
+        }
+
+        if (foundImageData == nullptr) {
+            // If image data wasn't found, use the "Missing Texture" image
+            foundImageData = findImageData_shared(
+                axrEngineAssetGetImageName(AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE)
             );
 
-            for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex) {
-                for (uint32_t frameIndex = 0; frameIndex < m_MaxFramesInFlight; ++frameIndex) {
-                    const uint32_t viewIndexOffset = m_MaxFramesInFlight * viewIndex;
+            if (foundImageData == nullptr) {
+                axrLogErrorLocation("Failed to find image named: {0}.", imageSamplerBuffer->ImageName);
+                axrResult = AXR_ERROR;
+                break;
+            }
 
-                    descriptorWrites.emplace_back(
-                        descriptorSets[viewIndexOffset + frameIndex],
-                        descriptorSetLayoutBinding.binding,
-                        0,
-                        1,
-                        descriptorSetLayoutBinding.descriptorType,
-                        &descriptorImageInfos.back(),
-                        nullptr,
-                        nullptr
-                    );
-                }
+            // When we use the 'missing texture', try to use the image sampler options NEAREST and REPEAT. otherwise it looks weird
+            const AxrVulkanImageSamplerData* missingTextureImageSamplerData = findImageSamplerData_shared(
+                axrEngineAssetGetImageSamplerName(AXR_ENGINE_ASSET_IMAGE_SAMPLER_NEAREST_REPEAT)
+            );
+
+            if (missingTextureImageSamplerData != nullptr) {
+                foundImageSamplerData = missingTextureImageSamplerData;
             }
         }
 
-        if (AXR_FAILED(axrResult)) {
-            break;
+        descriptorImageInfos.emplace_back(
+            foundImageSamplerData->getSampler(foundImageData->getImageFormat()),
+            foundImageData->getImageView(),
+            vk::ImageLayout::eShaderReadOnlyOptimal
+        );
+
+        for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex) {
+            for (uint32_t frameIndex = 0; frameIndex < m_MaxFramesInFlight; ++frameIndex) {
+                const uint32_t viewIndexOffset = m_MaxFramesInFlight * viewIndex;
+
+                descriptorWrites.emplace_back(
+                    descriptorSets[viewIndexOffset + frameIndex],
+                    imageSamplerBuffer->Binding,
+                    0,
+                    1,
+                    vk::DescriptorType::eCombinedImageSampler,
+                    &descriptorImageInfos.back(),
+                    nullptr,
+                    nullptr
+                );
+            }
         }
     }
 

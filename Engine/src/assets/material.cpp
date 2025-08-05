@@ -170,6 +170,33 @@ AxrMaterialAlphaRenderModeEnum AxrMaterial::getAlphaRenderMode() const {
     return m_AlphaRenderMode;
 }
 
+std::vector<AxrShaderUniformBufferLinkConst_T> AxrMaterial::getUniformBufferLinks() const {
+    std::vector<AxrShaderUniformBufferLinkConst_T> uniformBuffers = m_VertexShaderValues.getUniformBufferLinks();
+    std::vector<AxrShaderUniformBufferLinkConst_T> fragmentUniformBuffers = m_FragmentShaderValues
+        .getUniformBufferLinks();
+
+    uniformBuffers.insert(
+        uniformBuffers.end(),
+        fragmentUniformBuffers.begin(),
+        fragmentUniformBuffers.end()
+    );
+    return uniformBuffers;
+}
+
+std::vector<AxrShaderImageSamplerBufferLinkConst_T> AxrMaterial::getImageSamplerBufferLinks() const {
+    std::vector<AxrShaderImageSamplerBufferLinkConst_T> imageSamplerBuffers = m_VertexShaderValues
+        .getImageSamplerBufferLinks();
+    std::vector<AxrShaderImageSamplerBufferLinkConst_T> fragmentImageSamplerBuffers = m_FragmentShaderValues
+        .getImageSamplerBufferLinks();
+
+    imageSamplerBuffers.insert(
+        imageSamplerBuffers.end(),
+        fragmentImageSamplerBuffers.begin(),
+        fragmentImageSamplerBuffers.end()
+    );
+    return imageSamplerBuffers;
+}
+
 AxrShaderUniformBufferLinkConst_T AxrMaterial::findShaderUniformBuffer(const uint32_t binding) const {
     AxrShaderUniformBufferLinkConst_T uniformBuffer = m_VertexShaderValues.findShaderUniformBuffer(binding);
     if (uniformBuffer != nullptr) {

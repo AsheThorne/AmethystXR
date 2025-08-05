@@ -560,7 +560,7 @@ AxrResult AxrVulkanMaterialData::createPipeline(
     std::vector<vk::ShaderModule> shaderModules(2);
 
     if (!m_VertexShaderHandle->isLoaded()) {
-        axrResult = m_VertexShaderHandle->loadFile(AXR_GRAPHICS_API_VULKAN);
+        axrResult = m_VertexShaderHandle->loadFile();
         if (AXR_FAILED(axrResult)) {
             cleanupPipelineCreationData(shaderModules);
             return axrResult;
@@ -581,7 +581,7 @@ AxrResult AxrVulkanMaterialData::createPipeline(
     );
 
     if (!m_FragmentShaderHandle->isLoaded()) {
-        axrResult = m_FragmentShaderHandle->loadFile(AXR_GRAPHICS_API_VULKAN);
+        axrResult = m_FragmentShaderHandle->loadFile();
         if (AXR_FAILED(axrResult)) {
             cleanupPipelineCreationData(shaderModules);
             return axrResult;

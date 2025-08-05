@@ -281,6 +281,12 @@ endif ()
 # Generate vulkan shaders
 # ---------------------------------------------
 
+if (Vulkan_FOUND)
+    add_custom_command(TARGET AXR_Engine POST_BUILD COMMAND
+        ${GLSLC} ${AXR_SHADERS_DIR}/shader.frag -DALPHA_MODE_MASK -o ${AXR_SHADERS_DIR}/shader_mask.frag.spv
+    )
+endif ()
+
 generate_vulkan_shaders(${AXR_SHADERS_DIR} AXR_Engine)
 
 # ---------------------------------------------

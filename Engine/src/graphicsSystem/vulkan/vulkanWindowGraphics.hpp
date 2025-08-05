@@ -9,6 +9,7 @@
 #include "vulkanQueueFamilies.hpp"
 #include "sceneData/vulkanLoadedScenesCollection.hpp"
 #include "vulkanSurfaceDetails.hpp"
+#include "axr/graphicsSystem.h"
 
 // ----------------------------------------- //
 // Vulkan Headers
