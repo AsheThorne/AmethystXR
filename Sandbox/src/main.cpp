@@ -8,7 +8,7 @@
 // ----------------------------------------- //
 #include <axr.hpp>
 #include "sponzaScene.hpp"
-#include "testScene.hpp"
+#include "alphaTestScene.hpp"
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nShowCmd) {
     const std::string applicationName = "Sandbox";
@@ -131,7 +131,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     auto app = axr::Application(appConfig);
     if (AXR_FAILED(app.setup())) return -1;
 
-    SponzaScene scene(app);
+    AlphaTestScene scene(app);
     if (AXR_FAILED(scene.setup())) return -1;
 
     if (AXR_FAILED(scene.loadScene())) return -1;

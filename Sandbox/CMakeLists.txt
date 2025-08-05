@@ -24,6 +24,8 @@ set(AXR_SANDBOX_CPP_FILES
     ${AXR_SANDBOX_SRC_DIR}/testScene.hpp
     ${AXR_SANDBOX_SRC_DIR}/sponzaScene.cpp
     ${AXR_SANDBOX_SRC_DIR}/sponzaScene.hpp
+    ${AXR_SANDBOX_SRC_DIR}/alphaTestScene.cpp
+    ${AXR_SANDBOX_SRC_DIR}/alphaTestScene.hpp
 )
 
 # ---------------------------------------------
