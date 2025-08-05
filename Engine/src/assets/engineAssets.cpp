@@ -478,7 +478,8 @@ bool axrEngineAssetIsPushConstantBufferNameReserved(const char* name) {
 AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
     const std::string& materialName,
     const AxrEngineAssetMaterial_DefaultMaterial& materialValues,
-    AxrMaterial& material
+    AxrMaterial& material,
+    std::vector<AxrEngineAssetEnum>& materialShaders
 ) {
     AxrShaderUniformBufferLink sceneDataBufferLink{
         .Binding = 0,
@@ -546,18 +547,22 @@ AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
         axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT),
         AXR_MAX_ASSET_NAME_SIZE
     );
+    materialShaders.push_back(AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT);
+
     if (materialValues.AlphaCutoffBufferName[0] != '\0') {
         strncpy_s(
             materialConfig.FragmentShaderName,
             axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG_MASK),
             AXR_MAX_ASSET_NAME_SIZE
         );
+        materialShaders.push_back(AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG_MASK);
     } else {
         strncpy_s(
             materialConfig.FragmentShaderName,
             axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG),
             AXR_MAX_ASSET_NAME_SIZE
         );
+        materialShaders.push_back(AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG);
     }
 
     if (!axrMaterialConfigIsValid(&materialConfig)) {

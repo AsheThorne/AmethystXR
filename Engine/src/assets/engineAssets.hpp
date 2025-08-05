@@ -10,6 +10,7 @@
 // C/C++ Headers
 // ----------------------------------------- //
 #include <string>
+#include <vector>
 
 // ---------------------------------------------------------------------------------- //
 //                               Shader Engine Assets                                 //
@@ -105,11 +106,13 @@ bool axrEngineAssetIsPushConstantBufferNameReserved(const char* name);
 /// @param materialName Material name
 /// @param materialValues Material values
 /// @param material Output created material
+/// @param materialShaders Output required shaders for this material
 /// @returns AXR_SUCCESS if the function succeeded
 AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
     const std::string& materialName,
     const AxrEngineAssetMaterial_DefaultMaterial& materialValues,
-    AxrMaterial& material
+    AxrMaterial& material,
+    std::vector<AxrEngineAssetEnum>& materialShaders
 );
 
 // ---------------------------------------------------------------------------------- //

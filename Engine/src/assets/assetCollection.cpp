@@ -309,8 +309,7 @@ AxrResult AxrAssetCollection::createShader(const AxrEngineAssetEnum engineAssetE
     }
 
     if (m_Shaders.contains(shaderName)) {
-        axrLogError("Unable to create shader. A shader named: {0} already exists.", shaderName.c_str());
-        return AXR_ERROR;
+        return AXR_SUCCESS;
     }
 
     AxrShader shader;
@@ -382,10 +381,12 @@ AxrResult AxrAssetCollection::createMaterial(
     }
 
     AxrMaterial material;
-    const AxrResult axrResult = axrEngineAssetCreateMaterial_DefaultMaterial(
+    std::vector<AxrEngineAssetEnum> materialShaders;
+    AxrResult axrResult = axrEngineAssetCreateMaterial_DefaultMaterial(
         materialName,
         materialValues,
-        material
+        material,
+        materialShaders
     );
     if (AXR_FAILED(axrResult)) {
         axrLogErrorLocation("Failed to create material engine asset.");
@@ -400,6 +401,14 @@ AxrResult AxrAssetCollection::createMaterial(
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //
+
+    for (const AxrEngineAssetEnum shader : materialShaders) {
+        axrResult = createShader(shader);
+        if (AXR_FAILED(axrResult)) {
+            axrLogErrorLocation("Failed to create shaders for material named: {0}.", materialName.c_str());
+            return axrResult;
+        }
+    }
 
     const auto insertResult = m_Materials.insert(std::pair(materialName, std::move(material)));
     if (!insertResult.second) {
