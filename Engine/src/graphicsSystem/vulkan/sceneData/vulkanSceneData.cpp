@@ -1904,8 +1904,8 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
     std::vector<vk::DescriptorBufferInfo> descriptorBufferInfos;
     std::vector<vk::DescriptorImageInfo> descriptorImageInfos;
     const size_t maxWrites =
-        uniformBufferLinks.size() +
-        imageSamplerBufferLinks.size() +
+        (uniformBufferLinks.size() +
+        imageSamplerBufferLinks.size()) *
         m_MaxFramesInFlight *
         viewCount;
 
@@ -1915,19 +1915,19 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
 
     for (const AxrShaderUniformBufferLinkConst_T uniformBuffer : uniformBufferLinks) {
         for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex) {
+            const AxrVulkanUniformBufferData* foundUniformBufferData = findUniformBufferData_shared(
+                uniformBuffer->BufferName,
+                platformType,
+                viewIndex
+            );
+
+            if (foundUniformBufferData == nullptr) {
+                axrLogErrorLocation("Failed to find uniform buffer named: {0}.", uniformBuffer->BufferName);
+                axrResult = AXR_ERROR;
+                break;
+            }
+
             for (uint32_t frameIndex = 0; frameIndex < m_MaxFramesInFlight; ++frameIndex) {
-                const AxrVulkanUniformBufferData* foundUniformBufferData = findUniformBufferData_shared(
-                    uniformBuffer->BufferName,
-                    platformType,
-                    viewIndex
-                );
-
-                if (foundUniformBufferData == nullptr) {
-                    axrLogErrorLocation("Failed to find uniform buffer named: {0}.", uniformBuffer->BufferName);
-                    axrResult = AXR_ERROR;
-                    break;
-                }
-
                 descriptorBufferInfos.emplace_back(
                     foundUniformBufferData->getBuffer(frameIndex).getBuffer(),
                     0,
@@ -1951,6 +1951,10 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
             if (AXR_FAILED(axrResult)) {
                 break;
             }
+        }
+
+        if (AXR_FAILED(axrResult)) {
+            break;
         }
     }
 
