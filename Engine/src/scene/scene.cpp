@@ -60,6 +60,7 @@ void axrSceneSetMainCamera(const AxrScene_T scene, const AxrEntityConst_T entity
 // ---- Special Functions ----
 
 AxrScene::AxrScene():
+    m_AssetCollection(AXR_GRAPHICS_API_UNDEFINED),
     m_MainCamera({m_Registry, entt::null}) {
 }
 
@@ -69,7 +70,8 @@ AxrScene::AxrScene(const std::string& name, const AxrGraphicsApiEnum graphicsApi
     m_MainCamera(m_Registry, entt::null) {
 }
 
-AxrScene::AxrScene(AxrScene&& src) noexcept {
+AxrScene::AxrScene(AxrScene&& src) noexcept:
+    m_AssetCollection(AXR_GRAPHICS_API_UNDEFINED) {
     m_AssetCollection = std::move(src.m_AssetCollection);
     m_Registry = std::move(src.m_Registry);
 

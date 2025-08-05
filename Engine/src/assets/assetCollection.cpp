@@ -228,7 +228,7 @@ AxrAssetCollection::~AxrAssetCollection() {
 }
 
 AxrAssetCollection& AxrAssetCollection::operator=(AxrAssetCollection&& src) noexcept {
-    if (this == &src) {
+    if (this != &src) {
         cleanup();
 
         OnMaterialCreatedCallbackGraphics = std::move(src.OnMaterialCreatedCallbackGraphics);
