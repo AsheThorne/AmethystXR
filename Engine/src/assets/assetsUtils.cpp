@@ -315,6 +315,8 @@ AxrImageColorChannelsEnum axrToImageColorChannels(const int colorChannels) {
 
 AxrImageSamplerFilterEnum axrToImageSamplerFilter(const int samplerFilter, AxrImageSamplerFilterEnum& mipmapFilter) {
     switch (samplerFilter) {
+        // -1 is the default value. So we'll just make it default to nearest 
+        case -1:
         case TINYGLTF_TEXTURE_FILTER_NEAREST: {
             return AXR_IMAGE_SAMPLER_FILTER_NEAREST;
         }
@@ -617,6 +619,11 @@ AxrResult axrGetModelFileInfo_glTF(
         );
         modelFileInfo->ImageSamplers[i].WrapU = axrToImageSamplerWrap(model.samplers[i].wrapS);
         modelFileInfo->ImageSamplers[i].WrapV = axrToImageSamplerWrap(model.samplers[i].wrapT);
+
+        if (modelFileInfo->ImageSamplers[i].MipmapFilter == AXR_IMAGE_SAMPLER_FILTER_UNDEFINED) {
+            // Default to nearest
+            modelFileInfo->ImageSamplers[i].MipmapFilter = AXR_IMAGE_SAMPLER_FILTER_NEAREST;
+        }
     }
 
     modelFileInfo->ImageCount = model.images.size();

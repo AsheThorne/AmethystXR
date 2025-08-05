@@ -304,7 +304,7 @@ vk::Filter axrToVkFilter(const AxrImageSamplerFilterEnum samplerFilter) {
     }
 }
 
-vk::SamplerMipmapMode axrToVkSamplerMipmapMode(AxrImageSamplerFilterEnum samplerFilter) {
+vk::SamplerMipmapMode axrToVkSamplerMipmapMode(const AxrImageSamplerFilterEnum samplerFilter) {
     switch (samplerFilter) {
         case AXR_IMAGE_SAMPLER_FILTER_NEAREST: {
             return vk::SamplerMipmapMode::eNearest;
