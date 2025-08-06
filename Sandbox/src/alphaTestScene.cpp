@@ -1,6 +1,6 @@
 ﻿#include "alphaTestScene.hpp"
 
-AlphaTestScene::AlphaTestScene(axr::Application& app):
+AlphaTestScene::AlphaTestScene(axr::Application& app) :
     m_Application(app),
     m_Scene(nullptr) {
 }
@@ -211,6 +211,169 @@ axr::Result AlphaTestScene::setup() {
     );
 
     m_Scene.setMainCamera(m_CameraEntity);
+
+    // ---- Layered Transparency ----
+
+    std::string glassModelName = "GlassPlaneModel";
+    if (AXR_FAILED(assetCollection.createModel(glassModelName.c_str(), axr::EngineAssetEnum::ModelSquare)))
+        return axr::Result::Error;
+
+    std::string cyanGlassImageName = "CyanGlassImage";
+    if (AXR_FAILED(assetCollection.createImage(axr::ImageConfig(cyanGlassImageName.c_str(), "cyan-glass.png"))))
+        return axr::Result::Error;
+
+    std::string magentaGlassImageName = "MagentaGlassImage";
+    if (AXR_FAILED(assetCollection.createImage(axr::ImageConfig(magentaGlassImageName.c_str(), "magenta-glass.png"))))
+        return axr::Result::Error;
+
+    std::string yellowGlassImageName = "YellowGlassImage";
+    if (AXR_FAILED(assetCollection.createImage(axr::ImageConfig(yellowGlassImageName.c_str(), "yellow-glass.png"))))
+        return axr::Result::Error;
+
+    std::string cyanGlassMaterialName = "CyanGlassMaterial";
+    if (AXR_FAILED(
+        assetCollection.createMaterial(cyanGlassMaterialName.c_str(),
+            axr::EngineAssetMaterial_DefaultMaterial(
+                axr::MaterialBackfaceCullModeEnum::None,
+                axr::MaterialAlphaRenderModeEnum::AlphaBlend,
+                "",
+                cyanGlassImageName.c_str(),
+                axr::engineAssetGetName(axr::EngineAssetEnum::ImageSamplerNearestRepeat)
+            ))
+    ))
+        return axr::Result::Error;
+
+    std::string magentaGlassMaterialName = "MagentaGlassMaterial";
+    if (AXR_FAILED(
+        assetCollection.createMaterial(magentaGlassMaterialName.c_str(),
+            axr::EngineAssetMaterial_DefaultMaterial(
+                axr::MaterialBackfaceCullModeEnum::None,
+                axr::MaterialAlphaRenderModeEnum::AlphaBlend,
+                "",
+                magentaGlassImageName.c_str(),
+                axr::engineAssetGetName(axr::EngineAssetEnum::ImageSamplerNearestRepeat)
+            ))
+    ))
+        return axr::Result::Error;
+
+    std::string yellowGlassMaterialName = "YellowGlassMaterial";
+    if (AXR_FAILED(
+        assetCollection.createMaterial(yellowGlassMaterialName.c_str(),
+            axr::EngineAssetMaterial_DefaultMaterial(
+                axr::MaterialBackfaceCullModeEnum::None,
+                axr::MaterialAlphaRenderModeEnum::AlphaBlend,
+                "",
+                yellowGlassImageName.c_str(),
+                axr::engineAssetGetName(axr::EngineAssetEnum::ImageSamplerNearestRepeat)
+            ))
+    ))
+        return axr::Result::Error;
+
+    m_CyanGlassEntity = m_Scene.createEntity();
+    m_MagentaGlassEntity = m_Scene.createEntity();
+    m_YellowGlassEntity = m_Scene.createEntity();
+
+    m_CyanGlassEntity.emplace<AxrTransformComponent>(
+        AxrTransformComponent{
+            .Position = glm::vec3(0.0f, 2.3f, -5.5f),
+            .Scale = glm::vec3(1.0f, 1.0f, 1.0f),
+            .Orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+        }
+    );
+
+    m_MagentaGlassEntity.emplace<AxrTransformComponent>(
+        AxrTransformComponent{
+            .Position = glm::vec3(-0.2f, 2.5f, -5.6f),
+            .Scale = glm::vec3(1.0f, 1.0f, 1.0f),
+            .Orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+        }
+    );
+
+    m_YellowGlassEntity.emplace<AxrTransformComponent>(
+        AxrTransformComponent{
+            .Position = glm::vec3(-0.4f, 2.7f, -5.7f),
+            .Scale = glm::vec3(1.0f, 1.0f, 1.0f),
+            .Orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+        }
+    );
+
+    AxrModelComponent::Submesh cyanGlassSubmesh{
+        .MaterialName = {},
+    };
+    strcpy_s(cyanGlassSubmesh.MaterialName, cyanGlassMaterialName.c_str());
+
+    AxrModelComponent::Mesh cyanGlassMesh{
+        .Submeshes = std::vector{
+            cyanGlassSubmesh,
+        }
+    };
+
+    AxrModelComponent cyanGlassModelComponent{
+        .ModelName = {},
+        .Meshes = std::vector{
+            cyanGlassMesh,
+        },
+        .PushConstantBufferName = {},
+    };
+    strcpy_s(cyanGlassModelComponent.ModelName, glassModelName.c_str());
+    strcpy_s(
+        cyanGlassModelComponent.PushConstantBufferName,
+        axr::engineAssetGetName(axr::EngineAssetEnum::PushConstantBufferModelMatrix)
+    );
+
+    m_CyanGlassEntity.emplace<AxrModelComponent>(cyanGlassModelComponent);
+
+    AxrModelComponent::Submesh magentaGlassSubmesh{
+        .MaterialName = {},
+    };
+    strcpy_s(magentaGlassSubmesh.MaterialName, magentaGlassMaterialName.c_str());
+
+    AxrModelComponent::Mesh magentaGlassMesh{
+        .Submeshes = std::vector{
+            magentaGlassSubmesh,
+        }
+    };
+
+    AxrModelComponent magentaGlassModelComponent{
+        .ModelName = {},
+        .Meshes = std::vector{
+            magentaGlassMesh,
+        },
+        .PushConstantBufferName = {},
+    };
+    strcpy_s(magentaGlassModelComponent.ModelName, glassModelName.c_str());
+    strcpy_s(
+        magentaGlassModelComponent.PushConstantBufferName,
+        axr::engineAssetGetName(axr::EngineAssetEnum::PushConstantBufferModelMatrix)
+    );
+
+    m_MagentaGlassEntity.emplace<AxrModelComponent>(magentaGlassModelComponent);
+
+    AxrModelComponent::Submesh yellowGlassSubmesh{
+        .MaterialName = {},
+    };
+    strcpy_s(yellowGlassSubmesh.MaterialName, yellowGlassMaterialName.c_str());
+
+    AxrModelComponent::Mesh yellowGlassMesh{
+        .Submeshes = std::vector{
+            yellowGlassSubmesh,
+        }
+    };
+
+    AxrModelComponent yellowGlassModelComponent{
+        .ModelName = {},
+        .Meshes = std::vector{
+            yellowGlassMesh,
+        },
+        .PushConstantBufferName = {},
+    };
+    strcpy_s(yellowGlassModelComponent.ModelName, glassModelName.c_str());
+    strcpy_s(
+        yellowGlassModelComponent.PushConstantBufferName,
+        axr::engineAssetGetName(axr::EngineAssetEnum::PushConstantBufferModelMatrix)
+    );
+
+    m_YellowGlassEntity.emplace<AxrModelComponent>(yellowGlassModelComponent);
 
     return axr::Result::Success;
 }

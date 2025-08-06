@@ -52,4 +52,7 @@ private:
     axr::Scene m_Scene;
     axr::Entity_T m_Entity;
     axr::Entity_T m_CameraEntity;
+    axr::Entity_T m_CyanGlassEntity;
+    axr::Entity_T m_MagentaGlassEntity;
+    axr::Entity_T m_YellowGlassEntity;
 };
