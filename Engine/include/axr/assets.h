@@ -426,11 +426,11 @@ enum AxrMaterialAlphaRenderModeEnum {
     AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE = 0,
     /// Depth sorted alpha blending transparency.
     /// Useful for glass windows or objects with minimal or no overlapping transparency.
-    AXR_MATERIAL_ALPHA_RENDER_MODE_SIMPLE_TRANSPARENCY,
+    AXR_MATERIAL_ALPHA_RENDER_MODE_ALPHA_BLEND,
     /// Order independent transparency.
     /// Useful when there are multiple layers of transparency overlapping.
     /// Whether it's multiple objects or a single complex object. 
-    AXR_MATERIAL_ALPHA_RENDER_MODE_ADVANCED_TRANSPARENCY,
+    AXR_MATERIAL_ALPHA_RENDER_MODE_OIT,
 };
 
 // ----------------------------------------- //

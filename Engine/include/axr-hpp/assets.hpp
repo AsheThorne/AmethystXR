@@ -872,11 +872,11 @@ namespace axr {
         Opaque = AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE,
         /// Depth sorted alpha blending transparency.
         /// Useful for glass windows or objects with minimal or no overlapping transparency.
-        SimpleTransparency = AXR_MATERIAL_ALPHA_RENDER_MODE_SIMPLE_TRANSPARENCY,
+        AlphaBlend = AXR_MATERIAL_ALPHA_RENDER_MODE_ALPHA_BLEND,
         /// Order independent transparency.
         /// Useful when there are multiple layers of transparency overlapping.
         /// Whether it's multiple objects or a single complex object. 
-        AdvancedTransparency = AXR_MATERIAL_ALPHA_RENDER_MODE_ADVANCED_TRANSPARENCY,
+        OIT = AXR_MATERIAL_ALPHA_RENDER_MODE_OIT,
     };
 
     // ----------------------------------------- //

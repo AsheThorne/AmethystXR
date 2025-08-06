@@ -11,7 +11,7 @@
 #include "axr/logger.h"
 #include "../../common.hpp"
 #include "vulkanGraphicsSystem.hpp"
-#include "vulkanutils.hpp"
+#include "vulkanUtils.hpp"
 #include "../../utils.hpp"
 #include "../../scene/scene.hpp"
 
@@ -1413,7 +1413,7 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
         //  We might need a separate render pass for simple
 
         for (const AxrVulkanSceneData::MaterialForRendering& material :
-             sceneData->getMaterialsForRendering(AXR_MATERIAL_ALPHA_RENDER_MODE_SIMPLE_TRANSPARENCY) |
+             sceneData->getMaterialsForRendering(AXR_MATERIAL_ALPHA_RENDER_MODE_ALPHA_BLEND) |
              std::views::values) {
             renderMaterial(material);
         }

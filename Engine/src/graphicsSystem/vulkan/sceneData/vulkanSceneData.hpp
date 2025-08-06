@@ -220,8 +220,8 @@ private:
     std::unordered_map<std::string, AxrVulkanMaterialLayoutData> m_MaterialLayoutData;
     std::unordered_map<std::string, AxrVulkanMaterialData> m_MaterialData;
     std::unordered_map<std::string, MaterialForRendering> m_OpaqueMaterialsForRendering;
-    std::unordered_map<std::string, MaterialForRendering> m_SimpleTransparencyMaterialsForRendering;
-    std::unordered_map<std::string, MaterialForRendering> m_AdvancedTransparencyMaterialsForRendering;
+    std::unordered_map<std::string, MaterialForRendering> m_AlphaBlendMaterialsForRendering;
+    std::unordered_map<std::string, MaterialForRendering> m_OITMaterialsForRendering;
 
     // ----------------------------------------- //
     // Private Functions
@@ -509,8 +509,8 @@ private:
     /// Destroy all materials for rendering
     void destroyAllMaterialsForRendering();
 
-    /// Add a material for rendering to either m_OpaqueMaterialsForRendering, m_SimpleTransparencyMaterialsForRendering
-    /// or m_AdvancedTransparencyMaterialsForRendering depending on it's alpha rendering mode. 
+    /// Add a material for rendering to either m_OpaqueMaterialsForRendering, m_AlphaBlendMaterialsForRendering
+    /// or m_OITMaterialsForRendering depending on it's alpha rendering mode. 
     /// @param transformComponent Transform component
     /// @param modelComponent Model component
     /// @returns AXR_SUCCESS if the function succeeded

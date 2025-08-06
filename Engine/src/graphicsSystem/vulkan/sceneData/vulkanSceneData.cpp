@@ -261,11 +261,11 @@ AxrVulkanSceneData::getMaterialsForRendering(const AxrMaterialAlphaRenderModeEnu
         case AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE: {
             return m_OpaqueMaterialsForRendering;
         }
-        case AXR_MATERIAL_ALPHA_RENDER_MODE_SIMPLE_TRANSPARENCY: {
-            return m_SimpleTransparencyMaterialsForRendering;
+        case AXR_MATERIAL_ALPHA_RENDER_MODE_ALPHA_BLEND: {
+            return m_AlphaBlendMaterialsForRendering;
         }
-        case AXR_MATERIAL_ALPHA_RENDER_MODE_ADVANCED_TRANSPARENCY: {
-            return m_AdvancedTransparencyMaterialsForRendering;
+        case AXR_MATERIAL_ALPHA_RENDER_MODE_OIT: {
+            return m_OITMaterialsForRendering;
         }
         default: {
             axrLogWarningLocation("Unknown alpha render mode: {0}.", static_cast<int32_t>(alphaRenderMode));
@@ -2057,12 +2057,12 @@ AxrResult AxrVulkanSceneData::createAllMaterialsForRendering() {
         return AXR_ERROR;
     }
 
-    if (!m_SimpleTransparencyMaterialsForRendering.empty()) {
+    if (!m_AlphaBlendMaterialsForRendering.empty()) {
         axrLogErrorLocation("Simple transparency materials for rendering already exist.");
         return AXR_ERROR;
     }
 
-    if (!m_AdvancedTransparencyMaterialsForRendering.empty()) {
+    if (!m_OITMaterialsForRendering.empty()) {
         axrLogErrorLocation("Advanced transparency materials for rendering already exist.");
         return AXR_ERROR;
     }
@@ -2098,8 +2098,8 @@ AxrResult AxrVulkanSceneData::createAllMaterialsForRendering() {
 void AxrVulkanSceneData::destroyAllMaterialsForRendering() {
     // Materials for rendering only contain references to objects so we don't need to explicitly clean up any objects
     m_OpaqueMaterialsForRendering.clear();
-    m_SimpleTransparencyMaterialsForRendering.clear();
-    m_AdvancedTransparencyMaterialsForRendering.clear();
+    m_AlphaBlendMaterialsForRendering.clear();
+    m_OITMaterialsForRendering.clear();
 }
 
 AxrResult AxrVulkanSceneData::addMaterialForRendering(
@@ -2136,12 +2136,12 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
                     materialsForRendering = &m_OpaqueMaterialsForRendering;
                     break;
                 }
-                case AXR_MATERIAL_ALPHA_RENDER_MODE_SIMPLE_TRANSPARENCY: {
-                    materialsForRendering = &m_SimpleTransparencyMaterialsForRendering;
+                case AXR_MATERIAL_ALPHA_RENDER_MODE_ALPHA_BLEND: {
+                    materialsForRendering = &m_AlphaBlendMaterialsForRendering;
                     break;
                 }
-                case AXR_MATERIAL_ALPHA_RENDER_MODE_ADVANCED_TRANSPARENCY: {
-                    materialsForRendering = &m_AdvancedTransparencyMaterialsForRendering;
+                case AXR_MATERIAL_ALPHA_RENDER_MODE_OIT: {
+                    materialsForRendering = &m_OITMaterialsForRendering;
                     break;
                 }
                 default: {

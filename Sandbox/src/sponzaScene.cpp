@@ -103,7 +103,7 @@ axr::Result SponzaScene::setup() {
                 break;
             }
             case axr::ModelFileMaterialInfoAlphaModeEnum::Blend: {
-                alphaRenderMode = axr::MaterialAlphaRenderModeEnum::SimpleTransparency;
+                alphaRenderMode = axr::MaterialAlphaRenderModeEnum::AlphaBlend;
                 break;
             }
         }

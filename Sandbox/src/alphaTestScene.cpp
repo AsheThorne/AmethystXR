@@ -103,7 +103,7 @@ axr::Result AlphaTestScene::setup() {
                 break;
             }
             case axr::ModelFileMaterialInfoAlphaModeEnum::Blend: {
-                alphaRenderMode = axr::MaterialAlphaRenderModeEnum::SimpleTransparency;
+                alphaRenderMode = axr::MaterialAlphaRenderModeEnum::AlphaBlend;
                 break;
             }
         }
