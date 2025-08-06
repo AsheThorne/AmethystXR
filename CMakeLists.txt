@@ -81,6 +81,12 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/builds/${OUTPUT_DIRECTO
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/builds/${OUTPUT_DIRECTORY}/bin)
 
 # ---------------------------------------------
+# Compile Options
+# ---------------------------------------------
+
+add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+
+# ---------------------------------------------
 # Include AmethystXR Engine
 # ---------------------------------------------
 add_subdirectory(Engine)
