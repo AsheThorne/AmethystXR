@@ -1,6 +1,6 @@
 ﻿#include "alphaTestScene.hpp"
 
-AlphaTestScene::AlphaTestScene(axr::Application& app) :
+AlphaTestScene::AlphaTestScene(axr::Application& app):
     m_Application(app),
     m_Scene(nullptr) {
 }
@@ -196,7 +196,7 @@ axr::Result AlphaTestScene::setup() {
 
     m_CameraEntity.emplace<AxrTransformComponent>(
         AxrTransformComponent{
-            .Position = glm::vec3(0.0f, 1.0f, -0.5f),
+            .Position = glm::vec3(0.0f, 1.0f, 0.0f),
             .Scale = glm::vec3(1.0f, 1.0f, 1.0f),
             .Orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
         }
@@ -387,4 +387,40 @@ axr::Result AlphaTestScene::setAsActiveScene() const {
 }
 
 void AlphaTestScene::update() {
+    const float deltaTime = m_Application.getDeltaTime();
+    const axr::ActionSet movement = m_Application.getActionSystem().getActionSet("movement");
+    const axr::BoolInputAction forward = movement.getBoolInputAction("forward");
+    const axr::BoolInputAction left = movement.getBoolInputAction("left");
+    const axr::BoolInputAction back = movement.getBoolInputAction("back");
+    const axr::BoolInputAction right = movement.getBoolInputAction("right");
+    const axr::Vec2InputAction mouse = movement.getVec2InputAction("mouse");
+
+    m_CameraEntity.patch<AxrTransformComponent>(
+        [deltaTime, forward, left, back, right, mouse](AxrTransformComponent& transform) {
+            if (mouse.valueChanged()) {
+                transform.Orientation = glm::rotate(
+                    transform.Orientation,
+                    5.0f * deltaTime,
+                    glm::vec3(
+                        0.0f,
+                        mouse.getValue().x > 0.0f ? -1.0f : 1.0f,
+                        0.0f
+                    )
+                );
+            }
+
+            if (forward.getValue()) {
+                transform.Position += glm::vec3(0.0f, 0.0f, deltaTime * -2.0f);
+            }
+            if (left.getValue()) {
+                transform.Position += glm::vec3(deltaTime * -2.0f, 0.0f, 0.0f);
+            }
+            if (back.getValue()) {
+                transform.Position += glm::vec3(0.0f, 0.0f, deltaTime * 2.0f);
+            }
+            if (right.getValue()) {
+                transform.Position += glm::vec3(deltaTime * 2.0f, 0.0f, 0.0f);
+            }
+        }
+    );
 }

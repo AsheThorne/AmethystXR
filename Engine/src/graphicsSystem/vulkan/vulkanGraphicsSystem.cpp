@@ -45,8 +45,8 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     m_GraphicsCommandPool(VK_NULL_HANDLE),
     m_TransferCommandPool(VK_NULL_HANDLE),
     m_MaxFramesInFlight(2),
-    m_XrGraphics(nullptr),
-    m_WindowGraphics(nullptr) {
+    m_WindowGraphics(nullptr),
+    m_XrGraphics(nullptr) {
     m_Dispatch.init();
 
     m_ApiLayers.add(config.ApiLayerCount, config.ApiLayers);
@@ -1375,7 +1375,7 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
 
         // TODO: Use Forward+ rendering technique
 
-        auto renderMaterial = [renderCommands, viewIndex, sceneData](
+        auto prepareMaterial = [renderCommands, viewIndex, sceneData](
             const AxrVulkanSceneData::MaterialForRendering& material
         ) {
             renderCommands.bindPipeline(
@@ -1393,29 +1393,70 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
                     .XrSessionDescriptorSets = material.XrSessionDescriptorSets,
                 }
             );
-            renderCommands.pushConstants(viewIndex, material.PipelineLayout, material.PushConstant, sceneData);
+            renderCommands.pushConstants(
+                viewIndex,
+                material.PipelineLayout,
+                material.PushConstant,
+                nullptr,
+                sceneData
+            );
+        };
 
-            for (const AxrVulkanSceneData::MeshForRendering& mesh : material.Meshes) {
-                renderCommands.pushConstants(viewIndex, material.PipelineLayout, mesh.PushConstant, sceneData);
-                renderCommands.draw(viewIndex, mesh);
-            }
+        auto renderMesh = [renderCommands, viewIndex, sceneData](
+            const vk::PipelineLayout& pipelineLayout,
+            const AxrVulkanSceneData::MeshForRendering& mesh
+        ) {
+            renderCommands.pushConstants(
+                viewIndex,
+                pipelineLayout,
+                mesh.PushConstant,
+                mesh.TransformComponent,
+                sceneData
+            );
+            renderCommands.draw(viewIndex, mesh);
         };
 
         for (const AxrVulkanSceneData::MaterialForRendering& material :
-             sceneData->getMaterialsForRendering(AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE) | std::views::values) {
-            renderMaterial(material);
+             sceneData->getMaterialsForRendering(AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE)) {
+            prepareMaterial(material);
+
+            for (const AxrVulkanSceneData::MeshForRendering& mesh : material.Meshes) {
+                renderMesh(material.PipelineLayout, mesh);
+            }
         }
 
-        // TODO: Sort transparent objects by depth. Furthest away first, via Merge sort.
-        //  Maybe as a config param. so that we don't need to waste extra performance if the user doesn't care
-        //  Maybe it's not necessary... maybe if you care about overlapping transparent objects at all, just use advanced transparency.
-        //  How do we mix both simple and advanced together though? we don't just always want advanced drawn on top od simple or vise versa.
-        //  We might need a separate render pass for simple
+        glm::mat4 viewMatrix;
+        float nearPlane;
+        float farPlane;
+        // We always use view index 0 here because we want all views to order the transparent objects the same.
+        // It would look terrible if both eyes in VR rendered the objects in a different order.
+        axrResult = renderCommands.getCameraData(0, viewMatrix, nearPlane, farPlane);
+        if (AXR_SUCCEEDED(axrResult)) {
+            std::vector<AxrVulkanSceneData::MaterialForRendering> alphaBlendMaterials =
+                sceneData->getMaterialsForRendering(AXR_MATERIAL_ALPHA_RENDER_MODE_ALPHA_BLEND);
+            std::vector<SortableMeshReference> sortedMeshReferences = getSortedMeshReferences(
+                viewMatrix,
+                nearPlane,
+                farPlane,
+                alphaBlendMaterials
+            );
 
-        for (const AxrVulkanSceneData::MaterialForRendering& material :
-             sceneData->getMaterialsForRendering(AXR_MATERIAL_ALPHA_RENDER_MODE_ALPHA_BLEND) |
-             std::views::values) {
-            renderMaterial(material);
+            if (!sortedMeshReferences.empty()) {
+                uint32_t currentMaterialIndex = sortedMeshReferences[0].MaterialIndex;
+                prepareMaterial(alphaBlendMaterials[currentMaterialIndex]);
+
+                for (const SortableMeshReference& meshReference : sortedMeshReferences) {
+                    if (meshReference.MaterialIndex != currentMaterialIndex) {
+                        currentMaterialIndex = meshReference.MaterialIndex;
+                        prepareMaterial(alphaBlendMaterials[currentMaterialIndex]);
+                    }
+
+                    renderMesh(
+                        alphaBlendMaterials[currentMaterialIndex].PipelineLayout,
+                        alphaBlendMaterials[currentMaterialIndex].Meshes[meshReference.MeshIndex]
+                    );
+                }
+            }
         }
 
         // TODO: Advanced transparency with Weighted Blended OIT
@@ -1491,6 +1532,63 @@ AxrResult AxrVulkanGraphicsSystem::blitToWindowFromXrDevice() const {
     if (AXR_FAILED(axrResult)) return axrResult;
 
     return AXR_SUCCESS;
+}
+
+std::vector<AxrVulkanGraphicsSystem::SortableMeshReference> AxrVulkanGraphicsSystem::getSortedMeshReferences(
+    const glm::mat4& viewMatrix,
+    const float nearPlane,
+    const float farPlane,
+    const std::vector<AxrVulkanSceneData::MaterialForRendering>& materialsForRendering
+) const {
+    std::vector<SortableMeshReference> sortedMeshReferences;
+
+    for (uint32_t materialIndex = 0; materialIndex < materialsForRendering.size(); ++materialIndex) {
+        for (uint32_t meshIndex = 0; meshIndex < materialsForRendering[materialIndex].Meshes.size(); ++meshIndex) {
+            const float depth = calculateDepth(
+                viewMatrix,
+                materialsForRendering[materialIndex].Meshes[meshIndex].TransformComponent
+            );
+
+            sortedMeshReferences.emplace_back(
+                SortableMeshReference{
+                    .SortKey = createSortKey(depthToUint(nearPlane, farPlane, depth), materialIndex),
+                    .MaterialIndex = materialIndex,
+                    .MeshIndex = meshIndex,
+                }
+            );
+        }
+    }
+
+    std::ranges::sort(
+        sortedMeshReferences,
+        [](const SortableMeshReference& a, const SortableMeshReference& b) {
+            return a.SortKey > b.SortKey;
+        }
+    );
+
+    return sortedMeshReferences;
+}
+
+float AxrVulkanGraphicsSystem::calculateDepth(
+    const glm::mat4& viewMatrix,
+    const AxrTransformComponent* transformComponent
+) const {
+    // TODO: I don't think we should use the view matrix. probably just the camera position.
+    // Multiply by -1 because -Z is forward,and we want to invert that.
+    return (viewMatrix * glm::vec4(transformComponent->Position, 1.0f)).z * -1.0f;
+}
+
+uint32_t AxrVulkanGraphicsSystem::depthToUint(const float nearPlane, const float farPlane, const float depth) const {
+    float normalized = (depth - nearPlane) / (farPlane - nearPlane);
+    normalized = glm::clamp(normalized, 0.0f, 1.0f);
+    return static_cast<uint32_t>(normalized * static_cast<float>(UINT32_MAX));
+}
+
+uint64_t AxrVulkanGraphicsSystem::createSortKey(
+    const uint32_t depth,
+    const uint32_t materialIndex
+) const {
+    return (static_cast<int64_t>(depth) << 32) | static_cast<uint64_t>(materialIndex);
 }
 
 // ---- Private Static Functions ----

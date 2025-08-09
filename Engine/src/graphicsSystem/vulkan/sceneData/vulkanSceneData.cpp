@@ -255,8 +255,9 @@ void AxrVulkanSceneData::unloadXrSessionData() {
     m_LoadXrSessionDataConfig = {};
 }
 
-const std::unordered_map<std::string, AxrVulkanSceneData::MaterialForRendering>&
-AxrVulkanSceneData::getMaterialsForRendering(const AxrMaterialAlphaRenderModeEnum alphaRenderMode) const {
+const std::vector<AxrVulkanSceneData::MaterialForRendering>& AxrVulkanSceneData::getMaterialsForRendering(
+    const AxrMaterialAlphaRenderModeEnum alphaRenderMode
+) const {
     switch (alphaRenderMode) {
         case AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE: {
             return m_OpaqueMaterialsForRendering;
@@ -1905,7 +1906,7 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
     std::vector<vk::DescriptorImageInfo> descriptorImageInfos;
     const size_t maxWrites =
         (uniformBufferLinks.size() +
-        imageSamplerBufferLinks.size()) *
+            imageSamplerBufferLinks.size()) *
         m_MaxFramesInFlight *
         viewCount;
 
@@ -1969,13 +1970,7 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
             break;
         }
 
-        const AxrVulkanImageData* foundImageData = nullptr;
-        // We check if the image name is null because findImageData_shared takes an std::string.
-        // Which can't be initialized with null.
-        if (imageSamplerBuffer->ImageName != nullptr) {
-            foundImageData = findImageData_shared(imageSamplerBuffer->ImageName);
-        }
-
+        const AxrVulkanImageData* foundImageData = findImageData_shared(imageSamplerBuffer->ImageName);
         if (foundImageData == nullptr) {
             // If image data wasn't found, use the "Missing Texture" image
             foundImageData = findImageData_shared(
@@ -2118,13 +2113,14 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
              ++submeshIndex) {
             const AxrModelComponent::Submesh& currentSubmesh = modelComponent.Meshes[meshIndex].Submeshes[submeshIndex];
 
-            const AxrVulkanMaterialData* foundMaterialData = findMaterialData_shared(currentSubmesh.MaterialName);
+            std::string currentMaterialName = currentSubmesh.MaterialName;
+            const AxrVulkanMaterialData* foundMaterialData = findMaterialData_shared(currentMaterialName);
             if (foundMaterialData == nullptr) {
-                axrLogErrorLocation("Failed to find material data for material: {0}.", currentSubmesh.MaterialName);
+                axrLogErrorLocation("Failed to find material data for material: {0}.", currentMaterialName.c_str());
                 continue;
             }
 
-            std::unordered_map<std::string, MaterialForRendering>* materialsForRendering = nullptr;
+            std::vector<MaterialForRendering>* materialsForRendering = nullptr;
             const AxrMaterial* materialHandle = foundMaterialData->getMaterial();
             if (materialHandle == nullptr) {
                 axrLogErrorLocation("Material handle is null.");
@@ -2153,7 +2149,6 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
                 }
             }
 
-            auto foundMaterialForRendering = materialsForRendering->find(currentSubmesh.MaterialName);
             const vk::ShaderStageFlags& pushConstantStageFlags = foundMaterialData->getMaterialLayoutData()
                 ->getPushConstantShaderStages();
 
@@ -2162,44 +2157,47 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
                 .BufferIndicesOffset = foundModelData->getSubmeshBufferIndicesOffset(meshIndex, submeshIndex),
                 .BufferVerticesOffset = foundModelData->getSubmeshBufferVerticesOffset(meshIndex, submeshIndex),
                 .IndexCount = foundModelData->getSubmeshIndexCount(meshIndex, submeshIndex),
+                .TransformComponent = &transformComponent,
                 .PushConstant = axrStringIsEmpty(modelComponent.PushConstantBufferName) ||
                                 pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
                                     ? PushConstantForRendering{}
                                     : PushConstantForRendering{
                                         .ShaderStages = &pushConstantStageFlags,
                                         .BufferName = modelComponent.PushConstantBufferName,
-                                        .TransformComponent = &transformComponent,
                                     },
             };
 
-            if (foundMaterialForRendering == materialsForRendering->end()) {
+            MaterialForRendering* foundMaterialForRendering = findMaterialForRendering(
+                *materialsForRendering,
+                currentMaterialName
+            );
+            if (foundMaterialForRendering != nullptr) {
+                foundMaterialForRendering->Meshes.push_back(meshForRendering);
+            } else {
                 const std::string& materialPushConstantBufferName = foundMaterialData->getPushConstantBufferName();
 
-                materialsForRendering->insert(
-                    std::pair(
-                        currentSubmesh.MaterialName,
-                        MaterialForRendering{
-                            .PipelineLayout = foundMaterialData->getMaterialLayoutData()->getPipelineLayout(),
-                            .WindowPipeline = foundMaterialData->getWindowPipeline(),
-                            .XrSessionPipeline = foundMaterialData->getXrSessionPipeline(),
-                            .WindowDescriptorSets = foundMaterialData->getDescriptorSets(AXR_PLATFORM_TYPE_WINDOW),
-                            .XrSessionDescriptorSets = foundMaterialData->getDescriptorSets(
-                                AXR_PLATFORM_TYPE_XR_DEVICE
-                            ),
-                            .PushConstant = materialPushConstantBufferName.empty() ||
-                                            pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
-                                                ? PushConstantForRendering{}
-                                                : PushConstantForRendering{
-                                                    .ShaderStages = &pushConstantStageFlags,
-                                                    .BufferName = materialPushConstantBufferName.c_str(),
-                                                    .TransformComponent = &transformComponent,
-                                                },
-                            .Meshes = {meshForRendering}
+                materialsForRendering->emplace_back(
+                    MaterialForRendering{
+                        .MaterialName = currentMaterialName,
+                        .PipelineLayout = foundMaterialData->getMaterialLayoutData()->getPipelineLayout(),
+                        .WindowPipeline = foundMaterialData->getWindowPipeline(),
+                        .XrSessionPipeline = foundMaterialData->getXrSessionPipeline(),
+                        .WindowDescriptorSets = foundMaterialData->getDescriptorSets(AXR_PLATFORM_TYPE_WINDOW),
+                        .XrSessionDescriptorSets = foundMaterialData->getDescriptorSets(
+                            AXR_PLATFORM_TYPE_XR_DEVICE
+                        ),
+                        .PushConstant = materialPushConstantBufferName.empty() ||
+                                        pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
+                                            ? PushConstantForRendering{}
+                                            : PushConstantForRendering{
+                                                .ShaderStages = &pushConstantStageFlags,
+                                                .BufferName = materialPushConstantBufferName.c_str(),
+                                            },
+                        .Meshes = {
+                            meshForRendering,
                         }
-                    )
+                    }
                 );
-            } else {
-                foundMaterialForRendering->second.Meshes.push_back(meshForRendering);
             }
         }
     }
@@ -2214,6 +2212,19 @@ void AxrVulkanSceneData::onNewRenderableEntityCallback(entt::registry& registry,
     }
 
     AXR_FAILED(addMaterialForRendering(*transformComponent, *modelComponent));
+}
+
+AxrVulkanSceneData::MaterialForRendering* AxrVulkanSceneData::findMaterialForRendering(
+    std::vector<MaterialForRendering>& materials,
+    const std::string& materialName
+) const {
+    for (MaterialForRendering& material : materials) {
+        if (material.MaterialName == materialName) {
+            return &material;
+        }
+    }
+
+    return nullptr;
 }
 
 #endif

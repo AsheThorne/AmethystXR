@@ -49,6 +49,57 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     axr::ActionSystemConfig actionSystemConfig(
         std::vector{
             axr::ActionSetConfig(
+                "movement",
+                "Movement",
+                std::vector<axr::BoolInputActionConfig>{
+                    axr::BoolInputActionConfig(
+                        "forward",
+                        "Forward",
+                        axr::ActionXrVisibilityEnum::Auto,
+                        std::vector{
+                            axr::BoolInputActionEnum::KeyboardW,
+                        }
+                    ),
+                    axr::BoolInputActionConfig(
+                        "left",
+                        "Left",
+                        axr::ActionXrVisibilityEnum::Auto,
+                        std::vector{
+                            axr::BoolInputActionEnum::KeyboardA,
+                        }
+                    ),
+                    axr::BoolInputActionConfig(
+                        "back",
+                        "Back",
+                        axr::ActionXrVisibilityEnum::Auto,
+                        std::vector{
+                            axr::BoolInputActionEnum::KeyboardS,
+                        }
+                    ),
+                    axr::BoolInputActionConfig(
+                        "right",
+                        "Right",
+                        axr::ActionXrVisibilityEnum::Auto,
+                        std::vector{
+                            axr::BoolInputActionEnum::KeyboardD,
+                        }
+                    ),
+                },
+                std::vector<axr::FloatInputActionConfig>{},
+                std::vector<axr::Vec2InputActionConfig>{
+                    axr::Vec2InputActionConfig(
+                        "mouse",
+                        "Mouse",
+                        axr::ActionXrVisibilityEnum::Auto,
+                        std::vector{
+                            axr::Vec2InputActionEnum::MouseMoved,
+                        }
+                    ),
+                },
+                std::vector<axr::PoseInputActionConfig>{},
+                std::vector<axr::HapticOutputActionConfig>{}
+            ),
+            axr::ActionSetConfig(
                 "test",
                 "Test",
                 std::vector<axr::BoolInputActionConfig>{
@@ -57,7 +108,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
                         "Click",
                         axr::ActionXrVisibilityEnum::Always,
                         std::vector{
-                            axr::BoolInputActionEnum::KeyboardA,
+                            axr::BoolInputActionEnum::Keyboard1,
                             axr::BoolInputActionEnum::XrController_Left_A_Click,
                             axr::BoolInputActionEnum::XrController_Right_A_Click,
                         }

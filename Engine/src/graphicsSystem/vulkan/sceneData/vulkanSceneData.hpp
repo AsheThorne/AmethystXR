@@ -61,7 +61,6 @@ public:
     struct PushConstantForRendering {
         const vk::ShaderStageFlags* ShaderStages = nullptr;
         const char* BufferName = "";
-        const AxrTransformComponent* TransformComponent = nullptr;
     };
 
     /// Mesh references for rendering
@@ -70,11 +69,13 @@ public:
         const vk::DeviceSize& BufferIndicesOffset;
         const vk::DeviceSize& BufferVerticesOffset;
         const uint32_t& IndexCount;
+        const AxrTransformComponent* TransformComponent = nullptr;
         PushConstantForRendering PushConstant;
     };
 
     /// Material references for rendering
     struct MaterialForRendering {
+        std::string MaterialName;
         const vk::PipelineLayout& PipelineLayout;
         const vk::Pipeline& WindowPipeline;
         const vk::Pipeline& XrSessionPipeline;
@@ -149,7 +150,7 @@ public:
     /// Get the materials, organized specifically for rendering
     /// @param alphaRenderMode Alpha render mode to get the materials for
     /// @returns The collection of materials for rendering
-    [[nodiscard]] const std::unordered_map<std::string, MaterialForRendering>& getMaterialsForRendering(
+    [[nodiscard]] const std::vector<MaterialForRendering>& getMaterialsForRendering(
         AxrMaterialAlphaRenderModeEnum alphaRenderMode
     ) const;
 
@@ -219,9 +220,9 @@ private:
     std::unordered_map<std::string, AxrVulkanImageSamplerData> m_ImageSamplerData;
     std::unordered_map<std::string, AxrVulkanMaterialLayoutData> m_MaterialLayoutData;
     std::unordered_map<std::string, AxrVulkanMaterialData> m_MaterialData;
-    std::unordered_map<std::string, MaterialForRendering> m_OpaqueMaterialsForRendering;
-    std::unordered_map<std::string, MaterialForRendering> m_AlphaBlendMaterialsForRendering;
-    std::unordered_map<std::string, MaterialForRendering> m_OITMaterialsForRendering;
+    std::vector<MaterialForRendering> m_OpaqueMaterialsForRendering;
+    std::vector<MaterialForRendering> m_AlphaBlendMaterialsForRendering;
+    std::vector<MaterialForRendering> m_OITMaterialsForRendering;
 
     // ----------------------------------------- //
     // Private Functions
@@ -523,6 +524,15 @@ private:
     /// @param registry The entt registry 
     /// @param entity The new renderable entity 
     void onNewRenderableEntityCallback(entt::registry& registry, entt::entity entity);
+
+    /// Find the named material in the given collection of 'materials for rendering'
+    /// @param materials 'Materials for rendering' collection
+    /// @param materialName Material name
+    /// @returns A handle to the found material or nullptr if it wasn't found.
+    [[nodiscard]] MaterialForRendering* findMaterialForRendering(
+        std::vector<MaterialForRendering>& materials,
+        const std::string& materialName
+    ) const;
 };
 
 #endif

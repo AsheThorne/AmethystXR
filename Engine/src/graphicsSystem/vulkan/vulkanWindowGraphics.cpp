@@ -341,15 +341,52 @@ void AxrVulkanWindowGraphics::getRenderingMatrices(
     glm::mat4& viewMatrix,
     glm::mat4& projectionMatrix
 ) const {
+    float fov;
+    float nearPlane;
+    float farPlane;
+    if (AXR_FAILED(getCameraData(viewIndex, viewMatrix, fov, nearPlane, farPlane))) {
+        return;
+    }
+
+    const float aspectRatio = static_cast<float>(m_SwapchainExtent.height) / static_cast<float>(m_SwapchainExtent.
+        width);
+    const float verticalFovRadians = 2.0f * atan(tan(glm::radians(fov) / 2.0f) * aspectRatio);
+
+    projectionMatrix = glm::perspective(
+        verticalFovRadians,
+        static_cast<float>(m_SwapchainExtent.width) / static_cast<float>(m_SwapchainExtent.height),
+        nearPlane,
+        farPlane
+    );
+    projectionMatrix[1][1] *= -1.0f;
+}
+
+AxrResult AxrVulkanWindowGraphics::getCameraData(
+    const uint32_t viewIndex,
+    glm::mat4& viewMatrix,
+    float& nearPlane,
+    float& farPlane
+) const {
+    float fov;
+    return getCameraData(viewIndex, viewMatrix, fov, nearPlane, farPlane);
+}
+
+AxrResult AxrVulkanWindowGraphics::getCameraData(
+    const uint32_t viewIndex,
+    glm::mat4& viewMatrix,
+    float& fov,
+    float& nearPlane,
+    float& farPlane
+) const {
     const AxrScene_T activeScene = m_LoadedScenes.getActiveScene();
     if (activeScene == nullptr) {
         axrLogErrorLocation("No active scene.");
-        return;
+        return AXR_ERROR;
     }
 
     if (!activeScene->isMainCameraValid()) {
         axrLogErrorLocation("No main camera.");
-        return;
+        return AXR_ERROR;
     }
 
     const AxrEntityConst_T cameraEntity = activeScene->getMainCamera();
@@ -361,17 +398,11 @@ void AxrVulkanWindowGraphics::getRenderingMatrices(
         glm::toMat4(cameraTransformComponent.Orientation)
     );
 
-    const float aspectRatio = static_cast<float>(m_SwapchainExtent.height) / static_cast<float>(m_SwapchainExtent.
-        width);
-    const float verticalFovRadians = 2.0f * atan(tan(glm::radians(cameraComponent.Fov) / 2.0f) * aspectRatio);
+    fov = cameraComponent.Fov;
+    nearPlane = cameraComponent.NearPlane;
+    farPlane = cameraComponent.FarPlane;
 
-    projectionMatrix = glm::perspective(
-        verticalFovRadians,
-        static_cast<float>(m_SwapchainExtent.width) / static_cast<float>(m_SwapchainExtent.height),
-        cameraComponent.NearPlane,
-        cameraComponent.FarPlane
-    );
-    projectionMatrix[1][1] *= -1.0f;
+    return AXR_SUCCESS;
 }
 
 // ---- Private Functions ----
