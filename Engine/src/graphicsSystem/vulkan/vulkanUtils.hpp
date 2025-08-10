@@ -52,6 +52,10 @@ void axrLogVkResult(
 /// @param presentationMode Presentation mode to convert
 /// @returns The converted presentation mode
 vk::PresentModeKHR axrToVkPresentMode(AxrVulkanPresentationModeEnum presentationMode);
+/// Convert an AxrMaterialBackfaceCullModeEnum to a vk::CullModeFlags
+/// @param backfaceCullMode backface culling mode to convert
+/// @returns The converted backface culling mode
+vk::CullModeFlags axrToVkCullMode(AxrMaterialBackfaceCullModeEnum backfaceCullMode);
 
 // ---- Api Layers / Extensions ----
 

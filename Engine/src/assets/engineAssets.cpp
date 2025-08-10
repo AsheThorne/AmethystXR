@@ -35,6 +35,10 @@ const std::unordered_map EngineAssetShaderNames{
         AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG,
         "AXR:ShaderDefaultFrag"
     ),
+    std::pair(
+        AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG_MASK,
+        "AXR:ShaderDefaultFrag_Mask"
+    ),
 };
 
 // ----------------------------------------- //
@@ -192,7 +196,11 @@ bool axrEngineAssetIsShaderNameReserved(const char* name) {
     return false;
 }
 
-AxrResult axrEngineAssetCreateShader(const AxrEngineAssetEnum engineAssetEnum, AxrShader& shader) {
+AxrResult axrEngineAssetCreateShader(
+    const AxrGraphicsApiEnum graphicsApi,
+    const AxrEngineAssetEnum engineAssetEnum,
+    AxrShader& shader
+) {
     if (!axrEngineAssetIsShader(engineAssetEnum)) {
         axrLogErrorLocation("Engine asset is not a shader.");
         return AXR_ERROR;
@@ -200,10 +208,13 @@ AxrResult axrEngineAssetCreateShader(const AxrEngineAssetEnum engineAssetEnum, A
 
     switch (engineAssetEnum) {
         case AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT: {
-            return axrEngineAssetCreateShader_DefaultVert(shader);
+            return axrEngineAssetCreateShader_DefaultVert(graphicsApi, shader);
         }
         case AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG: {
-            return axrEngineAssetCreateShader_DefaultFrag(shader);
+            return axrEngineAssetCreateShader_DefaultFrag(graphicsApi, shader);
+        }
+        case AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG_MASK: {
+            return axrEngineAssetCreateShader_DefaultFrag_Mask(graphicsApi, shader);
         }
         case AXR_ENGINE_ASSET_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
@@ -213,7 +224,7 @@ AxrResult axrEngineAssetCreateShader(const AxrEngineAssetEnum engineAssetEnum, A
     }
 }
 
-AxrResult axrEngineAssetCreateShader_DefaultVert(AxrShader& shader) {
+AxrResult axrEngineAssetCreateShader_DefaultVert(const AxrGraphicsApiEnum graphicsApi, AxrShader& shader) {
     std::array vertexAttributes{
         AxrShaderVertexAttribute{
             .Type = AXR_SHADER_VERTEX_ATTRIBUTE_POSITION,
@@ -254,7 +265,12 @@ AxrResult axrEngineAssetCreateShader_DefaultVert(AxrShader& shader) {
         .BufferLayouts = bufferLayouts.data(),
     };
 
-    const auto shaderPath = axrGetEngineAssetsDirectoryPath().append("shaders/shader.vert").generic_string();
+    std::string shaderPath;
+    if (graphicsApi == AXR_GRAPHICS_API_VULKAN) {
+        shaderPath = axrGetEngineAssetsDirectoryPath().append("shaders/shader.vert.spv").generic_string();
+    } else {
+        shaderPath = axrGetEngineAssetsDirectoryPath().append("shaders/shader.vert").generic_string();
+    }
 
     AxrShaderConfig shaderConfig{
         .Name = {},
@@ -277,13 +293,13 @@ AxrResult axrEngineAssetCreateShader_DefaultVert(AxrShader& shader) {
     return AXR_SUCCESS;
 }
 
-AxrResult axrEngineAssetCreateShader_DefaultFrag(AxrShader& shader) {
+AxrResult axrEngineAssetCreateShader_DefaultFrag(const AxrGraphicsApiEnum graphicsApi, AxrShader& shader) {
     AxrShaderImageSamplerBufferLayout imageSamplerBufferLayout{
         .Binding = 1,
     };
 
     std::array bufferLayouts{
-        reinterpret_cast<AxrShaderBufferLayout_T>(&imageSamplerBufferLayout),
+        reinterpret_cast<AxrShaderBufferLayout_T>(&imageSamplerBufferLayout)
     };
 
     AxrFragmentShaderProperties shaderProperties{
@@ -291,7 +307,12 @@ AxrResult axrEngineAssetCreateShader_DefaultFrag(AxrShader& shader) {
         .BufferLayouts = bufferLayouts.data(),
     };
 
-    const auto shaderPath = axrGetEngineAssetsDirectoryPath().append("shaders/shader.frag").generic_string();
+    std::string shaderPath;
+    if (graphicsApi == AXR_GRAPHICS_API_VULKAN) {
+        shaderPath = axrGetEngineAssetsDirectoryPath().append("shaders/shader.frag.spv").generic_string();
+    } else {
+        shaderPath = axrGetEngineAssetsDirectoryPath().append("shaders/shader.frag").generic_string();
+    }
 
     AxrShaderConfig shaderConfig{
         .Name = {},
@@ -301,6 +322,54 @@ AxrResult axrEngineAssetCreateShader_DefaultFrag(AxrShader& shader) {
     strncpy_s(
         shaderConfig.Name,
         axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG),
+        AXR_MAX_ASSET_NAME_SIZE
+    );
+    strncpy_s(shaderConfig.FilePath, shaderPath.c_str(), AXR_MAX_FILE_PATH_SIZE);
+
+    if (!axrShaderConfigIsValid(&shaderConfig)) {
+        return AXR_ERROR;
+    }
+
+    shader = AxrShader(shaderConfig);
+
+    return AXR_SUCCESS;
+}
+
+AxrResult axrEngineAssetCreateShader_DefaultFrag_Mask(const AxrGraphicsApiEnum graphicsApi, AxrShader& shader) {
+    AxrShaderImageSamplerBufferLayout imageSamplerBufferLayout{
+        .Binding = 1,
+    };
+
+    AxrShaderUniformBufferLayout uniformBufferLayout{
+        .Binding = 2,
+        .BufferSize = sizeof(float),
+    };
+
+    std::array bufferLayouts{
+        reinterpret_cast<AxrShaderBufferLayout_T>(&imageSamplerBufferLayout),
+        reinterpret_cast<AxrShaderBufferLayout_T>(&uniformBufferLayout),
+    };
+
+    AxrFragmentShaderProperties shaderProperties{
+        .BufferLayoutCount = static_cast<uint32_t>(bufferLayouts.size()),
+        .BufferLayouts = bufferLayouts.data(),
+    };
+
+    std::string shaderPath;
+    if (graphicsApi == AXR_GRAPHICS_API_VULKAN) {
+        shaderPath = axrGetEngineAssetsDirectoryPath().append("shaders/shader_mask.frag.spv").generic_string();
+    } else {
+        shaderPath = axrGetEngineAssetsDirectoryPath().append("shaders/shader.frag").generic_string();
+    }
+
+    AxrShaderConfig shaderConfig{
+        .Name = {},
+        .FilePath = {},
+        .Properties = reinterpret_cast<AxrShaderProperties_T>(&shaderProperties)
+    };
+    strncpy_s(
+        shaderConfig.Name,
+        axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG_MASK),
         AXR_MAX_ASSET_NAME_SIZE
     );
     strncpy_s(shaderConfig.FilePath, shaderPath.c_str(), AXR_MAX_FILE_PATH_SIZE);
@@ -408,8 +477,9 @@ bool axrEngineAssetIsPushConstantBufferNameReserved(const char* name) {
 
 AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
     const std::string& materialName,
-    const AxrEngineAssetMaterial_DefaultMaterial materialValues,
-    AxrMaterial& material
+    const AxrEngineAssetMaterial_DefaultMaterial& materialValues,
+    AxrMaterial& material,
+    std::vector<AxrEngineAssetEnum>& materialShaders
 ) {
     AxrShaderUniformBufferLink sceneDataBufferLink{
         .Binding = 0,
@@ -435,16 +505,22 @@ AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
         .ImageName = {},
         .ImageSamplerName = {},
     };
-    if (materialValues.ImageName != nullptr) {
-        strncpy_s(imageSamplerBufferLink.ImageName, materialValues.ImageName, AXR_MAX_ASSET_NAME_SIZE);
-    }
-    if (materialValues.ImageSamplerName != nullptr) {
-        strncpy_s(imageSamplerBufferLink.ImageSamplerName, materialValues.ImageSamplerName, AXR_MAX_ASSET_NAME_SIZE);
-    }
+    strncpy_s(imageSamplerBufferLink.ImageName, materialValues.ImageName, AXR_MAX_ASSET_NAME_SIZE);
+    strncpy_s(imageSamplerBufferLink.ImageSamplerName, materialValues.ImageSamplerName, AXR_MAX_ASSET_NAME_SIZE);
 
-    std::array fragmentBufferLinks{
+    AxrShaderUniformBufferLink uniformBufferLink{
+        .Binding = 2,
+        .BufferName = {},
+    };
+    strncpy_s(uniformBufferLink.BufferName, materialValues.AlphaCutoffBufferName, AXR_MAX_ASSET_NAME_SIZE);
+
+    std::vector fragmentBufferLinks{
         reinterpret_cast<AxrShaderBufferLink_T>(&imageSamplerBufferLink),
     };
+
+    if (materialValues.AlphaCutoffBufferName[0] != '\0') {
+        fragmentBufferLinks.push_back(reinterpret_cast<AxrShaderBufferLink_T>(&uniformBufferLink));
+    }
 
     AxrShaderValues fragmentShaderValues{
         .BufferLinkCount = static_cast<uint32_t>(fragmentBufferLinks.size()),
@@ -457,7 +533,9 @@ AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
         .FragmentShaderName = {},
         .PushConstantBufferName = {},
         .VertexShaderValues = &vertexShaderValues,
-        .FragmentShaderValues = &fragmentShaderValues
+        .FragmentShaderValues = &fragmentShaderValues,
+        .BackfaceCullMode = materialValues.BackfaceCullMode,
+        .AlphaRenderMode = materialValues.AlphaRenderMode,
     };
     strncpy_s(
         materialConfig.Name,
@@ -469,11 +547,23 @@ AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
         axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT),
         AXR_MAX_ASSET_NAME_SIZE
     );
-    strncpy_s(
-        materialConfig.FragmentShaderName,
-        axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG),
-        AXR_MAX_ASSET_NAME_SIZE
-    );
+    materialShaders.push_back(AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT);
+
+    if (materialValues.AlphaCutoffBufferName[0] != '\0') {
+        strncpy_s(
+            materialConfig.FragmentShaderName,
+            axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG_MASK),
+            AXR_MAX_ASSET_NAME_SIZE
+        );
+        materialShaders.push_back(AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG_MASK);
+    } else {
+        strncpy_s(
+            materialConfig.FragmentShaderName,
+            axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG),
+            AXR_MAX_ASSET_NAME_SIZE
+        );
+        materialShaders.push_back(AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG);
+    }
 
     if (!axrMaterialConfigIsValid(&materialConfig)) {
         return AXR_ERROR;

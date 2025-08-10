@@ -354,9 +354,40 @@ void AxrVulkanXrGraphics::getRenderingMatrices(
     glm::mat4& viewMatrix,
     glm::mat4& projectionMatrix
 ) const {
-    if (viewIndex > m_Views.size() - 1) {
-        axrLogErrorLocation("View index out of bounds.");
+    XrFovf fov;
+    float nearPlane;
+    float farPlane;
+    if (AXR_FAILED(getCameraData(viewIndex, viewMatrix, fov, nearPlane, farPlane))) {
         return;
+    }
+
+    projectionMatrix = createProjectionMatrix(
+        fov,
+        nearPlane,
+        farPlane
+    );
+}
+
+AxrResult AxrVulkanXrGraphics::getCameraData(
+    const uint32_t viewIndex,
+    glm::mat4& viewMatrix,
+    float& nearPlane,
+    float& farPlane
+) const {
+    XrFovf fov;
+    return getCameraData(viewIndex, viewMatrix, fov, nearPlane, farPlane);
+}
+
+AxrResult AxrVulkanXrGraphics::getCameraData(
+    const uint32_t viewIndex,
+    glm::mat4& viewMatrix,
+    XrFovf& fov,
+    float& nearPlane,
+    float& farPlane
+) const {
+    if (viewIndex > m_FrameRenderData.CompositionLayerViews.size() - 1) {
+        axrLogErrorLocation("View index out of bounds.");
+        return AXR_ERROR;
     }
 
     const glm::vec3 position = glm::vec3(
@@ -376,11 +407,11 @@ void AxrVulkanXrGraphics::getRenderingMatrices(
         glm::toMat4(orientation)
     );
 
-    projectionMatrix = createProjectionMatrix(
-        m_FrameRenderData.CompositionLayerViews[viewIndex].fov,
-        m_XrSystem.getNearClippingPlane(),
-        m_XrSystem.getFarClippingPlane()
-    );
+    fov = m_FrameRenderData.CompositionLayerViews[viewIndex].fov;
+    nearPlane = m_XrSystem.getNearClippingPlane();
+    farPlane = m_XrSystem.getFarClippingPlane();
+
+    return AXR_SUCCESS;
 }
 
 // ---- Private Functions ----

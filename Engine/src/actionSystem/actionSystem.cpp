@@ -395,7 +395,6 @@ AxrResult AxrActionSystem::setupXrActions() {
 
 void AxrActionSystem::resetSetupXrActions() {
     if (m_XrSystem == nullptr) {
-        axrLogWarningLocation("Xr system is null.");
         return;
     }
 

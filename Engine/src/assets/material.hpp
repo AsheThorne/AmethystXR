@@ -24,7 +24,7 @@ public:
     AxrMaterial();
     /// Constructor
     /// @param config Material config
-    AxrMaterial(const AxrMaterialConfig& config);
+    explicit AxrMaterial(const AxrMaterialConfig& config);
     /// Copy Constructor
     /// @param src Source AxrMaterial to copy from
     AxrMaterial(const AxrMaterial& src);
@@ -72,6 +72,20 @@ public:
     /// @returns The fragment shader values
     [[nodiscard]] const AxrShaderValuesRAII& getFragmentShaderValues() const;
 
+    /// Get the backface culling mode
+    /// @returns The backface culling mode
+    [[nodiscard]] AxrMaterialBackfaceCullModeEnum getBackfaceCullMode() const;
+    /// Get the alpha rendering mode mode
+    /// @returns The alpha rendering mode mode
+    [[nodiscard]] AxrMaterialAlphaRenderModeEnum getAlphaRenderMode() const;
+
+    /// Get all uniform buffer links
+    /// @returns A collection of uniform buffer links
+    [[nodiscard]] std::vector<AxrShaderUniformBufferLinkConst_T> getUniformBufferLinks() const;
+    /// Get all image sampler buffer links
+    /// @returns A collection of image sampler buffer links
+    [[nodiscard]] std::vector<AxrShaderImageSamplerBufferLinkConst_T> getImageSamplerBufferLinks() const;
+
     /// Find the shader uniform buffer at the given binding
     /// @param binding Binding to use
     /// @returns The uniform buffer at the given binding
@@ -108,6 +122,8 @@ private:
 #endif
     AxrShaderValuesRAII m_VertexShaderValues;
     AxrShaderValuesRAII m_FragmentShaderValues;
+    AxrMaterialBackfaceCullModeEnum m_BackfaceCullMode;
+    AxrMaterialAlphaRenderModeEnum m_AlphaRenderMode;
 
     // ----------------------------------------- //
     // Private Functions

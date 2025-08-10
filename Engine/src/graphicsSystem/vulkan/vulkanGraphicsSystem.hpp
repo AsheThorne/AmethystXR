@@ -131,6 +131,17 @@ public:
 
 private:
     // ----------------------------------------- //
+    // Private Structs
+    // ----------------------------------------- //
+
+    /// Mesh reference used for rendering transparent objects that need sorting
+    struct SortableMeshReference {
+        uint64_t SortKey;
+        uint32_t MaterialIndex;
+        uint32_t MeshIndex;
+    };
+
+    // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
 
@@ -373,6 +384,38 @@ private:
     /// Blit the current frame from the xr graphics to the window graphics
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult blitToWindowFromXrDevice() const;
+
+    /// Get a collection of each mesh in the given 'materials for rendering' sorted by depth
+    /// @param viewMatrix Camera view matrix
+    /// @param nearPlane Camera near plane
+    /// @param farPlane Camera far plane
+    /// @param materialsForRendering 'Materials for rendering' to sort
+    /// @returns The sorted mesh references
+    [[nodiscard]] std::vector<SortableMeshReference> getSortedMeshReferences(
+        const glm::mat4& viewMatrix,
+        float nearPlane,
+        float farPlane,
+        const std::vector<AxrVulkanSceneData::MaterialForRendering>& materialsForRendering
+    ) const;
+    /// Calculate the squared depth of the given transform component
+    /// @param viewMatrix Camera view matrix
+    /// @param transformComponent Transform component to use
+    /// @returns The depth
+    [[nodiscard]] float calculateSquaredDepth(
+        const glm::mat4& viewMatrix,
+        const AxrTransformComponent* transformComponent
+    ) const;
+    /// Convert the given depth to a uint32_t value. Ranging from `nearPlane` to `farPlane`
+    /// @param nearPlane Camera near plane
+    /// @param farPlane Camera far plane
+    /// @param depth Depth value
+    /// @returns The given depth as a uint32_t value
+    [[nodiscard]] uint32_t depthToUint(float nearPlane, float farPlane, float depth) const;
+    /// Create a sort key for the given depth and material index
+    /// @param depth Depth value
+    /// @param materialIndex Material index
+    /// @returns The sort key value
+    [[nodiscard]] uint64_t createSortKey(uint32_t depth, uint32_t materialIndex) const;
 
     // ----------------------------------------- //
     // Private Static Functions

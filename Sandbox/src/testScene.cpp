@@ -24,6 +24,9 @@ axr::Result TestScene::setup() {
         m_Scene.getAssetCollection().createMaterial(
             materialName,
             axr::EngineAssetMaterial_DefaultMaterial(
+                axr::MaterialBackfaceCullModeEnum::Back,
+                axr::MaterialAlphaRenderModeEnum::Opaque,
+                "",
                 imageName,
                 axr::engineAssetGetName(axr::EngineAssetEnum::ImageSamplerNearestRepeat)
             )

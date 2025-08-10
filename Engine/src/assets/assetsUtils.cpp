@@ -100,6 +100,9 @@ AxrModelFileMaterialInfo axrModelFileMaterialInfoClone(
         .ColorImageIndex = modelFileMaterialInfo->ColorImageIndex,
         .ColorImageSamplerIndex = modelFileMaterialInfo->ColorImageSamplerIndex,
         .ColorFactor = modelFileMaterialInfo->ColorFactor,
+        .BackfaceCullMode = modelFileMaterialInfo->BackfaceCullMode,
+        .AlphaMode = modelFileMaterialInfo->AlphaMode,
+        .AlphaCutoff = modelFileMaterialInfo->AlphaCutoff,
     };
     strncpy_s(info.Name, modelFileMaterialInfo->Name, AXR_MAX_ASSET_NAME_SIZE);
 
@@ -113,6 +116,9 @@ void axrModelFileMaterialInfoDestroy(AxrModelFileMaterialInfo* modelFileMaterial
     modelFileMaterialInfo->ColorImageIndex = -1;
     modelFileMaterialInfo->ColorImageSamplerIndex = -1;
     modelFileMaterialInfo->ColorFactor = {};
+    modelFileMaterialInfo->BackfaceCullMode = AXR_MATERIAL_BACKFACE_CULL_MODE_NONE;
+    modelFileMaterialInfo->AlphaMode = AXR_MODEL_FILE_MATERIAL_INFO_ALPHA_MODE_OPAQUE;
+    modelFileMaterialInfo->AlphaCutoff = 0.0f;
 }
 
 AxrModelFileSubmeshInfo axrModelFileSubmeshInfoClone(
@@ -309,6 +315,8 @@ AxrImageColorChannelsEnum axrToImageColorChannels(const int colorChannels) {
 
 AxrImageSamplerFilterEnum axrToImageSamplerFilter(const int samplerFilter, AxrImageSamplerFilterEnum& mipmapFilter) {
     switch (samplerFilter) {
+        // -1 is the default value. So we'll just make it default to nearest 
+        case -1:
         case TINYGLTF_TEXTURE_FILTER_NEAREST: {
             return AXR_IMAGE_SAMPLER_FILTER_NEAREST;
         }
@@ -611,6 +619,11 @@ AxrResult axrGetModelFileInfo_glTF(
         );
         modelFileInfo->ImageSamplers[i].WrapU = axrToImageSamplerWrap(model.samplers[i].wrapS);
         modelFileInfo->ImageSamplers[i].WrapV = axrToImageSamplerWrap(model.samplers[i].wrapT);
+
+        if (modelFileInfo->ImageSamplers[i].MipmapFilter == AXR_IMAGE_SAMPLER_FILTER_UNDEFINED) {
+            // Default to nearest
+            modelFileInfo->ImageSamplers[i].MipmapFilter = AXR_IMAGE_SAMPLER_FILTER_NEAREST;
+        }
     }
 
     modelFileInfo->ImageCount = model.images.size();
@@ -654,6 +667,26 @@ AxrResult axrGetModelFileInfo_glTF(
             colorFactorVector[2],
             colorFactorVector[3]
         );
+
+        if (model.materials[i].doubleSided) {
+            modelFileInfo->Materials[i].BackfaceCullMode = AXR_MATERIAL_BACKFACE_CULL_MODE_NONE;
+        } else {
+            modelFileInfo->Materials[i].BackfaceCullMode = AXR_MATERIAL_BACKFACE_CULL_MODE_BACK;
+        }
+
+        if (model.materials[i].alphaMode == "BLEND") {
+            modelFileInfo->Materials[i].AlphaMode = AXR_MODEL_FILE_MATERIAL_INFO_ALPHA_MODE_BLEND;
+        } else if (model.materials[i].alphaMode == "MASK") {
+            modelFileInfo->Materials[i].AlphaMode = AXR_MODEL_FILE_MATERIAL_INFO_ALPHA_MODE_MASK;
+        } else {
+            modelFileInfo->Materials[i].AlphaMode = AXR_MODEL_FILE_MATERIAL_INFO_ALPHA_MODE_OPAQUE;
+        }
+
+        if (modelFileInfo->Materials[i].AlphaMode == AXR_MODEL_FILE_MATERIAL_INFO_ALPHA_MODE_MASK) {
+            modelFileInfo->Materials[i].AlphaCutoff = static_cast<float>(model.materials[i].alphaCutoff);
+        } else {
+            modelFileInfo->Materials[i].AlphaCutoff = 0.0f;
+        }
     }
 
     modelFileInfo->MeshCount = model.meshes.size();
@@ -673,7 +706,7 @@ AxrResult axrGetModelFileInfo_glTF(
 size_t axrGetGltfComponentByteSize(const int accessorComponentType) {
     switch (accessorComponentType) {
         case TINYGLTF_COMPONENT_TYPE_BYTE: {
-            return sizeof(uint8_t);
+            return sizeof(int8_t);
         }
         case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE: {
             return sizeof(uint8_t);

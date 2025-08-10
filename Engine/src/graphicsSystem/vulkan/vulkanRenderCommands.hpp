@@ -113,6 +113,25 @@ public:
         return AXR_SUCCESS;
     }
 
+    /// Get the camera data for the given view
+    /// @param viewIndex View index
+    /// @param viewMatrix Output view matrix
+    /// @param nearPlane Output near plane
+    /// @param farPlane Output far plane
+    [[nodiscard]] AxrResult getCameraData(
+        const uint32_t viewIndex,
+        glm::mat4& viewMatrix,
+        float& nearPlane,
+        float& farPlane
+    ) const {
+        return m_RenderTarget.getCameraData(
+            viewIndex,
+            viewMatrix,
+            nearPlane,
+            farPlane
+        );
+    }
+
     /// Wait for the current frame's fence
     /// @param viewIndex The view index
     /// @returns AXR_SUCCESS if the function succeeded
@@ -343,11 +362,13 @@ public:
     /// @param viewIndex The view index
     /// @param pipelineLayout Pipeline layout to use
     /// @param pushConstant Push constant to use
+    /// @param transformComponent Mesh transform component
     /// @param sceneData Scene data to search for the push constant data in
     void pushConstants(
         const uint32_t viewIndex,
         const vk::PipelineLayout& pipelineLayout,
         const AxrVulkanSceneData::PushConstantForRendering& pushConstant,
+        const AxrTransformComponent* transformComponent,
         const AxrVulkanSceneData* sceneData
     ) const {
         if (axrStringIsEmpty(pushConstant.BufferName)) return;
@@ -361,8 +382,13 @@ public:
             axrEngineAssetGetPushConstantBufferName(AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX),
             pushConstant.BufferName
         ) == 0) {
+            if (transformComponent == nullptr) {
+                axrLogErrorLocation("Unable to use model matrix push constant. Transform component is null.");
+                return;
+            }
+
             const auto engineAssetData = AxrEngineAssetPushConstantBuffer_ModelMatrix{
-                .ModelMatrix = axrTransformGetMatrix(*pushConstant.TransformComponent)
+                .ModelMatrix = axrTransformGetMatrix(*transformComponent)
             };
 
             commandBuffer.pushConstants(

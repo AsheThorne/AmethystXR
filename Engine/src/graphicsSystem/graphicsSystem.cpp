@@ -247,6 +247,10 @@ void AxrGraphicsSystem::resetSetup() {
     m_GraphicsApi = AXR_GRAPHICS_API_UNDEFINED;
 }
 
+AxrGraphicsApiEnum AxrGraphicsSystem::getGraphicsApi() const {
+    return m_GraphicsApi;
+}
+
 AxrResult AxrGraphicsSystem::loadScene(const AxrScene_T scene) {
     switch (m_GraphicsApi) {
         case AXR_GRAPHICS_API_VULKAN: {

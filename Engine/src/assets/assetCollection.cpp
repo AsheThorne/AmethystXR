@@ -61,15 +61,20 @@ AxrResult axrAssetCollectionCreateMaterial(
 
 AxrResult axrAssetCollectionCreateEngineAssetMaterial_DefaultMaterial(
     const AxrAssetCollection_T assetCollection,
-    char materialName[AXR_MAX_ASSET_NAME_SIZE],
-    const AxrEngineAssetMaterial_DefaultMaterial materialValues
+    const char materialName[AXR_MAX_ASSET_NAME_SIZE],
+    const AxrEngineAssetMaterial_DefaultMaterial* materialValues
 ) {
     if (assetCollection == nullptr) {
         axrLogErrorLocation("`assetCollection` is null.");
         return AXR_ERROR;
     }
 
-    return assetCollection->createMaterial(materialName == nullptr ? "" : materialName, materialValues);
+    if (materialValues == nullptr) {
+        axrLogErrorLocation("`materialValues` is null.");
+        return AXR_ERROR;
+    }
+
+    return assetCollection->createMaterial(materialName, *materialValues);
 }
 
 AxrResult axrAssetCollectionCreateModel(
@@ -191,7 +196,8 @@ AxrResult axrAssetCollectionCreateImageSampler(
 
 // ---- Special Functions ----
 
-AxrAssetCollection::AxrAssetCollection() = default;
+AxrAssetCollection::AxrAssetCollection(const AxrGraphicsApiEnum graphicsApi): m_GraphicsApi(graphicsApi) {
+};
 
 AxrAssetCollection::AxrAssetCollection(AxrAssetCollection&& src) noexcept {
     OnMaterialCreatedCallbackGraphics = std::move(src.OnMaterialCreatedCallbackGraphics);
@@ -211,6 +217,10 @@ AxrAssetCollection::AxrAssetCollection(AxrAssetCollection&& src) noexcept {
     m_PushConstantBuffers = std::move(src.m_PushConstantBuffers);
 #endif
     m_Images = std::move(src.m_Images);
+
+    m_GraphicsApi = src.m_GraphicsApi;
+
+    src.m_GraphicsApi = AXR_GRAPHICS_API_UNDEFINED;
 }
 
 AxrAssetCollection::~AxrAssetCollection() {
@@ -218,7 +228,7 @@ AxrAssetCollection::~AxrAssetCollection() {
 }
 
 AxrAssetCollection& AxrAssetCollection::operator=(AxrAssetCollection&& src) noexcept {
-    if (this == &src) {
+    if (this != &src) {
         cleanup();
 
         OnMaterialCreatedCallbackGraphics = std::move(src.OnMaterialCreatedCallbackGraphics);
@@ -238,6 +248,10 @@ AxrAssetCollection& AxrAssetCollection::operator=(AxrAssetCollection&& src) noex
         m_PushConstantBuffers = std::move(src.m_PushConstantBuffers);
 #endif
         m_Images = std::move(src.m_Images);
+
+        m_GraphicsApi = src.m_GraphicsApi;
+
+        src.m_GraphicsApi = AXR_GRAPHICS_API_UNDEFINED;
     }
 
     return *this;
@@ -295,12 +309,11 @@ AxrResult AxrAssetCollection::createShader(const AxrEngineAssetEnum engineAssetE
     }
 
     if (m_Shaders.contains(shaderName)) {
-        axrLogError("Unable to create shader. A shader named: {0} already exists.", shaderName.c_str());
-        return AXR_ERROR;
+        return AXR_SUCCESS;
     }
 
     AxrShader shader;
-    const AxrResult axrResult = axrEngineAssetCreateShader(engineAssetEnum, shader);
+    const AxrResult axrResult = axrEngineAssetCreateShader(m_GraphicsApi, engineAssetEnum, shader);
     if (AXR_FAILED(axrResult)) {
         axrLogErrorLocation("Failed to create shader engine asset.");
         return axrResult;
@@ -356,7 +369,7 @@ AxrResult AxrAssetCollection::createMaterial(const AxrMaterialConfig& materialCo
 
 AxrResult AxrAssetCollection::createMaterial(
     const std::string& materialName,
-    const AxrEngineAssetMaterial_DefaultMaterial materialValues
+    const AxrEngineAssetMaterial_DefaultMaterial& materialValues
 ) {
     // ----------------------------------------- //
     // Validation
@@ -368,10 +381,12 @@ AxrResult AxrAssetCollection::createMaterial(
     }
 
     AxrMaterial material;
-    const AxrResult axrResult = axrEngineAssetCreateMaterial_DefaultMaterial(
+    std::vector<AxrEngineAssetEnum> materialShaders;
+    AxrResult axrResult = axrEngineAssetCreateMaterial_DefaultMaterial(
         materialName,
         materialValues,
-        material
+        material,
+        materialShaders
     );
     if (AXR_FAILED(axrResult)) {
         axrLogErrorLocation("Failed to create material engine asset.");
@@ -386,6 +401,14 @@ AxrResult AxrAssetCollection::createMaterial(
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //
+
+    for (const AxrEngineAssetEnum shader : materialShaders) {
+        axrResult = createShader(shader);
+        if (AXR_FAILED(axrResult)) {
+            axrLogErrorLocation("Failed to create shaders for material named: {0}.", materialName.c_str());
+            return axrResult;
+        }
+    }
 
     const auto insertResult = m_Materials.insert(std::pair(materialName, std::move(material)));
     if (!insertResult.second) {
@@ -773,9 +796,9 @@ bool AxrAssetCollection::isLoaded() {
     return true;
 }
 
-AxrResult AxrAssetCollection::loadAssets(const AxrGraphicsApiEnum graphicsApi) {
+AxrResult AxrAssetCollection::loadAssets() {
     for (auto& [shaderName, shader] : m_Shaders) {
-        const AxrResult axrResult = shader.loadFile(graphicsApi);
+        const AxrResult axrResult = shader.loadFile();
         if (AXR_FAILED(axrResult)) {
             unloadAssets();
             return axrResult;

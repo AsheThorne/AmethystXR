@@ -9,6 +9,7 @@
 #include "vulkanQueueFamilies.hpp"
 #include "sceneData/vulkanLoadedScenesCollection.hpp"
 #include "vulkanSurfaceDetails.hpp"
+#include "axr/graphicsSystem.h"
 
 // ----------------------------------------- //
 // Vulkan Headers
@@ -184,11 +185,35 @@ public:
     /// @returns AXR_DONT_RENDER if we should skip rendering this frame.
     [[nodiscard]] AxrResult presentFrame(uint32_t viewIndex);
 
-    /// Get the rendering matrices for the current frame
+    /// Get the rendering matrices for the given view
     /// @param viewIndex View index
     /// @param viewMatrix Output view matrix
     /// @param projectionMatrix Output projection matrix
     void getRenderingMatrices(uint32_t viewIndex, glm::mat4& viewMatrix, glm::mat4& projectionMatrix) const;
+    /// Get the camera data for the given view
+    /// @param viewIndex View index
+    /// @param viewMatrix Output view matrix
+    /// @param nearPlane Output near plane
+    /// @param farPlane Output far plane
+    [[nodiscard]] AxrResult getCameraData(
+        uint32_t viewIndex,
+        glm::mat4& viewMatrix,
+        float& nearPlane,
+        float& farPlane
+    ) const;
+    /// Get the camera data for the given view
+    /// @param viewIndex View index
+    /// @param viewMatrix Output view matrix
+    /// @param fov Output fov
+    /// @param nearPlane Output near plane
+    /// @param farPlane Output far plane
+    [[nodiscard]] AxrResult getCameraData(
+        uint32_t viewIndex,
+        glm::mat4& viewMatrix,
+        float& fov,
+        float& nearPlane,
+        float& farPlane
+    ) const;
 
 private:
     // ----------------------------------------- //

@@ -33,13 +33,6 @@ public:
         vk::DispatchLoaderDynamic* DispatchHandle;
     };
 
-    /// Descriptor set item location details
-    struct DescriptorSetItemLocation {
-        vk::DescriptorType DescriptorType;
-        uint32_t ShaderBinding;
-        uint32_t ItemIndex;
-    };
-
     // ----------------------------------------- //
     // Special Functions
     // ----------------------------------------- //
@@ -90,7 +83,7 @@ public:
     [[nodiscard]] const vk::DescriptorSetLayout& getDescriptorSetLayout() const;
     /// Get the descriptor set item locations
     /// @returns The descriptor set item locations
-    [[nodiscard]] const std::vector<DescriptorSetItemLocation>& getDescriptorSetItemLocations() const;
+    [[nodiscard]] const std::vector<vk::DescriptorSetLayoutBinding>& getDescriptorSetLayoutBindings() const;
 
     /// Check if the data exists
     /// @returns True if the data exists
@@ -115,7 +108,7 @@ private:
     vk::DispatchLoaderDynamic* m_DispatchHandle;
 
     // ---- Data ----
-    std::vector<DescriptorSetItemLocation> m_DescriptorSetItemLocations;
+    std::vector<vk::DescriptorSetLayoutBinding> m_DescriptorSetLayoutBindings;
     vk::DescriptorSetLayout m_DescriptorSetLayout;
     vk::PipelineLayout m_PipelineLayout;
     vk::ShaderStageFlags m_PushConstantShaderStage;
@@ -131,7 +124,7 @@ private:
 
     /// Validate the material layout shaders
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult validateMaterialLayoutShaders();
+    [[nodiscard]] AxrResult validateMaterialLayoutShaders() const;
 
     /// Create the descriptor set layout
     /// @returns AXR_SUCCESS if the function succeeded
@@ -144,13 +137,11 @@ private:
     /// @param descriptorType Item descriptor type
     /// @param stageFlag Item stage
     /// @param bindings Output descriptor set layout item bindings collection to append
-    /// @param descriptorSetItemLocations Output descriptor set item locations collection to append
     void addDescriptorSetLayoutItem(
         uint32_t binding,
         vk::DescriptorType descriptorType,
         vk::ShaderStageFlagBits stageFlag,
-        std::vector<vk::DescriptorSetLayoutBinding>& bindings,
-        std::vector<DescriptorSetItemLocation>& descriptorSetItemLocations
+        std::vector<vk::DescriptorSetLayoutBinding>& bindings
     ) const;
 
     /// Create the pipeline layout

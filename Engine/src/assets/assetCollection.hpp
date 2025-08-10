@@ -17,6 +17,7 @@
 #include "uniformBuffer.hpp"
 #include "imageSampler.hpp"
 #include "axr/common/callback.h"
+#include "axr/graphicsSystem.h"
 
 /// Axr Asset Collection
 class AxrAssetCollection {
@@ -72,7 +73,7 @@ public:
     // ---- Constructors ----
 
     /// Constructor
-    AxrAssetCollection();
+    explicit AxrAssetCollection(AxrGraphicsApiEnum graphicsApi);
     /// Copy Constructor
     /// @param src Source AxrAssetCollection to copy from
     AxrAssetCollection(const AxrAssetCollection& src) = delete;
@@ -121,7 +122,7 @@ public:
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult createMaterial(
         const std::string& materialName,
-        AxrEngineAssetMaterial_DefaultMaterial materialValues
+        const AxrEngineAssetMaterial_DefaultMaterial& materialValues
     );
 
     // ---- Model ----
@@ -198,9 +199,8 @@ public:
     /// @returns True if all assets in the collection have been loaded
     [[nodiscard]] bool isLoaded();
     /// Load all assets in the collection
-    /// @param graphicsApi Graphics api to use with these assets
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult loadAssets(AxrGraphicsApiEnum graphicsApi);
+    [[nodiscard]] AxrResult loadAssets();
     /// Unload all assets in the collection
     void unloadAssets();
 
@@ -243,6 +243,10 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
+    
+    // ---- Config Variables ----
+    AxrGraphicsApiEnum m_GraphicsApi;
+    
     std::unordered_map<std::string, AxrShader> m_Shaders;
     std::unordered_map<std::string, AxrMaterial> m_Materials;
     std::unordered_map<std::string, AxrModel> m_Models;

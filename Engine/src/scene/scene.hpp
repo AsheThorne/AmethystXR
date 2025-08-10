@@ -19,7 +19,8 @@ public:
     AxrScene();
     /// Constructor
     /// @param name Name of the scene
-    AxrScene(const std::string& name);
+    /// @param graphicsApi The graphics api to use
+    AxrScene(const std::string& name, AxrGraphicsApiEnum graphicsApi);
     /// Copy Constructor
     /// @param src Source AxrScene to copy from
     AxrScene(const AxrScene& src) = delete;

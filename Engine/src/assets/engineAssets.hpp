@@ -4,11 +4,13 @@
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/assets.h"
+#include "axr/graphicsSystem.h"
 
 // ----------------------------------------- //
 // C/C++ Headers
 // ----------------------------------------- //
 #include <string>
+#include <vector>
 
 // ---------------------------------------------------------------------------------- //
 //                               Shader Engine Assets                                 //
@@ -29,19 +31,27 @@ const char* axrEngineAssetGetShaderName(AxrEngineAssetEnum engineAssetEnum);
 bool axrEngineAssetIsShaderNameReserved(const char* name);
 
 /// Create an engine asset shader
+/// @param graphicsApi The graphics api to use this shader with
 /// @param engineAssetEnum Shader engine asset
 /// @param shader Output created shader
 /// @returns AXR_SUCCESS if the function succeeded
-AxrResult axrEngineAssetCreateShader(AxrEngineAssetEnum engineAssetEnum, AxrShader& shader);
+AxrResult axrEngineAssetCreateShader(AxrGraphicsApiEnum graphicsApi, AxrEngineAssetEnum engineAssetEnum, AxrShader& shader);
 
 /// Create the 'Default Vert' engine asset shader
+/// @param graphicsApi The graphics api to use this shader with
 /// @param shader Output created shader
 /// @returns AXR_SUCCESS if the function succeeded
-AxrResult axrEngineAssetCreateShader_DefaultVert(AxrShader& shader);
+AxrResult axrEngineAssetCreateShader_DefaultVert(AxrGraphicsApiEnum graphicsApi, AxrShader& shader);
 /// Create the 'Default Frag' engine asset shader
+/// @param graphicsApi The graphics api to use this shader with
 /// @param shader Output created shader
 /// @returns AXR_SUCCESS if the function succeeded
-AxrResult axrEngineAssetCreateShader_DefaultFrag(AxrShader& shader);
+AxrResult axrEngineAssetCreateShader_DefaultFrag(AxrGraphicsApiEnum graphicsApi, AxrShader& shader);
+/// Create the 'Default Frag (Mask)' engine asset shader
+/// @param graphicsApi The graphics api to use this shader with
+/// @param shader Output created shader
+/// @returns AXR_SUCCESS if the function succeeded
+AxrResult axrEngineAssetCreateShader_DefaultFrag_Mask(AxrGraphicsApiEnum graphicsApi, AxrShader& shader);
 
 // ---------------------------------------------------------------------------------- //
 //                               Buffer Engine Assets                                 //
@@ -96,11 +106,13 @@ bool axrEngineAssetIsPushConstantBufferNameReserved(const char* name);
 /// @param materialName Material name
 /// @param materialValues Material values
 /// @param material Output created material
+/// @param materialShaders Output required shaders for this material
 /// @returns AXR_SUCCESS if the function succeeded
 AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
     const std::string& materialName,
-    AxrEngineAssetMaterial_DefaultMaterial materialValues,
-    AxrMaterial& material
+    const AxrEngineAssetMaterial_DefaultMaterial& materialValues,
+    AxrMaterial& material,
+    std::vector<AxrEngineAssetEnum>& materialShaders
 );
 
 // ---------------------------------------------------------------------------------- //
