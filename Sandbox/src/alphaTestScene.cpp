@@ -269,111 +269,136 @@ axr::Result AlphaTestScene::setup() {
     ))
         return axr::Result::Error;
 
-    m_CyanGlassEntity = m_Scene.createEntity();
-    m_MagentaGlassEntity = m_Scene.createEntity();
-    m_YellowGlassEntity = m_Scene.createEntity();
+    for (int i = 0; i < 4; ++i) {
+        axr::Entity_T cyanGlassEntity = m_Scene.createEntity();
+        axr::Entity_T magentaGlassEntity = m_Scene.createEntity();
+        axr::Entity_T yellowGlassEntity = m_Scene.createEntity();
 
-    m_CyanGlassEntity.emplace<AxrTransformComponent>(
-        AxrTransformComponent{
-            .Position = glm::vec3(0.0f, 2.3f, -5.5f),
-            .Scale = glm::vec3(1.0f, 1.0f, 1.0f),
-            .Orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+        glm::vec3 pos;
+        if (i == 0) {
+            pos = glm::vec3(0.0f, 2.3f, -5.5f);
+        } else if (i == 1) {
+            pos = glm::vec3(5.5f, 2.3f, 0.0f);
+        } else if (i == 2) {
+            pos = glm::vec3(0.0f, 2.3f, 5.5f);
+        } else if (i == 3) {
+            pos = glm::vec3(-5.5f, 2.3f, 0.0f);
         }
-    );
 
-    m_MagentaGlassEntity.emplace<AxrTransformComponent>(
-        AxrTransformComponent{
-            .Position = glm::vec3(-0.2f, 2.5f, -5.6f),
-            .Scale = glm::vec3(1.0f, 1.0f, 1.0f),
-            .Orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
-        }
-    );
+        cyanGlassEntity.emplace<AxrTransformComponent>(
+            AxrTransformComponent{
+                .Position = pos,
+                .Scale = glm::vec3(1.0f, 1.0f, 1.0f),
+                .Orientation = glm::rotate(
+                    glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+                    glm::radians(90.0f * i),
+                    glm::vec3(0.0f, 1.0f, 0.0f)
+                ),
+            }
+        );
 
-    m_YellowGlassEntity.emplace<AxrTransformComponent>(
-        AxrTransformComponent{
-            .Position = glm::vec3(-0.4f, 2.7f, -5.7f),
-            .Scale = glm::vec3(1.0f, 1.0f, 1.0f),
-            .Orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
-        }
-    );
+        magentaGlassEntity.emplace<AxrTransformComponent>(
+            AxrTransformComponent{
+                .Position = pos + glm::vec3(-0.2f, 0.1f, -0.1f),
+                .Scale = glm::vec3(1.0f, 1.0f, 1.0f),
+                .Orientation = glm::rotate(
+                    glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+                    glm::radians(90.0f * i),
+                    glm::vec3(0.0f, 1.0f, 0.0f)
+                ),
+            }
+        );
 
-    AxrModelComponent::Submesh cyanGlassSubmesh{
-        .MaterialName = {},
-    };
-    strcpy_s(cyanGlassSubmesh.MaterialName, cyanGlassMaterialName.c_str());
+        yellowGlassEntity.emplace<AxrTransformComponent>(
+            AxrTransformComponent{
+                .Position = pos + glm::vec3(-0.4f, 0.2f, -0.2f),
+                .Scale = glm::vec3(1.0f, 1.0f, 1.0f),
+                .Orientation = glm::rotate(
+                    glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+                    glm::radians(90.0f * i),
+                    glm::vec3(0.0f, 1.0f, 0.0f)
+                ),
+            }
+        );
 
-    AxrModelComponent::Mesh cyanGlassMesh{
-        .Submeshes = std::vector{
-            cyanGlassSubmesh,
-        }
-    };
+        AxrModelComponent::Submesh cyanGlassSubmesh{
+            .MaterialName = {},
+        };
+        strcpy_s(cyanGlassSubmesh.MaterialName, cyanGlassMaterialName.c_str());
 
-    AxrModelComponent cyanGlassModelComponent{
-        .ModelName = {},
-        .Meshes = std::vector{
-            cyanGlassMesh,
-        },
-        .PushConstantBufferName = {},
-    };
-    strcpy_s(cyanGlassModelComponent.ModelName, glassModelName.c_str());
-    strcpy_s(
-        cyanGlassModelComponent.PushConstantBufferName,
-        axr::engineAssetGetName(axr::EngineAssetEnum::PushConstantBufferModelMatrix)
-    );
+        AxrModelComponent::Mesh cyanGlassMesh{
+            .Submeshes = std::vector{
+                cyanGlassSubmesh,
+            }
+        };
 
-    m_CyanGlassEntity.emplace<AxrModelComponent>(cyanGlassModelComponent);
+        AxrModelComponent cyanGlassModelComponent{
+            .ModelName = {},
+            .Meshes = std::vector{
+                cyanGlassMesh,
+            },
+            .PushConstantBufferName = {},
+        };
+        strcpy_s(cyanGlassModelComponent.ModelName, glassModelName.c_str());
+        strcpy_s(
+            cyanGlassModelComponent.PushConstantBufferName,
+            axr::engineAssetGetName(axr::EngineAssetEnum::PushConstantBufferModelMatrix)
+        );
 
-    AxrModelComponent::Submesh magentaGlassSubmesh{
-        .MaterialName = {},
-    };
-    strcpy_s(magentaGlassSubmesh.MaterialName, magentaGlassMaterialName.c_str());
+        cyanGlassEntity.emplace<AxrModelComponent>(cyanGlassModelComponent);
 
-    AxrModelComponent::Mesh magentaGlassMesh{
-        .Submeshes = std::vector{
-            magentaGlassSubmesh,
-        }
-    };
+        AxrModelComponent::Submesh magentaGlassSubmesh{
+            .MaterialName = {},
+        };
+        strcpy_s(magentaGlassSubmesh.MaterialName, magentaGlassMaterialName.c_str());
 
-    AxrModelComponent magentaGlassModelComponent{
-        .ModelName = {},
-        .Meshes = std::vector{
-            magentaGlassMesh,
-        },
-        .PushConstantBufferName = {},
-    };
-    strcpy_s(magentaGlassModelComponent.ModelName, glassModelName.c_str());
-    strcpy_s(
-        magentaGlassModelComponent.PushConstantBufferName,
-        axr::engineAssetGetName(axr::EngineAssetEnum::PushConstantBufferModelMatrix)
-    );
+        AxrModelComponent::Mesh magentaGlassMesh{
+            .Submeshes = std::vector{
+                magentaGlassSubmesh,
+            }
+        };
 
-    m_MagentaGlassEntity.emplace<AxrModelComponent>(magentaGlassModelComponent);
+        AxrModelComponent magentaGlassModelComponent{
+            .ModelName = {},
+            .Meshes = std::vector{
+                magentaGlassMesh,
+            },
+            .PushConstantBufferName = {},
+        };
+        strcpy_s(magentaGlassModelComponent.ModelName, glassModelName.c_str());
+        strcpy_s(
+            magentaGlassModelComponent.PushConstantBufferName,
+            axr::engineAssetGetName(axr::EngineAssetEnum::PushConstantBufferModelMatrix)
+        );
 
-    AxrModelComponent::Submesh yellowGlassSubmesh{
-        .MaterialName = {},
-    };
-    strcpy_s(yellowGlassSubmesh.MaterialName, yellowGlassMaterialName.c_str());
+        magentaGlassEntity.emplace<AxrModelComponent>(magentaGlassModelComponent);
 
-    AxrModelComponent::Mesh yellowGlassMesh{
-        .Submeshes = std::vector{
-            yellowGlassSubmesh,
-        }
-    };
+        AxrModelComponent::Submesh yellowGlassSubmesh{
+            .MaterialName = {},
+        };
+        strcpy_s(yellowGlassSubmesh.MaterialName, yellowGlassMaterialName.c_str());
 
-    AxrModelComponent yellowGlassModelComponent{
-        .ModelName = {},
-        .Meshes = std::vector{
-            yellowGlassMesh,
-        },
-        .PushConstantBufferName = {},
-    };
-    strcpy_s(yellowGlassModelComponent.ModelName, glassModelName.c_str());
-    strcpy_s(
-        yellowGlassModelComponent.PushConstantBufferName,
-        axr::engineAssetGetName(axr::EngineAssetEnum::PushConstantBufferModelMatrix)
-    );
+        AxrModelComponent::Mesh yellowGlassMesh{
+            .Submeshes = std::vector{
+                yellowGlassSubmesh,
+            }
+        };
 
-    m_YellowGlassEntity.emplace<AxrModelComponent>(yellowGlassModelComponent);
+        AxrModelComponent yellowGlassModelComponent{
+            .ModelName = {},
+            .Meshes = std::vector{
+                yellowGlassMesh,
+            },
+            .PushConstantBufferName = {},
+        };
+        strcpy_s(yellowGlassModelComponent.ModelName, glassModelName.c_str());
+        strcpy_s(
+            yellowGlassModelComponent.PushConstantBufferName,
+            axr::engineAssetGetName(axr::EngineAssetEnum::PushConstantBufferModelMatrix)
+        );
+
+        yellowGlassEntity.emplace<AxrModelComponent>(yellowGlassModelComponent);
+    }
 
     return axr::Result::Success;
 }

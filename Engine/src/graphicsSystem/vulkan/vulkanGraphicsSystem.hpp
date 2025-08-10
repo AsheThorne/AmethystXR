@@ -397,11 +397,11 @@ private:
         float farPlane,
         const std::vector<AxrVulkanSceneData::MaterialForRendering>& materialsForRendering
     ) const;
-    /// Calculate the depth of the given transform component
+    /// Calculate the squared depth of the given transform component
     /// @param viewMatrix Camera view matrix
     /// @param transformComponent Transform component to use
     /// @returns The depth
-    [[nodiscard]] float calculateDepth(
+    [[nodiscard]] float calculateSquaredDepth(
         const glm::mat4& viewMatrix,
         const AxrTransformComponent* transformComponent
     ) const;

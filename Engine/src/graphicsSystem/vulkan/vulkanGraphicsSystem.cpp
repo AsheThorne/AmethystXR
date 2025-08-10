@@ -1544,7 +1544,7 @@ std::vector<AxrVulkanGraphicsSystem::SortableMeshReference> AxrVulkanGraphicsSys
 
     for (uint32_t materialIndex = 0; materialIndex < materialsForRendering.size(); ++materialIndex) {
         for (uint32_t meshIndex = 0; meshIndex < materialsForRendering[materialIndex].Meshes.size(); ++meshIndex) {
-            const float depth = calculateDepth(
+            const float depth = calculateSquaredDepth(
                 viewMatrix,
                 materialsForRendering[materialIndex].Meshes[meshIndex].TransformComponent
             );
@@ -1569,13 +1569,11 @@ std::vector<AxrVulkanGraphicsSystem::SortableMeshReference> AxrVulkanGraphicsSys
     return sortedMeshReferences;
 }
 
-float AxrVulkanGraphicsSystem::calculateDepth(
+float AxrVulkanGraphicsSystem::calculateSquaredDepth(
     const glm::mat4& viewMatrix,
     const AxrTransformComponent* transformComponent
 ) const {
-    // TODO: I don't think we should use the view matrix. probably just the camera position.
-    // Multiply by -1 because -Z is forward,and we want to invert that.
-    return (viewMatrix * glm::vec4(transformComponent->Position, 1.0f)).z * -1.0f;
+    return std::abs(glm::length2(viewMatrix * glm::vec4(transformComponent->Position, 1.0f)));
 }
 
 uint32_t AxrVulkanGraphicsSystem::depthToUint(const float nearPlane, const float farPlane, const float depth) const {
