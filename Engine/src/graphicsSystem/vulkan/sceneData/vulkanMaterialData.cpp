@@ -678,10 +678,10 @@ AxrResult AxrVulkanMaterialData::createPipeline(
 
     // ---- Depth Stencil State ----
 
-    constexpr vk::PipelineDepthStencilStateCreateInfo depthStencilStateCreateInfo(
+    const vk::PipelineDepthStencilStateCreateInfo depthStencilStateCreateInfo(
         {},
-        vk::True,
-        vk::True,
+        m_MaterialHandle->getAlphaRenderMode() == AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE ? vk::True : vk::False,
+        m_MaterialHandle->getAlphaRenderMode() == AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE ? vk::True : vk::False,
         vk::CompareOp::eLess,
         vk::False,
         vk::False,
