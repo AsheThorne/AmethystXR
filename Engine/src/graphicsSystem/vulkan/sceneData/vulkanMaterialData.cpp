@@ -680,7 +680,7 @@ AxrResult AxrVulkanMaterialData::createPipeline(
 
     const vk::PipelineDepthStencilStateCreateInfo depthStencilStateCreateInfo(
         {},
-        m_MaterialHandle->getAlphaRenderMode() == AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE ? vk::True : vk::False,
+        vk::True,
         m_MaterialHandle->getAlphaRenderMode() == AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE ? vk::True : vk::False,
         vk::CompareOp::eLess,
         vk::False,
