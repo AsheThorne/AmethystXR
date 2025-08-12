@@ -434,40 +434,35 @@ AxrResult AxrActionSet::setupXrActions(const AxrXrSystem_T xrSystem) {
     for (AxrBoolInputAction& inputAction : m_BoolInputActions | std::ranges::views::values) {
         axrResult = inputAction.setupXrAction(m_XrSystem, m_XrActionSet);
         if (AXR_FAILED(axrResult)) {
-            resetSetupXrActions();
-            return axrResult;
+            continue;
         }
     }
 
     for (AxrFloatInputAction& inputAction : m_FloatInputActions | std::ranges::views::values) {
         axrResult = inputAction.setupXrAction(m_XrSystem, m_XrActionSet);
         if (AXR_FAILED(axrResult)) {
-            resetSetupXrActions();
-            return axrResult;
+            continue;
         }
     }
 
     for (AxrVec2InputAction& inputAction : m_Vec2InputActions | std::ranges::views::values) {
         axrResult = inputAction.setupXrAction(m_XrSystem, m_XrActionSet);
         if (AXR_FAILED(axrResult)) {
-            resetSetupXrActions();
-            return axrResult;
+            continue;
         }
     }
 
     for (AxrPoseInputAction& inputAction : m_PoseInputActions | std::ranges::views::values) {
         axrResult = inputAction.setupXrAction(m_XrSystem, m_XrActionSet);
         if (AXR_FAILED(axrResult)) {
-            resetSetupXrActions();
-            return axrResult;
+            continue;
         }
     }
 
     for (AxrHapticOutputAction& outputAction : m_HapticOutputActions | std::ranges::views::values) {
         axrResult = outputAction.setupXrAction(m_XrSystem, m_XrActionSet);
         if (AXR_FAILED(axrResult)) {
-            resetSetupXrActions();
-            return axrResult;
+            continue;
         }
     }
 
@@ -505,8 +500,7 @@ AxrResult AxrActionSet::createXrSpaces() {
     for (AxrPoseInputAction& inputAction : m_PoseInputActions | std::ranges::views::values) {
         axrResult = inputAction.createXrSpace();
         if (AXR_FAILED(axrResult)) {
-            destroyXrSpaces();
-            return axrResult;
+            continue;
         }
     }
 

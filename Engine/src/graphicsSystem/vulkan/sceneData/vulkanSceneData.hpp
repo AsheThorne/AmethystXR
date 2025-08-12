@@ -254,7 +254,7 @@ private:
 
     /// 'On push constant buffer created' callback for the asset collection
     /// @param pushConstantBuffer Newly created push constant buffer 
-    void onPushConstantBufferCreatedCallback(AxrPushConstantBufferConst_T pushConstantBuffer);
+    void onPushConstantBufferCreatedCallback(AxrPushConstantBufferConst_T pushConstantBuffer) const;
 
     // ---- Uniform Buffer ----
 
@@ -273,9 +273,6 @@ private:
     /// Destroy all uniform buffer data
     void destroyAllUniformBufferData();
 
-    /// Initialize all the uniform buffer data
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult initializeAllUniformBufferData();
     /// Initialize a single uniform buffer's data. Define either a uniformBufferHandle or a uniform buffer engineAsset
     /// @param uniformBufferHandle Uniform buffer handle to use
     /// @param engineAsset Uniform buffer engine asset to use
@@ -304,10 +301,6 @@ private:
     /// Destroy all window uniform buffer data
     void destroyAllWindowUniformBufferData();
 
-    /// Initialize all the window uniform buffer data
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult initializeAllWindowUniformBufferData();
-
     /// Find the named window uniform buffer data, including the global data in the search
     /// @param name The name of the window uniform buffer
     /// @returns A handle to the found window uniform buffer. Or nullptr if it wasn't found
@@ -318,10 +311,6 @@ private:
     [[nodiscard]] AxrResult createAllXrSessionUniformBufferData();
     /// Destroy all xr session uniform buffer data
     void destroyAllXrSessionUniformBufferData();
-
-    /// Initialize all the xr session uniform buffer data
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult initializeAllXrSessionUniformBufferData();
 
     /// Find the named xr session uniform buffer data, including the global data in the search
     /// @param name The name of the xr session uniform buffer
@@ -344,13 +333,11 @@ private:
     /// Destroy all model data
     void destroyAllModelData();
 
-    /// Initialize all the model data
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult initializeAllModelData();
     /// Initialize a single model's data for the given model
     /// @param model Model to use
+    /// @param modelData Output model data
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult initializeModelData(const AxrModel& model);
+    [[nodiscard]] AxrResult initializeModelData(const AxrModel& model, AxrVulkanModelData& modelData) const;
 
     /// Find the named model data, including the global data in the search
     /// @param name The name of the model
@@ -369,13 +356,11 @@ private:
     /// Destroy all image data
     void destroyAllImageData();
 
-    /// Initialize all the image data
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult initializeAllImageData();
     /// Initialize a single image's data for the given image
     /// @param image Image to use
+    /// @param imageData Output image data
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult initializeImageData(const AxrImage& image);
+    [[nodiscard]] AxrResult initializeImageData(const AxrImage& image, AxrVulkanImageData& imageData) const;
 
     /// Find the named image data, including the global data in the search
     /// @param name The name of the image
@@ -394,13 +379,14 @@ private:
     /// Destroy all image sampler data
     void destroyAllImageSamplerData();
 
-    /// Initialize all the image sampler data
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult initializeAllImageSamplerData();
     /// Initialize a single image sampler's data for the given image sampler
     /// @param imageSampler Image sampler to use
+    /// @param imageSamplerData Output image sampler data
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult initializeImageSamplerData(const AxrImageSampler& imageSampler);
+    [[nodiscard]] AxrResult initializeImageSamplerData(
+        const AxrImageSampler& imageSampler,
+        AxrVulkanImageSamplerData& imageSamplerData
+    ) const;
 
     /// Find the named image sampler data, including the global data in the search
     /// @param name The name of the image sampler
@@ -426,13 +412,14 @@ private:
     /// Destroy all material layouts data
     void destroyAllMaterialLayoutData();
 
-    /// Initialize all the material layouts
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult initializeAllMaterialLayoutData();
     /// Initialize a single material layout for the given material
     /// @param material Material to use
+    /// @param materialLayoutData Output material layout data
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult initializeMaterialLayoutData(const AxrMaterial& material);
+    [[nodiscard]] AxrResult initializeMaterialLayoutData(
+        const AxrMaterial& material,
+        AxrVulkanMaterialLayoutData& materialLayoutData
+    ) const;
 
     /// Find the named material layout data
     /// @param name The name of the material layout
@@ -447,13 +434,11 @@ private:
     /// Destroy all material data
     void destroyAllMaterialData();
 
-    /// Initialize all the materials
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult initializeAllMaterialData();
     /// Initialize a single material data for the given material
     /// @param material Material to use
+    /// @param materialData Output material data
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult initializeMaterialData(const AxrMaterial& material);
+    [[nodiscard]] AxrResult initializeMaterialData(const AxrMaterial& material, AxrVulkanMaterialData& materialData) const;
 
     /// Create all window specific material data
     /// @returns AXR_SUCCESS if the function succeeded

@@ -376,15 +376,13 @@ AxrResult AxrActionSystem::setupXrActions() {
     for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
         axrResult = actionSet.setupXrActions(m_XrSystem);
         if (AXR_FAILED(axrResult)) {
-            resetSetupXrActions();
-            return axrResult;
+            continue;
         }
     }
 
     axrResult = suggestXrBindings();
     if (AXR_FAILED(axrResult)) {
-        resetSetupXrActions();
-        return axrResult;
+        axrLogErrorLocation("Failed to suggest xr bindings.");
     }
 
     m_XrSystem->OnXrSessionStateChangedCallbackActions
@@ -532,7 +530,9 @@ AxrResult AxrActionSystem::suggestXrBindings() {
 
     for (const AxrXrInteractionProfileEnum xrInteractionProfile : m_XrInteractionProfiles) {
         const AxrResult axrResult = m_XrSystem->suggestBindings(xrInteractionProfile, actionBindings);
-        if (AXR_FAILED(axrResult)) return axrResult;
+        if (AXR_FAILED(axrResult)) {
+            continue;
+        }
     }
 
     return AXR_SUCCESS;
@@ -553,8 +553,7 @@ AxrResult AxrActionSystem::createXrSpaces() {
     for (AxrActionSet& actionSet : m_ActionSets | std::ranges::views::values) {
         axrResult = actionSet.createXrSpaces();
         if (AXR_FAILED(axrResult)) {
-            destroyXrSpaces();
-            return axrResult;
+            continue;
         }
     }
 

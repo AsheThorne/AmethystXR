@@ -427,7 +427,9 @@ AxrResult AxrVulkanSceneData::validatePushConstantBuffer(
     return AXR_ERROR;
 }
 
-void AxrVulkanSceneData::onPushConstantBufferCreatedCallback(const AxrPushConstantBufferConst_T pushConstantBuffer) {
+void AxrVulkanSceneData::onPushConstantBufferCreatedCallback(
+    const AxrPushConstantBufferConst_T pushConstantBuffer
+) const {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -485,47 +487,6 @@ AxrResult AxrVulkanSceneData::createAllUniformBufferData() {
         return AXR_ERROR;
     }
 
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
-
-    AxrResult axrResult = AXR_SUCCESS;
-
-    axrResult = initializeAllUniformBufferData();
-    if (AXR_FAILED(axrResult)) {
-        destroyAllUniformBufferData();
-        return axrResult;
-    }
-
-    for (auto& [name, data] : m_UniformBufferData) {
-        axrResult = data.createData();
-        if (AXR_FAILED(axrResult)) {
-            break;
-        }
-    }
-
-    if (AXR_FAILED(axrResult)) {
-        destroyAllUniformBufferData();
-        return axrResult;
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanSceneData::destroyAllUniformBufferData() {
-    destroyUniformBufferData(m_UniformBufferData);
-}
-
-AxrResult AxrVulkanSceneData::initializeAllUniformBufferData() {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
-
-    if (!m_UniformBufferData.empty()) {
-        axrLogErrorLocation("Uniform buffer data already exists.");
-        return AXR_ERROR;
-    }
-
     if (m_AssetCollection == nullptr) {
         axrLogErrorLocation("Asset collection is null.");
         return AXR_ERROR;
@@ -537,7 +498,7 @@ AxrResult AxrVulkanSceneData::initializeAllUniformBufferData() {
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    for (const auto& [bufferName, buffer] : m_AssetCollection->getUniformBuffers()) {
+    for (const auto& buffer : m_AssetCollection->getUniformBuffers() | std::views::values) {
         AxrVulkanUniformBufferData uniformBufferData;
         axrResult = initializeUniformBufferData(
             &buffer,
@@ -545,21 +506,33 @@ AxrResult AxrVulkanSceneData::initializeAllUniformBufferData() {
             uniformBufferData
         );
         if (AXR_FAILED(axrResult)) {
-            break;
+            continue;
         }
 
-        m_UniformBufferData.insert(
+        if (m_UniformBufferData.contains(uniformBufferData.getName())) {
+            continue;
+        }
+
+        axrResult = uniformBufferData.createData();
+        if (AXR_FAILED(axrResult)) {
+            continue;
+        }
+
+        auto [insertData, insertSucceeded] = m_UniformBufferData.insert(
             std::pair(uniformBufferData.getName(), std::move(uniformBufferData))
         );
-    }
 
-    if (AXR_FAILED(axrResult)) {
-        axrLogErrorLocation("Failed to initialize uniform buffer data.");
-        destroyAllUniformBufferData();
-        return axrResult;
+        if (!insertSucceeded) {
+            insertData->second.destroyData();
+            continue;
+        }
     }
 
     return AXR_SUCCESS;
+}
+
+void AxrVulkanSceneData::destroyAllUniformBufferData() {
+    destroyUniformBufferData(m_UniformBufferData);
 }
 
 AxrResult AxrVulkanSceneData::initializeUniformBufferData(
@@ -667,47 +640,6 @@ AxrResult AxrVulkanSceneData::createAllWindowUniformBufferData() {
         return AXR_ERROR;
     }
 
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
-
-    AxrResult axrResult = AXR_SUCCESS;
-
-    axrResult = initializeAllWindowUniformBufferData();
-    if (AXR_FAILED(axrResult)) {
-        destroyAllWindowUniformBufferData();
-        return axrResult;
-    }
-
-    for (auto& [name, data] : m_WindowUniformBufferData) {
-        axrResult = data.createData();
-        if (AXR_FAILED(axrResult)) {
-            break;
-        }
-    }
-
-    if (AXR_FAILED(axrResult)) {
-        destroyAllWindowUniformBufferData();
-        return axrResult;
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanSceneData::destroyAllWindowUniformBufferData() {
-    destroyUniformBufferData(m_WindowUniformBufferData);
-}
-
-AxrResult AxrVulkanSceneData::initializeAllWindowUniformBufferData() {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
-
-    if (!m_WindowUniformBufferData.empty()) {
-        axrLogErrorLocation("Window uniform buffer data already exists.");
-        return AXR_ERROR;
-    }
-
     if (m_AssetCollection == nullptr) {
         axrLogErrorLocation("Asset collection is null.");
         return AXR_ERROR;
@@ -720,27 +652,46 @@ AxrResult AxrVulkanSceneData::initializeAllWindowUniformBufferData() {
     AxrResult axrResult = AXR_SUCCESS;
 
     if (isThisGlobalSceneData()) {
-        AxrVulkanUniformBufferData uniformBufferData;
-        axrResult = initializeUniformBufferData(
-            nullptr,
+        constexpr std::array engineAssetsToCreate{
             AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA,
-            uniformBufferData
-        );
+        };
 
-        if (AXR_SUCCEEDED(axrResult)) {
-            m_WindowUniformBufferData.insert(
+        for (const AxrEngineAssetEnum engineAsset : engineAssetsToCreate) {
+            AxrVulkanUniformBufferData uniformBufferData;
+            axrResult = initializeUniformBufferData(
+                nullptr,
+                engineAsset,
+                uniformBufferData
+            );
+            if (AXR_FAILED(axrResult)) {
+                continue;
+            }
+
+            if (m_WindowUniformBufferData.contains(uniformBufferData.getName())) {
+                continue;
+            }
+
+            axrResult = uniformBufferData.createData();
+            if (AXR_FAILED(axrResult)) {
+                continue;
+            }
+
+            auto [insertData, insertSucceeded] = m_WindowUniformBufferData.insert(
                 std::pair(uniformBufferData.getName(), std::move(uniformBufferData))
             );
+
+            if (!insertSucceeded) {
+                insertData->second.destroyData();
+                continue;
+            }
         }
     }
 
-    if (AXR_FAILED(axrResult)) {
-        axrLogErrorLocation("Failed to initialize uniform buffer data.");
-        destroyAllWindowUniformBufferData();
-        return axrResult;
-    }
-
     return AXR_SUCCESS;
+}
+
+void AxrVulkanSceneData::destroyAllWindowUniformBufferData() {
+    destroyUniformBufferData(m_WindowUniformBufferData);
 }
 
 const AxrVulkanUniformBufferData* AxrVulkanSceneData::findWindowUniformBufferData_shared(
@@ -782,64 +733,8 @@ AxrResult AxrVulkanSceneData::createAllXrSessionUniformBufferData() {
         return AXR_ERROR;
     }
 
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
-
-    AxrResult axrResult = AXR_SUCCESS;
-
-    axrResult = initializeAllXrSessionUniformBufferData();
-    if (AXR_FAILED(axrResult)) {
-        destroyAllXrSessionUniformBufferData();
-        return axrResult;
-    }
-
-    for (auto& [name, data] : m_XrSessionUniformBufferData) {
-        for (uint32_t viewIndex = 0; viewIndex < m_LoadXrSessionDataConfig.ViewCount; ++viewIndex) {
-            axrResult = data[viewIndex].createData();
-            if (AXR_FAILED(axrResult)) {
-                break;
-            }
-        }
-        if (AXR_FAILED(axrResult)) {
-            break;
-        }
-    }
-
-    if (AXR_FAILED(axrResult)) {
-        destroyAllXrSessionUniformBufferData();
-        return axrResult;
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanSceneData::destroyAllXrSessionUniformBufferData() {
-    destroyUniformBufferData(m_XrSessionUniformBufferData);
-}
-
-AxrResult AxrVulkanSceneData::initializeAllXrSessionUniformBufferData() {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
-
-    if (!m_XrSessionUniformBufferData.empty()) {
-        axrLogErrorLocation("Xr session uniform buffer data already exists.");
-        return AXR_ERROR;
-    }
-
     if (m_AssetCollection == nullptr) {
         axrLogErrorLocation("Asset collection is null.");
-        return AXR_ERROR;
-    }
-
-    if (m_LoadXrSessionDataConfig.ViewCount > AXR_MAX_XR_VIEWS) {
-        axrLogErrorLocation("View count exceeds the view limit of: {0}.", AXR_MAX_XR_VIEWS);
-        return AXR_ERROR;
-    }
-
-    if (m_LoadXrSessionDataConfig.ViewCount < 1) {
-        axrLogErrorLocation("View count must be greater than 0.");
         return AXR_ERROR;
     }
 
@@ -850,43 +745,65 @@ AxrResult AxrVulkanSceneData::initializeAllXrSessionUniformBufferData() {
     AxrResult axrResult = AXR_SUCCESS;
 
     if (isThisGlobalSceneData()) {
-        std::array<AxrVulkanUniformBufferData, AXR_MAX_XR_VIEWS> uniformBuffers;
+        constexpr std::array engineAssetsToCreate{
+            AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA,
+        };
 
-        for (uint32_t viewIndex = 0; viewIndex < m_LoadXrSessionDataConfig.ViewCount; ++viewIndex) {
-            AxrVulkanUniformBufferData uniformBufferData;
-            axrResult = initializeUniformBufferData(
-                nullptr,
-                AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA,
-                uniformBufferData
-            );
+        for (const AxrEngineAssetEnum engineAsset : engineAssetsToCreate) {
+            std::array<AxrVulkanUniformBufferData, AXR_MAX_XR_VIEWS> uniformBuffers;
 
-            if (AXR_FAILED(axrResult)) {
-                break;
+            for (uint32_t viewIndex = 0; viewIndex < m_LoadXrSessionDataConfig.ViewCount; ++viewIndex) {
+                AxrVulkanUniformBufferData uniformBufferData;
+                axrResult = initializeUniformBufferData(
+                    nullptr,
+                    engineAsset,
+                    uniformBufferData
+                );
+                if (AXR_FAILED(axrResult)) {
+                    // Break instead of continue because it's only valid if every view was successful
+                    break;
+                }
+
+                if (m_XrSessionUniformBufferData.contains(uniformBufferData.getName())) {
+                    // Break instead of continue because it's only valid if every view was successful
+                    break;
+                }
+
+                axrResult = uniformBufferData.createData();
+                if (AXR_FAILED(axrResult)) {
+                    // Break instead of continue because it's only valid if every view was successful
+                    break;
+                }
+
+                uniformBuffers[viewIndex] = std::move(uniformBufferData);
             }
 
-            uniformBuffers[viewIndex] = std::move(uniformBufferData);
+            if (AXR_FAILED(axrResult)) {
+                continue;
+            }
+
+            auto [insertData, insertSucceeded] = m_XrSessionUniformBufferData.insert(
+                std::pair(
+                    // The first uniform buffer should always exist
+                    uniformBuffers[0].getName(),
+                    std::move(uniformBuffers)
+                )
+            );
+
+            if (!insertSucceeded) {
+                for (AxrVulkanUniformBufferData& uniformBufferData : insertData->second) {
+                    uniformBufferData.destroyData();
+                }
+                continue;
+            }
         }
-
-        if (AXR_FAILED(axrResult)) {
-            return axrResult;
-        }
-
-        m_XrSessionUniformBufferData.insert(
-            std::pair(
-                // The first uniform buffer should always exist
-                uniformBuffers[0].getName(),
-                std::move(uniformBuffers)
-            )
-        );
-    }
-
-    if (AXR_FAILED(axrResult)) {
-        axrLogErrorLocation("Failed to initialize uniform buffer data.");
-        destroyAllXrSessionUniformBufferData();
-        return axrResult;
     }
 
     return AXR_SUCCESS;
+}
+
+void AxrVulkanSceneData::destroyAllXrSessionUniformBufferData() {
+    destroyUniformBufferData(m_XrSessionUniformBufferData);
 }
 
 const AxrVulkanUniformBufferData* AxrVulkanSceneData::findXrSessionUniformBufferData_shared(
@@ -923,64 +840,35 @@ void AxrVulkanSceneData::onUniformBufferCreatedCallback(const AxrUniformBufferCo
     AxrResult axrResult = AXR_SUCCESS;
 
     AxrVulkanUniformBufferData uniformBufferData;
-    axrResult = initializeUniformBufferData(uniformBuffer, AXR_ENGINE_ASSET_UNDEFINED, uniformBufferData);
+    axrResult = initializeUniformBufferData(
+        uniformBuffer,
+        AXR_ENGINE_ASSET_UNDEFINED,
+        uniformBufferData
+    );
     if (AXR_FAILED(axrResult)) {
         return;
     }
-    auto insertResult = m_UniformBufferData.insert(
+
+    if (m_UniformBufferData.contains(uniformBufferData.getName())) {
+        return;
+    }
+
+    axrResult = uniformBufferData.createData();
+    if (AXR_FAILED(axrResult)) {
+        return;
+    }
+
+    auto [insertData, insertSucceeded] = m_UniformBufferData.insert(
         std::pair(uniformBufferData.getName(), std::move(uniformBufferData))
     );
-    axrResult = insertResult.first->second.createData();
-    if (AXR_FAILED(axrResult)) {
-        insertResult.first->second.destroyData();
+
+    if (!insertSucceeded) {
+        insertData->second.destroyData();
+        return;
     }
 }
 
 AxrResult AxrVulkanSceneData::createAllModelData() {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
-
-    if (!m_ModelData.empty()) {
-        axrLogErrorLocation("Model data already exists.");
-        return AXR_ERROR;
-    }
-
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
-
-    AxrResult axrResult = AXR_SUCCESS;
-
-    axrResult = initializeAllModelData();
-    if (AXR_FAILED(axrResult)) {
-        destroyAllModelData();
-        return axrResult;
-    }
-
-    for (auto& [name, data] : m_ModelData) {
-        axrResult = data.createData();
-        if (AXR_FAILED(axrResult)) {
-            break;
-        }
-    }
-
-    if (AXR_FAILED(axrResult)) {
-        destroyAllModelData();
-        return axrResult;
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanSceneData::destroyAllModelData() {
-    for (auto& [name, data] : m_ModelData) {
-        data.destroyData();
-    }
-    m_ModelData.clear();
-}
-
-AxrResult AxrVulkanSceneData::initializeAllModelData() {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -1001,26 +889,43 @@ AxrResult AxrVulkanSceneData::initializeAllModelData() {
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    for (const auto& [modelName, model] : m_AssetCollection->getModels()) {
-        axrResult = initializeModelData(model);
+    for (const auto& model : m_AssetCollection->getModels() | std::views::values) {
+        AxrVulkanModelData modelData;
+        axrResult = initializeModelData(model, modelData);
         if (AXR_FAILED(axrResult)) {
-            break;
+            continue;
         }
-    }
 
-    if (AXR_FAILED(axrResult)) {
-        axrLogErrorLocation("Failed to initialize model data.");
-        destroyAllModelData();
-        return axrResult;
+        if (m_ModelData.contains(modelData.getName())) {
+            continue;
+        }
+
+        axrResult = modelData.createData();
+        if (AXR_FAILED(axrResult)) {
+            continue;
+        }
+
+        auto [insertData, insertSucceeded] = m_ModelData.insert(
+            std::pair(modelData.getName(), std::move(modelData))
+        );
+
+        if (!insertSucceeded) {
+            insertData->second.destroyData();
+            continue;
+        }
     }
 
     return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanSceneData::initializeModelData(const AxrModel& model) {
-    const std::string modelName = model.getName();
-    if (m_ModelData.contains(modelName)) return AXR_SUCCESS;
+void AxrVulkanSceneData::destroyAllModelData() {
+    for (auto& data : m_ModelData | std::views::values) {
+        data.destroyData();
+    }
+    m_ModelData.clear();
+}
 
+AxrResult AxrVulkanSceneData::initializeModelData(const AxrModel& model, AxrVulkanModelData& modelData) const {
     const AxrVulkanModelData::Config modelDataConfig{
         .ModelHandle = &model,
         .PhysicalDevice = m_PhysicalDevice,
@@ -1030,12 +935,7 @@ AxrResult AxrVulkanSceneData::initializeModelData(const AxrModel& model) {
         .DispatchHandle = m_DispatchHandle,
     };
 
-    m_ModelData.insert(
-        std::pair(
-            modelName,
-            AxrVulkanModelData(modelDataConfig)
-        )
-    );
+    modelData = AxrVulkanModelData(modelDataConfig);
 
     return AXR_SUCCESS;
 }
@@ -1065,64 +965,32 @@ void AxrVulkanSceneData::onModelCreatedCallback(const AxrModelConst_T model) {
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    axrResult = initializeModelData(*model);
+    AxrVulkanModelData modelData;
+    axrResult = initializeModelData(*model, modelData);
     if (AXR_FAILED(axrResult)) {
         return;
     }
 
-    AxrVulkanModelData& modelData = m_ModelData.at(model->getName());
-    axrResult = modelData.createData();
+    if (m_ModelData.contains(modelData.getName())) {
+        return;
+    }
 
+    axrResult = modelData.createData();
     if (AXR_FAILED(axrResult)) {
-        modelData.destroyData();
+        return;
+    }
+
+    auto [insertData, insertSucceeded] = m_ModelData.insert(
+        std::pair(modelData.getName(), std::move(modelData))
+    );
+
+    if (!insertSucceeded) {
+        insertData->second.destroyData();
+        return;
     }
 }
 
 AxrResult AxrVulkanSceneData::createAllImageData() {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
-
-    if (!m_ImageData.empty()) {
-        axrLogErrorLocation("Image data already exists.");
-        return AXR_ERROR;
-    }
-
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
-
-    AxrResult axrResult = AXR_SUCCESS;
-
-    axrResult = initializeAllImageData();
-    if (AXR_FAILED(axrResult)) {
-        destroyAllImageData();
-        return axrResult;
-    }
-
-    for (auto& [name, data] : m_ImageData) {
-        axrResult = data.createData();
-        if (AXR_FAILED(axrResult)) {
-            break;
-        }
-    }
-
-    if (AXR_FAILED(axrResult)) {
-        destroyAllImageData();
-        return axrResult;
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanSceneData::destroyAllImageData() {
-    for (auto& [name, data] : m_ImageData) {
-        data.destroyData();
-    }
-    m_ImageData.clear();
-}
-
-AxrResult AxrVulkanSceneData::initializeAllImageData() {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -1143,26 +1011,43 @@ AxrResult AxrVulkanSceneData::initializeAllImageData() {
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    for (const auto& [imageName, image] : m_AssetCollection->getImages()) {
-        axrResult = initializeImageData(image);
+    for (const auto& image : m_AssetCollection->getImages() | std::views::values) {
+        AxrVulkanImageData imageData;
+        axrResult = initializeImageData(image, imageData);
         if (AXR_FAILED(axrResult)) {
-            break;
+            continue;
         }
-    }
 
-    if (AXR_FAILED(axrResult)) {
-        axrLogErrorLocation("Failed to initialize image data.");
-        destroyAllImageData();
-        return axrResult;
+        if (m_ImageData.contains(imageData.getName())) {
+            continue;
+        }
+
+        axrResult = imageData.createData();
+        if (AXR_FAILED(axrResult)) {
+            continue;
+        }
+
+        auto [insertData, insertSucceeded] = m_ImageData.insert(
+            std::pair(imageData.getName(), std::move(imageData))
+        );
+
+        if (!insertSucceeded) {
+            insertData->second.destroyData();
+            continue;
+        }
     }
 
     return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanSceneData::initializeImageData(const AxrImage& image) {
-    const std::string imageName = image.getName();
-    if (m_ImageData.contains(imageName)) return AXR_SUCCESS;
+void AxrVulkanSceneData::destroyAllImageData() {
+    for (auto& data : m_ImageData | std::views::values) {
+        data.destroyData();
+    }
+    m_ImageData.clear();
+}
 
+AxrResult AxrVulkanSceneData::initializeImageData(const AxrImage& image, AxrVulkanImageData& imageData) const {
     const AxrVulkanImageData::Config imageDataConfig{
         .ImageHandle = &image,
         .PhysicalDevice = m_PhysicalDevice,
@@ -1172,12 +1057,7 @@ AxrResult AxrVulkanSceneData::initializeImageData(const AxrImage& image) {
         .DispatchHandle = m_DispatchHandle,
     };
 
-    m_ImageData.insert(
-        std::pair(
-            imageName,
-            AxrVulkanImageData(imageDataConfig)
-        )
-    );
+    imageData = AxrVulkanImageData(imageDataConfig);
 
     return AXR_SUCCESS;
 }
@@ -1207,64 +1087,32 @@ void AxrVulkanSceneData::onImageCreatedCallback(const AxrImageConst_T image) {
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    axrResult = initializeImageData(*image);
+    AxrVulkanImageData imageData;
+    axrResult = initializeImageData(*image, imageData);
     if (AXR_FAILED(axrResult)) {
         return;
     }
 
-    AxrVulkanImageData& imageData = m_ImageData.at(image->getName());
-    axrResult = imageData.createData();
+    if (m_ImageData.contains(imageData.getName())) {
+        return;
+    }
 
+    axrResult = imageData.createData();
     if (AXR_FAILED(axrResult)) {
-        imageData.destroyData();
+        return;
+    }
+
+    auto [insertData, insertSucceeded] = m_ImageData.insert(
+        std::pair(imageData.getName(), std::move(imageData))
+    );
+
+    if (!insertSucceeded) {
+        insertData->second.destroyData();
+        return;
     }
 }
 
 AxrResult AxrVulkanSceneData::createAllImageSamplerData() {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
-
-    if (!m_ImageSamplerData.empty()) {
-        axrLogErrorLocation("Image sampler data already exists.");
-        return AXR_ERROR;
-    }
-
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
-
-    AxrResult axrResult = AXR_SUCCESS;
-
-    axrResult = initializeAllImageSamplerData();
-    if (AXR_FAILED(axrResult)) {
-        destroyAllImageSamplerData();
-        return axrResult;
-    }
-
-    for (auto& [name, data] : m_ImageSamplerData) {
-        axrResult = data.createData();
-        if (AXR_FAILED(axrResult)) {
-            break;
-        }
-    }
-
-    if (AXR_FAILED(axrResult)) {
-        destroyAllImageSamplerData();
-        return axrResult;
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanSceneData::destroyAllImageSamplerData() {
-    for (auto& [name, data] : m_ImageSamplerData) {
-        data.destroyData();
-    }
-    m_ImageSamplerData.clear();
-}
-
-AxrResult AxrVulkanSceneData::initializeAllImageSamplerData() {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //
@@ -1285,26 +1133,46 @@ AxrResult AxrVulkanSceneData::initializeAllImageSamplerData() {
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    for (const auto& [imageSamplerName, imageSampler] : m_AssetCollection->getImageSamplers()) {
-        axrResult = initializeImageSamplerData(imageSampler);
+    for (const auto& imageSampler : m_AssetCollection->getImageSamplers() | std::views::values) {
+        AxrVulkanImageSamplerData imageSamplerData;
+        axrResult = initializeImageSamplerData(imageSampler, imageSamplerData);
         if (AXR_FAILED(axrResult)) {
-            break;
+            continue;
         }
-    }
 
-    if (AXR_FAILED(axrResult)) {
-        axrLogErrorLocation("Failed to initialize image sampler data.");
-        destroyAllImageSamplerData();
-        return axrResult;
+        if (m_ImageSamplerData.contains(imageSamplerData.getName())) {
+            continue;
+        }
+
+        axrResult = imageSamplerData.createData();
+        if (AXR_FAILED(axrResult)) {
+            continue;
+        }
+
+        auto [insertData, insertSucceeded] = m_ImageSamplerData.insert(
+            std::pair(imageSamplerData.getName(), std::move(imageSamplerData))
+        );
+
+        if (!insertSucceeded) {
+            insertData->second.destroyData();
+            continue;
+        }
     }
 
     return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanSceneData::initializeImageSamplerData(const AxrImageSampler& imageSampler) {
-    const std::string imageSamplerName = imageSampler.getName();
-    if (m_ImageSamplerData.contains(imageSamplerName)) return AXR_SUCCESS;
+void AxrVulkanSceneData::destroyAllImageSamplerData() {
+    for (auto& data : m_ImageSamplerData | std::views::values) {
+        data.destroyData();
+    }
+    m_ImageSamplerData.clear();
+}
 
+AxrResult AxrVulkanSceneData::initializeImageSamplerData(
+    const AxrImageSampler& imageSampler,
+    AxrVulkanImageSamplerData& imageSamplerData
+) const {
     const AxrVulkanImageSamplerData::Config imageSamplerDataConfig{
         .ImageSamplerHandle = &imageSampler,
         .PhysicalDevice = m_PhysicalDevice,
@@ -1313,12 +1181,7 @@ AxrResult AxrVulkanSceneData::initializeImageSamplerData(const AxrImageSampler& 
         .DispatchHandle = m_DispatchHandle,
     };
 
-    m_ImageSamplerData.insert(
-        std::pair(
-            imageSamplerName,
-            AxrVulkanImageSamplerData(imageSamplerDataConfig)
-        )
-    );
+    imageSamplerData = AxrVulkanImageSamplerData(imageSamplerDataConfig);
 
     return AXR_SUCCESS;
 }
@@ -1348,16 +1211,28 @@ void AxrVulkanSceneData::onImageSamplerCreatedCallback(const AxrImageSamplerCons
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    axrResult = initializeImageSamplerData(*imageSampler);
+    AxrVulkanImageSamplerData imageSamplerData;
+    axrResult = initializeImageSamplerData(*imageSampler, imageSamplerData);
     if (AXR_FAILED(axrResult)) {
         return;
     }
 
-    AxrVulkanImageSamplerData& imageSamplerData = m_ImageSamplerData.at(imageSampler->getName());
-    axrResult = imageSamplerData.createData();
+    if (m_ImageSamplerData.contains(imageSamplerData.getName())) {
+        return;
+    }
 
+    axrResult = imageSamplerData.createData();
     if (AXR_FAILED(axrResult)) {
-        imageSamplerData.destroyData();
+        return;
+    }
+
+    auto [insertData, insertSucceeded] = m_ImageSamplerData.insert(
+        std::pair(imageSamplerData.getName(), std::move(imageSamplerData))
+    );
+
+    if (!insertSucceeded) {
+        insertData->second.destroyData();
+        return;
     }
 }
 
@@ -1394,50 +1269,6 @@ AxrResult AxrVulkanSceneData::createAllMaterialLayoutData() {
         return AXR_ERROR;
     }
 
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
-
-    AxrResult axrResult = AXR_SUCCESS;
-
-    axrResult = initializeAllMaterialLayoutData();
-    if (AXR_FAILED(axrResult)) {
-        destroyAllMaterialLayoutData();
-        return axrResult;
-    }
-
-    for (auto& [name, data] : m_MaterialLayoutData) {
-        axrResult = data.createData();
-        if (AXR_FAILED(axrResult)) {
-            break;
-        }
-    }
-
-    if (AXR_FAILED(axrResult)) {
-        destroyAllMaterialLayoutData();
-        return axrResult;
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanSceneData::destroyAllMaterialLayoutData() {
-    for (auto& [name, data] : m_MaterialLayoutData) {
-        data.destroyData();
-    }
-    m_MaterialLayoutData.clear();
-}
-
-AxrResult AxrVulkanSceneData::initializeAllMaterialLayoutData() {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
-
-    if (!m_MaterialLayoutData.empty()) {
-        axrLogErrorLocation("Material layout data already exists.");
-        return AXR_ERROR;
-    }
-
     if (m_AssetCollection == nullptr) {
         axrLogErrorLocation("Asset collection is null.");
         return AXR_ERROR;
@@ -1449,26 +1280,46 @@ AxrResult AxrVulkanSceneData::initializeAllMaterialLayoutData() {
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    for (auto& [materialName, material] : m_AssetCollection->getMaterials()) {
-        axrResult = initializeMaterialLayoutData(material);
+    for (const auto& material : m_AssetCollection->getMaterials() | std::views::values) {
+        AxrVulkanMaterialLayoutData materialLayoutData;
+        axrResult = initializeMaterialLayoutData(material, materialLayoutData);
         if (AXR_FAILED(axrResult)) {
-            break;
+            continue;
         }
-    }
 
-    if (AXR_FAILED(axrResult)) {
-        axrLogErrorLocation("Failed to initialize material layout data.");
-        destroyAllMaterialLayoutData();
-        return axrResult;
+        if (m_MaterialLayoutData.contains(materialLayoutData.getName())) {
+            continue;
+        }
+
+        axrResult = materialLayoutData.createData();
+        if (AXR_FAILED(axrResult)) {
+            continue;
+        }
+
+        auto [insertData, insertSucceeded] = m_MaterialLayoutData.insert(
+            std::pair(materialLayoutData.getName(), std::move(materialLayoutData))
+        );
+
+        if (!insertSucceeded) {
+            insertData->second.destroyData();
+            continue;
+        }
     }
 
     return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanSceneData::initializeMaterialLayoutData(const AxrMaterial& material) {
-    const std::string materialLayoutName = material.getMaterialLayoutName();
-    if (m_MaterialLayoutData.contains(materialLayoutName)) return AXR_SUCCESS;
+void AxrVulkanSceneData::destroyAllMaterialLayoutData() {
+    for (auto& data : m_MaterialLayoutData | std::views::values) {
+        data.destroyData();
+    }
+    m_MaterialLayoutData.clear();
+}
 
+AxrResult AxrVulkanSceneData::initializeMaterialLayoutData(
+    const AxrMaterial& material,
+    AxrVulkanMaterialLayoutData& materialLayoutData
+) const {
     const AxrShader* foundVertexShader = findShader_shared(material.getVertexShaderName());
     if (foundVertexShader == nullptr) {
         axrLogErrorLocation(
@@ -1487,6 +1338,7 @@ AxrResult AxrVulkanSceneData::initializeMaterialLayoutData(const AxrMaterial& ma
         return AXR_ERROR;
     }
 
+    const std::string materialLayoutName = material.getMaterialLayoutName();
     const AxrVulkanMaterialLayoutData::Config materialLayoutDataConfig{
         .Name = materialLayoutName,
         .VertexShaderHandle = foundVertexShader,
@@ -1495,12 +1347,7 @@ AxrResult AxrVulkanSceneData::initializeMaterialLayoutData(const AxrMaterial& ma
         .DispatchHandle = m_DispatchHandle,
     };
 
-    m_MaterialLayoutData.insert(
-        std::pair(
-            materialLayoutName,
-            AxrVulkanMaterialLayoutData(materialLayoutDataConfig)
-        )
-    );
+    materialLayoutData = AxrVulkanMaterialLayoutData(materialLayoutDataConfig);
 
     return AXR_SUCCESS;
 }
@@ -1524,50 +1371,6 @@ AxrResult AxrVulkanSceneData::createAllMaterialData() {
         return AXR_ERROR;
     }
 
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
-
-    AxrResult axrResult = AXR_SUCCESS;
-
-    axrResult = initializeAllMaterialData();
-    if (AXR_FAILED(axrResult)) {
-        destroyAllMaterialData();
-        return axrResult;
-    }
-
-    for (auto& [name, data] : m_MaterialData) {
-        axrResult = data.createData();
-        if (AXR_FAILED(axrResult)) {
-            break;
-        }
-    }
-
-    if (AXR_FAILED(axrResult)) {
-        destroyAllMaterialData();
-        return axrResult;
-    }
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanSceneData::destroyAllMaterialData() {
-    for (auto& [name, data] : m_MaterialData) {
-        data.destroyData();
-    }
-    m_MaterialData.clear();
-}
-
-AxrResult AxrVulkanSceneData::initializeAllMaterialData() {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
-
-    if (!m_MaterialData.empty()) {
-        axrLogErrorLocation("Material data already exists.");
-        return AXR_ERROR;
-    }
-
     if (m_AssetCollection == nullptr) {
         axrLogErrorLocation("Asset collection is null.");
         return AXR_ERROR;
@@ -1579,26 +1382,46 @@ AxrResult AxrVulkanSceneData::initializeAllMaterialData() {
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    for (auto& [materialName, material] : m_AssetCollection->getMaterials()) {
-        axrResult = initializeMaterialData(material);
+    for (const auto& material : m_AssetCollection->getMaterials() | std::views::values) {
+        AxrVulkanMaterialData materialData;
+        axrResult = initializeMaterialData(material, materialData);
         if (AXR_FAILED(axrResult)) {
-            break;
+            continue;
         }
-    }
 
-    if (AXR_FAILED(axrResult)) {
-        axrLogErrorLocation("Failed to initialize material data.");
-        destroyAllMaterialData();
-        return axrResult;
+        if (m_MaterialData.contains(materialData.getName())) {
+            continue;
+        }
+
+        axrResult = materialData.createData();
+        if (AXR_FAILED(axrResult)) {
+            continue;
+        }
+
+        auto [insertData, insertSucceeded] = m_MaterialData.insert(
+            std::pair(materialData.getName(), std::move(materialData))
+        );
+
+        if (!insertSucceeded) {
+            insertData->second.destroyData();
+            continue;
+        }
     }
 
     return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanSceneData::initializeMaterialData(const AxrMaterial& material) {
-    const std::string materialName = material.getName();
-    if (m_MaterialData.contains(materialName)) return AXR_SUCCESS;
+void AxrVulkanSceneData::destroyAllMaterialData() {
+    for (auto& data : m_MaterialData | std::views::values) {
+        data.destroyData();
+    }
+    m_MaterialData.clear();
+}
 
+AxrResult AxrVulkanSceneData::initializeMaterialData(
+    const AxrMaterial& material,
+    AxrVulkanMaterialData& materialData
+) const {
     const AxrShader* foundVertexShader = findShader_shared(material.getVertexShaderName());
     if (foundVertexShader == nullptr) {
         axrLogErrorLocation(
@@ -1629,6 +1452,7 @@ AxrResult AxrVulkanSceneData::initializeMaterialData(const AxrMaterial& material
     }
 
     const AxrVulkanMaterialData::Config materialDataConfig{
+        // TODO: We can probably remove vertex and fragment shader handles from here. They're in the material layout
         .VertexShaderHandle = foundVertexShader,
         .FragmentShaderHandle = foundFragmentShader,
         .MaterialHandle = &material,
@@ -1638,12 +1462,7 @@ AxrResult AxrVulkanSceneData::initializeMaterialData(const AxrMaterial& material
         .DispatchHandle = m_DispatchHandle,
     };
 
-    m_MaterialData.insert(
-        std::pair(
-            materialName,
-            AxrVulkanMaterialData(materialDataConfig)
-        )
-    );
+    materialData = AxrVulkanMaterialData(materialDataConfig);
 
     return AXR_SUCCESS;
 }
@@ -1663,26 +1482,21 @@ AxrResult AxrVulkanSceneData::createAllWindowMaterialData() {
     // ----------------------------------------- //
     AxrResult axrResult = AXR_SUCCESS;
 
-    for (auto& [name, data] : m_MaterialData) {
+    for (auto& data : m_MaterialData | std::views::values) {
         axrResult = data.createWindowData(
             m_LoadWindowDataConfig.RenderPass,
             m_LoadWindowDataConfig.MsaaSampleCount
         );
         if (AXR_FAILED(axrResult)) {
-            break;
+            continue;
         }
-    }
-
-    if (AXR_FAILED(axrResult)) {
-        destroyAllWindowMaterialData();
-        return axrResult;
     }
 
     return AXR_SUCCESS;
 }
 
 void AxrVulkanSceneData::destroyAllWindowMaterialData() {
-    for (auto& [name, data] : m_MaterialData) {
+    for (auto& data : m_MaterialData | std::views::values) {
         data.destroyWindowData();
     }
 }
@@ -1707,27 +1521,22 @@ AxrResult AxrVulkanSceneData::createAllXrSessionMaterialData() {
     // ----------------------------------------- //
     AxrResult axrResult = AXR_SUCCESS;
 
-    for (auto& [name, data] : m_MaterialData) {
+    for (auto& data : m_MaterialData | std::views::values) {
         axrResult = data.createXrSessionData(
             m_LoadXrSessionDataConfig.RenderPass,
             m_LoadXrSessionDataConfig.MsaaSampleCount,
             m_LoadXrSessionDataConfig.ViewCount
         );
         if (AXR_FAILED(axrResult)) {
-            break;
+            continue;
         }
-    }
-
-    if (AXR_FAILED(axrResult)) {
-        destroyAllXrSessionMaterialData();
-        return axrResult;
     }
 
     return AXR_SUCCESS;
 }
 
 void AxrVulkanSceneData::destroyAllXrSessionMaterialData() {
-    for (auto& [name, data] : m_MaterialData) {
+    for (auto& data : m_MaterialData | std::views::values) {
         data.destroyXrSessionData();
     }
 }
@@ -1757,90 +1566,98 @@ void AxrVulkanSceneData::onMaterialCreatedCallback(const AxrMaterialConst_T mate
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    axrResult = initializeMaterialLayoutData(*material);
-    if (AXR_FAILED(axrResult)) {
-        return;
-    }
-    // TODO: We don't have a way to remove a single initialized object. So if something goes wrong, it stays. Which isn't ideal
+    if (!m_MaterialLayoutData.contains(material->getMaterialLayoutName())) {
+        AxrVulkanMaterialLayoutData materialLayoutData;
+        axrResult = initializeMaterialLayoutData(*material, materialLayoutData);
+        if (AXR_FAILED(axrResult)) {
+            return;
+        }
 
-    AxrVulkanMaterialLayoutData& materialLayoutData = m_MaterialLayoutData.at(material->getMaterialLayoutName());
-    // Keep track if the layout already existed. If it did, we don't want to destroy it if things go wrong
-    const bool materialLayoutDataExists = materialLayoutData.doesDataExist();
-    if (!materialLayoutDataExists) {
         axrResult = materialLayoutData.createData();
+        if (AXR_FAILED(axrResult)) {
+            return;
+        }
+
+        auto [insertData, insertSucceeded] = m_MaterialLayoutData.insert(
+            std::pair(materialLayoutData.getName(), std::move(materialLayoutData))
+        );
+
+        if (!insertSucceeded) {
+            insertData->second.destroyData();
+            return;
+        }
     }
 
+    AxrVulkanMaterialData materialData;
+    axrResult = initializeMaterialData(*material, materialData);
     if (AXR_FAILED(axrResult)) {
-        if (!materialLayoutDataExists) {
-            materialLayoutData.destroyData();
-        }
         return;
     }
 
-    axrResult = initializeMaterialData(*material);
-    if (AXR_FAILED(axrResult)) {
-        if (!materialLayoutDataExists) {
-            materialLayoutData.destroyData();
-        }
+    if (m_MaterialData.contains(materialData.getName())) {
         return;
     }
 
-    AxrVulkanMaterialData& materialData = m_MaterialData.at(material->getName());
     axrResult = materialData.createData();
-
-    if (AXR_SUCCEEDED(axrResult)) {
-        if (isPlatformLoaded(AXR_PLATFORM_TYPE_WINDOW)) {
-            axrResult = materialData.createWindowData(
-                m_LoadWindowDataConfig.RenderPass,
-                m_LoadWindowDataConfig.MsaaSampleCount
-            );
-        }
-
-        if (isPlatformLoaded(AXR_PLATFORM_TYPE_XR_DEVICE)) {
-            axrResult = materialData.createXrSessionData(
-                m_LoadXrSessionDataConfig.RenderPass,
-                m_LoadXrSessionDataConfig.MsaaSampleCount,
-                m_LoadXrSessionDataConfig.ViewCount
-            );
-        }
+    if (AXR_FAILED(axrResult)) {
+        return;
     }
 
-    // TODO: I think we need to write the new descriptor sets too
+    if (isPlatformLoaded(AXR_PLATFORM_TYPE_WINDOW)) {
+        axrResult = materialData.createWindowData(
+            m_LoadWindowDataConfig.RenderPass,
+            m_LoadWindowDataConfig.MsaaSampleCount
+        );
+    }
+
+    if (AXR_FAILED(axrResult)) {
+        materialData.destroyWindowData();
+        // Don't return. One platform may error but the other might still be ok.
+    }
+
+    if (isPlatformLoaded(AXR_PLATFORM_TYPE_XR_DEVICE)) {
+        axrResult = materialData.createXrSessionData(
+            m_LoadXrSessionDataConfig.RenderPass,
+            m_LoadXrSessionDataConfig.MsaaSampleCount,
+            m_LoadXrSessionDataConfig.ViewCount
+        );
+    }
 
     if (AXR_FAILED(axrResult)) {
         materialData.destroyXrSessionData();
-        materialData.destroyWindowData();
-        materialData.destroyData();
-
-        if (!materialLayoutDataExists) {
-            materialLayoutData.destroyData();
-        }
+        // Don't return. One platform may error but the other might still be ok.
     }
+
+    auto [insertData, insertSucceeded] = m_MaterialData.insert(
+        std::pair(materialData.getName(), std::move(materialData))
+    );
+
+    if (!insertSucceeded) {
+        insertData->second.destroyXrSessionData();
+        insertData->second.destroyWindowData();
+        insertData->second.destroyData();
+        return;
+    }
+
+    // TODO: I think we need to write the new descriptor sets too
 }
 
 AxrResult AxrVulkanSceneData::writeAllDescriptorSets(const AxrPlatformType platformType, const uint32_t viewCount) {
     AxrResult axrResult = AXR_SUCCESS;
 
-    for (auto& [name, data] : m_MaterialData) {
+    for (auto& data : m_MaterialData | std::views::values) {
         axrResult = writeDescriptorSets(platformType, viewCount, data);
 
         if (AXR_FAILED(axrResult)) {
-            break;
+            continue;
         }
-    }
-
-    // TODO: We probably don't need to reset everything if 1 fails.
-    //  This will be a big task but we should go through everything and check if it should reset everything if 1 thing fails too.
-    if (AXR_FAILED(axrResult)) {
-        resetAllDescriptorSets(platformType);
-        return axrResult;
     }
 
     return AXR_SUCCESS;
 }
 
 void AxrVulkanSceneData::resetAllDescriptorSets(const AxrPlatformType platformType) {
-    for (auto& [name, data] : m_MaterialData) {
+    for (auto& data : m_MaterialData | std::views::values) {
         resetDescriptorSets(platformType, data);
     }
 }
@@ -2017,8 +1834,6 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
         }
     }
 
-    // TODO: We probably don't need to reset everything if 1 fails.
-    //  This will be a big task but we should go through everything and check if it should reset everything if 1 thing fails too.
     if (AXR_FAILED(axrResult)) {
         resetDescriptorSets(platformType, materialData);
         return axrResult;
@@ -2076,15 +1891,10 @@ AxrResult AxrVulkanSceneData::createAllMaterialsForRendering() {
     for (const auto [entity, transformComponent, modelComponent] :
          m_EcsRegistryHandle->view<AxrTransformComponent, AxrModelComponent>().each()) {
         axrResult = addMaterialForRendering(transformComponent, modelComponent);
-        if (AXR_FAILED(axrResult)) {
-            break;
-        }
-    }
 
-    if (AXR_FAILED(axrResult)) {
-        axrLogErrorLocation("Failed to create materials for rendering.");
-        destroyAllMaterialLayoutData();
-        return axrResult;
+        if (AXR_FAILED(axrResult)) {
+            continue;
+        }
     }
 
     return AXR_SUCCESS;
@@ -2211,7 +2021,9 @@ void AxrVulkanSceneData::onNewRenderableEntityCallback(entt::registry& registry,
         return;
     }
 
-    AXR_FAILED(addMaterialForRendering(*transformComponent, *modelComponent));
+    if (AXR_FAILED(addMaterialForRendering(*transformComponent, *modelComponent))) {
+        return;
+    };
 }
 
 AxrVulkanSceneData::MaterialForRendering* AxrVulkanSceneData::findMaterialForRendering(

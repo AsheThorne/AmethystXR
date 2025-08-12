@@ -800,24 +800,21 @@ AxrResult AxrAssetCollection::loadAssets() {
     for (auto& [shaderName, shader] : m_Shaders) {
         const AxrResult axrResult = shader.loadFile();
         if (AXR_FAILED(axrResult)) {
-            unloadAssets();
-            return axrResult;
+            continue;
         }
     }
 
     for (auto& [modelName, model] : m_Models) {
         const AxrResult axrResult = model.loadFile();
         if (AXR_FAILED(axrResult)) {
-            unloadAssets();
-            return axrResult;
+            continue;
         }
     }
 
     for (auto& [imageName, image] : m_Images) {
         const AxrResult axrResult = image.loadFile();
         if (AXR_FAILED(axrResult)) {
-            unloadAssets();
-            return axrResult;
+            continue;
         }
     }
 

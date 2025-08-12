@@ -42,6 +42,7 @@ AxrVulkanUniformBufferData::AxrVulkanUniformBufferData(const Config& config):
 
 AxrVulkanUniformBufferData::AxrVulkanUniformBufferData(AxrVulkanUniformBufferData&& src) noexcept {
     m_Name = std::move(src.m_Name);
+    m_UniformBuffers = std::move(src.m_UniformBuffers);
 
     m_UniformBufferHandle = src.m_UniformBufferHandle;
     m_UniformBufferEngineAsset = src.m_UniformBufferEngineAsset;
@@ -71,6 +72,7 @@ AxrVulkanUniformBufferData& AxrVulkanUniformBufferData::operator=(AxrVulkanUnifo
         cleanup();
 
         m_Name = std::move(src.m_Name);
+        m_UniformBuffers = std::move(src.m_UniformBuffers);
 
         m_UniformBufferHandle = src.m_UniformBufferHandle;
         m_UniformBufferEngineAsset = src.m_UniformBufferEngineAsset;

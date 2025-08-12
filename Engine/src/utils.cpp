@@ -58,7 +58,7 @@ std::wstring axrToWString(const std::string& string) {
 
     if (error != 0) {
         axrLogErrorLocation("mbstowcs_s() failed for string: {0}", string.c_str());
-        return L"";
+        return {};
     }
 
     return convertedChars;
