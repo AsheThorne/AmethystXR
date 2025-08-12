@@ -1587,11 +1587,11 @@ void AxrVulkanSceneData::onMaterialCreatedCallback(const AxrMaterialConst_T mate
             m_LoadWindowDataConfig.RenderPass,
             m_LoadWindowDataConfig.MsaaSampleCount
         );
-    }
 
-    if (AXR_FAILED(axrResult)) {
-        materialData.destroyWindowData();
-        // Don't return. One platform may error but the other might still be ok.
+        if (AXR_FAILED(axrResult)) {
+            materialData.destroyWindowData();
+            // Don't return. One platform may error but the other might still be ok.
+        }
     }
 
     if (isPlatformLoaded(AXR_PLATFORM_TYPE_XR_DEVICE)) {
@@ -1600,11 +1600,11 @@ void AxrVulkanSceneData::onMaterialCreatedCallback(const AxrMaterialConst_T mate
             m_LoadXrSessionDataConfig.MsaaSampleCount,
             m_LoadXrSessionDataConfig.ViewCount
         );
-    }
 
-    if (AXR_FAILED(axrResult)) {
-        materialData.destroyXrSessionData();
-        // Don't return. One platform may error but the other might still be ok.
+        if (AXR_FAILED(axrResult)) {
+            materialData.destroyXrSessionData();
+            // Don't return. One platform may error but the other might still be ok.
+        }
     }
 
     auto [insertData, insertSucceeded] = m_MaterialData.insert(
@@ -1618,7 +1618,27 @@ void AxrVulkanSceneData::onMaterialCreatedCallback(const AxrMaterialConst_T mate
         return;
     }
 
-    // TODO: I think we need to write the new descriptor sets too
+    if (isPlatformLoaded(AXR_PLATFORM_TYPE_WINDOW)) {
+        axrResult = writeDescriptorSets(AXR_PLATFORM_TYPE_WINDOW, 1, insertData->second);
+
+        if (AXR_FAILED(axrResult)) {
+            resetDescriptorSets(AXR_PLATFORM_TYPE_WINDOW, insertData->second);
+            // Don't return. One platform may error but the other might still be ok.
+        }
+    }
+
+    if (isPlatformLoaded(AXR_PLATFORM_TYPE_XR_DEVICE)) {
+        axrResult = writeDescriptorSets(
+            AXR_PLATFORM_TYPE_XR_DEVICE,
+            m_LoadXrSessionDataConfig.ViewCount,
+            insertData->second
+        );
+
+        if (AXR_FAILED(axrResult)) {
+            resetDescriptorSets(AXR_PLATFORM_TYPE_XR_DEVICE, insertData->second);
+            // Don't return. One platform may error but the other might still be ok.
+        }
+    }
 }
 
 AxrResult AxrVulkanSceneData::writeAllDescriptorSets(const AxrPlatformType platformType, const uint32_t viewCount) {
