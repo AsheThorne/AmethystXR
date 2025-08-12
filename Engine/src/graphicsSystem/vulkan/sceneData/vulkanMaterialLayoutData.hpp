@@ -84,6 +84,12 @@ public:
     /// Get the descriptor set item locations
     /// @returns The descriptor set item locations
     [[nodiscard]] const std::vector<vk::DescriptorSetLayoutBinding>& getDescriptorSetLayoutBindings() const;
+    /// Get the vertex shader handle
+    /// @returns The vertex shader handle
+    [[nodiscard]] const AxrShader* getVertexShaderHandle() const;
+    /// Get the fragment shader handle
+    /// @returns The fragment shader handle
+    [[nodiscard]] const AxrShader* getFragmentShaderHandle() const;
 
     /// Check if the data exists
     /// @returns True if the data exists

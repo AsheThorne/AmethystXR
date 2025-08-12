@@ -1422,24 +1422,6 @@ AxrResult AxrVulkanSceneData::initializeMaterialData(
     const AxrMaterial& material,
     AxrVulkanMaterialData& materialData
 ) const {
-    const AxrShader* foundVertexShader = findShader_shared(material.getVertexShaderName());
-    if (foundVertexShader == nullptr) {
-        axrLogErrorLocation(
-            "Failed to find vertex shader named: {0}.",
-            material.getVertexShaderName()
-        );
-        return AXR_ERROR;
-    }
-
-    const AxrShader* foundFragmentShader = findShader_shared(material.getFragmentShaderName());
-    if (foundFragmentShader == nullptr) {
-        axrLogErrorLocation(
-            "Failed to find fragment shader named: {0}.",
-            material.getFragmentShaderName()
-        );
-        return AXR_ERROR;
-    }
-
     const AxrVulkanMaterialLayoutData* foundMaterialLayoutData = findMaterialLayoutData(
         material.getMaterialLayoutName()
     );
@@ -1452,9 +1434,6 @@ AxrResult AxrVulkanSceneData::initializeMaterialData(
     }
 
     const AxrVulkanMaterialData::Config materialDataConfig{
-        // TODO: We can probably remove vertex and fragment shader handles from here. They're in the material layout
-        .VertexShaderHandle = foundVertexShader,
-        .FragmentShaderHandle = foundFragmentShader,
         .MaterialHandle = &material,
         .MaterialLayoutData = foundMaterialLayoutData,
         .MaxFramesInFlight = m_MaxFramesInFlight,

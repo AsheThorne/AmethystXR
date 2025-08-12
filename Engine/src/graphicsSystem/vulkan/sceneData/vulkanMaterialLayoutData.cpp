@@ -108,6 +108,14 @@ const std::vector<vk::DescriptorSetLayoutBinding>& AxrVulkanMaterialLayoutData::
     return m_DescriptorSetLayoutBindings;
 }
 
+const AxrShader* AxrVulkanMaterialLayoutData::getVertexShaderHandle() const {
+    return m_VertexShaderHandle;
+}
+
+const AxrShader* AxrVulkanMaterialLayoutData::getFragmentShaderHandle() const {
+    return m_FragmentShaderHandle;
+}
+
 bool AxrVulkanMaterialLayoutData::doesDataExist() const {
     return !m_DescriptorSetLayoutBindings.empty() ||
         m_DescriptorSetLayout != VK_NULL_HANDLE ||

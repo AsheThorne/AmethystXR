@@ -26,8 +26,6 @@ public:
 
     /// Material data config
     struct Config {
-        const AxrShader* VertexShaderHandle;
-        const AxrShader* FragmentShaderHandle;
         const AxrMaterial* MaterialHandle;
         const AxrVulkanMaterialLayoutData* MaterialLayoutData;
         uint32_t MaxFramesInFlight;
@@ -143,8 +141,6 @@ private:
     // ----------------------------------------- //
 
     // ---- Config Variables ----
-    const AxrShader* m_VertexShaderHandle;
-    const AxrShader* m_FragmentShaderHandle;
     const AxrMaterial* m_MaterialHandle;
     const AxrVulkanMaterialLayoutData* m_MaterialLayoutData;
     uint32_t m_MaxFramesInFlight;

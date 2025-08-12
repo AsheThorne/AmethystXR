@@ -20,8 +20,6 @@
 // ---- Special Functions ----
 
 AxrVulkanMaterialData::AxrVulkanMaterialData():
-    m_VertexShaderHandle(nullptr),
-    m_FragmentShaderHandle(nullptr),
     m_MaterialHandle(nullptr),
     m_MaterialLayoutData(nullptr),
     m_MaxFramesInFlight(0),
@@ -34,8 +32,6 @@ AxrVulkanMaterialData::AxrVulkanMaterialData():
 }
 
 AxrVulkanMaterialData::AxrVulkanMaterialData(const Config& config):
-    m_VertexShaderHandle(config.VertexShaderHandle),
-    m_FragmentShaderHandle(config.FragmentShaderHandle),
     m_MaterialHandle(config.MaterialHandle),
     m_MaterialLayoutData(config.MaterialLayoutData),
     m_MaxFramesInFlight(config.MaxFramesInFlight),
@@ -51,8 +47,6 @@ AxrVulkanMaterialData::AxrVulkanMaterialData(AxrVulkanMaterialData&& src) noexce
     m_WindowDescriptorSets = std::move(src.m_WindowDescriptorSets);
     m_XrSessionDescriptorSets = std::move(src.m_XrSessionDescriptorSets);
 
-    m_VertexShaderHandle = src.m_VertexShaderHandle;
-    m_FragmentShaderHandle = src.m_FragmentShaderHandle;
     m_MaterialHandle = src.m_MaterialHandle;
     m_MaterialLayoutData = src.m_MaterialLayoutData;
     m_MaxFramesInFlight = src.m_MaxFramesInFlight;
@@ -63,8 +57,6 @@ AxrVulkanMaterialData::AxrVulkanMaterialData(AxrVulkanMaterialData&& src) noexce
     m_XrSessionPipeline = src.m_XrSessionPipeline;
     m_XrSessionDescriptorPool = src.m_XrSessionDescriptorPool;
 
-    src.m_VertexShaderHandle = nullptr;
-    src.m_FragmentShaderHandle = nullptr;
     src.m_MaterialHandle = nullptr;
     src.m_MaterialLayoutData = nullptr;
     src.m_MaxFramesInFlight = 0;
@@ -86,8 +78,6 @@ AxrVulkanMaterialData& AxrVulkanMaterialData::operator=(AxrVulkanMaterialData&& 
         m_WindowDescriptorSets = std::move(src.m_WindowDescriptorSets);
         m_XrSessionDescriptorSets = std::move(src.m_XrSessionDescriptorSets);
 
-        m_VertexShaderHandle = src.m_VertexShaderHandle;
-        m_FragmentShaderHandle = src.m_FragmentShaderHandle;
         m_MaterialHandle = src.m_MaterialHandle;
         m_MaterialLayoutData = src.m_MaterialLayoutData;
         m_MaxFramesInFlight = src.m_MaxFramesInFlight;
@@ -98,8 +88,6 @@ AxrVulkanMaterialData& AxrVulkanMaterialData::operator=(AxrVulkanMaterialData&& 
         m_XrSessionPipeline = src.m_XrSessionPipeline;
         m_XrSessionDescriptorPool = src.m_XrSessionDescriptorPool;
 
-        src.m_VertexShaderHandle = nullptr;
-        src.m_FragmentShaderHandle = nullptr;
         src.m_MaterialHandle = nullptr;
         src.m_MaterialLayoutData = nullptr;
         src.m_MaxFramesInFlight = 0;
@@ -319,8 +307,6 @@ void AxrVulkanMaterialData::cleanup() {
     destroyXrSessionData();
     destroyData();
 
-    m_VertexShaderHandle = nullptr;
-    m_FragmentShaderHandle = nullptr;
     m_MaterialHandle = nullptr;
     m_MaterialLayoutData = nullptr;
     m_MaxFramesInFlight = 0;
@@ -351,12 +337,19 @@ AxrResult AxrVulkanMaterialData::createDescriptorPool(
         return AXR_ERROR;
     }
 
-    if (m_VertexShaderHandle == nullptr) {
+    if (m_MaterialLayoutData == nullptr) {
+        axrLogError("Material layout data is null.");
+        return AXR_ERROR;
+    }
+
+    const AxrShader* vertexShaderHandle = m_MaterialLayoutData->getVertexShaderHandle();
+    if (vertexShaderHandle == nullptr) {
         axrLogErrorLocation("Vertex shader handle is null.");
         return AXR_ERROR;
     }
 
-    if (m_FragmentShaderHandle == nullptr) {
+    const AxrShader* fragmentShaderHandle = m_MaterialLayoutData->getFragmentShaderHandle();
+    if (fragmentShaderHandle == nullptr) {
         axrLogErrorLocation("Fragment shader handle is null.");
         return AXR_ERROR;
     }
@@ -365,13 +358,13 @@ AxrResult AxrVulkanMaterialData::createDescriptorPool(
     // Process
     // ----------------------------------------- //
 
-    uint32_t uniformBufferLayoutCount = static_cast<uint32_t>(
-        m_VertexShaderHandle->getProperties().getUniformBufferLayouts().size() +
-        m_FragmentShaderHandle->getProperties().getUniformBufferLayouts().size()
+    const uint32_t uniformBufferLayoutCount = static_cast<uint32_t>(
+        vertexShaderHandle->getProperties().getUniformBufferLayouts().size() +
+        fragmentShaderHandle->getProperties().getUniformBufferLayouts().size()
     );
-    uint32_t imageSamplerBufferLayoutCount = static_cast<uint32_t>(
-        m_VertexShaderHandle->getProperties().getImageSamplerBufferLayouts().size() +
-        m_FragmentShaderHandle->getProperties().getImageSamplerBufferLayouts().size()
+    const uint32_t imageSamplerBufferLayoutCount = static_cast<uint32_t>(
+        vertexShaderHandle->getProperties().getImageSamplerBufferLayouts().size() +
+        fragmentShaderHandle->getProperties().getImageSamplerBufferLayouts().size()
     );
 
     std::vector<vk::DescriptorPoolSize> poolSizes;
@@ -518,7 +511,12 @@ AxrResult AxrVulkanMaterialData::createPipeline(
         return AXR_ERROR;
     }
 
-    if (m_MaterialLayoutData == nullptr || m_MaterialLayoutData->getPipelineLayout() == VK_NULL_HANDLE) {
+    if (m_MaterialLayoutData == nullptr) {
+        axrLogErrorLocation("Material layout data is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_MaterialLayoutData->getPipelineLayout() == VK_NULL_HANDLE) {
         axrLogErrorLocation("Pipeline layout is null.");
         return AXR_ERROR;
     }
@@ -533,12 +531,14 @@ AxrResult AxrVulkanMaterialData::createPipeline(
         return AXR_ERROR;
     }
 
-    if (m_VertexShaderHandle == nullptr) {
+    const AxrShader* vertexShaderHandle = m_MaterialLayoutData->getVertexShaderHandle();
+    if (vertexShaderHandle == nullptr) {
         axrLogErrorLocation("Vertex shader handle is null.");
         return AXR_ERROR;
     }
 
-    if (m_FragmentShaderHandle == nullptr) {
+    const AxrShader* fragmentShaderHandle = m_MaterialLayoutData->getFragmentShaderHandle();
+    if (fragmentShaderHandle == nullptr) {
         axrLogErrorLocation("Fragment shader handle is null.");
         return AXR_ERROR;
     }
@@ -559,15 +559,15 @@ AxrResult AxrVulkanMaterialData::createPipeline(
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStageCreateInfos(2);
     std::vector<vk::ShaderModule> shaderModules(2);
 
-    if (!m_VertexShaderHandle->isLoaded()) {
-        axrResult = m_VertexShaderHandle->loadFile();
+    if (!vertexShaderHandle->isLoaded()) {
+        axrResult = vertexShaderHandle->loadFile();
         if (AXR_FAILED(axrResult)) {
             cleanupPipelineCreationData(shaderModules);
             return axrResult;
         }
     }
 
-    axrResult = createShaderModule(m_VertexShaderHandle->getFileData(), shaderModules[0]);
+    axrResult = createShaderModule(vertexShaderHandle->getFileData(), shaderModules[0]);
     if (AXR_FAILED(axrResult)) {
         cleanupPipelineCreationData(shaderModules);
         return axrResult;
@@ -580,15 +580,15 @@ AxrResult AxrVulkanMaterialData::createPipeline(
         "main"
     );
 
-    if (!m_FragmentShaderHandle->isLoaded()) {
-        axrResult = m_FragmentShaderHandle->loadFile();
+    if (!fragmentShaderHandle->isLoaded()) {
+        axrResult = fragmentShaderHandle->loadFile();
         if (AXR_FAILED(axrResult)) {
             cleanupPipelineCreationData(shaderModules);
             return axrResult;
         }
     }
 
-    axrResult = createShaderModule(m_FragmentShaderHandle->getFileData(), shaderModules[1]);
+    axrResult = createShaderModule(fragmentShaderHandle->getFileData(), shaderModules[1]);
     if (AXR_FAILED(axrResult)) {
         cleanupPipelineCreationData(shaderModules);
         return axrResult;
@@ -603,7 +603,7 @@ AxrResult AxrVulkanMaterialData::createPipeline(
 
     // ---- Vertex Input State ----
 
-    std::vector<AxrShaderVertexAttribute> vertexAttributes = m_VertexShaderHandle->getProperties().
+    std::vector<AxrShaderVertexAttribute> vertexAttributes = vertexShaderHandle->getProperties().
         getVertexAttributes();
 
     vk::VertexInputBindingDescription vertexBindingDescription(
