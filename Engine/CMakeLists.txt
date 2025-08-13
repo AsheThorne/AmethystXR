@@ -247,6 +247,7 @@ target_include_directories(AXR_Engine
     ${STB_DIRECTORY}/include
     ${TINY_GLTF_DIRECTORY}/include
     ${JSON_DIRECTORY}/include
+    ${CLAY_DIRECTORY}/include
 )
 
 if (VULKAN_HPP_DIRECTORY)
