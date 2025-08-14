@@ -294,6 +294,10 @@ XrEnvironmentBlendMode AxrXrSystem::getEnvironmentBlendMode() const {
     return m_EnvironmentBlendMode;
 }
 
+XrViewConfigurationType AxrXrSystem::getViewConfigurationType() const {
+    return m_ViewConfigurationType;
+}
+
 std::vector<XrViewConfigurationView> AxrXrSystem::getViewConfigurations() const {
     return m_ViewConfigurations;
 }

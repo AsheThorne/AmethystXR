@@ -62,6 +62,8 @@ public:
         std::vector<AxrVulkanImage> SwapchainDepthImages;
         std::vector<AxrVulkanImage> SwapchainMsaaImages;
         std::vector<vk::Framebuffer> SwapchainFramebuffers;
+        XrFovf CachedFov;
+        float WidthOverlap;
     };
 
     // Render data for each frame
@@ -289,6 +291,7 @@ private:
     std::vector<View> m_Views;
     uint32_t m_CurrentFrame;
     vk::SampleCountFlagBits m_MsaaSampleCount;
+    vk::Extent2D m_ViewableRegionExtent;
     Clay_Context* m_ClayContext;
     Clay_Arena m_ClayArena;
 
@@ -308,6 +311,10 @@ private:
     [[nodiscard]] AxrResult setupXrSessionGraphics();
     /// Reset the setupXrSessionGraphics() function 
     void resetSetupXrSessionGraphics();
+
+    /// Set the viewable region extent
+    /// @param xrViews Xr views to use
+    void setViewableRegionExtent(const std::vector<XrView>& xrViews);
 
     // ---- Swapchain ----
 

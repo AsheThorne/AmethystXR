@@ -51,3 +51,12 @@ const char* axrGetXrExtensionName(AxrXrExtensionTypeEnum extensionType);
 /// @param referenceSpace The AxrXrReferenceSpaceEnum
 /// @returns The AxrXrReferenceSpaceEnum as an XrReferenceSpaceType
 XrReferenceSpaceType axrToReferenceSpace(AxrXrReferenceSpaceEnum referenceSpace);
+
+// ---- Fov ----
+
+constexpr bool operator==(const XrFovf& first, const XrFovf& second) noexcept {
+    return first.angleLeft == second.angleLeft &&
+        first.angleRight == second.angleRight &&
+        first.angleUp == second.angleUp &&
+        first.angleDown == second.angleDown;
+}

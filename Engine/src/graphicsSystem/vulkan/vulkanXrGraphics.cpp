@@ -29,6 +29,7 @@ AxrVulkanXrGraphics::AxrVulkanXrGraphics(const Config& config):
     m_RenderPass(VK_NULL_HANDLE),
     m_CurrentFrame(0),
     m_MsaaSampleCount(vk::SampleCountFlagBits::e1),
+    m_ViewableRegionExtent(vk::Extent2D(0, 0)),
     m_ClayContext(nullptr),
     m_ClayArena(),
     m_FrameRenderData() {
@@ -108,13 +109,7 @@ AxrResult AxrVulkanXrGraphics::setup(const SetupConfig& config) {
     m_GraphicsCommandPool = config.GraphicsCommandPool;
     m_QueueFamilies = config.QueueFamilies;
 
-    AxrResult axrResult = setupClay();
-    if (AXR_FAILED(axrResult)) {
-        resetSetup();
-        return axrResult;
-    }
-
-    axrResult = setSwapchainFormatOptions(
+    const AxrResult axrResult = setSwapchainFormatOptions(
         config.PhysicalDevice,
         config.SwapchainColorFormatOptions,
         config.SwapchainDepthFormatOptions
@@ -138,7 +133,6 @@ void AxrVulkanXrGraphics::resetSetup() {
     m_XrSystem.OnXrSessionStateChangedCallbackGraphics.reset();
     resetXrGraphicsBinding();
     resetSwapchainFormatOptions();
-    resetSetupClay();
 
     m_Instance = VK_NULL_HANDLE;
     m_PhysicalDevice = VK_NULL_HANDLE;
@@ -205,6 +199,8 @@ AxrResult AxrVulkanXrGraphics::beginRendering(const AxrVulkanSceneData* sceneDat
         endRendering();
         return axrResult;
     }
+
+    setViewableRegionExtent(xrViews);
 
     m_FrameRenderData.CompositionLayerViews.resize(xrViews.size());
     for (size_t i = 0; i < m_FrameRenderData.CompositionLayerViews.size(); ++i) {
@@ -476,6 +472,12 @@ AxrResult AxrVulkanXrGraphics::setupXrSessionGraphics() {
         return axrResult;
     }
 
+    axrResult = setupClay();
+    if (AXR_FAILED(axrResult)) {
+        resetSetupXrSessionGraphics();
+        return axrResult;
+    }
+
     axrResult = m_LoadedScenes.setupXrSessionData(
         m_RenderPass,
         m_MsaaSampleCount,
@@ -494,10 +496,76 @@ void AxrVulkanXrGraphics::resetSetupXrSessionGraphics() {
     m_IsReady = false;
 
     m_LoadedScenes.resetSetupXrSessionData();
+    resetSetupClay();
     resetSetupAllViews();
     destroyRenderPass();
     resetMsaaSampleCount();
     resetSwapchainFormats();
+}
+
+void AxrVulkanXrGraphics::setViewableRegionExtent(const std::vector<XrView>& xrViews) {
+    switch (m_XrSystem.getViewConfigurationType()) {
+        case XR_VIEW_CONFIGURATION_TYPE_PRIMARY_MONO: {
+            if (xrViews.size() != 1 || m_Views.size() != 1) {
+                axrLogErrorLocation("Views aren't a size of 1.");
+                break;
+            }
+
+            // Viewable region won't change so we only need to set it if it doesn't already have a value
+            if (m_ViewableRegionExtent != vk::Extent2D(0, 0)) break;
+
+            // We don't use this, but we'll still set it anyway for completeness.
+            m_Views[0].WidthOverlap = m_Views[0].SwapchainExtent.width;
+
+            m_ViewableRegionExtent = vk::Extent2D(
+                m_Views[0].SwapchainExtent.width,
+                m_Views[0].SwapchainExtent.height
+            );
+
+            // We don't use this, but we'll still set it anyway for completeness.
+            m_Views[0].CachedFov = xrViews[0].fov;
+            break;
+        }
+        case XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO: {
+            if (xrViews.size() != 2 || m_Views.size() != 2) {
+                axrLogErrorLocation("Views aren't a size of 2.");
+                break;
+            }
+
+            // Only update if the values have changed
+            if (m_Views[0].CachedFov == xrViews[0].fov && m_Views[1].CachedFov == xrViews[1].fov) break;
+
+            const float leftEyeFov = std::abs(xrViews[0].fov.angleLeft) + std::abs(xrViews[0].fov.angleRight);
+            const float rightEyeFov = std::abs(xrViews[1].fov.angleLeft) + std::abs(xrViews[1].fov.angleRight);
+            const float stereoFov = std::abs(xrViews[0].fov.angleLeft) + std::abs(xrViews[1].fov.angleRight);
+            const float overlapAngle = (leftEyeFov + rightEyeFov) - stereoFov;
+
+            const float pixelsPerRadianLeft = m_Views[0].SwapchainExtent.width / leftEyeFov;
+            const float pixelsPerRadianRight = m_Views[1].SwapchainExtent.width / rightEyeFov;
+            const float overlapPixelsLeft = overlapAngle / 2 * pixelsPerRadianLeft;
+            const float overlapPixelsRight = overlapAngle / 2 * pixelsPerRadianRight;
+            const float combinedStereoWidth = m_Views[0].SwapchainExtent.width + m_Views[1].SwapchainExtent.width - (
+                overlapPixelsLeft + overlapPixelsRight);
+
+            m_Views[0].WidthOverlap = overlapPixelsLeft;
+            m_Views[1].WidthOverlap = overlapPixelsRight;
+            m_ViewableRegionExtent = vk::Extent2D(
+                std::ceil(combinedStereoWidth),
+                m_Views[0].SwapchainExtent.height
+            );
+
+            m_Views[0].CachedFov = xrViews[0].fov;
+            m_Views[1].CachedFov = xrViews[1].fov;
+            break;
+        }
+        case XR_VIEW_CONFIGURATION_TYPE_PRIMARY_QUAD_VARJO:
+        case XR_VIEW_CONFIGURATION_TYPE_SECONDARY_MONO_FIRST_PERSON_OBSERVER_MSFT:
+        case XR_VIEW_CONFIGURATION_TYPE_MAX_ENUM:
+        default: {
+            axrLogError("Unsupported view configuration type.");
+            break;
+        }
+    }
 }
 
 AxrResult AxrVulkanXrGraphics::setSwapchainFormatOptions(
@@ -1248,11 +1316,18 @@ AxrResult AxrVulkanXrGraphics::setupClay() {
     const uint64_t totalMemorySize = Clay_MinMemorySize();
     m_ClayArena = Clay_CreateArenaWithCapacityAndMemory(totalMemorySize, malloc(totalMemorySize));
 
+    // We don't account for the view overlaps here, but this is good enough for initialization.
+    float width = 0;
+    float height = 0;
+    if (!m_Views.empty()) {
+        width = m_Views[0].SwapchainExtent.width;
+        height = m_Views[0].SwapchainExtent.height;
+    }
+
     m_ClayContext = Clay_Initialize(
         m_ClayArena,
         Clay_Dimensions{
-            // TODO: Get the proper width and height
-            .width = 600, .height = 400
+            .width = width, .height = height
         },
         Clay_ErrorHandler{
             // ReSharper disable once CppPassValueParameterByConstReference

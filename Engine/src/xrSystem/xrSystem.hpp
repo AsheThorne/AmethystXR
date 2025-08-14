@@ -146,6 +146,9 @@ public:
     /// @returns The environment blend mode
     [[nodiscard]] XrEnvironmentBlendMode getEnvironmentBlendMode() const;
 
+    /// Get the view configuration type
+    /// @returns The view configuration type
+    [[nodiscard]] XrViewConfigurationType getViewConfigurationType() const;
     /// Get the xr views
     /// @returns The xr views
     [[nodiscard]] std::vector<XrViewConfigurationView> getViewConfigurations() const;

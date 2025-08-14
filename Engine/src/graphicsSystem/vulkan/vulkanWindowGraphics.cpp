@@ -154,13 +154,7 @@ AxrResult AxrVulkanWindowGraphics::setup(const SetupConfig& config) {
     m_GraphicsCommandPool = config.GraphicsCommandPool;
     m_QueueFamilies = config.QueueFamilies;
 
-    AxrResult axrResult = setupClay();
-    if (AXR_FAILED(axrResult)) {
-        resetSetup();
-        return axrResult;
-    }
-
-    axrResult = setSwapchainFormatOptions(
+    const AxrResult axrResult = setSwapchainFormatOptions(
         config.PhysicalDevice,
         config.SwapchainColorFormatOptions,
         config.SwapchainDepthFormatOptions
@@ -181,7 +175,6 @@ void AxrVulkanWindowGraphics::resetSetup() {
 
     m_WindowSystem.OnWindowOpenStateChangedCallbackGraphics.reset();
     resetSwapchainFormatOptions();
-    resetSetupClay();
 
     m_Instance = VK_NULL_HANDLE;
     m_PhysicalDevice = VK_NULL_HANDLE;
@@ -468,6 +461,12 @@ AxrResult AxrVulkanWindowGraphics::setupWindowGraphics() {
         return axrResult;
     }
 
+    axrResult = setupClay();
+    if (AXR_FAILED(axrResult)) {
+        resetSetupWindowGraphics();
+        return axrResult;
+    }
+
     axrResult = m_LoadedScenes.setupWindowData(m_RenderPass, m_MsaaSampleCount);
     if (AXR_FAILED(axrResult)) {
         resetSetupWindowGraphics();
@@ -486,6 +485,7 @@ void AxrVulkanWindowGraphics::resetSetupWindowGraphics() {
     m_WindowSystem.OnWindowResizedCallbackGraphics.reset();
 
     m_LoadedScenes.resetSetupWindowData();
+    resetSetupClay();
     resetSetupSwapchain();
     destroyCommandBuffers();
     destroySyncObjects();
@@ -668,6 +668,7 @@ AxrResult AxrVulkanWindowGraphics::recreateSwapchain() {
         return AXR_ERROR;
     }
 
+    resetSetupClay();
     resetSetupSwapchain();
 
     const auto surfaceDetails = AxrVulkanSurfaceDetails(m_PhysicalDevice, m_Surface, m_Dispatch);
@@ -678,6 +679,12 @@ AxrResult AxrVulkanWindowGraphics::recreateSwapchain() {
     axrResult = setupSwapchain(surfaceDetails);
     if (AXR_FAILED(axrResult)) {
         axrLogErrorLocation("Failed to setup swapchain.");
+        return axrResult;
+    }
+
+    axrResult = setupClay();
+    if (AXR_FAILED(axrResult)) {
+        resetSetupWindowGraphics();
         return axrResult;
     }
 
@@ -1429,8 +1436,8 @@ AxrResult AxrVulkanWindowGraphics::setupClay() {
     m_ClayContext = Clay_Initialize(
         m_ClayArena,
         Clay_Dimensions{
-            // TODO: Get the proper width and height
-            .width = 600, .height = 400
+            .width = static_cast<float>(m_SwapchainExtent.width),
+            .height = static_cast<float>(m_SwapchainExtent.height)
         },
         Clay_ErrorHandler{
             // ReSharper disable once CppPassValueParameterByConstReference
