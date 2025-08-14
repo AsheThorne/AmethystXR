@@ -116,10 +116,10 @@ public:
     /// Begin rendering
     /// @param sceneData Active scene data
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult beginRendering(const AxrVulkanSceneData* sceneData);
+    [[nodiscard]] AxrResult beginRendering(const AxrVulkanSceneData* sceneData) const;
     /// End rendering
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult endRendering();
+    [[nodiscard]] AxrResult endRendering() const;
     /// Get the number of views
     /// @returns The number of views
     [[nodiscard]] uint32_t getViewCount() const;
@@ -268,6 +268,8 @@ private:
     uint32_t m_CurrentFrame;
     bool m_IsSwapchainOutOfDate;
     vk::SampleCountFlagBits m_MsaaSampleCount;
+    Clay_Context* m_ClayContext;
+    Clay_Arena m_ClayArena;
 
     // ----------------------------------------- //
     // Private Functions
@@ -409,6 +411,17 @@ private:
     [[nodiscard]] AxrResult createMsaaImages();
     /// Destroy the msaa images
     void destroyMsaaImages();
+
+    // ---- Clay ----
+
+    /// Set up the clay data
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setupClay();
+    /// Reset setupClay()
+    void resetSetupClay();
+    /// Callback function to handle clay errors
+    /// @param errorData Clay error data
+    void handleClayErrors(const Clay_ErrorData& errorData) const;
 
     // ---- Callbacks ----
 

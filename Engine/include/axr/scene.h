@@ -17,6 +17,25 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
 
+// ----------------------------------------- //
+// Clay
+// ----------------------------------------- //
+#include <clay.h>
+
+// ---------------------------------------------------------------------------------- //
+//                                      Entity                                         //
+// ---------------------------------------------------------------------------------- //
+
+// ----------------------------------------- //
+// Types
+// ----------------------------------------- //
+
+//TODO: Maybe define this in the hpp includes. here, in the .h includes, it should probably be entt::entity
+/// Entity handle
+typedef entt::handle AxrEntity_T;
+/// Const Entity handle
+typedef entt::const_handle AxrEntityConst_T;
+
 // ---------------------------------------------------------------------------------- //
 //                                 Entity Components                                  //
 // ---------------------------------------------------------------------------------- //
@@ -68,17 +87,47 @@ struct AxrMirrorPoseInputActionComponent {
 };
 
 // ---------------------------------------------------------------------------------- //
-//                                      Scene                                         //
+//                                     UI Canvas                                      //
 // ---------------------------------------------------------------------------------- //
+
+// ----------------------------------------- //
+// Enums
+// ----------------------------------------- //
+
+/// UI Reference space enum
+enum AxrUIReferenceSpaceEnum {
+    AXR_UI_REFERENCE_SPACE_CAMERA = 0,
+    AXR_UI_REFERENCE_SPACE_WORLD,
+};
+
+// ----------------------------------------- //
+// Structs
+// ----------------------------------------- //
+
+/// UI Canvas Config
+struct AxrUICanvasConfig {
+    bool Enabled;
+    glm::vec3 PositionOffset;
+    AxrUIReferenceSpaceEnum PositionReferenceSpace;
+    glm::quat OrientationOffset;
+    AxrUIReferenceSpaceEnum OrientationReferenceSpace;
+    Clay_RenderCommandArray ClayRenderCommands;
+};
 
 // ----------------------------------------- //
 // Types
 // ----------------------------------------- //
 
-/// Entity handle
-typedef entt::handle AxrEntity_T;
-/// Const Entity handle
-typedef entt::const_handle AxrEntityConst_T;
+/// `Build UI Canvas` Callback function type
+typedef AxrUICanvasConfig (*AxrBuildUICanvasCallback_T)(
+    void* userData,
+    AxrPlatformType platformType,
+    Clay_Context* context
+);
+
+// ---------------------------------------------------------------------------------- //
+//                                      Scene                                         //
+// ---------------------------------------------------------------------------------- //
 
 // ----------------------------------------- //
 // Forward Declared Handles
@@ -115,4 +164,15 @@ extern "C" {
     /// @param scene The scene to use
     /// @param entity Entity with a camera component
     AXR_API void axrSceneSetMainCamera(AxrScene_T scene, AxrEntityConst_T entity);
+
+    /// Register a new `build canvas` callback function
+    /// @param scene The scene to use
+    /// @param userData User data
+    /// @param buildCanvasCallback Callback function
+    /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrSceneRegisterUICanvas(
+        AxrScene_T scene,
+        void* userData,
+        AxrBuildUICanvasCallback_T buildCanvasCallback
+    );
 }

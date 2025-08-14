@@ -153,12 +153,12 @@ AxrResult axrApplicationSetActiveScene(const AxrApplication_T app, const char* s
 
 // ---- Special Functions ----
 
-AxrApplication::AxrApplication(const AxrApplicationConfig& config) :
+AxrApplication::AxrApplication(const AxrApplicationConfig& config):
     m_ApplicationName(config.ApplicationName),
     m_ApplicationVersion(config.ApplicationVersion),
     m_GraphicsSystem(
         AxrGraphicsSystem::Config{
-            .ApplicationName = config.ApplicationName == nullptr ? "" : config.ApplicationName,
+            .ApplicationName = config.ApplicationName,
             .ApplicationVersion = config.ApplicationVersion,
             .WindowSystem = config.WindowSystemConfig == nullptr ? nullptr : &m_WindowSystem,
             .XrSystem = config.XrSystemConfig == nullptr ? nullptr : &m_XrSystem,
