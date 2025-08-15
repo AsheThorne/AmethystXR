@@ -26,6 +26,7 @@ set(AXR_SANDBOX_CPP_FILES
     ${AXR_SANDBOX_SRC_DIR}/sponzaScene.hpp
     ${AXR_SANDBOX_SRC_DIR}/alphaTestScene.cpp
     ${AXR_SANDBOX_SRC_DIR}/alphaTestScene.hpp
+    ${AXR_SANDBOX_SRC_DIR}/libraryImplementations.cpp
 )
 
 # ---------------------------------------------

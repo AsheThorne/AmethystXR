@@ -169,6 +169,9 @@ public:
     /// Get the platform type
     /// @returns the platform type
     [[nodiscard]] AxrPlatformType getPlatformType() const;
+    /// Get the clay context
+    /// @returns The clay context
+    [[nodiscard]] Clay_Context* getClayContext() const;
     /// Get the render pass
     /// @returns The render pass
     [[nodiscard]] vk::RenderPass getRenderPass() const;

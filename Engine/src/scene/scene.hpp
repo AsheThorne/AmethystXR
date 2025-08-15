@@ -13,8 +13,8 @@ public:
     // Structs
     // ----------------------------------------- //
 
-    /// UICanvas callback function data
-    struct UICallback {
+    /// Callback function data
+    struct CallbackData {
         void* UserData;
         AxrBuildUICanvasCallback_T Function;
     };
@@ -74,11 +74,11 @@ public:
     /// @param entity Entity with a camera component
     void setMainCamera(AxrEntityConst_T entity);
 
-    /// Register a new `build canvas` callback function
+    /// Set the `build ui canvas` callback function
     /// @param userData User data
     /// @param buildCanvasCallback Callback function
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult registerUICanvas(void* userData, AxrBuildUICanvasCallback_T buildCanvasCallback);
+    [[nodiscard]] AxrResult setBuildUICanvasCallback(void* userData, AxrBuildUICanvasCallback_T buildCanvasCallback);
 
     // ---- For Internal Use ----
     // These functions are only to be used internally in the AmethystXr engine.
@@ -92,9 +92,9 @@ public:
     /// @returns The main camera
     [[nodiscard]] AxrEntityConst_T getMainCamera() const;
 
-    /// Get the collection of registered UI canvases
-    /// @returns The collection of registered UI canvases
-    [[nodiscard]] const std::vector<UICallback>& getUICanvases() const;
+    /// Get the `Build UI canvas` callback data
+    /// @returns The `Build UI canvas` callback data
+    [[nodiscard]] const CallbackData& getUICanvasCallback() const;
 
 private:
     // ----------------------------------------- //
@@ -104,7 +104,7 @@ private:
     AxrAssetCollection m_AssetCollection;
     entt::registry m_Registry;
     AxrEntityConst_T m_MainCamera;
-    std::vector<UICallback> m_UICanvases;
+    CallbackData m_BuildUICanvasCallback;
 
     // ----------------------------------------- //
     // Private Functions

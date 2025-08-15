@@ -176,13 +176,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         graphicsSystemConfig,
         actionSystemConfig,
         &windowSystemConfig,
-        &xrSystemConfig
+        nullptr
     );
 
     auto app = axr::Application(appConfig);
     if (AXR_FAILED(app.setup())) return -1;
 
-    AlphaTestScene scene(app);
+    SponzaScene scene(app);
     if (AXR_FAILED(scene.setup())) return -1;
 
     if (AXR_FAILED(scene.loadScene())) return -1;

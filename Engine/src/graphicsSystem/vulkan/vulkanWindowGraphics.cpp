@@ -205,6 +205,10 @@ AxrPlatformType AxrVulkanWindowGraphics::getPlatformType() const {
     return AXR_PLATFORM_TYPE_WINDOW;
 }
 
+Clay_Context* AxrVulkanWindowGraphics::getClayContext() const {
+    return m_ClayContext;
+}
+
 vk::RenderPass AxrVulkanWindowGraphics::getRenderPass() const {
     return m_RenderPass;
 }

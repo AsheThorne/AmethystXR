@@ -1340,10 +1340,22 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
 ) const {
     const AxrVulkanRenderCommands renderCommands(renderTarget, m_PhysicalDevice, m_Device, m_Dispatch);
 
+    const AxrScene_T scene = m_LoadedScenes.getActiveScene();
     AxrVulkanSceneData* sceneData = m_LoadedScenes.getActiveSceneData();
-    if (sceneData == nullptr) {
+    if (sceneData == nullptr || scene == nullptr) {
         // Nothing to render
         return AXR_SUCCESS;
+    }
+
+    AxrUICanvasConfig uiCanvasConfig{};
+    Clay_Context* clayContext = renderCommands.getClayContext();
+    const AxrScene::CallbackData& canvasCallbackData = scene->getUICanvasCallback();
+    if (clayContext != nullptr && canvasCallbackData.Function != nullptr) {
+        uiCanvasConfig = canvasCallbackData.Function(
+            canvasCallbackData.UserData,
+            renderCommands.getPlatformType(),
+            clayContext
+        );
     }
 
     AxrResult axrResult = AXR_SUCCESS;
@@ -1461,6 +1473,10 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
 
         // TODO: Advanced transparency with Weighted Blended OIT
 
+        if (uiCanvasConfig.Enabled) {
+            renderClayUI(renderCommands, clayContext, uiCanvasConfig);
+        }
+
         renderCommands.endRenderPass(viewIndex);
 
         axrResult = renderCommands.endCommandBuffer(viewIndex);
@@ -1478,6 +1494,36 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
     if (AXR_FAILED(axrResult)) return axrResult;
 
     return AXR_SUCCESS;
+}
+
+template <typename RenderTarget>
+void AxrVulkanGraphicsSystem::renderClayUI(
+    const AxrVulkanRenderCommands<RenderTarget>& renderCommands,
+    Clay_Context* clayContext,
+    const AxrUICanvasConfig& uiCanvasConfig
+) const {
+    for (int32_t i = 0; i < uiCanvasConfig.ClayRenderCommands.length; ++i) {
+        const Clay_RenderCommand clayRenderCommand = uiCanvasConfig.ClayRenderCommands.internalArray[i];
+        // TODO...
+        switch (clayRenderCommand.commandType) {
+            case CLAY_RENDER_COMMAND_TYPE_NONE:
+                break;
+            case CLAY_RENDER_COMMAND_TYPE_RECTANGLE:
+                break;
+            case CLAY_RENDER_COMMAND_TYPE_BORDER:
+                break;
+            case CLAY_RENDER_COMMAND_TYPE_TEXT:
+                break;
+            case CLAY_RENDER_COMMAND_TYPE_IMAGE:
+                break;
+            case CLAY_RENDER_COMMAND_TYPE_SCISSOR_START:
+                break;
+            case CLAY_RENDER_COMMAND_TYPE_SCISSOR_END:
+                break;
+            case CLAY_RENDER_COMMAND_TYPE_CUSTOM:
+                break;
+        }
+    }
 }
 
 AxrResult AxrVulkanGraphicsSystem::blitToWindowFromXrDevice() const {

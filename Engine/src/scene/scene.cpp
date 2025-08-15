@@ -53,7 +53,7 @@ void axrSceneSetMainCamera(const AxrScene_T scene, const AxrEntityConst_T entity
     return scene->setMainCamera(entity);
 }
 
-AxrResult axrSceneRegisterUICanvas(
+AxrResult axrSceneSetBuildUICanvasCallback(
     const AxrScene_T scene,
     void* userData,
     const AxrBuildUICanvasCallback_T buildCanvasCallback
@@ -63,7 +63,7 @@ AxrResult axrSceneRegisterUICanvas(
         return AXR_ERROR;
     }
 
-    return scene->registerUICanvas(userData, buildCanvasCallback);
+    return scene->setBuildUICanvasCallback(userData, buildCanvasCallback);
 }
 
 // ----------------------------------------- //
@@ -149,17 +149,15 @@ void AxrScene::setMainCamera(const AxrEntityConst_T entity) {
     m_MainCamera = entity;
 }
 
-AxrResult AxrScene::registerUICanvas(void* userData, const AxrBuildUICanvasCallback_T buildCanvasCallback) {
+AxrResult AxrScene::setBuildUICanvasCallback(void* userData, const AxrBuildUICanvasCallback_T buildCanvasCallback) {
     if (buildCanvasCallback == nullptr) {
         return AXR_ERROR;
     }
 
-    m_UICanvases.push_back(
-        UICallback{
-            .UserData = userData,
-            .Function = buildCanvasCallback,
-        }
-    );
+    m_BuildUICanvasCallback = CallbackData{
+        .UserData = userData,
+        .Function = buildCanvasCallback,
+    };
 
     return AXR_SUCCESS;
 }
@@ -181,8 +179,8 @@ AxrEntityConst_T AxrScene::getMainCamera() const {
     return m_MainCamera;
 }
 
-const std::vector<AxrScene::UICallback>& AxrScene::getUICanvases() const {
-    return m_UICanvases;
+const AxrScene::CallbackData& AxrScene::getUICanvasCallback() const {
+    return m_BuildUICanvasCallback;
 }
 
 // ---- Private Functions ----

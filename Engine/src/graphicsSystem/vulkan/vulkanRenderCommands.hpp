@@ -80,6 +80,18 @@ public:
         return m_RenderTarget.getViewCount();
     }
 
+    /// Get the platform type for the render target
+    /// @returns the platform type for the render target
+    [[nodiscard]] AxrPlatformType getPlatformType() const {
+        return m_RenderTarget.getPlatformType();
+    }
+
+    /// Get the clay context for the render target
+    /// @returns The clay context for the render target
+    [[nodiscard]] Clay_Context* getClayContext() const {
+        return m_RenderTarget.getClayContext();
+    }
+
     /// Update all necessary uniform buffers for the current frame
     /// @param viewIndex The view index
     /// @param sceneData The active scene

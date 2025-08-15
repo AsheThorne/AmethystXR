@@ -321,6 +321,20 @@ axr::Result SponzaScene::setup() {
 
     m_XrHandEntity.emplace<AxrModelComponent>(handModelComponent);
 
+    // ---- UI ----
+
+    m_Scene.setBuildUICanvasCallback(
+        this,
+        [](
+        void* userData,
+        const axr::PlatformType platformType,
+        Clay_Context* context
+    ) -> axr::UICanvasConfig {
+            const auto scene = static_cast<SponzaScene*>(userData);
+            return scene->uiCallback(platformType, context);
+        }
+    );
+
     return axr::Result::Success;
 }
 
@@ -333,4 +347,70 @@ axr::Result SponzaScene::setAsActiveScene() const {
 }
 
 void SponzaScene::update() {
+}
+
+axr::UICanvasConfig SponzaScene::uiCallback(const axr::PlatformType platformType, Clay_Context* context) const {
+    // Only handle UI for the window
+    if (platformType != axr::PlatformType::Window) return {};
+
+    Clay_SetCurrentContext(context);
+    Clay_BeginLayout();
+
+    CLAY(
+        Clay_ElementDeclaration {
+        .id = CLAY_ID("OuterContainer"),
+        .layout = Clay_LayoutConfig {
+        .sizing = Clay_Sizing {CLAY_SIZING_FIT(100),
+        CLAY_SIZING_FIT(100)},
+        .padding = CLAY_PADDING_ALL(16),
+        .childGap = 16,
+        },
+        .backgroundColor = Clay_Color{250,
+        250,
+        255,
+        255},
+        }
+    ) {
+        // CLAY(
+        //     {
+        //     .id = CLAY_ID("SideBar"),
+        //     .layout = { .sizing = { .width = CLAY_SIZING_FIXED(300),
+        //     .height = CLAY_SIZING_GROW(0) },
+        //     .padding = CLAY_PADDING_ALL(16),
+        //     .childGap = 16,
+        //     .layoutDirection = CLAY_TOP_TO_BOTTOM,
+        //     },
+        //     }
+        // ) {
+        //     CLAY(
+        //         { .id = CLAY_ID("ProfilePictureOuter"),
+        //         .layout = { .sizing = { .width = CLAY_SIZING_GROW(0) },
+        //         .padding = CLAY_PADDING_ALL(16),
+        //         .childGap = 16,
+        //         .childAlignment = { .y = CLAY_ALIGN_Y_CENTER } } }
+        //     ) {
+        //         CLAY(
+        //             { .id = CLAY_ID("ProfilePicture"),
+        //             .layout = { .sizing = { .width = CLAY_SIZING_FIXED(60),
+        //             .height = CLAY_SIZING_FIXED(60) }} }
+        //         ) {
+        //         }
+        //         CLAY_TEXT(
+        //             CLAY_STRING("Clay - UI Library"),
+        //             CLAY_TEXT_CONFIG({ .textColor = {255, 255, 255, 255}, .fontSize = 24 })
+        //         );
+        //     }
+        //
+        //     CLAY(
+        //         { .id = CLAY_ID("MainContent"),
+        //         .layout = { .sizing = { .width = CLAY_SIZING_GROW(0),
+        //         .height = CLAY_SIZING_GROW(0) } } }
+        //     ) {
+        //     }
+        // }
+    }
+
+    const Clay_RenderCommandArray renderCommands = Clay_EndLayout();
+
+    return axr::UICanvasConfig(true, renderCommands);
 }

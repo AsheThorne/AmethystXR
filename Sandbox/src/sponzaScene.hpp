@@ -42,6 +42,8 @@ public:
 
     void update();
 
+    axr::UICanvasConfig uiCallback(axr::PlatformType platformType, Clay_Context* context) const;
+
 private:
     // ----------------------------------------- //
     // Private Variables

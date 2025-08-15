@@ -43,10 +43,10 @@ namespace axr {
         // Public Variables
         // ----------------------------------------- //
         bool Enabled = false;
-        glm::vec3 PositionOffset = glm::vec3(0.0f);
-        axr::UIReferenceSpaceEnum PositionReferenceSpace = axr::UIReferenceSpaceEnum::Camera;
-        glm::quat OrientationOffset = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-        axr::UIReferenceSpaceEnum OrientationReferenceSpace = axr::UIReferenceSpaceEnum::Camera;
+        // glm::vec3 PositionOffset = glm::vec3(0.0f);
+        // axr::UIReferenceSpaceEnum PositionReferenceSpace = axr::UIReferenceSpaceEnum::Camera;
+        // glm::quat OrientationOffset = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+        // axr::UIReferenceSpaceEnum OrientationReferenceSpace = axr::UIReferenceSpaceEnum::Camera;
         Clay_RenderCommandArray ClayRenderCommands = {};
 
         // ----------------------------------------- //
@@ -60,17 +60,17 @@ namespace axr {
 
         UICanvasConfig(
             const bool enabled,
-            const glm::vec3 positionOffset,
-            const axr::UIReferenceSpaceEnum positionReferenceSpace,
-            const glm::quat orientationOffset,
-            const axr::UIReferenceSpaceEnum orientationReferenceSpace,
+            // const glm::vec3 positionOffset,
+            // const axr::UIReferenceSpaceEnum positionReferenceSpace,
+            // const glm::quat orientationOffset,
+            // const axr::UIReferenceSpaceEnum orientationReferenceSpace,
             const Clay_RenderCommandArray& clayRenderCommands
         ):
             Enabled(enabled),
-            PositionOffset(positionOffset),
-            PositionReferenceSpace(positionReferenceSpace),
-            OrientationOffset(orientationOffset),
-            OrientationReferenceSpace(orientationReferenceSpace),
+            // PositionOffset(positionOffset),
+            // PositionReferenceSpace(positionReferenceSpace),
+            // OrientationOffset(orientationOffset),
+            // OrientationReferenceSpace(orientationReferenceSpace),
             ClayRenderCommands(clayRenderCommands) {
         }
 
@@ -167,15 +167,15 @@ namespace axr {
             axrSceneSetMainCamera(m_Scene, entity);
         }
 
-        /// Register a new `build canvas` callback function
+        /// Set the `build ui canvas` callback function
         /// @param userData User data
         /// @param buildCanvasCallback Callback function
         /// @returns AXR_SUCCESS if the function succeeded
-        axr::Result registerUICanvas(
+        axr::Result setBuildUICanvasCallback(
             void* userData,
             const axr::BuildUICanvasCallback_T buildCanvasCallback
         ) const {
-            return static_cast<axr::Result>(axrSceneRegisterUICanvas(
+            return static_cast<axr::Result>(axrSceneSetBuildUICanvasCallback(
                 m_Scene,
                 userData,
                 reinterpret_cast<AxrBuildUICanvasCallback_T>(buildCanvasCallback)

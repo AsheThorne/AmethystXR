@@ -385,6 +385,18 @@ private:
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult blitToWindowFromXrDevice() const;
 
+    /// Render the clay UI elements according to the given uiCanvasConfig
+    /// @tparam RenderTarget Render target class. Like a window or xr device
+    /// @param renderCommands Vulkan render commands
+    /// @param clayContext Clay context
+    /// @param uiCanvasConfig UI Canvas config
+    template <typename RenderTarget>
+    void renderClayUI(
+        const AxrVulkanRenderCommands<RenderTarget>& renderCommands,
+        Clay_Context* clayContext,
+        const AxrUICanvasConfig& uiCanvasConfig
+    ) const;
+
     /// Get a collection of each mesh in the given 'materials for rendering' sorted by depth
     /// @param viewMatrix Camera view matrix
     /// @param nearPlane Camera near plane

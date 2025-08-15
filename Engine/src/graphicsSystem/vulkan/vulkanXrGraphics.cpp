@@ -245,6 +245,10 @@ AxrPlatformType AxrVulkanXrGraphics::getPlatformType() const {
     return AXR_PLATFORM_TYPE_XR_DEVICE;
 }
 
+Clay_Context* AxrVulkanXrGraphics::getClayContext() const {
+    return m_ClayContext;
+}
+
 vk::RenderPass AxrVulkanXrGraphics::getRenderPass() const {
     return m_RenderPass;
 }
