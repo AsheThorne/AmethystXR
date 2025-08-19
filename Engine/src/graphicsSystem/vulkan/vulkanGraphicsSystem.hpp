@@ -407,7 +407,7 @@ private:
         const glm::mat4& viewMatrix,
         float nearPlane,
         float farPlane,
-        const std::vector<AxrVulkanSceneData::MaterialForRendering>& materialsForRendering
+        const std::vector<AxrVulkanMaterialForRendering>& materialsForRendering
     ) const;
     /// Calculate the squared depth of the given transform component
     /// @param viewMatrix Camera view matrix

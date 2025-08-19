@@ -7,9 +7,8 @@
 #include <array>
 
 // ----------------------------------------- //
-// Vulkan Headers
+// AXR Headers
 // ----------------------------------------- //
-#include <vulkan/vulkan.hpp>
 #include "vulkanUtils.hpp"
 #include "../../utils.hpp"
 #include "../../assets/pushConstantBuffer.hpp"
@@ -17,6 +16,12 @@
 #include "../../scene/sceneUtils.hpp"
 #include "axr/common/utils.h"
 #include "../../assets/engineAssets.hpp"
+#include "vulkanRenderStructs.hpp"
+
+// ----------------------------------------- //
+// Vulkan Headers
+// ----------------------------------------- //
+#include <vulkan/vulkan.hpp>
 
 // ----------------------------------------- //
 // Structs
@@ -378,8 +383,8 @@ public:
     /// @param sceneData Scene data to search for the push constant data in
     void pushConstants(
         const uint32_t viewIndex,
-        const vk::PipelineLayout& pipelineLayout,
-        const AxrVulkanSceneData::PushConstantForRendering& pushConstant,
+        const vk::PipelineLayout pipelineLayout,
+        const AxrVulkanPushConstantForRendering& pushConstant,
         const AxrTransformComponent* transformComponent,
         const AxrVulkanSceneData* sceneData
     ) const {
@@ -396,6 +401,11 @@ public:
         ) == 0) {
             if (transformComponent == nullptr) {
                 axrLogErrorLocation("Unable to use model matrix push constant. Transform component is null.");
+                return;
+            }
+
+            if (pushConstant.ShaderStages == nullptr) {
+                axrLogErrorLocation("Shader stages are null.");
                 return;
             }
 
@@ -487,14 +497,23 @@ public:
     /// Add commands to draw the given mesh
     /// @param viewIndex The view index
     /// @param mesh Mesh to draw
-    void draw(const uint32_t viewIndex, const AxrVulkanSceneData::MeshForRendering& mesh) const {
+    void draw(const uint32_t viewIndex, const AxrVulkanMeshForRendering& mesh) const {
+        if (mesh.Buffer == nullptr ||
+            mesh.BufferIndicesOffset == nullptr ||
+            mesh.BufferVerticesOffset == nullptr ||
+            mesh.IndexCount == nullptr
+        ) {
+            axrLogErrorLocation("Mesh for rendering is incomplete.");
+            return;
+        }
+
         const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer(viewIndex);
         if (commandBuffer == VK_NULL_HANDLE) return;
 
-        commandBuffer.bindIndexBuffer(mesh.Buffer, mesh.BufferIndicesOffset, vk::IndexType::eUint32, m_Dispatch);
-        commandBuffer.bindVertexBuffers(0, 1, &mesh.Buffer, &mesh.BufferVerticesOffset, m_Dispatch);
+        commandBuffer.bindIndexBuffer(*mesh.Buffer, *mesh.BufferIndicesOffset, vk::IndexType::eUint32, m_Dispatch);
+        commandBuffer.bindVertexBuffers(0, 1, mesh.Buffer, mesh.BufferVerticesOffset, m_Dispatch);
 
-        commandBuffer.drawIndexed(mesh.IndexCount, 1, 0, 0, 0, m_Dispatch);
+        commandBuffer.drawIndexed(*mesh.IndexCount, 1, 0, 0, 0, m_Dispatch);
     }
 
     /// Add commands to blit from the given xr device render source to the render target

@@ -1388,27 +1388,36 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
         // TODO: Use Forward+ rendering technique
 
         auto prepareMaterial = [renderCommands, viewIndex, sceneData](
-            const AxrVulkanSceneData::MaterialForRendering& material
-        ) {
+            const AxrVulkanMaterialForRendering& material
+        ) -> void {
+            if (material.PipelineLayout == nullptr ||
+                material.WindowPipeline == nullptr ||
+                material.XrSessionPipeline == nullptr ||
+                material.WindowDescriptorSets == nullptr ||
+                material.XrSessionDescriptorSets == nullptr) {
+                axrLogErrorLocation("Material for rendering is incomplete.");
+                return;
+            }
+
             renderCommands.bindPipeline(
                 viewIndex,
                 AxrVulkanRenderCommandPipelines{
-                    .WindowPipeline = material.WindowPipeline,
-                    .XrSessionPipeline = material.XrSessionPipeline,
+                    .WindowPipeline = *material.WindowPipeline,
+                    .XrSessionPipeline = *material.XrSessionPipeline,
                 }
             );
             renderCommands.bindDescriptorSets(
                 viewIndex,
-                material.PipelineLayout,
+                *material.PipelineLayout,
                 AxrVulkanRenderCommandDescriptorSets{
-                    .WindowDescriptorSets = material.WindowDescriptorSets,
-                    .XrSessionDescriptorSets = material.XrSessionDescriptorSets,
+                    .WindowDescriptorSets = *material.WindowDescriptorSets,
+                    .XrSessionDescriptorSets = *material.XrSessionDescriptorSets,
                 },
                 material.DynamicOffsets
             );
             renderCommands.pushConstants(
                 viewIndex,
-                material.PipelineLayout,
+                *material.PipelineLayout,
                 material.PushConstant,
                 nullptr,
                 sceneData
@@ -1417,7 +1426,7 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
 
         auto renderMesh = [renderCommands, viewIndex, sceneData](
             const vk::PipelineLayout& pipelineLayout,
-            const AxrVulkanSceneData::MeshForRendering& mesh
+            const AxrVulkanMeshForRendering& mesh
         ) {
             renderCommands.pushConstants(
                 viewIndex,
@@ -1429,12 +1438,17 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
             renderCommands.draw(viewIndex, mesh);
         };
 
-        for (const AxrVulkanSceneData::MaterialForRendering& material :
+        for (const AxrVulkanMaterialForRendering& material :
              sceneData->getMaterialsForRendering(AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE)) {
+            if (material.PipelineLayout == nullptr) {
+                axrLogErrorLocation("Material for rendering is incomplete.");
+                continue;
+            }
+
             prepareMaterial(material);
 
-            for (const AxrVulkanSceneData::MeshForRendering& mesh : material.Meshes) {
-                renderMesh(material.PipelineLayout, mesh);
+            for (const AxrVulkanMeshForRendering& mesh : material.Meshes) {
+                renderMesh(*material.PipelineLayout, mesh);
             }
         }
 
@@ -1445,7 +1459,7 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
         // It would look terrible if both eyes in VR rendered the objects in a different order.
         axrResult = renderCommands.getCameraData(0, viewMatrix, nearPlane, farPlane);
         if (AXR_SUCCEEDED(axrResult)) {
-            std::vector<AxrVulkanSceneData::MaterialForRendering> alphaBlendMaterials =
+            std::vector<AxrVulkanMaterialForRendering> alphaBlendMaterials =
                 sceneData->getMaterialsForRendering(AXR_MATERIAL_ALPHA_RENDER_MODE_ALPHA_BLEND);
             std::vector<SortableMeshReference> sortedMeshReferences = getSortedMeshReferences(
                 viewMatrix,
@@ -1456,18 +1470,22 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
 
             if (!sortedMeshReferences.empty()) {
                 uint32_t currentMaterialIndex = sortedMeshReferences[0].MaterialIndex;
-                prepareMaterial(alphaBlendMaterials[currentMaterialIndex]);
+                if (alphaBlendMaterials[currentMaterialIndex].PipelineLayout != nullptr) {
+                    prepareMaterial(alphaBlendMaterials[currentMaterialIndex]);
 
-                for (const SortableMeshReference& meshReference : sortedMeshReferences) {
-                    if (meshReference.MaterialIndex != currentMaterialIndex) {
-                        currentMaterialIndex = meshReference.MaterialIndex;
-                        prepareMaterial(alphaBlendMaterials[currentMaterialIndex]);
+                    for (const SortableMeshReference& meshReference : sortedMeshReferences) {
+                        if (meshReference.MaterialIndex != currentMaterialIndex) {
+                            currentMaterialIndex = meshReference.MaterialIndex;
+                            prepareMaterial(alphaBlendMaterials[currentMaterialIndex]);
+                        }
+
+                        renderMesh(
+                            *alphaBlendMaterials[currentMaterialIndex].PipelineLayout,
+                            alphaBlendMaterials[currentMaterialIndex].Meshes[meshReference.MeshIndex]
+                        );
                     }
-
-                    renderMesh(
-                        alphaBlendMaterials[currentMaterialIndex].PipelineLayout,
-                        alphaBlendMaterials[currentMaterialIndex].Meshes[meshReference.MeshIndex]
-                    );
+                } else {
+                    axrLogErrorLocation("Material for rendering is incomplete.");
                 }
             }
         }
@@ -1585,7 +1603,7 @@ std::vector<AxrVulkanGraphicsSystem::SortableMeshReference> AxrVulkanGraphicsSys
     const glm::mat4& viewMatrix,
     const float nearPlane,
     const float farPlane,
-    const std::vector<AxrVulkanSceneData::MaterialForRendering>& materialsForRendering
+    const std::vector<AxrVulkanMaterialForRendering>& materialsForRendering
 ) const {
     std::vector<SortableMeshReference> sortedMeshReferences;
 

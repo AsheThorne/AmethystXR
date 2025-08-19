@@ -13,6 +13,7 @@
 #include "vulkanImageSamplerData.hpp"
 #include "axr/scene.h"
 #include "../../../xrSystem/xrUtils.hpp"
+#include "../vulkanRenderStructs.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -57,36 +58,6 @@ public:
         uint32_t ViewCount = 0;
     };
 
-    /// Push constant references for rendering
-    struct PushConstantForRendering {
-        const vk::ShaderStageFlags* ShaderStages = nullptr;
-        const char* BufferName = "";
-    };
-
-    /// Mesh references for rendering
-    struct MeshForRendering {
-        const vk::Buffer& Buffer;
-        const vk::DeviceSize& BufferIndicesOffset;
-        const vk::DeviceSize& BufferVerticesOffset;
-        const uint32_t& IndexCount;
-        const AxrTransformComponent* TransformComponent = nullptr;
-        PushConstantForRendering PushConstant;
-    };
-
-    /// Material references for rendering
-    struct MaterialForRendering {
-        std::string MaterialName;
-        const vk::PipelineLayout& PipelineLayout;
-        const vk::Pipeline& WindowPipeline;
-        const vk::Pipeline& XrSessionPipeline;
-        /// One for each frame in flight
-        const std::vector<vk::DescriptorSet>& WindowDescriptorSets;
-        const std::vector<vk::DescriptorSet>& XrSessionDescriptorSets;
-        PushConstantForRendering PushConstant;
-        std::vector<MeshForRendering> Meshes;
-        std::vector<uint32_t> DynamicOffsets;
-    };
-
     // ----------------------------------------- //
     // Special Functions
     // ----------------------------------------- //
@@ -95,7 +66,7 @@ public:
 
     /// Constructor
     /// @param config Vulkan scene data config
-    AxrVulkanSceneData(const Config& config);
+    explicit AxrVulkanSceneData(const Config& config);
     /// Copy Constructor
     /// @param src Source AxrVulkanSceneData to copy from
     AxrVulkanSceneData(const AxrVulkanSceneData& src) = delete;
@@ -151,7 +122,7 @@ public:
     /// Get the materials, organized specifically for rendering
     /// @param alphaRenderMode Alpha render mode to get the materials for
     /// @returns The collection of materials for rendering
-    [[nodiscard]] const std::vector<MaterialForRendering>& getMaterialsForRendering(
+    [[nodiscard]] const std::vector<AxrVulkanMaterialForRendering>& getMaterialsForRendering(
         AxrMaterialAlphaRenderModeEnum alphaRenderMode
     ) const;
 
@@ -221,9 +192,9 @@ private:
     std::unordered_map<std::string, AxrVulkanImageSamplerData> m_ImageSamplerData;
     std::unordered_map<std::string, AxrVulkanMaterialLayoutData> m_MaterialLayoutData;
     std::unordered_map<std::string, AxrVulkanMaterialData> m_MaterialData;
-    std::vector<MaterialForRendering> m_OpaqueMaterialsForRendering;
-    std::vector<MaterialForRendering> m_AlphaBlendMaterialsForRendering;
-    std::vector<MaterialForRendering> m_OITMaterialsForRendering;
+    std::vector<AxrVulkanMaterialForRendering> m_OpaqueMaterialsForRendering;
+    std::vector<AxrVulkanMaterialForRendering> m_AlphaBlendMaterialsForRendering;
+    std::vector<AxrVulkanMaterialForRendering> m_OITMaterialsForRendering;
 
     // ----------------------------------------- //
     // Private Functions
@@ -515,8 +486,8 @@ private:
     /// @param materials 'Materials for rendering' collection
     /// @param materialName Material name
     /// @returns A handle to the found material or nullptr if it wasn't found.
-    [[nodiscard]] MaterialForRendering* findMaterialForRendering(
-        std::vector<MaterialForRendering>& materials,
+    [[nodiscard]] AxrVulkanMaterialForRendering* findMaterialForRendering(
+        std::vector<AxrVulkanMaterialForRendering>& materials,
         const std::string& materialName
     ) const;
 };

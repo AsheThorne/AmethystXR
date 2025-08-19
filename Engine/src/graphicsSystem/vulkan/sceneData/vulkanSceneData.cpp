@@ -255,7 +255,7 @@ void AxrVulkanSceneData::unloadXrSessionData() {
     m_LoadXrSessionDataConfig = {};
 }
 
-const std::vector<AxrVulkanSceneData::MaterialForRendering>& AxrVulkanSceneData::getMaterialsForRendering(
+const std::vector<AxrVulkanMaterialForRendering>& AxrVulkanSceneData::getMaterialsForRendering(
     const AxrMaterialAlphaRenderModeEnum alphaRenderMode
 ) const {
     switch (alphaRenderMode) {
@@ -1929,7 +1929,7 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
                 continue;
             }
 
-            std::vector<MaterialForRendering>* materialsForRendering = nullptr;
+            std::vector<AxrVulkanMaterialForRendering>* materialsForRendering = nullptr;
             const AxrMaterial* materialHandle = foundMaterialData->getMaterial();
             if (materialHandle == nullptr) {
                 axrLogErrorLocation("Material handle is null.");
@@ -1961,22 +1961,22 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
             const vk::ShaderStageFlags& pushConstantStageFlags = foundMaterialData->getMaterialLayoutData()
                 ->getPushConstantShaderStages();
 
-            auto meshForRendering = MeshForRendering{
-                .Buffer = foundModelData->getModelBuffer(),
-                .BufferIndicesOffset = foundModelData->getSubmeshBufferIndicesOffset(meshIndex, submeshIndex),
-                .BufferVerticesOffset = foundModelData->getSubmeshBufferVerticesOffset(meshIndex, submeshIndex),
-                .IndexCount = foundModelData->getSubmeshIndexCount(meshIndex, submeshIndex),
+            auto meshForRendering = AxrVulkanMeshForRendering{
+                .Buffer = &foundModelData->getModelBuffer(),
+                .BufferIndicesOffset = &foundModelData->getSubmeshBufferIndicesOffset(meshIndex, submeshIndex),
+                .BufferVerticesOffset = &foundModelData->getSubmeshBufferVerticesOffset(meshIndex, submeshIndex),
+                .IndexCount = &foundModelData->getSubmeshIndexCount(meshIndex, submeshIndex),
                 .TransformComponent = &transformComponent,
                 .PushConstant = axrStringIsEmpty(modelComponent.PushConstantBufferName) ||
                                 pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
-                                    ? PushConstantForRendering{}
-                                    : PushConstantForRendering{
+                                    ? AxrVulkanPushConstantForRendering{}
+                                    : AxrVulkanPushConstantForRendering{
                                         .ShaderStages = &pushConstantStageFlags,
                                         .BufferName = modelComponent.PushConstantBufferName,
                                     },
             };
 
-            MaterialForRendering* foundMaterialForRendering = findMaterialForRendering(
+            AxrVulkanMaterialForRendering* foundMaterialForRendering = findMaterialForRendering(
                 *materialsForRendering,
                 currentMaterialName
             );
@@ -2046,26 +2046,26 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
                     currentDynamicOffsetIndex++;
                 }
 
-                if (dynamicUniformBufferInstanceSizes.size() > 0) {
+                if (!dynamicUniformBufferInstanceSizes.empty()) {
                     axrLogErrorLocation("Missing dynamic uniform buffer offsets.");
                 }
 
                 const std::string& materialPushConstantBufferName = foundMaterialData->getPushConstantBufferName();
 
                 materialsForRendering->emplace_back(
-                    MaterialForRendering{
+                    AxrVulkanMaterialForRendering{
                         .MaterialName = currentMaterialName,
-                        .PipelineLayout = foundMaterialData->getMaterialLayoutData()->getPipelineLayout(),
-                        .WindowPipeline = foundMaterialData->getWindowPipeline(),
-                        .XrSessionPipeline = foundMaterialData->getXrSessionPipeline(),
-                        .WindowDescriptorSets = foundMaterialData->getDescriptorSets(AXR_PLATFORM_TYPE_WINDOW),
-                        .XrSessionDescriptorSets = foundMaterialData->getDescriptorSets(
+                        .PipelineLayout = &foundMaterialData->getMaterialLayoutData()->getPipelineLayout(),
+                        .WindowPipeline = &foundMaterialData->getWindowPipeline(),
+                        .XrSessionPipeline = &foundMaterialData->getXrSessionPipeline(),
+                        .WindowDescriptorSets = &foundMaterialData->getDescriptorSets(AXR_PLATFORM_TYPE_WINDOW),
+                        .XrSessionDescriptorSets = &foundMaterialData->getDescriptorSets(
                             AXR_PLATFORM_TYPE_XR_DEVICE
                         ),
                         .PushConstant = materialPushConstantBufferName.empty() ||
                                         pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
-                                            ? PushConstantForRendering{}
-                                            : PushConstantForRendering{
+                                            ? AxrVulkanPushConstantForRendering{}
+                                            : AxrVulkanPushConstantForRendering{
                                                 .ShaderStages = &pushConstantStageFlags,
                                                 .BufferName = materialPushConstantBufferName.c_str(),
                                             },
@@ -2093,11 +2093,11 @@ void AxrVulkanSceneData::onNewRenderableEntityCallback(entt::registry& registry,
     };
 }
 
-AxrVulkanSceneData::MaterialForRendering* AxrVulkanSceneData::findMaterialForRendering(
-    std::vector<MaterialForRendering>& materials,
+AxrVulkanMaterialForRendering* AxrVulkanSceneData::findMaterialForRendering(
+    std::vector<AxrVulkanMaterialForRendering>& materials,
     const std::string& materialName
 ) const {
-    for (MaterialForRendering& material : materials) {
+    for (AxrVulkanMaterialForRendering& material : materials) {
         if (material.MaterialName == materialName) {
             return &material;
         }
