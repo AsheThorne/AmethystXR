@@ -15,9 +15,6 @@ bool axrMaterialConfigIsValid(const AxrMaterialConfig* materialConfig) {
         return false;
     }
 
-    // TODO: Check each dynamic uniform buffer offset config:
-    //      Must be pointing to a binding of type `dynamic uniform buffer`
-    //      Each dynamic uniform buffer in the shader layouts must have a corresponding offset 
     return !axrStringIsEmpty(materialConfig->Name) &&
         !axrStringIsEmpty(materialConfig->VertexShaderName) &&
         !axrStringIsEmpty(materialConfig->FragmentShaderName) &&
