@@ -883,494 +883,6 @@ namespace axr {
     );
 
     // ---------------------------------------------------------------------------------- //
-    //                                  Material Assets                                   //
-    // ---------------------------------------------------------------------------------- //
-
-    // ----------------------------------------- //
-    // Enums
-    // ----------------------------------------- //
-
-    /// Material backface culling mode enum
-    enum class MaterialBackfaceCullModeEnum {
-        None = AXR_MATERIAL_BACKFACE_CULL_MODE_NONE,
-        Front = AXR_MATERIAL_BACKFACE_CULL_MODE_FRONT,
-        Back = AXR_MATERIAL_BACKFACE_CULL_MODE_BACK,
-        FrontAndBack = AXR_MATERIAL_BACKFACE_CULL_MODE_FRONT_AND_BACK,
-    };
-
-    /// Material alpha rendering mode enum
-    enum class MaterialAlphaRenderModeEnum {
-        Opaque = AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE,
-        /// Depth sorted alpha blending transparency.
-        /// Useful for glass windows or objects with minimal or no overlapping transparency.
-        AlphaBlend = AXR_MATERIAL_ALPHA_RENDER_MODE_ALPHA_BLEND,
-        /// Order independent transparency.
-        /// Useful when there are multiple layers of transparency overlapping.
-        /// Whether it's multiple objects or a single complex object. 
-        OIT = AXR_MATERIAL_ALPHA_RENDER_MODE_OIT,
-    };
-
-    // ----------------------------------------- //
-    // Structs
-    // ----------------------------------------- //
-
-    /// Dynamic uniform buffer offset config
-    struct DynamicUniformBufferOffsetConfig {
-        // ----------------------------------------- //
-        // Public Variables
-        // ----------------------------------------- //
-        uint32_t Binding = 0;
-        uint32_t OffsetIndex = 0;
-
-        // ----------------------------------------- //
-        // Special Functions
-        // ----------------------------------------- //
-
-        // ---- Constructors ----
-
-        /// Default Constructor
-        DynamicUniformBufferOffsetConfig() = default;
-
-        /// Constructor
-        /// @param binding Dynamic uniform buffer binding
-        /// @param offsetIndex Dynamic uniform buffer instance index offset
-        DynamicUniformBufferOffsetConfig(const uint32_t binding, const uint32_t offsetIndex):
-            Binding(binding),
-            OffsetIndex(offsetIndex) {
-        }
-
-        // ----------------------------------------- //
-        // Public Functions
-        // ----------------------------------------- //
-
-        /// Get a handle to the DynamicUniformBufferOffsetConfig as an AxrDynamicUniformBufferOffsetConfig
-        /// @returns This as an AxrDynamicUniformBufferOffsetConfig
-        const AxrDynamicUniformBufferOffsetConfig* toRaw() const {
-            return reinterpret_cast<const AxrDynamicUniformBufferOffsetConfig*>(this);
-        }
-
-        /// Get a handle to the DynamicUniformBufferOffsetConfig as an AxrDynamicUniformBufferOffsetConfig
-        /// @returns This as an AxrDynamicUniformBufferOffsetConfig
-        AxrDynamicUniformBufferOffsetConfig* toRaw() {
-            return reinterpret_cast<AxrDynamicUniformBufferOffsetConfig*>(this);
-        }
-    };
-
-    static_assert(
-        sizeof(AxrDynamicUniformBufferOffsetConfig) == sizeof(axr::DynamicUniformBufferOffsetConfig),
-        "Original type and wrapper have different size!"
-    );
-
-    /// Material Config
-    struct MaterialConfig {
-        // ----------------------------------------- //
-        // Public Variables
-        // ----------------------------------------- //
-        char Name[AXR_MAX_ASSET_NAME_SIZE]{};
-        char VertexShaderName[AXR_MAX_ASSET_NAME_SIZE]{};
-        char FragmentShaderName[AXR_MAX_ASSET_NAME_SIZE]{};
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-        char PushConstantBufferName[AXR_MAX_ASSET_NAME_SIZE]{};
-#endif
-        AxrShaderValues_T VertexShaderValues = nullptr;
-        AxrShaderValues_T FragmentShaderValues = nullptr;
-        axr::MaterialBackfaceCullModeEnum BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
-        axr::MaterialAlphaRenderModeEnum AlphaRenderMode = axr::MaterialAlphaRenderModeEnum::Opaque;
-        uint32_t DynamicUniformBufferOffsetCount = 0;
-        axr::DynamicUniformBufferOffsetConfig* DynamicUniformBufferOffsets = nullptr;
-
-        // ----------------------------------------- //
-        // Special Functions
-        // ----------------------------------------- //
-
-        // ---- Constructors ----
-
-        /// Default Constructor
-        MaterialConfig() = default;
-
-        /// Constructor
-        /// @param name The material name
-        /// @param vertexShaderName The vertex shader name
-        /// @param fragmentShaderName The fragment shader name
-        /// @param vertexShaderValues The vertex shader values to use
-        /// @param fragmentShaderValues The fragment shader values to use
-        /// @param backfaceCullMode The material backface culling mode
-        /// @param alphaRenderMode The material alpha rendering mode
-        /// @param dynamicUniformBufferOffsetCount Dynamic uniform buffer offset count
-        /// @param dynamicUniformBufferOffsets Dynamic uniform buffer offsets
-        MaterialConfig(
-            const char* name,
-            const char* vertexShaderName,
-            const char* fragmentShaderName,
-            const axr::ShaderValues& vertexShaderValues,
-            const axr::ShaderValues& fragmentShaderValues,
-            const axr::MaterialBackfaceCullModeEnum backfaceCullMode,
-            const axr::MaterialAlphaRenderModeEnum alphaRenderMode,
-            const uint32_t dynamicUniformBufferOffsetCount,
-            const DynamicUniformBufferOffsetConfig* dynamicUniformBufferOffsets
-        ): VertexShaderValues(vertexShaderValues.cloneRaw()),
-            FragmentShaderValues(fragmentShaderValues.cloneRaw()),
-            BackfaceCullMode(backfaceCullMode),
-            AlphaRenderMode(alphaRenderMode) {
-            if (name != nullptr) {
-                strncpy_s(Name, name, AXR_MAX_ASSET_NAME_SIZE);
-            }
-            if (vertexShaderName != nullptr) {
-                strncpy_s(VertexShaderName, vertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
-            }
-            if (fragmentShaderName != nullptr) {
-                strncpy_s(FragmentShaderName, fragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
-            }
-
-            DynamicUniformBufferOffsetCount = dynamicUniformBufferOffsetCount;
-            DynamicUniformBufferOffsets = clone(
-                dynamicUniformBufferOffsetCount,
-                dynamicUniformBufferOffsets
-            );
-        }
-
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-        /// Constructor
-        /// @param name The material name
-        /// @param vertexShaderName The vertex shader name
-        /// @param fragmentShaderName The fragment shader name
-        /// @param pushConstantBufferName The push constant buffer name
-        /// @param vertexShaderValues The vertex shader values to use
-        /// @param fragmentShaderValues The fragment shader values to use
-        /// @param backfaceCullMode The material backface culling mode
-        /// @param alphaRenderMode The material alpha rendering mode
-        /// @param dynamicUniformBufferOffsetCount Dynamic uniform buffer offset count
-        /// @param dynamicUniformBufferOffsets Dynamic uniform buffer offsets
-        MaterialConfig(
-            const char* name,
-            const char* vertexShaderName,
-            const char* fragmentShaderName,
-            const char* pushConstantBufferName,
-            const axr::ShaderValues& vertexShaderValues,
-            const axr::ShaderValues& fragmentShaderValues,
-            const axr::MaterialBackfaceCullModeEnum backfaceCullMode,
-            const axr::MaterialAlphaRenderModeEnum alphaRenderMode,
-            const uint32_t dynamicUniformBufferOffsetCount,
-            const DynamicUniformBufferOffsetConfig* dynamicUniformBufferOffsets
-        ): VertexShaderValues(vertexShaderValues.cloneRaw()),
-            FragmentShaderValues(fragmentShaderValues.cloneRaw()),
-            BackfaceCullMode(backfaceCullMode),
-            AlphaRenderMode(alphaRenderMode) {
-            if (name != nullptr) {
-                strncpy_s(Name, name, AXR_MAX_ASSET_NAME_SIZE);
-            }
-            if (vertexShaderName != nullptr) {
-                strncpy_s(VertexShaderName, vertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
-            }
-            if (fragmentShaderName != nullptr) {
-                strncpy_s(FragmentShaderName, fragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
-            }
-            if (pushConstantBufferName != nullptr) {
-                strncpy_s(PushConstantBufferName, pushConstantBufferName, AXR_MAX_ASSET_NAME_SIZE);
-            }
-
-            DynamicUniformBufferOffsetCount = dynamicUniformBufferOffsetCount;
-            DynamicUniformBufferOffsets = clone(
-                dynamicUniformBufferOffsetCount,
-                dynamicUniformBufferOffsets
-            );
-        }
-#endif
-
-        /// Copy Constructor
-        /// @param src Source MaterialConfig to copy from
-        MaterialConfig(const axr::MaterialConfig& src) {
-            if (src.Name != nullptr) {
-                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
-            }
-            if (src.VertexShaderName != nullptr) {
-                strncpy_s(VertexShaderName, src.VertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
-            }
-            if (src.FragmentShaderName != nullptr) {
-                strncpy_s(FragmentShaderName, src.FragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
-            }
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            if (src.PushConstantBufferName != nullptr) {
-                strncpy_s(PushConstantBufferName, src.PushConstantBufferName, AXR_MAX_ASSET_NAME_SIZE);
-            }
-#endif
-
-            if (src.VertexShaderValues != nullptr) {
-                VertexShaderValues = axrShaderValuesClone(src.VertexShaderValues);
-            } else {
-                VertexShaderValues = nullptr;
-            }
-
-            if (src.FragmentShaderValues != nullptr) {
-                FragmentShaderValues = axrShaderValuesClone(src.FragmentShaderValues);
-            } else {
-                FragmentShaderValues = nullptr;
-            }
-
-            BackfaceCullMode = src.BackfaceCullMode;
-            AlphaRenderMode = src.AlphaRenderMode;
-            DynamicUniformBufferOffsetCount = src.DynamicUniformBufferOffsetCount;
-            DynamicUniformBufferOffsets = clone(
-                src.DynamicUniformBufferOffsetCount,
-                src.DynamicUniformBufferOffsets
-            );
-        }
-
-        /// Move Constructor
-        /// @param src Source MaterialConfig to move from
-        MaterialConfig(MaterialConfig&& src) noexcept {
-            if (src.Name != nullptr) {
-                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
-            }
-            if (src.VertexShaderName != nullptr) {
-                strncpy_s(VertexShaderName, src.VertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
-            }
-            if (src.FragmentShaderName != nullptr) {
-                strncpy_s(FragmentShaderName, src.FragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
-            }
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            if (src.PushConstantBufferName != nullptr) {
-                strncpy_s(PushConstantBufferName, src.PushConstantBufferName, AXR_MAX_ASSET_NAME_SIZE);
-            }
-#endif
-            VertexShaderValues = src.VertexShaderValues;
-            FragmentShaderValues = src.FragmentShaderValues;
-            BackfaceCullMode = src.BackfaceCullMode;
-            AlphaRenderMode = src.AlphaRenderMode;
-            DynamicUniformBufferOffsetCount = src.DynamicUniformBufferOffsetCount;
-            DynamicUniformBufferOffsets = src.DynamicUniformBufferOffsets;
-
-            memset(src.Name, 0, sizeof(src.Name));
-            memset(src.VertexShaderName, 0, sizeof(src.VertexShaderName));
-            memset(src.FragmentShaderName, 0, sizeof(src.FragmentShaderName));
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            memset(src.PushConstantBufferName, 0, sizeof(src.PushConstantBufferName));
-#endif
-            src.VertexShaderValues = nullptr;
-            src.FragmentShaderValues = nullptr;
-            src.BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
-            src.AlphaRenderMode = axr::MaterialAlphaRenderModeEnum::Opaque;
-            src.DynamicUniformBufferOffsetCount = 0;
-            src.DynamicUniformBufferOffsets = nullptr;
-        }
-
-        // ---- Destructor ----
-
-        /// Destructor
-        ~MaterialConfig() {
-            cleanup();
-        }
-
-        // ---- Operator Overloads ----
-
-        /// Copy Assignment Operator
-        /// @param src Source MaterialConfig to copy from
-        MaterialConfig& operator=(const MaterialConfig& src) {
-            if (this != &src) {
-                cleanup();
-
-                if (src.Name != nullptr) {
-                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
-                }
-                if (src.VertexShaderName != nullptr) {
-                    strncpy_s(VertexShaderName, src.VertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
-                }
-                if (src.FragmentShaderName != nullptr) {
-                    strncpy_s(FragmentShaderName, src.FragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
-                }
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-                if (src.PushConstantBufferName != nullptr) {
-                    strncpy_s(PushConstantBufferName, src.PushConstantBufferName, AXR_MAX_ASSET_NAME_SIZE);
-                }
-#endif
-
-                if (src.VertexShaderValues != nullptr) {
-                    VertexShaderValues = axrShaderValuesClone(src.VertexShaderValues);
-                } else {
-                    VertexShaderValues = nullptr;
-                }
-
-                if (src.FragmentShaderValues != nullptr) {
-                    FragmentShaderValues = axrShaderValuesClone(src.FragmentShaderValues);
-                } else {
-                    FragmentShaderValues = nullptr;
-                }
-
-                BackfaceCullMode = src.BackfaceCullMode;
-                AlphaRenderMode = src.AlphaRenderMode;
-                DynamicUniformBufferOffsetCount = src.DynamicUniformBufferOffsetCount;
-                DynamicUniformBufferOffsets = clone(
-                    src.DynamicUniformBufferOffsetCount,
-                    src.DynamicUniformBufferOffsets
-                );
-            }
-
-            return *this;
-        }
-
-        /// Move Assignment Operator
-        /// @param src Source MaterialConfig to move from
-        MaterialConfig& operator=(MaterialConfig&& src) noexcept {
-            if (this != &src) {
-                cleanup();
-
-                if (src.Name != nullptr) {
-                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
-                }
-                if (src.VertexShaderName != nullptr) {
-                    strncpy_s(VertexShaderName, src.VertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
-                }
-                if (src.FragmentShaderName != nullptr) {
-                    strncpy_s(FragmentShaderName, src.FragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
-                }
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-                if (src.PushConstantBufferName != nullptr) {
-                    strncpy_s(PushConstantBufferName, src.PushConstantBufferName, AXR_MAX_ASSET_NAME_SIZE);
-                }
-#endif
-                VertexShaderValues = src.VertexShaderValues;
-                FragmentShaderValues = src.FragmentShaderValues;
-                BackfaceCullMode = src.BackfaceCullMode;
-                AlphaRenderMode = src.AlphaRenderMode;
-                DynamicUniformBufferOffsetCount = src.DynamicUniformBufferOffsetCount;
-                DynamicUniformBufferOffsets = src.DynamicUniformBufferOffsets;
-
-                memset(src.Name, 0, sizeof(src.Name));
-                memset(src.VertexShaderName, 0, sizeof(src.VertexShaderName));
-                memset(src.FragmentShaderName, 0, sizeof(src.FragmentShaderName));
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-                memset(src.PushConstantBufferName, 0, sizeof(src.PushConstantBufferName));
-#endif
-                src.VertexShaderValues = nullptr;
-                src.FragmentShaderValues = nullptr;
-                src.BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
-                src.AlphaRenderMode = axr::MaterialAlphaRenderModeEnum::Opaque;
-                src.DynamicUniformBufferOffsetCount = 0;
-                src.DynamicUniformBufferOffsets = nullptr;
-            }
-
-            return *this;
-        }
-
-        // ----------------------------------------- //
-        // Public Functions
-        // ----------------------------------------- //
-
-        /// Check if this material config is valid
-        /// @returns True if this material config is valid
-        [[nodiscard]] bool isValid() const {
-            return axrMaterialConfigIsValid(toRaw());
-        }
-
-        /// Get a handle to the MaterialConfig as an AxrMaterialConfig
-        /// @returns This as an AxrMaterialConfig
-        const AxrMaterialConfig* toRaw() const {
-            return reinterpret_cast<const AxrMaterialConfig*>(this);
-        }
-
-        /// Get a handle to the MaterialConfig as an AxrMaterialConfig
-        /// @returns This as an AxrMaterialConfig
-        AxrMaterialConfig* toRaw() {
-            return reinterpret_cast<AxrMaterialConfig*>(this);
-        }
-
-    private:
-        // ----------------------------------------- //
-        // Private Functions
-        // ----------------------------------------- //
-
-        /// Clean up this class
-        void cleanup() {
-            if (VertexShaderValues != nullptr) {
-                axrShaderValuesDestroy(&VertexShaderValues);
-            }
-            if (FragmentShaderValues != nullptr) {
-                axrShaderValuesDestroy(&FragmentShaderValues);
-            }
-
-            destroy(DynamicUniformBufferOffsetCount, DynamicUniformBufferOffsets);
-
-            memset(Name, 0, sizeof(Name));
-            memset(VertexShaderName, 0, sizeof(VertexShaderName));
-            memset(FragmentShaderName, 0, sizeof(FragmentShaderName));
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            memset(PushConstantBufferName, 0, sizeof(PushConstantBufferName));
-#endif
-            BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
-            AlphaRenderMode = axr::MaterialAlphaRenderModeEnum::Opaque;
-        }
-
-        /// Clone the given dynamic uniform buffer configs
-        /// @param count Dynamic uniform buffer config array count
-        /// @param data Dynamic uniform buffer config array
-        /// @returns The cloned dynamic uniform buffer configs
-        DynamicUniformBufferOffsetConfig* clone(
-            const uint32_t count,
-            const DynamicUniformBufferOffsetConfig* data
-        ) const {
-            if (count == 0 || data == nullptr) return nullptr;
-
-            const auto clonedData = new DynamicUniformBufferOffsetConfig[count];
-            for (uint32_t i = 0; i < count; ++i) {
-                clonedData[i] = data[i];
-            }
-            return clonedData;
-        }
-
-        /// Destroy the given dynamic uniform buffer configs
-        /// @param count Dynamic uniform buffer config array count
-        /// @param data Dynamic uniform buffer config array
-        void destroy(uint32_t& count, DynamicUniformBufferOffsetConfig*& data) const {
-            if (count == 0 || data == nullptr) return;
-
-            delete[] data;
-            data = nullptr;
-            count = 0;
-        }
-    };
-
-    static_assert(
-        sizeof(AxrMaterialConfig) == sizeof(axr::MaterialConfig),
-        "Original type and wrapper have different size!"
-    );
-
-    // ----------------------------------------- //
-    // Material Definition
-    // ----------------------------------------- //
-
-    /// Material
-    class Material {
-    public:
-        // ----------------------------------------- //
-        // Special Functions
-        // ----------------------------------------- //
-
-        // ---- Constructors ----
-
-        /// Constructor
-        /// @param material Material handle
-        Material(const AxrMaterial_T material):
-            m_Material(material) {
-        }
-
-        // ----------------------------------------- //
-        // Public Functions
-        // ----------------------------------------- //
-
-        /// Get the material's name
-        /// @returns The material's name
-        [[nodiscard]] const char* getName() const {
-            return axrMaterialGetName(m_Material);
-        }
-
-    private:
-        // ----------------------------------------- //
-        // Private Variables
-        // ----------------------------------------- //
-        AxrMaterial_T m_Material;
-    };
-
-    // ---------------------------------------------------------------------------------- //
     //                                   Model Assets                                     //
     // ---------------------------------------------------------------------------------- //
 
@@ -2016,6 +1528,57 @@ namespace axr {
         Standard = AXR_UNIFORM_BUFFER_TYPE_STANDARD,
         Dynamic = AXR_UNIFORM_BUFFER_TYPE_DYNAMIC,
     };
+
+    // ----------------------------------------- //
+    // Structs
+    // ----------------------------------------- //
+
+    /// Dynamic uniform buffer offset config
+    struct DynamicUniformBufferOffsetConfig {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        uint32_t Binding = 0;
+        uint32_t OffsetIndex = 0;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        DynamicUniformBufferOffsetConfig() = default;
+
+        /// Constructor
+        /// @param binding Dynamic uniform buffer binding
+        /// @param offsetIndex Dynamic uniform buffer instance index offset
+        DynamicUniformBufferOffsetConfig(const uint32_t binding, const uint32_t offsetIndex):
+            Binding(binding),
+            OffsetIndex(offsetIndex) {
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the DynamicUniformBufferOffsetConfig as an AxrDynamicUniformBufferOffsetConfig
+        /// @returns This as an AxrDynamicUniformBufferOffsetConfig
+        const AxrDynamicUniformBufferOffsetConfig* toRaw() const {
+            return reinterpret_cast<const AxrDynamicUniformBufferOffsetConfig*>(this);
+        }
+
+        /// Get a handle to the DynamicUniformBufferOffsetConfig as an AxrDynamicUniformBufferOffsetConfig
+        /// @returns This as an AxrDynamicUniformBufferOffsetConfig
+        AxrDynamicUniformBufferOffsetConfig* toRaw() {
+            return reinterpret_cast<AxrDynamicUniformBufferOffsetConfig*>(this);
+        }
+    };
+
+    static_assert(
+        sizeof(AxrDynamicUniformBufferOffsetConfig) == sizeof(axr::DynamicUniformBufferOffsetConfig),
+        "Original type and wrapper have different size!"
+    );
 
     /// Uniform Buffer Config
     struct UniformBufferConfig {
@@ -2897,6 +2460,447 @@ namespace axr {
         // Private Variables
         // ----------------------------------------- //
         AxrImage_T m_Image;
+    };
+
+    // ---------------------------------------------------------------------------------- //
+    //                                  Material Assets                                   //
+    // ---------------------------------------------------------------------------------- //
+
+    // ----------------------------------------- //
+    // Enums
+    // ----------------------------------------- //
+
+    /// Material backface culling mode enum
+    enum class MaterialBackfaceCullModeEnum {
+        None = AXR_MATERIAL_BACKFACE_CULL_MODE_NONE,
+        Front = AXR_MATERIAL_BACKFACE_CULL_MODE_FRONT,
+        Back = AXR_MATERIAL_BACKFACE_CULL_MODE_BACK,
+        FrontAndBack = AXR_MATERIAL_BACKFACE_CULL_MODE_FRONT_AND_BACK,
+    };
+
+    /// Material alpha rendering mode enum
+    enum class MaterialAlphaRenderModeEnum {
+        Opaque = AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE,
+        /// Depth sorted alpha blending transparency.
+        /// Useful for glass windows or objects with minimal or no overlapping transparency.
+        AlphaBlend = AXR_MATERIAL_ALPHA_RENDER_MODE_ALPHA_BLEND,
+        /// Order independent transparency.
+        /// Useful when there are multiple layers of transparency overlapping.
+        /// Whether it's multiple objects or a single complex object. 
+        OIT = AXR_MATERIAL_ALPHA_RENDER_MODE_OIT,
+    };
+
+    // ----------------------------------------- //
+    // Structs
+    // ----------------------------------------- //
+
+    /// Material Config
+    struct MaterialConfig {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        char Name[AXR_MAX_ASSET_NAME_SIZE]{};
+        char VertexShaderName[AXR_MAX_ASSET_NAME_SIZE]{};
+        char FragmentShaderName[AXR_MAX_ASSET_NAME_SIZE]{};
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+        char PushConstantBufferName[AXR_MAX_ASSET_NAME_SIZE]{};
+#endif
+        AxrShaderValues_T VertexShaderValues = nullptr;
+        AxrShaderValues_T FragmentShaderValues = nullptr;
+        axr::MaterialBackfaceCullModeEnum BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
+        axr::MaterialAlphaRenderModeEnum AlphaRenderMode = axr::MaterialAlphaRenderModeEnum::Opaque;
+        uint32_t DynamicUniformBufferOffsetCount = 0;
+        axr::DynamicUniformBufferOffsetConfig* DynamicUniformBufferOffsets = nullptr;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        MaterialConfig() = default;
+
+        /// Constructor
+        /// @param name The material name
+        /// @param vertexShaderName The vertex shader name
+        /// @param fragmentShaderName The fragment shader name
+        /// @param vertexShaderValues The vertex shader values to use
+        /// @param fragmentShaderValues The fragment shader values to use
+        /// @param backfaceCullMode The material backface culling mode
+        /// @param alphaRenderMode The material alpha rendering mode
+        /// @param dynamicUniformBufferOffsetCount Dynamic uniform buffer offset count
+        /// @param dynamicUniformBufferOffsets Dynamic uniform buffer offsets
+        MaterialConfig(
+            const char* name,
+            const char* vertexShaderName,
+            const char* fragmentShaderName,
+            const axr::ShaderValues& vertexShaderValues,
+            const axr::ShaderValues& fragmentShaderValues,
+            const axr::MaterialBackfaceCullModeEnum backfaceCullMode,
+            const axr::MaterialAlphaRenderModeEnum alphaRenderMode,
+            const uint32_t dynamicUniformBufferOffsetCount,
+            const DynamicUniformBufferOffsetConfig* dynamicUniformBufferOffsets
+        ): VertexShaderValues(vertexShaderValues.cloneRaw()),
+            FragmentShaderValues(fragmentShaderValues.cloneRaw()),
+            BackfaceCullMode(backfaceCullMode),
+            AlphaRenderMode(alphaRenderMode) {
+            if (name != nullptr) {
+                strncpy_s(Name, name, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (vertexShaderName != nullptr) {
+                strncpy_s(VertexShaderName, vertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (fragmentShaderName != nullptr) {
+                strncpy_s(FragmentShaderName, fragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
+            }
+
+            DynamicUniformBufferOffsetCount = dynamicUniformBufferOffsetCount;
+            DynamicUniformBufferOffsets = clone(
+                dynamicUniformBufferOffsetCount,
+                dynamicUniformBufferOffsets
+            );
+        }
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+        /// Constructor
+        /// @param name The material name
+        /// @param vertexShaderName The vertex shader name
+        /// @param fragmentShaderName The fragment shader name
+        /// @param pushConstantBufferName The push constant buffer name
+        /// @param vertexShaderValues The vertex shader values to use
+        /// @param fragmentShaderValues The fragment shader values to use
+        /// @param backfaceCullMode The material backface culling mode
+        /// @param alphaRenderMode The material alpha rendering mode
+        /// @param dynamicUniformBufferOffsetCount Dynamic uniform buffer offset count
+        /// @param dynamicUniformBufferOffsets Dynamic uniform buffer offsets
+        MaterialConfig(
+            const char* name,
+            const char* vertexShaderName,
+            const char* fragmentShaderName,
+            const char* pushConstantBufferName,
+            const axr::ShaderValues& vertexShaderValues,
+            const axr::ShaderValues& fragmentShaderValues,
+            const axr::MaterialBackfaceCullModeEnum backfaceCullMode,
+            const axr::MaterialAlphaRenderModeEnum alphaRenderMode,
+            const uint32_t dynamicUniformBufferOffsetCount,
+            const DynamicUniformBufferOffsetConfig* dynamicUniformBufferOffsets
+        ): VertexShaderValues(vertexShaderValues.cloneRaw()),
+            FragmentShaderValues(fragmentShaderValues.cloneRaw()),
+            BackfaceCullMode(backfaceCullMode),
+            AlphaRenderMode(alphaRenderMode) {
+            if (name != nullptr) {
+                strncpy_s(Name, name, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (vertexShaderName != nullptr) {
+                strncpy_s(VertexShaderName, vertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (fragmentShaderName != nullptr) {
+                strncpy_s(FragmentShaderName, fragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (pushConstantBufferName != nullptr) {
+                strncpy_s(PushConstantBufferName, pushConstantBufferName, AXR_MAX_ASSET_NAME_SIZE);
+            }
+
+            DynamicUniformBufferOffsetCount = dynamicUniformBufferOffsetCount;
+            DynamicUniformBufferOffsets = clone(
+                dynamicUniformBufferOffsetCount,
+                dynamicUniformBufferOffsets
+            );
+        }
+#endif
+
+        /// Copy Constructor
+        /// @param src Source MaterialConfig to copy from
+        MaterialConfig(const axr::MaterialConfig& src) {
+            if (src.Name != nullptr) {
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (src.VertexShaderName != nullptr) {
+                strncpy_s(VertexShaderName, src.VertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (src.FragmentShaderName != nullptr) {
+                strncpy_s(FragmentShaderName, src.FragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
+            }
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+            if (src.PushConstantBufferName != nullptr) {
+                strncpy_s(PushConstantBufferName, src.PushConstantBufferName, AXR_MAX_ASSET_NAME_SIZE);
+            }
+#endif
+
+            if (src.VertexShaderValues != nullptr) {
+                VertexShaderValues = axrShaderValuesClone(src.VertexShaderValues);
+            } else {
+                VertexShaderValues = nullptr;
+            }
+
+            if (src.FragmentShaderValues != nullptr) {
+                FragmentShaderValues = axrShaderValuesClone(src.FragmentShaderValues);
+            } else {
+                FragmentShaderValues = nullptr;
+            }
+
+            BackfaceCullMode = src.BackfaceCullMode;
+            AlphaRenderMode = src.AlphaRenderMode;
+            DynamicUniformBufferOffsetCount = src.DynamicUniformBufferOffsetCount;
+            DynamicUniformBufferOffsets = clone(
+                src.DynamicUniformBufferOffsetCount,
+                src.DynamicUniformBufferOffsets
+            );
+        }
+
+        /// Move Constructor
+        /// @param src Source MaterialConfig to move from
+        MaterialConfig(MaterialConfig&& src) noexcept {
+            if (src.Name != nullptr) {
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (src.VertexShaderName != nullptr) {
+                strncpy_s(VertexShaderName, src.VertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            if (src.FragmentShaderName != nullptr) {
+                strncpy_s(FragmentShaderName, src.FragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
+            }
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+            if (src.PushConstantBufferName != nullptr) {
+                strncpy_s(PushConstantBufferName, src.PushConstantBufferName, AXR_MAX_ASSET_NAME_SIZE);
+            }
+#endif
+            VertexShaderValues = src.VertexShaderValues;
+            FragmentShaderValues = src.FragmentShaderValues;
+            BackfaceCullMode = src.BackfaceCullMode;
+            AlphaRenderMode = src.AlphaRenderMode;
+            DynamicUniformBufferOffsetCount = src.DynamicUniformBufferOffsetCount;
+            DynamicUniformBufferOffsets = src.DynamicUniformBufferOffsets;
+
+            memset(src.Name, 0, sizeof(src.Name));
+            memset(src.VertexShaderName, 0, sizeof(src.VertexShaderName));
+            memset(src.FragmentShaderName, 0, sizeof(src.FragmentShaderName));
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+            memset(src.PushConstantBufferName, 0, sizeof(src.PushConstantBufferName));
+#endif
+            src.VertexShaderValues = nullptr;
+            src.FragmentShaderValues = nullptr;
+            src.BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
+            src.AlphaRenderMode = axr::MaterialAlphaRenderModeEnum::Opaque;
+            src.DynamicUniformBufferOffsetCount = 0;
+            src.DynamicUniformBufferOffsets = nullptr;
+        }
+
+        // ---- Destructor ----
+
+        /// Destructor
+        ~MaterialConfig() {
+            cleanup();
+        }
+
+        // ---- Operator Overloads ----
+
+        /// Copy Assignment Operator
+        /// @param src Source MaterialConfig to copy from
+        MaterialConfig& operator=(const MaterialConfig& src) {
+            if (this != &src) {
+                cleanup();
+
+                if (src.Name != nullptr) {
+                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                }
+                if (src.VertexShaderName != nullptr) {
+                    strncpy_s(VertexShaderName, src.VertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
+                }
+                if (src.FragmentShaderName != nullptr) {
+                    strncpy_s(FragmentShaderName, src.FragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
+                }
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+                if (src.PushConstantBufferName != nullptr) {
+                    strncpy_s(PushConstantBufferName, src.PushConstantBufferName, AXR_MAX_ASSET_NAME_SIZE);
+                }
+#endif
+
+                if (src.VertexShaderValues != nullptr) {
+                    VertexShaderValues = axrShaderValuesClone(src.VertexShaderValues);
+                } else {
+                    VertexShaderValues = nullptr;
+                }
+
+                if (src.FragmentShaderValues != nullptr) {
+                    FragmentShaderValues = axrShaderValuesClone(src.FragmentShaderValues);
+                } else {
+                    FragmentShaderValues = nullptr;
+                }
+
+                BackfaceCullMode = src.BackfaceCullMode;
+                AlphaRenderMode = src.AlphaRenderMode;
+                DynamicUniformBufferOffsetCount = src.DynamicUniformBufferOffsetCount;
+                DynamicUniformBufferOffsets = clone(
+                    src.DynamicUniformBufferOffsetCount,
+                    src.DynamicUniformBufferOffsets
+                );
+            }
+
+            return *this;
+        }
+
+        /// Move Assignment Operator
+        /// @param src Source MaterialConfig to move from
+        MaterialConfig& operator=(MaterialConfig&& src) noexcept {
+            if (this != &src) {
+                cleanup();
+
+                if (src.Name != nullptr) {
+                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                }
+                if (src.VertexShaderName != nullptr) {
+                    strncpy_s(VertexShaderName, src.VertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
+                }
+                if (src.FragmentShaderName != nullptr) {
+                    strncpy_s(FragmentShaderName, src.FragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
+                }
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+                if (src.PushConstantBufferName != nullptr) {
+                    strncpy_s(PushConstantBufferName, src.PushConstantBufferName, AXR_MAX_ASSET_NAME_SIZE);
+                }
+#endif
+                VertexShaderValues = src.VertexShaderValues;
+                FragmentShaderValues = src.FragmentShaderValues;
+                BackfaceCullMode = src.BackfaceCullMode;
+                AlphaRenderMode = src.AlphaRenderMode;
+                DynamicUniformBufferOffsetCount = src.DynamicUniformBufferOffsetCount;
+                DynamicUniformBufferOffsets = src.DynamicUniformBufferOffsets;
+
+                memset(src.Name, 0, sizeof(src.Name));
+                memset(src.VertexShaderName, 0, sizeof(src.VertexShaderName));
+                memset(src.FragmentShaderName, 0, sizeof(src.FragmentShaderName));
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+                memset(src.PushConstantBufferName, 0, sizeof(src.PushConstantBufferName));
+#endif
+                src.VertexShaderValues = nullptr;
+                src.FragmentShaderValues = nullptr;
+                src.BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
+                src.AlphaRenderMode = axr::MaterialAlphaRenderModeEnum::Opaque;
+                src.DynamicUniformBufferOffsetCount = 0;
+                src.DynamicUniformBufferOffsets = nullptr;
+            }
+
+            return *this;
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Check if this material config is valid
+        /// @returns True if this material config is valid
+        [[nodiscard]] bool isValid() const {
+            return axrMaterialConfigIsValid(toRaw());
+        }
+
+        /// Get a handle to the MaterialConfig as an AxrMaterialConfig
+        /// @returns This as an AxrMaterialConfig
+        const AxrMaterialConfig* toRaw() const {
+            return reinterpret_cast<const AxrMaterialConfig*>(this);
+        }
+
+        /// Get a handle to the MaterialConfig as an AxrMaterialConfig
+        /// @returns This as an AxrMaterialConfig
+        AxrMaterialConfig* toRaw() {
+            return reinterpret_cast<AxrMaterialConfig*>(this);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Functions
+        // ----------------------------------------- //
+
+        /// Clean up this class
+        void cleanup() {
+            if (VertexShaderValues != nullptr) {
+                axrShaderValuesDestroy(&VertexShaderValues);
+            }
+            if (FragmentShaderValues != nullptr) {
+                axrShaderValuesDestroy(&FragmentShaderValues);
+            }
+
+            destroy(DynamicUniformBufferOffsetCount, DynamicUniformBufferOffsets);
+
+            memset(Name, 0, sizeof(Name));
+            memset(VertexShaderName, 0, sizeof(VertexShaderName));
+            memset(FragmentShaderName, 0, sizeof(FragmentShaderName));
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+            memset(PushConstantBufferName, 0, sizeof(PushConstantBufferName));
+#endif
+            BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
+            AlphaRenderMode = axr::MaterialAlphaRenderModeEnum::Opaque;
+        }
+
+        /// Clone the given dynamic uniform buffer configs
+        /// @param count Dynamic uniform buffer config array count
+        /// @param data Dynamic uniform buffer config array
+        /// @returns The cloned dynamic uniform buffer configs
+        DynamicUniformBufferOffsetConfig* clone(
+            const uint32_t count,
+            const DynamicUniformBufferOffsetConfig* data
+        ) const {
+            if (count == 0 || data == nullptr) return nullptr;
+
+            const auto clonedData = new DynamicUniformBufferOffsetConfig[count];
+            for (uint32_t i = 0; i < count; ++i) {
+                clonedData[i] = data[i];
+            }
+            return clonedData;
+        }
+
+        /// Destroy the given dynamic uniform buffer configs
+        /// @param count Dynamic uniform buffer config array count
+        /// @param data Dynamic uniform buffer config array
+        void destroy(uint32_t& count, DynamicUniformBufferOffsetConfig*& data) const {
+            if (count == 0 || data == nullptr) return;
+
+            delete[] data;
+            data = nullptr;
+            count = 0;
+        }
+    };
+
+    static_assert(
+        sizeof(AxrMaterialConfig) == sizeof(axr::MaterialConfig),
+        "Original type and wrapper have different size!"
+    );
+
+    // ----------------------------------------- //
+    // Material Definition
+    // ----------------------------------------- //
+
+    /// Material
+    class Material {
+    public:
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Constructor
+        /// @param material Material handle
+        Material(const AxrMaterial_T material):
+            m_Material(material) {
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get the material's name
+        /// @returns The material's name
+        [[nodiscard]] const char* getName() const {
+            return axrMaterialGetName(m_Material);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Variables
+        // ----------------------------------------- //
+        AxrMaterial_T m_Material;
     };
 
     // ---------------------------------------------------------------------------------- //

@@ -429,83 +429,6 @@ extern "C" {
 }
 
 // ---------------------------------------------------------------------------------- //
-//                                  Material Assets                                   //
-// ---------------------------------------------------------------------------------- //
-
-// ----------------------------------------- //
-// Enums
-// ----------------------------------------- //
-
-/// Material backface culling mode enum
-enum AxrMaterialBackfaceCullModeEnum {
-    AXR_MATERIAL_BACKFACE_CULL_MODE_NONE = 0,
-    AXR_MATERIAL_BACKFACE_CULL_MODE_FRONT,
-    AXR_MATERIAL_BACKFACE_CULL_MODE_BACK,
-    AXR_MATERIAL_BACKFACE_CULL_MODE_FRONT_AND_BACK,
-};
-
-/// Material alpha rendering mode enum
-enum AxrMaterialAlphaRenderModeEnum {
-    AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE = 0,
-    /// Depth sorted alpha blending transparency.
-    /// Useful for glass windows or objects with minimal or no overlapping transparency.
-    AXR_MATERIAL_ALPHA_RENDER_MODE_ALPHA_BLEND,
-    /// Order independent transparency.
-    /// Useful when there are multiple layers of transparency overlapping.
-    /// Whether it's multiple objects or a single complex object. 
-    AXR_MATERIAL_ALPHA_RENDER_MODE_OIT,
-};
-
-// ----------------------------------------- //
-// Structs
-// ----------------------------------------- //
-
-/// Dynamic uniform buffer offset config
-struct AxrDynamicUniformBufferOffsetConfig {
-    uint32_t Binding;
-    uint32_t OffsetIndex;
-};
-
-/// Material Config
-struct AxrMaterialConfig {
-    char Name[AXR_MAX_ASSET_NAME_SIZE];
-    char VertexShaderName[AXR_MAX_ASSET_NAME_SIZE];
-    char FragmentShaderName[AXR_MAX_ASSET_NAME_SIZE];
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    char PushConstantBufferName[AXR_MAX_ASSET_NAME_SIZE];
-#endif
-    AxrShaderValues_T VertexShaderValues;
-    AxrShaderValues_T FragmentShaderValues;
-    AxrMaterialBackfaceCullModeEnum BackfaceCullMode;
-    AxrMaterialAlphaRenderModeEnum AlphaRenderMode;
-    uint32_t DynamicUniformBufferOffsetCount;
-    AxrDynamicUniformBufferOffsetConfig* DynamicUniformBufferOffsets;
-};
-
-// ----------------------------------------- //
-// Forward Declared Handles
-// ----------------------------------------- //
-
-/// AxrMaterial Handle
-typedef class AxrMaterial* AxrMaterial_T;
-/// const AxrMaterial Handle
-typedef const AxrMaterial* AxrMaterialConst_T;
-
-// ----------------------------------------- //
-// External Function Definitions
-// ----------------------------------------- //
-extern "C" {
-    /// Check if the given material config is valid
-    /// @param materialConfig Material config to check
-    /// @returns True if the given material config is valid
-    AXR_API bool axrMaterialConfigIsValid(const AxrMaterialConfig* materialConfig);
-    /// Get the material's name
-    /// @param material Material to use
-    /// @returns The material's name
-    AXR_API const char* axrMaterialGetName(AxrMaterialConst_T material);
-}
-
-// ---------------------------------------------------------------------------------- //
 //                                   Model Assets                                     //
 // ---------------------------------------------------------------------------------- //
 
@@ -627,6 +550,12 @@ enum AxrUniformBufferTypeEnum {
 // ----------------------------------------- //
 // Structs
 // ----------------------------------------- //
+
+/// Dynamic uniform buffer offset config
+struct AxrDynamicUniformBufferOffsetConfig {
+    uint32_t Binding;
+    uint32_t OffsetIndex;
+};
 
 /// Uniform Buffer Config
 struct AxrUniformBufferConfig {
@@ -821,6 +750,77 @@ extern "C" {
         AxrImageColorChannelsEnum colorChannels,
         const stbi_uc* data
     );
+}
+
+// ---------------------------------------------------------------------------------- //
+//                                  Material Assets                                   //
+// ---------------------------------------------------------------------------------- //
+
+// ----------------------------------------- //
+// Enums
+// ----------------------------------------- //
+
+/// Material backface culling mode enum
+enum AxrMaterialBackfaceCullModeEnum {
+    AXR_MATERIAL_BACKFACE_CULL_MODE_NONE = 0,
+    AXR_MATERIAL_BACKFACE_CULL_MODE_FRONT,
+    AXR_MATERIAL_BACKFACE_CULL_MODE_BACK,
+    AXR_MATERIAL_BACKFACE_CULL_MODE_FRONT_AND_BACK,
+};
+
+/// Material alpha rendering mode enum
+enum AxrMaterialAlphaRenderModeEnum {
+    AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE = 0,
+    /// Depth sorted alpha blending transparency.
+    /// Useful for glass windows or objects with minimal or no overlapping transparency.
+    AXR_MATERIAL_ALPHA_RENDER_MODE_ALPHA_BLEND,
+    /// Order independent transparency.
+    /// Useful when there are multiple layers of transparency overlapping.
+    /// Whether it's multiple objects or a single complex object. 
+    AXR_MATERIAL_ALPHA_RENDER_MODE_OIT,
+};
+
+// ----------------------------------------- //
+// Structs
+// ----------------------------------------- //
+
+/// Material Config
+struct AxrMaterialConfig {
+    char Name[AXR_MAX_ASSET_NAME_SIZE];
+    char VertexShaderName[AXR_MAX_ASSET_NAME_SIZE];
+    char FragmentShaderName[AXR_MAX_ASSET_NAME_SIZE];
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    char PushConstantBufferName[AXR_MAX_ASSET_NAME_SIZE];
+#endif
+    AxrShaderValues_T VertexShaderValues;
+    AxrShaderValues_T FragmentShaderValues;
+    AxrMaterialBackfaceCullModeEnum BackfaceCullMode;
+    AxrMaterialAlphaRenderModeEnum AlphaRenderMode;
+    uint32_t DynamicUniformBufferOffsetCount;
+    AxrDynamicUniformBufferOffsetConfig* DynamicUniformBufferOffsets;
+};
+
+// ----------------------------------------- //
+// Forward Declared Handles
+// ----------------------------------------- //
+
+/// AxrMaterial Handle
+typedef class AxrMaterial* AxrMaterial_T;
+/// const AxrMaterial Handle
+typedef const AxrMaterial* AxrMaterialConst_T;
+
+// ----------------------------------------- //
+// External Function Definitions
+// ----------------------------------------- //
+extern "C" {
+    /// Check if the given material config is valid
+    /// @param materialConfig Material config to check
+    /// @returns True if the given material config is valid
+    AXR_API bool axrMaterialConfigIsValid(const AxrMaterialConfig* materialConfig);
+    /// Get the material's name
+    /// @param material Material to use
+    /// @returns The material's name
+    AXR_API const char* axrMaterialGetName(AxrMaterialConst_T material);
 }
 
 // ---------------------------------------------------------------------------------- //
