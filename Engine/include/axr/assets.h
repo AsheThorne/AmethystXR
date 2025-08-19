@@ -39,6 +39,7 @@ enum AxrShaderStageEnum {
 enum AxrShaderBufferLayoutEnum {
     AXR_SHADER_BUFFER_LAYOUT_UNDEFINED = 0,
     AXR_SHADER_BUFFER_LAYOUT_UNIFORM_BUFFER,
+    AXR_SHADER_BUFFER_LAYOUT_DYNAMIC_UNIFORM_BUFFER,
     AXR_SHADER_BUFFER_LAYOUT_IMAGE_SAMPLER_BUFFER,
     AXR_SHADER_BUFFER_LAYOUT_PUSH_CONSTANT_BUFFER,
 };
@@ -83,6 +84,18 @@ struct AxrShaderUniformBufferLayout {
 typedef AxrShaderUniformBufferLayout* AxrShaderUniformBufferLayout_T;
 /// Const AxrShaderUniformBufferLayout Handle Type
 typedef const AxrShaderUniformBufferLayout* AxrShaderUniformBufferLayoutConst_T;
+
+/// Shader Dynamic Uniform Buffer Layout
+struct AxrShaderDynamicUniformBufferLayout {
+    const AxrShaderBufferLayoutEnum Type = AXR_SHADER_BUFFER_LAYOUT_DYNAMIC_UNIFORM_BUFFER;
+    uint32_t Binding;
+    uint64_t InstanceSize;
+};
+
+/// AxrShaderDynamicUniformBufferLayout Handle Type
+typedef AxrShaderDynamicUniformBufferLayout* AxrShaderDynamicUniformBufferLayout_T;
+/// Const AxrShaderDynamicUniformBufferLayout Handle Type
+typedef const AxrShaderDynamicUniformBufferLayout* AxrShaderDynamicUniformBufferLayoutConst_T;
 
 /// Shader Image Sampler Buffer Layout
 struct AxrShaderImageSamplerBufferLayout {
@@ -177,6 +190,16 @@ extern "C" {
     /// Destroy the given shader uniform buffer layout
     /// @param bufferLayout Shader buffer layout to destroy
     AXR_API void axrShaderUniformBufferLayoutDestroy(AxrShaderUniformBufferLayout_T* bufferLayout);
+
+    /// Clone the given shader dynamic uniform buffer layout
+    /// @param bufferLayout Shader buffer layout to clone
+    /// @returns The cloned shader buffer layout
+    AXR_API AxrShaderDynamicUniformBufferLayout_T axrShaderDynamicUniformBufferLayoutClone(
+        AxrShaderDynamicUniformBufferLayoutConst_T bufferLayout
+    );
+    /// Destroy the given shader dynamic uniform buffer layout
+    /// @param bufferLayout Shader buffer layout to destroy
+    AXR_API void axrShaderDynamicUniformBufferLayoutDestroy(AxrShaderDynamicUniformBufferLayout_T* bufferLayout);
 
     /// Clone the given shader image sampler buffer layout
     /// @param bufferLayout Shader buffer layout to clone
@@ -437,6 +460,12 @@ enum AxrMaterialAlphaRenderModeEnum {
 // Structs
 // ----------------------------------------- //
 
+/// Dynamic uniform buffer offset config
+struct AxrDynamicUniformBufferOffsetConfig {
+    uint32_t Binding;
+    uint32_t OffsetIndex;
+};
+
 /// Material Config
 struct AxrMaterialConfig {
     char Name[AXR_MAX_ASSET_NAME_SIZE];
@@ -449,6 +478,8 @@ struct AxrMaterialConfig {
     AxrShaderValues_T FragmentShaderValues;
     AxrMaterialBackfaceCullModeEnum BackfaceCullMode;
     AxrMaterialAlphaRenderModeEnum AlphaRenderMode;
+    uint32_t DynamicUniformBufferOffsetCount;
+    AxrDynamicUniformBufferOffsetConfig* DynamicUniformBufferOffsets;
 };
 
 // ----------------------------------------- //
@@ -583,6 +614,17 @@ extern "C" {
 // ---------------------------------------------------------------------------------- //
 
 // ----------------------------------------- //
+// Enums
+// ----------------------------------------- //
+
+/// Uniform buffer type enum
+enum AxrUniformBufferTypeEnum {
+    AXR_UNIFORM_BUFFER_TYPE_UNDEFINED = 0,
+    AXR_UNIFORM_BUFFER_TYPE_STANDARD,
+    AXR_UNIFORM_BUFFER_TYPE_DYNAMIC,
+};
+
+// ----------------------------------------- //
 // Structs
 // ----------------------------------------- //
 
@@ -590,6 +632,14 @@ extern "C" {
 struct AxrUniformBufferConfig {
     char Name[AXR_MAX_ASSET_NAME_SIZE];
     uint64_t DataSize;
+    void* Data;
+};
+
+/// Dynamic Uniform Buffer Config
+struct AxrDynamicUniformBufferConfig {
+    char Name[AXR_MAX_ASSET_NAME_SIZE];
+    uint32_t InstanceCount;
+    uint64_t InstanceSize;
     void* Data;
 };
 
@@ -872,6 +922,14 @@ extern "C" {
     /// @param engineAssetEnum Engine asset to use
     /// @returns The size for the given uniform buffer engine asset
     AXR_API uint64_t axrEngineAssetGetUniformBufferSize(AxrEngineAssetEnum engineAssetEnum);
+    /// Get the instance size for the given uniform buffer engine asset
+    /// @param engineAssetEnum Engine asset to use
+    /// @returns The instance size for the given uniform buffer engine asset
+    AXR_API uint64_t axrEngineAssetGetUniformBufferInstanceSize(AxrEngineAssetEnum engineAssetEnum);
+    /// Get the buffer type for the given uniform buffer engine asset
+    /// @param engineAssetEnum Engine asset to use
+    /// @returns The buffer type for the given uniform buffer engine asset
+    AXR_API AxrUniformBufferTypeEnum axrEngineAssetGetUniformBufferType(AxrEngineAssetEnum engineAssetEnum);
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     /// Get the size for the given push constant buffer engine asset
     /// @param engineAssetEnum Engine asset to use
@@ -968,6 +1026,14 @@ extern "C" {
     AXR_API AxrResult axrAssetCollectionCreateUniformBuffer(
         AxrAssetCollection_T assetCollection,
         const AxrUniformBufferConfig* uniformBufferConfig
+    );
+    /// Create a new dynamic uniform buffer
+    /// @param assetCollection Asset collection to use
+    /// @param uniformBufferConfig Dynamic uniform buffer config
+    /// @returns AXR_SUCCESS if the function succeeded
+    AXR_API AxrResult axrAssetCollectionCreateDynamicUniformBuffer(
+        AxrAssetCollection_T assetCollection,
+        const AxrDynamicUniformBufferConfig* uniformBufferConfig
     );
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN

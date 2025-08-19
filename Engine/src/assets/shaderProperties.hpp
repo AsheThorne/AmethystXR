@@ -65,6 +65,9 @@ public:
     /// Get all uniform buffer layouts
     /// @returns A collection of uniform buffer layouts
     [[nodiscard]] std::vector<AxrShaderUniformBufferLayoutConst_T> getUniformBufferLayouts() const;
+    /// Get all dynamic uniform buffer layouts
+    /// @returns A collection of dynamic uniform buffer layouts
+    [[nodiscard]] std::vector<AxrShaderDynamicUniformBufferLayoutConst_T> getDynamicUniformBufferLayouts() const;
     /// Get all image sampler buffer layouts
     /// @returns A collection of image sampler buffer layouts
     [[nodiscard]] std::vector<AxrShaderImageSamplerBufferLayoutConst_T> getImageSamplerBufferLayouts() const;
@@ -147,6 +150,14 @@ public:
     /// Destroy the given shader uniform buffer layout
     /// @param shaderBufferLayout Shader buffer layout to destroy
     static void destroy(AxrShaderUniformBufferLayout_T& shaderBufferLayout);
+
+    /// Clone the given shader dynamic uniform buffer layout
+    /// @param shaderBufferLayout Shader buffer layout to clone
+    /// @returns The cloned shader buffer layout
+    [[nodiscard]] static AxrShaderDynamicUniformBufferLayout_T clone(AxrShaderDynamicUniformBufferLayoutConst_T shaderBufferLayout);
+    /// Destroy the given shader dynamic uniform buffer layout
+    /// @param shaderBufferLayout Shader buffer layout to destroy
+    static void destroy(AxrShaderDynamicUniformBufferLayout_T& shaderBufferLayout);
 
     /// Clone the given shader image sampler buffer layout
     /// @param shaderBufferLayout Shader buffer layout to clone
@@ -244,6 +255,14 @@ public:
         uint32_t bufferLayoutCount,
         const AxrShaderBufferLayoutConst_T* bufferLayouts
     );
+    /// Get all dynamic uniform buffer layouts from the given shader buffer layouts
+    /// @param bufferLayoutCount Buffer layouts array length
+    /// @param bufferLayouts Buffer layouts array
+    /// @returns A collection of dynamic uniform buffer layouts
+    [[nodiscard]] static std::vector<AxrShaderDynamicUniformBufferLayoutConst_T> getDynamicUniformBufferLayouts(
+        uint32_t bufferLayoutCount,
+        const AxrShaderBufferLayoutConst_T* bufferLayouts
+    );
     /// Get all image sampler buffer layouts from the given shader buffer layouts
     /// @param bufferLayoutCount Buffer layouts array length
     /// @param bufferLayouts Buffer layouts array
@@ -274,6 +293,14 @@ private:
     /// @returns True if the given uniform buffer layout is compatible with the given collection
     [[nodiscard]] static bool isUniformBufferLayoutBindingValid(
         AxrShaderUniformBufferLayoutConst_T uniformBufferLayout,
+        std::unordered_map<uint32_t, uint64_t>& uniformBufferBindings
+    );
+    /// Check if the given dynamic uniform buffer layout has a duplicate binding but with a different buffer size in the given collection
+    /// @param uniformBufferLayout Dynamic uniform buffer layout to check
+    /// @param uniformBufferBindings Collection to check within
+    /// @returns True if the given dynamic uniform buffer layout is compatible with the given collection
+    [[nodiscard]] static bool isDynamicUniformBufferLayoutBindingValid(
+        AxrShaderDynamicUniformBufferLayoutConst_T uniformBufferLayout,
         std::unordered_map<uint32_t, uint64_t>& uniformBufferBindings
     );
 };

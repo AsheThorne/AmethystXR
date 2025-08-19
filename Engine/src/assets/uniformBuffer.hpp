@@ -23,7 +23,10 @@ public:
     AxrUniformBuffer();
     /// Constructor
     /// @param config Uniform buffer config
-    AxrUniformBuffer(const AxrUniformBufferConfig& config);
+    explicit AxrUniformBuffer(const AxrUniformBufferConfig& config);
+    /// Constructor
+    /// @param config Dynamic uniform buffer config
+    explicit AxrUniformBuffer(const AxrDynamicUniformBufferConfig& config);
     /// Copy Constructor
     /// @param src Source AxrUniformBuffer to copy from
     AxrUniformBuffer(const AxrUniformBuffer& src);
@@ -72,9 +75,18 @@ public:
     /// @returns The data
     [[nodiscard]] static void* createData(uint64_t size);
 
+    /// Get the buffer type
+    /// @returns The buffer type
+    [[nodiscard]] AxrUniformBufferTypeEnum getBufferType() const;
+    /// Get the instance count
+    /// @returns The instance count
+    [[nodiscard]] const uint32_t& getInstanceCount() const;
+    /// Get the instance size
+    /// @returns The instance size
+    [[nodiscard]] const uint64_t& getInstanceSize() const;
     /// Get the buffer size
     /// @returns The buffer size
-    [[nodiscard]] const uint64_t& getSize() const;
+    [[nodiscard]] const uint64_t& getDataSize() const;
     /// Get the buffer data
     /// @returns The buffer data
     [[nodiscard]] const void* getData() const;
@@ -86,6 +98,9 @@ private:
 
     // ---- Config Variables ----
     std::string m_Name;
+    AxrUniformBufferTypeEnum m_BufferType;
+    uint32_t m_InstanceCount;
+    uint64_t m_InstanceSize;
     uint64_t m_DataSize;
     void* m_Data;
 

@@ -56,6 +56,10 @@ vk::PresentModeKHR axrToVkPresentMode(AxrVulkanPresentationModeEnum presentation
 /// @param backfaceCullMode backface culling mode to convert
 /// @returns The converted backface culling mode
 vk::CullModeFlags axrToVkCullMode(AxrMaterialBackfaceCullModeEnum backfaceCullMode);
+/// Convert an AxrUniformBufferTypeEnum to a vk::DescriptorType
+/// @param bufferType Uniform buffer type
+/// @returns The converted descriptor type
+vk::DescriptorType axrToVkDescriptorType(AxrUniformBufferTypeEnum bufferType);
 
 // ---- Api Layers / Extensions ----
 

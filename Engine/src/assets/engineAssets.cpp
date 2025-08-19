@@ -139,6 +139,40 @@ uint64_t axrEngineAssetGetUniformBufferSize(const AxrEngineAssetEnum engineAsset
     }
 }
 
+uint64_t axrEngineAssetGetUniformBufferInstanceSize(const AxrEngineAssetEnum engineAssetEnum) {
+    if (!axrEngineAssetIsUniformBuffer(engineAssetEnum)) {
+        axrLogErrorLocation("Engine asset is not a uniform buffer.");
+        return 0;
+    }
+
+    switch (engineAssetEnum) {
+        case AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA: {
+            return sizeof(AxrEngineAssetUniformBuffer_SceneData);
+        }
+        case AXR_ENGINE_ASSET_UNDEFINED:
+        default: { // NOLINT(clang-diagnostic-covered-switch-default)
+            return 0;
+        }
+    }
+}
+
+AxrUniformBufferTypeEnum axrEngineAssetGetUniformBufferType(const AxrEngineAssetEnum engineAssetEnum) {
+    if (!axrEngineAssetIsUniformBuffer(engineAssetEnum)) {
+        axrLogErrorLocation("Engine asset is not a uniform buffer.");
+        return AXR_UNIFORM_BUFFER_TYPE_UNDEFINED;
+    }
+
+    switch (engineAssetEnum) {
+        case AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA: {
+            return AXR_UNIFORM_BUFFER_TYPE_STANDARD;
+        }
+        case AXR_ENGINE_ASSET_UNDEFINED:
+        default: { // NOLINT(clang-diagnostic-covered-switch-default)
+            return AXR_UNIFORM_BUFFER_TYPE_UNDEFINED;
+        }
+    }
+}
+
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 uint32_t axrEngineAssetGetPushConstantBufferSize(const AxrEngineAssetEnum engineAssetEnum) {
     if (!axrEngineAssetIsPushConstantBuffer(engineAssetEnum)) {

@@ -280,6 +280,37 @@ AxrResult AxrVulkanMaterialLayoutData::createDescriptorSetLayout() {
         );
     }
 
+    // ---- Dynamic Uniform buffer bindings ----
+
+    const std::vector<AxrShaderDynamicUniformBufferLayoutConst_T> vertexDynamicUniformBufferLayouts =
+        m_VertexShaderHandle->getProperties().getDynamicUniformBufferLayouts();
+    const std::vector<AxrShaderDynamicUniformBufferLayoutConst_T> fragmentDynamicUniformBufferLayouts =
+        m_FragmentShaderHandle->getProperties().getDynamicUniformBufferLayouts();
+
+    for (const AxrShaderDynamicUniformBufferLayoutConst_T dynamicUniformBufferLayout :
+         vertexDynamicUniformBufferLayouts) {
+        if (dynamicUniformBufferLayout == nullptr) continue;
+
+        addDescriptorSetLayoutItem(
+            dynamicUniformBufferLayout->Binding,
+            vk::DescriptorType::eUniformBufferDynamic,
+            vk::ShaderStageFlagBits::eVertex,
+            m_DescriptorSetLayoutBindings
+        );
+    }
+
+    for (const AxrShaderDynamicUniformBufferLayoutConst_T dynamicUniformBufferLayout :
+         fragmentDynamicUniformBufferLayouts) {
+        if (dynamicUniformBufferLayout == nullptr) continue;
+
+        addDescriptorSetLayoutItem(
+            dynamicUniformBufferLayout->Binding,
+            vk::DescriptorType::eUniformBufferDynamic,
+            vk::ShaderStageFlagBits::eFragment,
+            m_DescriptorSetLayoutBindings
+        );
+    }
+
     // ---- Image sampler bindings ----
 
     const std::vector<AxrShaderImageSamplerBufferLayoutConst_T> vertexImageSamplerBufferLayouts =

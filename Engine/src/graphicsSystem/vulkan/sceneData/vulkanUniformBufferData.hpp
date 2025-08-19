@@ -86,6 +86,12 @@ public:
     /// Get the uniform buffer size
     /// @returns The uniform buffer size
     [[nodiscard]] vk::DeviceSize getBufferSize() const;
+    /// Get the uniform buffer instance size
+    /// @returns The uniform buffer instance size
+    [[nodiscard]] vk::DeviceSize getInstanceSize() const;
+    /// Get the uniform buffer type
+    /// @returns The uniform buffer type
+    [[nodiscard]] AxrUniformBufferTypeEnum getBufferType() const;
 
     /// Check if the data exists
     /// @returns True if the data exists

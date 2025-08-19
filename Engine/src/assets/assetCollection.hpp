@@ -143,6 +143,10 @@ public:
     /// @param uniformBufferConfig Uniform buffer config
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult createUniformBuffer(const AxrUniformBufferConfig& uniformBufferConfig);
+    /// Create a new uniform buffer
+    /// @param uniformBufferConfig Dynamic uniform buffer config
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createUniformBuffer(const AxrDynamicUniformBufferConfig& uniformBufferConfig);
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     // ---- Push Constant Buffer ----

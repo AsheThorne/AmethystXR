@@ -1403,7 +1403,8 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
                 AxrVulkanRenderCommandDescriptorSets{
                     .WindowDescriptorSets = material.WindowDescriptorSets,
                     .XrSessionDescriptorSets = material.XrSessionDescriptorSets,
-                }
+                },
+                material.DynamicOffsets
             );
             renderCommands.pushConstants(
                 viewIndex,

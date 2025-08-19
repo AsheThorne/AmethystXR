@@ -30,6 +30,7 @@ namespace axr {
     enum class ShaderBufferLayoutEnum {
         Undefined = AXR_SHADER_BUFFER_LAYOUT_UNDEFINED,
         UniformBuffer = AXR_SHADER_BUFFER_LAYOUT_UNIFORM_BUFFER,
+        DynamicUniformBuffer = AXR_SHADER_BUFFER_LAYOUT_DYNAMIC_UNIFORM_BUFFER,
         ImageSamplerBuffer = AXR_SHADER_BUFFER_LAYOUT_IMAGE_SAMPLER_BUFFER,
         PushConstantBuffer = AXR_SHADER_BUFFER_LAYOUT_PUSH_CONSTANT_BUFFER,
     };
@@ -175,6 +176,21 @@ namespace axr {
             };
             BufferLayouts[BufferLayoutCount - 1] = reinterpret_cast<AxrShaderBufferLayout_T>(
                 axrShaderUniformBufferLayoutClone(&bufferLayout)
+            );
+        }
+
+        /// Add a dynamic uniform buffer layout
+        /// @param binding Dynamic uniform buffer layout binding
+        /// @param instanceSize Dynamic uniform buffer layout instance size
+        void addDynamicUniformBufferLayout(const uint32_t binding, const uint64_t instanceSize) {
+            resizeBufferLayouts(BufferLayoutCount + 1);
+
+            const AxrShaderDynamicUniformBufferLayout bufferLayout{
+                .Binding = binding,
+                .InstanceSize = instanceSize
+            };
+            BufferLayouts[BufferLayoutCount - 1] = reinterpret_cast<AxrShaderBufferLayout_T>(
+                axrShaderDynamicUniformBufferLayoutClone(&bufferLayout)
             );
         }
 
@@ -365,6 +381,21 @@ namespace axr {
             );
         }
 
+        /// Add a dynamic uniform buffer layout
+        /// @param binding Dynamic uniform buffer layout binding
+        /// @param instanceSize Dynamic uniform buffer layout buffer size
+        void addDynamicUniformBufferLayout(const uint32_t binding, const uint64_t instanceSize) {
+            resizeBufferLayouts(BufferLayoutCount + 1);
+
+            const AxrShaderDynamicUniformBufferLayout bufferLayout{
+                .Binding = binding,
+                .InstanceSize = instanceSize
+            };
+            BufferLayouts[BufferLayoutCount - 1] = reinterpret_cast<AxrShaderBufferLayout_T>(
+                axrShaderDynamicUniformBufferLayoutClone(&bufferLayout)
+            );
+        }
+
         /// Add an image sampler buffer layout
         /// @param binding Image sampler buffer layout binding
         void addImageSamplerBufferLayout(const uint32_t binding) {
@@ -465,7 +496,7 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        ShaderConfig() :
+        ShaderConfig():
             Properties(nullptr) {
         }
 
@@ -477,7 +508,7 @@ namespace axr {
             const char* name,
             const char* filePath,
             const axr::VertexShaderProperties& vertexShaderProperties
-        ) : Properties(reinterpret_cast<AxrShaderProperties_T>(vertexShaderProperties.cloneRaw())) {
+        ): Properties(reinterpret_cast<AxrShaderProperties_T>(vertexShaderProperties.cloneRaw())) {
             if (name != nullptr) {
                 strncpy_s(Name, name, AXR_MAX_ASSET_NAME_SIZE);
             }
@@ -494,7 +525,7 @@ namespace axr {
             const char* name,
             const char* filePath,
             const axr::FragmentShaderProperties& fragmentShaderProperties
-        ) : Properties(reinterpret_cast<AxrShaderProperties_T>(fragmentShaderProperties.cloneRaw())) {
+        ): Properties(reinterpret_cast<AxrShaderProperties_T>(fragmentShaderProperties.cloneRaw())) {
             if (name != nullptr) {
                 strncpy_s(Name, name, AXR_MAX_ASSET_NAME_SIZE);
             }
@@ -883,6 +914,53 @@ namespace axr {
     // Structs
     // ----------------------------------------- //
 
+    /// Dynamic uniform buffer offset config
+    struct DynamicUniformBufferOffsetConfig {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        uint32_t Binding = 0;
+        uint32_t OffsetIndex = 0;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        DynamicUniformBufferOffsetConfig() = default;
+
+        /// Constructor
+        /// @param binding Dynamic uniform buffer binding
+        /// @param offsetIndex Dynamic uniform buffer instance index offset
+        DynamicUniformBufferOffsetConfig(const uint32_t binding, const uint32_t offsetIndex):
+            Binding(binding),
+            OffsetIndex(offsetIndex) {
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the DynamicUniformBufferOffsetConfig as an AxrDynamicUniformBufferOffsetConfig
+        /// @returns This as an AxrDynamicUniformBufferOffsetConfig
+        const AxrDynamicUniformBufferOffsetConfig* toRaw() const {
+            return reinterpret_cast<const AxrDynamicUniformBufferOffsetConfig*>(this);
+        }
+
+        /// Get a handle to the DynamicUniformBufferOffsetConfig as an AxrDynamicUniformBufferOffsetConfig
+        /// @returns This as an AxrDynamicUniformBufferOffsetConfig
+        AxrDynamicUniformBufferOffsetConfig* toRaw() {
+            return reinterpret_cast<AxrDynamicUniformBufferOffsetConfig*>(this);
+        }
+    };
+
+    static_assert(
+        sizeof(AxrDynamicUniformBufferOffsetConfig) == sizeof(axr::DynamicUniformBufferOffsetConfig),
+        "Original type and wrapper have different size!"
+    );
+
     /// Material Config
     struct MaterialConfig {
         // ----------------------------------------- //
@@ -898,6 +976,8 @@ namespace axr {
         AxrShaderValues_T FragmentShaderValues = nullptr;
         axr::MaterialBackfaceCullModeEnum BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
         axr::MaterialAlphaRenderModeEnum AlphaRenderMode = axr::MaterialAlphaRenderModeEnum::Opaque;
+        uint32_t DynamicUniformBufferOffsetCount = 0;
+        axr::DynamicUniformBufferOffsetConfig* DynamicUniformBufferOffsets = nullptr;
 
         // ----------------------------------------- //
         // Special Functions
@@ -916,6 +996,8 @@ namespace axr {
         /// @param fragmentShaderValues The fragment shader values to use
         /// @param backfaceCullMode The material backface culling mode
         /// @param alphaRenderMode The material alpha rendering mode
+        /// @param dynamicUniformBufferOffsetCount Dynamic uniform buffer offset count
+        /// @param dynamicUniformBufferOffsets Dynamic uniform buffer offsets
         MaterialConfig(
             const char* name,
             const char* vertexShaderName,
@@ -923,8 +1005,10 @@ namespace axr {
             const axr::ShaderValues& vertexShaderValues,
             const axr::ShaderValues& fragmentShaderValues,
             const axr::MaterialBackfaceCullModeEnum backfaceCullMode,
-            const axr::MaterialAlphaRenderModeEnum alphaRenderMode
-        ) : VertexShaderValues(vertexShaderValues.cloneRaw()),
+            const axr::MaterialAlphaRenderModeEnum alphaRenderMode,
+            const uint32_t dynamicUniformBufferOffsetCount,
+            const DynamicUniformBufferOffsetConfig* dynamicUniformBufferOffsets
+        ): VertexShaderValues(vertexShaderValues.cloneRaw()),
             FragmentShaderValues(fragmentShaderValues.cloneRaw()),
             BackfaceCullMode(backfaceCullMode),
             AlphaRenderMode(alphaRenderMode) {
@@ -937,6 +1021,12 @@ namespace axr {
             if (fragmentShaderName != nullptr) {
                 strncpy_s(FragmentShaderName, fragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
             }
+
+            DynamicUniformBufferOffsetCount = dynamicUniformBufferOffsetCount;
+            DynamicUniformBufferOffsets = clone(
+                dynamicUniformBufferOffsetCount,
+                dynamicUniformBufferOffsets
+            );
         }
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
@@ -949,6 +1039,8 @@ namespace axr {
         /// @param fragmentShaderValues The fragment shader values to use
         /// @param backfaceCullMode The material backface culling mode
         /// @param alphaRenderMode The material alpha rendering mode
+        /// @param dynamicUniformBufferOffsetCount Dynamic uniform buffer offset count
+        /// @param dynamicUniformBufferOffsets Dynamic uniform buffer offsets
         MaterialConfig(
             const char* name,
             const char* vertexShaderName,
@@ -957,8 +1049,10 @@ namespace axr {
             const axr::ShaderValues& vertexShaderValues,
             const axr::ShaderValues& fragmentShaderValues,
             const axr::MaterialBackfaceCullModeEnum backfaceCullMode,
-            const axr::MaterialAlphaRenderModeEnum alphaRenderMode
-        ) : VertexShaderValues(vertexShaderValues.cloneRaw()),
+            const axr::MaterialAlphaRenderModeEnum alphaRenderMode,
+            const uint32_t dynamicUniformBufferOffsetCount,
+            const DynamicUniformBufferOffsetConfig* dynamicUniformBufferOffsets
+        ): VertexShaderValues(vertexShaderValues.cloneRaw()),
             FragmentShaderValues(fragmentShaderValues.cloneRaw()),
             BackfaceCullMode(backfaceCullMode),
             AlphaRenderMode(alphaRenderMode) {
@@ -974,6 +1068,12 @@ namespace axr {
             if (pushConstantBufferName != nullptr) {
                 strncpy_s(PushConstantBufferName, pushConstantBufferName, AXR_MAX_ASSET_NAME_SIZE);
             }
+
+            DynamicUniformBufferOffsetCount = dynamicUniformBufferOffsetCount;
+            DynamicUniformBufferOffsets = clone(
+                dynamicUniformBufferOffsetCount,
+                dynamicUniformBufferOffsets
+            );
         }
 #endif
 
@@ -1009,6 +1109,11 @@ namespace axr {
 
             BackfaceCullMode = src.BackfaceCullMode;
             AlphaRenderMode = src.AlphaRenderMode;
+            DynamicUniformBufferOffsetCount = src.DynamicUniformBufferOffsetCount;
+            DynamicUniformBufferOffsets = clone(
+                src.DynamicUniformBufferOffsetCount,
+                src.DynamicUniformBufferOffsets
+            );
         }
 
         /// Move Constructor
@@ -1032,7 +1137,8 @@ namespace axr {
             FragmentShaderValues = src.FragmentShaderValues;
             BackfaceCullMode = src.BackfaceCullMode;
             AlphaRenderMode = src.AlphaRenderMode;
-
+            DynamicUniformBufferOffsetCount = src.DynamicUniformBufferOffsetCount;
+            DynamicUniformBufferOffsets = src.DynamicUniformBufferOffsets;
 
             memset(src.Name, 0, sizeof(src.Name));
             memset(src.VertexShaderName, 0, sizeof(src.VertexShaderName));
@@ -1044,6 +1150,8 @@ namespace axr {
             src.FragmentShaderValues = nullptr;
             src.BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
             src.AlphaRenderMode = axr::MaterialAlphaRenderModeEnum::Opaque;
+            src.DynamicUniformBufferOffsetCount = 0;
+            src.DynamicUniformBufferOffsets = nullptr;
         }
 
         // ---- Destructor ----
@@ -1090,6 +1198,11 @@ namespace axr {
 
                 BackfaceCullMode = src.BackfaceCullMode;
                 AlphaRenderMode = src.AlphaRenderMode;
+                DynamicUniformBufferOffsetCount = src.DynamicUniformBufferOffsetCount;
+                DynamicUniformBufferOffsets = clone(
+                    src.DynamicUniformBufferOffsetCount,
+                    src.DynamicUniformBufferOffsets
+                );
             }
 
             return *this;
@@ -1119,6 +1232,8 @@ namespace axr {
                 FragmentShaderValues = src.FragmentShaderValues;
                 BackfaceCullMode = src.BackfaceCullMode;
                 AlphaRenderMode = src.AlphaRenderMode;
+                DynamicUniformBufferOffsetCount = src.DynamicUniformBufferOffsetCount;
+                DynamicUniformBufferOffsets = src.DynamicUniformBufferOffsets;
 
                 memset(src.Name, 0, sizeof(src.Name));
                 memset(src.VertexShaderName, 0, sizeof(src.VertexShaderName));
@@ -1130,6 +1245,8 @@ namespace axr {
                 src.FragmentShaderValues = nullptr;
                 src.BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
                 src.AlphaRenderMode = axr::MaterialAlphaRenderModeEnum::Opaque;
+                src.DynamicUniformBufferOffsetCount = 0;
+                src.DynamicUniformBufferOffsets = nullptr;
             }
 
             return *this;
@@ -1171,6 +1288,8 @@ namespace axr {
                 axrShaderValuesDestroy(&FragmentShaderValues);
             }
 
+            destroy(DynamicUniformBufferOffsetCount, DynamicUniformBufferOffsets);
+
             memset(Name, 0, sizeof(Name));
             memset(VertexShaderName, 0, sizeof(VertexShaderName));
             memset(FragmentShaderName, 0, sizeof(FragmentShaderName));
@@ -1179,6 +1298,34 @@ namespace axr {
 #endif
             BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
             AlphaRenderMode = axr::MaterialAlphaRenderModeEnum::Opaque;
+        }
+
+        /// Clone the given dynamic uniform buffer configs
+        /// @param count Dynamic uniform buffer config array count
+        /// @param data Dynamic uniform buffer config array
+        /// @returns The cloned dynamic uniform buffer configs
+        DynamicUniformBufferOffsetConfig* clone(
+            const uint32_t count,
+            const DynamicUniformBufferOffsetConfig* data
+        ) const {
+            if (count == 0 || data == nullptr) return nullptr;
+
+            const auto clonedData = new DynamicUniformBufferOffsetConfig[count];
+            for (uint32_t i = 0; i < count; ++i) {
+                clonedData[i] = data[i];
+            }
+            return clonedData;
+        }
+
+        /// Destroy the given dynamic uniform buffer configs
+        /// @param count Dynamic uniform buffer config array count
+        /// @param data Dynamic uniform buffer config array
+        void destroy(uint32_t& count, DynamicUniformBufferOffsetConfig*& data) const {
+            if (count == 0 || data == nullptr) return;
+
+            delete[] data;
+            data = nullptr;
+            count = 0;
         }
     };
 
@@ -1859,6 +2006,17 @@ namespace axr {
     //                                Uniform Buffer Assets                               //
     // ---------------------------------------------------------------------------------- //
 
+    // ----------------------------------------- //
+    // Enums
+    // ----------------------------------------- //
+
+    /// Uniform buffer type enum
+    enum class UniformBufferTypeEnum {
+        Undefined = AXR_UNIFORM_BUFFER_TYPE_UNDEFINED,
+        Standard = AXR_UNIFORM_BUFFER_TYPE_STANDARD,
+        Dynamic = AXR_UNIFORM_BUFFER_TYPE_DYNAMIC,
+    };
+
     /// Uniform Buffer Config
     struct UniformBufferConfig {
         // ----------------------------------------- //
@@ -1992,6 +2150,151 @@ namespace axr {
 
     static_assert(
         sizeof(AxrUniformBufferConfig) == sizeof(axr::UniformBufferConfig),
+        "Original type and wrapper have different size!"
+    );
+
+    /// Dynamic Uniform Buffer Config
+    struct DynamicUniformBufferConfig {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        char Name[AXR_MAX_ASSET_NAME_SIZE]{};
+        uint32_t InstanceCount;
+        uint64_t InstanceSize;
+        void* Data;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        DynamicUniformBufferConfig():
+            InstanceCount(0),
+            InstanceSize(0),
+            Data(nullptr) {
+        }
+
+        /// Constructor
+        /// @param name Name of the dynamic uniform buffer
+        /// @param instanceCount Instance count
+        /// @param instanceSize Instance size
+        /// @param data Data
+        DynamicUniformBufferConfig(
+            const char* name,
+            const uint32_t instanceCount,
+            const uint64_t instanceSize,
+            const void* data
+        ):
+            InstanceCount(instanceCount),
+            InstanceSize(instanceSize) {
+            if (name != nullptr) {
+                strncpy_s(Name, name, AXR_MAX_ASSET_NAME_SIZE);
+            }
+            Data = axrUniformBufferCloneData(InstanceCount * InstanceSize, data);
+        }
+
+        /// Copy Constructor
+        /// @param src Source DynamicUniformBufferConfig to copy from
+        DynamicUniformBufferConfig(const DynamicUniformBufferConfig& src) {
+            strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            InstanceCount = src.InstanceCount;
+            InstanceSize = src.InstanceSize;
+            Data = axrUniformBufferCloneData(src.InstanceCount * src.InstanceSize, src.Data);
+        }
+
+        /// Move Constructor
+        /// @param src Source DynamicUniformBufferConfig to move from
+        DynamicUniformBufferConfig(DynamicUniformBufferConfig&& src) noexcept {
+            strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            InstanceCount = src.InstanceCount;
+            InstanceSize = src.InstanceSize;
+            Data = src.Data;
+
+            memset(src.Name, 0, sizeof(src.Name));
+            src.InstanceCount = 0;
+            src.InstanceSize = 0;
+            src.Data = nullptr;
+        }
+
+        // ---- Destructor ----
+
+        /// Destructor
+        ~DynamicUniformBufferConfig() {
+            cleanup();
+        }
+
+        // ---- Operator Overloads ----
+
+        /// Copy Assignment Operator
+        /// @param src Source DynamicUniformBufferConfig to copy from
+        DynamicUniformBufferConfig& operator=(const DynamicUniformBufferConfig& src) {
+            if (this != &src) {
+                cleanup();
+
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                InstanceCount = src.InstanceCount;
+                InstanceSize = src.InstanceSize;
+                Data = axrUniformBufferCloneData(src.InstanceCount * src.InstanceSize, src.Data);
+            }
+
+            return *this;
+        }
+
+        /// Move Assignment Operator
+        /// @param src Source DynamicUniformBufferConfig to move from
+        DynamicUniformBufferConfig& operator=(DynamicUniformBufferConfig&& src) noexcept {
+            if (this != &src) {
+                cleanup();
+
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                InstanceCount = src.InstanceCount;
+                InstanceSize = src.InstanceSize;
+                Data = src.Data;
+
+                memset(src.Name, 0, sizeof(src.Name));
+                src.InstanceCount = 0;
+                src.InstanceSize = 0;
+                src.Data = nullptr;
+            }
+
+            return *this;
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the DynamicUniformBufferConfig as an AxrDynamicUniformBufferConfig
+        /// @returns This as an AxrDynamicUniformBufferConfig
+        const AxrDynamicUniformBufferConfig* toRaw() const {
+            return reinterpret_cast<const AxrDynamicUniformBufferConfig*>(this);
+        }
+
+        /// Get a handle to the DynamicUniformBufferConfig as an AxrDynamicUniformBufferConfig
+        /// @returns This as an AxrDynamicUniformBufferConfig
+        AxrDynamicUniformBufferConfig* toRaw() {
+            return reinterpret_cast<AxrDynamicUniformBufferConfig*>(this);
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Functions
+        // ----------------------------------------- //
+
+        /// Clean up this class
+        void cleanup() {
+            memset(Name, 0, sizeof(Name));
+            uint64_t dataSize = InstanceCount * InstanceSize;
+            axrUniformBufferDestroyData(&dataSize, &Data);
+            InstanceCount = 0;
+            InstanceSize = 0;
+        }
+    };
+
+    static_assert(
+        sizeof(AxrDynamicUniformBufferConfig) == sizeof(axr::DynamicUniformBufferConfig),
         "Original type and wrapper have different size!"
     );
 
@@ -2666,7 +2969,7 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        EngineAssetUniformBuffer_SceneData() :
+        EngineAssetUniformBuffer_SceneData():
             ViewMatrix{},
             ProjectionMatrix{} {
         }
@@ -2677,7 +2980,7 @@ namespace axr {
         EngineAssetUniformBuffer_SceneData(
             const glm::mat4& viewMatrix,
             const glm::mat4& projectionMatrix
-        ) : ViewMatrix(viewMatrix),
+        ): ViewMatrix(viewMatrix),
             ProjectionMatrix(projectionMatrix) {
         }
 
@@ -2720,7 +3023,7 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        EngineAssetPushConstantBuffer_ModelMatrix() :
+        EngineAssetPushConstantBuffer_ModelMatrix():
             ModelMatrix{} {
         }
 
@@ -2728,7 +3031,7 @@ namespace axr {
         /// @param modelMatrix The model matrix
         EngineAssetPushConstantBuffer_ModelMatrix(
             const glm::mat4& modelMatrix
-        ) : ModelMatrix(modelMatrix) {
+        ): ModelMatrix(modelMatrix) {
         }
 
         // ----------------------------------------- //
@@ -2849,6 +3152,20 @@ namespace axr {
     /// @returns The size for the given uniform buffer engine asset
     inline uint64_t engineAssetGetUniformBufferSize(axr::EngineAssetEnum engineAssetEnum) {
         return axrEngineAssetGetUniformBufferSize(static_cast<AxrEngineAssetEnum>(engineAssetEnum));
+    }
+
+    /// Get the instance size for the given uniform buffer engine asset
+    /// @param engineAssetEnum Engine asset to use
+    /// @returns The instance size for the given uniform buffer engine asset
+    inline uint64_t engineAssetGetUniformBufferInstanceSize(const AxrEngineAssetEnum engineAssetEnum) {
+        return axrEngineAssetGetUniformBufferInstanceSize(engineAssetEnum);
+    }
+
+    /// Get the buffer type for the given uniform buffer engine asset
+    /// @param engineAssetEnum Engine asset to use
+    /// @returns The buffer type for the given uniform buffer engine asset
+    inline AxrUniformBufferTypeEnum engineAssetGetUniformBufferType(const AxrEngineAssetEnum engineAssetEnum) {
+        return axrEngineAssetGetUniformBufferType(engineAssetEnum);
     }
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
@@ -2986,6 +3303,18 @@ namespace axr {
             ));
         }
 
+        /// Create a new dynamic uniform buffer
+        /// @param uniformBufferConfig Dynamic uniform buffer config
+        /// @returns AXR_SUCCESS if the function succeeded
+        [[nodiscard]] axr::Result createDynamicUniformBuffer(
+            const axr::DynamicUniformBufferConfig& uniformBufferConfig
+        ) const {
+            return static_cast<axr::Result>(axrAssetCollectionCreateDynamicUniformBuffer(
+                m_AssetCollection,
+                uniformBufferConfig.toRaw()
+            ));
+        }
+
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
         // ---- Push Constant Buffer ----
 
@@ -3092,7 +3421,7 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        ModelFileImageSamplerInfo() :
+        ModelFileImageSamplerInfo():
             MinFilter(axr::ImageSamplerFilterEnum::Undefined),
             MagFilter(axr::ImageSamplerFilterEnum::Undefined),
             MipmapFilter(axr::ImageSamplerFilterEnum::Undefined),
@@ -3517,7 +3846,7 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        ModelFileSubmeshInfo() :
+        ModelFileSubmeshInfo():
             MaterialIndex(-1) {
         }
 
@@ -3625,7 +3954,7 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        ModelFileMeshInfo() :
+        ModelFileMeshInfo():
             SubmeshCount(0),
             Submeshes(nullptr) {
         }
@@ -3746,7 +4075,7 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        ModelFileInfo() :
+        ModelFileInfo():
             ImageSamplerCount(0),
             ImageSamplers(nullptr),
             ImageCount(0),

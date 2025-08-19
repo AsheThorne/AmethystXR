@@ -108,10 +108,27 @@ const AxrVulkanBuffer& AxrVulkanUniformBufferData::getBuffer(const uint32_t fram
 
 vk::DeviceSize AxrVulkanUniformBufferData::getBufferSize() const {
     if (m_UniformBufferHandle != nullptr) {
-        return m_UniformBufferHandle->getSize();
+        return m_UniformBufferHandle->getDataSize();
     }
 
     return axrEngineAssetGetUniformBufferSize(m_UniformBufferEngineAsset);
+}
+
+vk::DeviceSize AxrVulkanUniformBufferData::getInstanceSize() const {
+    if (m_UniformBufferHandle != nullptr) {
+        return m_UniformBufferHandle->getInstanceSize();
+    }
+
+    return axrEngineAssetGetUniformBufferInstanceSize(m_UniformBufferEngineAsset);
+}
+
+AxrUniformBufferTypeEnum AxrVulkanUniformBufferData::getBufferType() const {
+    if (m_UniformBufferHandle != nullptr) {
+        return m_UniformBufferHandle->getBufferType();
+    }
+
+    return axrEngineAssetGetUniformBufferType(m_UniformBufferEngineAsset);
+
 }
 
 bool AxrVulkanUniformBufferData::doesDataExist() const {
@@ -239,7 +256,7 @@ AxrResult AxrVulkanUniformBufferData::createUniformBuffer(AxrVulkanBuffer& buffe
     const void* data = nullptr;
 
     if (m_UniformBufferHandle != nullptr) {
-        size = m_UniformBufferHandle->getSize();
+        size = m_UniformBufferHandle->getDataSize();
         data = m_UniformBufferHandle->getData();
     } else {
         size = axrEngineAssetGetUniformBufferSize(m_UniformBufferEngineAsset);

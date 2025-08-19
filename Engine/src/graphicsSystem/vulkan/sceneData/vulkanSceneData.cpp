@@ -1748,7 +1748,7 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
                 descriptorBufferInfos.emplace_back(
                     foundUniformBufferData->getBuffer(frameIndex).getBuffer(),
                     0,
-                    foundUniformBufferData->getBufferSize()
+                    foundUniformBufferData->getInstanceSize()
                 );
 
                 const uint32_t viewIndexOffset = m_MaxFramesInFlight * viewIndex;
@@ -1758,7 +1758,7 @@ AxrResult AxrVulkanSceneData::writeDescriptorSets(
                     uniformBuffer->Binding,
                     0,
                     1,
-                    vk::DescriptorType::eUniformBuffer,
+                    axrToVkDescriptorType(foundUniformBufferData->getBufferType()),
                     nullptr,
                     &descriptorBufferInfos.back(),
                     nullptr
@@ -1983,6 +1983,73 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
             if (foundMaterialForRendering != nullptr) {
                 foundMaterialForRendering->Meshes.push_back(meshForRendering);
             } else {
+                /// Key is the binding, Value is the instance size
+                std::map<uint32_t, uint64_t> dynamicUniformBufferInstanceSizes;
+
+                const std::vector<AxrShaderUniformBufferLinkConst_T>& uniformBufferLinks =
+                    materialHandle->getUniformBufferLinks();
+
+                for (auto& uniformBufferLink : uniformBufferLinks) {
+                    if (uniformBufferLink == nullptr) continue;
+
+                    // We don't care about the view index since we only want to know the buffer type and instance size.
+                    // Which wouldn't change between views.
+                    // NOTE: We might care about the platform though. Since without it, we can't find platform specific uniform buffers.
+                    //  We can't just use window or XrSession blindingly though. since it wouldn't be defined if that platform isn't set up.
+                    const AxrVulkanUniformBufferData* foundUniformBufferData = findUniformBufferData_shared(
+                        uniformBufferLink->BufferName,
+                        AXR_PLATFORM_TYPE_UNDEFINED,
+                        0
+                    );
+                    if (foundUniformBufferData == nullptr) {
+                        continue;
+                    }
+
+                    if (foundUniformBufferData->getBufferType() == AXR_UNIFORM_BUFFER_TYPE_DYNAMIC) {
+                        dynamicUniformBufferInstanceSizes.insert(
+                            std::pair(uniformBufferLink->Binding, foundUniformBufferData->getInstanceSize())
+                        );
+                    }
+                }
+
+                std::vector<AxrDynamicUniformBufferOffsetConfig> dynamicOffsetConfigs =
+                    foundMaterialData->getDynamicUniformBufferOffsets();
+
+                std::ranges::sort(
+                    dynamicOffsetConfigs,
+                    [](const AxrDynamicUniformBufferOffsetConfig& a, const AxrDynamicUniformBufferOffsetConfig& b) {
+                        return a.Binding < b.Binding;
+                    }
+                );
+
+                // Use the dynamicUniformBufferInstanceSizes size so that even if we're missing a binding offset value,
+                // it still initializes to 0 and vkCmdBindDescriptorSets doesn't throw an error.
+                std::vector<uint32_t> dynamicOffsets(dynamicUniformBufferInstanceSizes.size(), 0);
+                uint32_t currentDynamicOffsetIndex = 0;
+
+                for (const AxrDynamicUniformBufferOffsetConfig& dynamicOffsetConfig : dynamicOffsetConfigs) {
+                    auto foundDynamicOffsetInstanceSize = dynamicUniformBufferInstanceSizes.find(
+                        dynamicOffsetConfig.Binding
+                    );
+                    if (foundDynamicOffsetInstanceSize == dynamicUniformBufferInstanceSizes.end()) {
+                        axrLogErrorLocation(
+                            "Failed to find dynamic uniform buffer at binding: {0}.",
+                            dynamicOffsetConfig.Binding
+                        );
+                        continue;
+                    }
+
+                    dynamicOffsets[currentDynamicOffsetIndex] = dynamicOffsetConfig.OffsetIndex *
+                        sizeof(foundDynamicOffsetInstanceSize->second);
+                    dynamicUniformBufferInstanceSizes.erase(foundDynamicOffsetInstanceSize);
+
+                    currentDynamicOffsetIndex++;
+                }
+
+                if (dynamicUniformBufferInstanceSizes.size() > 0) {
+                    axrLogErrorLocation("Missing dynamic uniform buffer offsets.");
+                }
+
                 const std::string& materialPushConstantBufferName = foundMaterialData->getPushConstantBufferName();
 
                 materialsForRendering->emplace_back(
@@ -2004,7 +2071,8 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
                                             },
                         .Meshes = {
                             meshForRendering,
-                        }
+                        },
+                        .DynamicOffsets = dynamicOffsets
                     }
                 );
             }

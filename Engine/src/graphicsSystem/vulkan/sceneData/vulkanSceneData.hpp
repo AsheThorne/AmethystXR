@@ -84,6 +84,7 @@ public:
         const std::vector<vk::DescriptorSet>& XrSessionDescriptorSets;
         PushConstantForRendering PushConstant;
         std::vector<MeshForRendering> Meshes;
+        std::vector<uint32_t> DynamicOffsets;
     };
 
     // ----------------------------------------- //

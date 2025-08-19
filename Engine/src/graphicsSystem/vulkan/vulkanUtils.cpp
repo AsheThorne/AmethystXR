@@ -67,6 +67,22 @@ vk::CullModeFlags axrToVkCullMode(const AxrMaterialBackfaceCullModeEnum backface
     }
 }
 
+vk::DescriptorType axrToVkDescriptorType(const AxrUniformBufferTypeEnum bufferType) {
+    switch (bufferType) {
+        case AXR_UNIFORM_BUFFER_TYPE_STANDARD: {
+            return vk::DescriptorType::eUniformBuffer;
+        }
+        case AXR_UNIFORM_BUFFER_TYPE_DYNAMIC: {
+            return vk::DescriptorType::eUniformBufferDynamic;
+        }
+        case AXR_UNIFORM_BUFFER_TYPE_UNDEFINED:
+        default: {
+            axrLogErrorLocation("Unknown uniform buffer type: {0}.", static_cast<int32_t>(bufferType));
+            return static_cast<vk::DescriptorType>(VK_DESCRIPTOR_TYPE_MAX_ENUM);
+        }
+    }
+}
+
 const char* axrGetVulkanApiLayerName(const AxrVulkanApiLayerTypeEnum apiLayerType) {
     switch (apiLayerType) {
         case AXR_VULKAN_API_LAYER_TYPE_CORE_VALIDATION: {

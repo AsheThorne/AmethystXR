@@ -124,6 +124,23 @@ AxrResult axrAssetCollectionCreateUniformBuffer(
     return assetCollection->createUniformBuffer(*uniformBufferConfig);
 }
 
+AxrResult axrAssetCollectionCreateDynamicUniformBuffer(
+    const AxrAssetCollection_T assetCollection,
+    const AxrDynamicUniformBufferConfig* uniformBufferConfig
+) {
+    if (assetCollection == nullptr) {
+        axrLogErrorLocation("`assetCollection` is null.");
+        return AXR_ERROR;
+    }
+
+    if (uniformBufferConfig == nullptr) {
+        axrLogErrorLocation("`uniformBufferConfig` is null.");
+        return AXR_ERROR;
+    }
+
+    return assetCollection->createUniformBuffer(*uniformBufferConfig);
+}
+
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 AxrResult axrAssetCollectionCreatePushConstantBuffer(
     const AxrAssetCollection_T assetCollection,
@@ -484,6 +501,44 @@ AxrResult AxrAssetCollection::createModel(const std::string& modelName, const Ax
 }
 
 AxrResult AxrAssetCollection::createUniformBuffer(const AxrUniformBufferConfig& uniformBufferConfig) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (axrEngineAssetIsUniformBufferNameReserved(uniformBufferConfig.Name)) {
+        axrLogError(
+            "Unable to create uniform buffer. The uniform buffer name: {0} is reserved by the engine.",
+            uniformBufferConfig.Name
+        );
+        return AXR_ERROR;
+    }
+
+    if (m_UniformBuffers.contains(uniformBufferConfig.Name)) {
+        axrLogError(
+            "Unable to create uniform buffer. A uniform buffer named: {0} already exists.",
+            uniformBufferConfig.Name
+        );
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const auto insertResult = m_UniformBuffers.insert(
+        std::pair(uniformBufferConfig.Name, AxrUniformBuffer(uniformBufferConfig))
+    );
+    if (!insertResult.second) {
+        axrLogErrorLocation("Failed to insert uniform buffer.");
+        return AXR_ERROR;
+    }
+
+    OnUniformBufferCreatedCallbackGraphics(&insertResult.first->second);
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrAssetCollection::createUniformBuffer(const AxrDynamicUniformBufferConfig& uniformBufferConfig) {
     // ----------------------------------------- //
     // Validation
     // ----------------------------------------- //

@@ -15,6 +15,9 @@ bool axrMaterialConfigIsValid(const AxrMaterialConfig* materialConfig) {
         return false;
     }
 
+    // TODO: Check each dynamic uniform buffer offset config:
+    //      Must be pointing to a binding of type `dynamic uniform buffer`
+    //      Each dynamic uniform buffer in the shader layouts must have a corresponding offset 
     return !axrStringIsEmpty(materialConfig->Name) &&
         !axrStringIsEmpty(materialConfig->VertexShaderName) &&
         !axrStringIsEmpty(materialConfig->FragmentShaderName) &&
@@ -55,6 +58,13 @@ AxrMaterial::AxrMaterial(const AxrMaterialConfig& config):
     m_AlphaRenderMode(config.AlphaRenderMode) {
     if (!axrMaterialConfigIsValid(&config)) {
         axrLogErrorLocation("Material config is invalid.");
+    }
+
+    if (config.DynamicUniformBufferOffsetCount > 0 && config.DynamicUniformBufferOffsets != nullptr) {
+        m_DynamicUniformBufferOffsets.resize(config.DynamicUniformBufferOffsetCount);
+        for (uint32_t i = 0; i < config.DynamicUniformBufferOffsetCount; ++i) {
+            m_DynamicUniformBufferOffsets[i] = config.DynamicUniformBufferOffsets[i];
+        }
     }
 }
 
@@ -234,6 +244,10 @@ std::string AxrMaterial::getMaterialLayoutName() const {
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 const std::string& AxrMaterial::getPushConstantBufferName() const {
     return m_PushConstantBufferName;
+}
+
+const std::vector<AxrDynamicUniformBufferOffsetConfig>& AxrMaterial::getDynamicUniformBufferOffsets() const {
+    return m_DynamicUniformBufferOffsets;
 }
 #endif
 

@@ -438,10 +438,12 @@ public:
     /// @param viewIndex The view index
     /// @param pipelineLayout Pipeline layout to use
     /// @param descriptorSets Descriptor sets to use
+    /// @param dynamicOffsets Dynamic offsets to use
     void bindDescriptorSets(
         const uint32_t viewIndex,
         const vk::PipelineLayout& pipelineLayout,
-        const AxrVulkanRenderCommandDescriptorSets& descriptorSets
+        const AxrVulkanRenderCommandDescriptorSets& descriptorSets,
+        const std::vector<uint32_t>& dynamicOffsets
     ) const {
         const AxrPlatformType platformType = m_RenderTarget.getPlatformType();
         const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer(viewIndex);
@@ -476,8 +478,8 @@ public:
             0,
             1,
             &descriptorSet,
-            0,
-            nullptr,
+            static_cast<uint32_t>(dynamicOffsets.size()),
+            dynamicOffsets.data(),
             m_Dispatch
         );
     }

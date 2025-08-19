@@ -103,6 +103,9 @@ public:
     /// @returns The push constant buffer name
     [[nodiscard]] const std::string& getPushConstantBufferName() const;
 #endif
+    /// Get the dynamic uniform buffer offsets
+    /// @returns The dynamic uniform buffer offsets
+    [[nodiscard]] const std::vector<AxrDynamicUniformBufferOffsetConfig>& getDynamicUniformBufferOffsets() const;
 
     /// Check if this material is valid
     /// @returns True if this material is valid
@@ -124,6 +127,7 @@ private:
     AxrShaderValuesRAII m_FragmentShaderValues;
     AxrMaterialBackfaceCullModeEnum m_BackfaceCullMode;
     AxrMaterialAlphaRenderModeEnum m_AlphaRenderMode;
+    std::vector<AxrDynamicUniformBufferOffsetConfig> m_DynamicUniformBufferOffsets;
 
     // ----------------------------------------- //
     // Private Functions

@@ -94,6 +94,9 @@ public:
     /// Get a handle to the material this class is built from
     /// @returns A handle to the material this class is built from 
     [[nodiscard]] const AxrMaterial* getMaterial() const;
+    /// Get the dynamic uniform buffer offsets
+    /// @returns The dynamic uniform buffer offsets
+    [[nodiscard]] const std::vector<AxrDynamicUniformBufferOffsetConfig>& getDynamicUniformBufferOffsets() const;
 
     /// Check if the data exists
     /// @returns True if the data exists

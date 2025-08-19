@@ -168,6 +168,10 @@ const AxrMaterial* AxrVulkanMaterialData::getMaterial() const {
     return m_MaterialHandle;
 }
 
+const std::vector<AxrDynamicUniformBufferOffsetConfig>& AxrVulkanMaterialData::getDynamicUniformBufferOffsets() const {
+    return m_MaterialHandle->getDynamicUniformBufferOffsets();
+}
+
 bool AxrVulkanMaterialData::doesDataExist() const {
     // When we have general data, check for it here
     return true;
@@ -362,6 +366,10 @@ AxrResult AxrVulkanMaterialData::createDescriptorPool(
         vertexShaderHandle->getProperties().getUniformBufferLayouts().size() +
         fragmentShaderHandle->getProperties().getUniformBufferLayouts().size()
     );
+    const uint32_t dynamicUniformBufferLayoutCount = static_cast<uint32_t>(
+        vertexShaderHandle->getProperties().getDynamicUniformBufferLayouts().size() +
+        fragmentShaderHandle->getProperties().getDynamicUniformBufferLayouts().size()
+    );
     const uint32_t imageSamplerBufferLayoutCount = static_cast<uint32_t>(
         vertexShaderHandle->getProperties().getImageSamplerBufferLayouts().size() +
         fragmentShaderHandle->getProperties().getImageSamplerBufferLayouts().size()
@@ -373,6 +381,14 @@ AxrResult AxrVulkanMaterialData::createDescriptorPool(
         const vk::DescriptorPoolSize poolSize(
             vk::DescriptorType::eUniformBuffer,
             uniformBufferLayoutCount * m_MaxFramesInFlight * viewCount
+        );
+        poolSizes.push_back(poolSize);
+    }
+
+    if (dynamicUniformBufferLayoutCount != 0) {
+        const vk::DescriptorPoolSize poolSize(
+            vk::DescriptorType::eUniformBufferDynamic,
+            dynamicUniformBufferLayoutCount * m_MaxFramesInFlight * viewCount
         );
         poolSizes.push_back(poolSize);
     }
