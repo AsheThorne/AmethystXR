@@ -275,6 +275,15 @@ const std::vector<AxrVulkanMaterialForRendering>& AxrVulkanSceneData::getMateria
     }
 }
 
+const AxrVulkanMaterialForRendering* AxrVulkanSceneData::getUIRectangleMaterialForRendering() const {
+    if (m_UIMaterialsForRendering.empty() ||
+        m_UIRectangleMaterialForRenderingIndex < 0) {
+        return nullptr;
+    }
+
+    return &m_UIMaterialsForRendering[m_UIRectangleMaterialForRenderingIndex];
+}
+
 AxrResult AxrVulkanSceneData::setPlatformUniformBufferData(
     const AxrPlatformType platformType,
     const std::string& bufferName,
@@ -496,26 +505,26 @@ AxrResult AxrVulkanSceneData::createAllUniformBufferData() {
     // Process
     // ----------------------------------------- //
 
-    AxrResult axrResult = AXR_SUCCESS;
+    auto createUniformBuffer = [this](const AxrUniformBuffer& uniformBuffer) -> void {
+        AxrResult axrResult = AXR_SUCCESS;
 
-    for (const auto& buffer : m_AssetCollection->getUniformBuffers() | std::views::values) {
         AxrVulkanUniformBufferData uniformBufferData;
         axrResult = initializeUniformBufferData(
-            &buffer,
+            &uniformBuffer,
             AXR_ENGINE_ASSET_UNDEFINED,
             uniformBufferData
         );
         if (AXR_FAILED(axrResult)) {
-            continue;
+            return;
         }
 
         if (m_UniformBufferData.contains(uniformBufferData.getName())) {
-            continue;
+            return;
         }
 
         axrResult = uniformBufferData.createData();
         if (AXR_FAILED(axrResult)) {
-            continue;
+            return;
         }
 
         auto [insertData, insertSucceeded] = m_UniformBufferData.insert(
@@ -524,8 +533,20 @@ AxrResult AxrVulkanSceneData::createAllUniformBufferData() {
 
         if (!insertSucceeded) {
             insertData->second.destroyData();
-            continue;
+            return;
         }
+    };
+
+    if (isThisGlobalSceneData()) {
+        AxrUniformBuffer uiElementsUniformBuffer;
+        axrEngineAssetCreateUniformBuffer_UIElements(uiElementsUniformBuffer);
+        m_LocalUniformBuffers.push_back(std::move(uiElementsUniformBuffer));
+
+        createUniformBuffer(m_LocalUniformBuffers.back());
+    }
+
+    for (const auto& uniformBuffer : m_AssetCollection->getUniformBuffers() | std::views::values) {
+        createUniformBuffer(uniformBuffer);
     }
 
     return AXR_SUCCESS;
@@ -533,6 +554,7 @@ AxrResult AxrVulkanSceneData::createAllUniformBufferData() {
 
 void AxrVulkanSceneData::destroyAllUniformBufferData() {
     destroyUniformBufferData(m_UniformBufferData);
+    m_LocalUniformBuffers.clear();
 }
 
 AxrResult AxrVulkanSceneData::initializeUniformBufferData(
@@ -1278,22 +1300,22 @@ AxrResult AxrVulkanSceneData::createAllMaterialLayoutData() {
     // Process
     // ----------------------------------------- //
 
-    AxrResult axrResult = AXR_SUCCESS;
+    auto createMaterialLayout = [this](const AxrMaterial& material) -> void {
+        AxrResult axrResult = AXR_SUCCESS;
 
-    for (const auto& material : m_AssetCollection->getMaterials() | std::views::values) {
         AxrVulkanMaterialLayoutData materialLayoutData;
         axrResult = initializeMaterialLayoutData(material, materialLayoutData);
         if (AXR_FAILED(axrResult)) {
-            continue;
+            return;
         }
 
         if (m_MaterialLayoutData.contains(materialLayoutData.getName())) {
-            continue;
+            return;
         }
 
         axrResult = materialLayoutData.createData();
         if (AXR_FAILED(axrResult)) {
-            continue;
+            return;
         }
 
         auto [insertData, insertSucceeded] = m_MaterialLayoutData.insert(
@@ -1302,8 +1324,21 @@ AxrResult AxrVulkanSceneData::createAllMaterialLayoutData() {
 
         if (!insertSucceeded) {
             insertData->second.destroyData();
-            continue;
+            return;
         }
+    };
+
+    if (isThisGlobalSceneData()) {
+        AxrMaterial uiRectangleMaterial;
+        std::vector<AxrEngineAssetEnum> uiRectangleShaders;
+        axrEngineAssetCreateMaterial_UIRectangle(uiRectangleMaterial, uiRectangleShaders);
+        m_LocalMaterials.push_back(std::move(uiRectangleMaterial));
+
+        createMaterialLayout(m_LocalMaterials.back());
+    }
+
+    for (const auto& material : m_AssetCollection->getMaterials() | std::views::values) {
+        createMaterialLayout(material);
     }
 
     return AXR_SUCCESS;
@@ -1314,6 +1349,7 @@ void AxrVulkanSceneData::destroyAllMaterialLayoutData() {
         data.destroyData();
     }
     m_MaterialLayoutData.clear();
+    m_LocalMaterials.clear();
 }
 
 AxrResult AxrVulkanSceneData::initializeMaterialLayoutData(
@@ -1380,22 +1416,22 @@ AxrResult AxrVulkanSceneData::createAllMaterialData() {
     // Process
     // ----------------------------------------- //
 
-    AxrResult axrResult = AXR_SUCCESS;
+    auto createMaterial = [this](const AxrMaterial& material) -> void {
+        AxrResult axrResult = AXR_SUCCESS;
 
-    for (const auto& material : m_AssetCollection->getMaterials() | std::views::values) {
         AxrVulkanMaterialData materialData;
         axrResult = initializeMaterialData(material, materialData);
         if (AXR_FAILED(axrResult)) {
-            continue;
+            return;
         }
 
         if (m_MaterialData.contains(materialData.getName())) {
-            continue;
+            return;
         }
 
         axrResult = materialData.createData();
         if (AXR_FAILED(axrResult)) {
-            continue;
+            return;
         }
 
         auto [insertData, insertSucceeded] = m_MaterialData.insert(
@@ -1404,8 +1440,16 @@ AxrResult AxrVulkanSceneData::createAllMaterialData() {
 
         if (!insertSucceeded) {
             insertData->second.destroyData();
-            continue;
+            return;
         }
+    };
+
+    for (const AxrMaterial& material : m_LocalMaterials) {
+        createMaterial(material);
+    }
+
+    for (const auto& material : m_AssetCollection->getMaterials() | std::views::values) {
+        createMaterial(material);
     }
 
     return AXR_SUCCESS;
@@ -1887,6 +1931,13 @@ AxrResult AxrVulkanSceneData::createAllMaterialsForRendering() {
 
     AxrResult axrResult = AXR_SUCCESS;
 
+    if (!isThisGlobalSceneData()) {
+        axrResult = createUIMaterialsForRendering();
+        if (AXR_FAILED(axrResult)) {
+            axrLogErrorLocation("Failed to create UI materials for rendering");
+        }
+    }
+
     for (const auto [entity, transformComponent, modelComponent] :
          m_EcsRegistryHandle->view<AxrTransformComponent, AxrModelComponent>().each()) {
         axrResult = addMaterialForRendering(transformComponent, modelComponent);
@@ -1904,6 +1955,41 @@ void AxrVulkanSceneData::destroyAllMaterialsForRendering() {
     m_OpaqueMaterialsForRendering.clear();
     m_AlphaBlendMaterialsForRendering.clear();
     m_OITMaterialsForRendering.clear();
+    destroyUIMaterialsForRendering();
+}
+
+AxrResult AxrVulkanSceneData::createUIMaterialsForRendering() {
+    AxrResult axrResult = AXR_SUCCESS;
+
+    const AxrVulkanModelData* foundModelData = findModelData_shared(
+        axrEngineAssetGetModelName(AXR_ENGINE_ASSET_MODEL_UI_RECTANGLE)
+    );
+    if (foundModelData == nullptr) {
+        axrLogErrorLocation("Failed to find UI Rectangle model asset.");
+        return AXR_ERROR;
+    }
+
+    const AxrVulkanMaterialData* foundMaterialData = findMaterialData_shared(
+        axrEngineAssetGetMaterialName(AXR_ENGINE_ASSET_MATERIAL_UI_RECTANGLE)
+    );
+    if (foundMaterialData == nullptr) {
+        axrLogErrorLocation("Failed to find UI Rectangle material asset.");
+    } else {
+        AxrVulkanMaterialForRendering materialForRendering;
+        axrResult = buildMaterialForRendering(foundMaterialData, foundModelData, materialForRendering);
+        if (AXR_SUCCEEDED(axrResult)) {
+            m_UIRectangleMaterialForRenderingIndex = m_UIMaterialsForRendering.size();
+            m_UIMaterialsForRendering.push_back(std::move(materialForRendering));
+        }
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanSceneData::destroyUIMaterialsForRendering() {
+    m_UIMaterialsForRendering.clear();
+
+    m_UIRectangleMaterialForRenderingIndex = -1;
 }
 
 AxrResult AxrVulkanSceneData::addMaterialForRendering(
@@ -2078,6 +2164,63 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
             }
         }
     }
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrVulkanSceneData::buildMaterialForRendering(
+    const AxrVulkanMaterialData* materialData,
+    const AxrVulkanModelData* modelData,
+    AxrVulkanMaterialForRendering& materialForRendering
+) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    // Transform component can be null
+
+    if (materialData == nullptr) {
+        axrLogErrorLocation("Material data is null.");
+        return AXR_ERROR;
+    }
+
+    if (modelData == nullptr) {
+        axrLogErrorLocation("Model data is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    std::vector<AxrVulkanMeshForRendering> meshesForRendering;
+
+    for (uint32_t meshIndex = 0; meshIndex < modelData->getMeshCount(); ++meshIndex) {
+        for (int submeshIndex = 0; submeshIndex < modelData->getSubmeshCount(meshIndex); ++submeshIndex) {
+            meshesForRendering.emplace_back(
+                AxrVulkanMeshForRendering{
+                    .Buffer = &modelData->getModelBuffer(),
+                    .BufferIndicesOffset = &modelData->getSubmeshBufferIndicesOffset(meshIndex, submeshIndex),
+                    .BufferVerticesOffset = &modelData->getSubmeshBufferVerticesOffset(meshIndex, submeshIndex),
+                    .IndexCount = &modelData->getSubmeshIndexCount(meshIndex, submeshIndex),
+                    .TransformComponent = nullptr,
+                    .PushConstant = {},
+                }
+            );
+        }
+    }
+
+    materialForRendering = AxrVulkanMaterialForRendering{
+        .MaterialName = materialData->getName(),
+        .PipelineLayout = &materialData->getMaterialLayoutData()->getPipelineLayout(),
+        .WindowPipeline = &materialData->getWindowPipeline(),
+        .XrSessionPipeline = &materialData->getXrSessionPipeline(),
+        .WindowDescriptorSets = &materialData->getDescriptorSets(AXR_PLATFORM_TYPE_WINDOW),
+        .XrSessionDescriptorSets = &materialData->getDescriptorSets(AXR_PLATFORM_TYPE_XR_DEVICE),
+        .PushConstant = {},
+        .Meshes = meshesForRendering,
+        .DynamicOffsets = {},
+    };
 
     return AXR_SUCCESS;
 }

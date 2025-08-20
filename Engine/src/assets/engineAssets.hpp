@@ -35,7 +35,11 @@ bool axrEngineAssetIsShaderNameReserved(const char* name);
 /// @param engineAssetEnum Shader engine asset
 /// @param shader Output created shader
 /// @returns AXR_SUCCESS if the function succeeded
-AxrResult axrEngineAssetCreateShader(AxrGraphicsApiEnum graphicsApi, AxrEngineAssetEnum engineAssetEnum, AxrShader& shader);
+AxrResult axrEngineAssetCreateShader(
+    AxrGraphicsApiEnum graphicsApi,
+    AxrEngineAssetEnum engineAssetEnum,
+    AxrShader& shader
+);
 
 /// Create the 'Default Vert' engine asset shader
 /// @param graphicsApi The graphics api to use this shader with
@@ -52,6 +56,17 @@ AxrResult axrEngineAssetCreateShader_DefaultFrag(AxrGraphicsApiEnum graphicsApi,
 /// @param shader Output created shader
 /// @returns AXR_SUCCESS if the function succeeded
 AxrResult axrEngineAssetCreateShader_DefaultFrag_Mask(AxrGraphicsApiEnum graphicsApi, AxrShader& shader);
+/// Create the 'UI Element Vert' engine asset shader
+/// @param graphicsApi The graphics api to use this shader with
+/// @param shader Output created shader
+/// @returns AXR_SUCCESS if the function succeeded
+AxrResult axrEngineAssetCreateShader_UIElementVert(AxrGraphicsApiEnum graphicsApi, AxrShader& shader);
+/// Create the 'UI Rectangle Frag' engine asset shader
+/// @param graphicsApi The graphics api to use this shader with
+/// @param shader Output created shader
+/// @returns AXR_SUCCESS if the function succeeded
+AxrResult axrEngineAssetCreateShader_UIRectangleFrag(AxrGraphicsApiEnum graphicsApi, AxrShader& shader);
+
 
 // ---------------------------------------------------------------------------------- //
 //                               Buffer Engine Assets                                 //
@@ -98,9 +113,28 @@ bool axrEngineAssetIsUniformBufferNameReserved(const char* name);
 bool axrEngineAssetIsPushConstantBufferNameReserved(const char* name);
 #endif
 
+/// Create the 'UI Elements' engine asset uniform buffer
+/// @param uniformBuffer Output created uniform buffer
+/// @returns AXR_SUCCESS if the function succeeded
+AxrResult axrEngineAssetCreateUniformBuffer_UIElements(AxrUniformBuffer& uniformBuffer);
+
 // ---------------------------------------------------------------------------------- //
 //                              Material Engine Assets                                //
 // ---------------------------------------------------------------------------------- //
+
+/// Check if the given engine asset is a material
+/// @param engineAssetEnum Engine asset to check
+/// @returns True if the given engine asset is a material
+bool axrEngineAssetIsMaterial(AxrEngineAssetEnum engineAssetEnum);
+
+/// Get the name for the given material engine asset
+/// @param engineAssetEnum Engine asset to get the name of
+/// @returns The name of the given material engine asset
+const char* axrEngineAssetGetMaterialName(AxrEngineAssetEnum engineAssetEnum);
+/// Check if the given name is reserved for a material engine asset
+/// @param name Name to check
+/// @returns True if the given name is reserved for a material engine asset
+bool axrEngineAssetIsMaterialNameReserved(const char* name);
 
 /// Create the 'Default Material' engine asset material
 /// @param materialName Material name
@@ -115,6 +149,15 @@ AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
     std::vector<AxrEngineAssetEnum>& materialShaders
 );
 
+/// Create the 'UI Rectangle' engine asset material
+/// @param material Output created material
+/// @param materialShaders Output required shaders for this material
+/// @returns AXR_SUCCESS if the function succeeded
+AxrResult axrEngineAssetCreateMaterial_UIRectangle(
+    AxrMaterial& material,
+    std::vector<AxrEngineAssetEnum>& materialShaders
+);
+
 // ---------------------------------------------------------------------------------- //
 //                                Model Engine Assets                                 //
 // ---------------------------------------------------------------------------------- //
@@ -123,6 +166,14 @@ AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
 /// @param engineAssetEnum Engine asset to check
 /// @returns True if the given engine asset is a model
 bool axrEngineAssetIsModel(AxrEngineAssetEnum engineAssetEnum);
+/// Get the name for the given model engine asset
+/// @param engineAssetEnum Engine asset to get the name of
+/// @returns The name of the given model engine asset
+const char* axrEngineAssetGetModelName(AxrEngineAssetEnum engineAssetEnum);
+/// Check if the given name is reserved for a model engine asset
+/// @param name Name to check
+/// @returns True if the given name is reserved for a model engine asset
+bool axrEngineAssetIsModelNameReserved(const char* name);
 
 /// Create an engine asset model
 /// @param modelName Model name
@@ -136,21 +187,24 @@ AxrResult axrEngineAssetCreateModel(const std::string& modelName, AxrEngineAsset
 /// @param model Output created model
 /// @returns AXR_SUCCESS if the function succeeded
 AxrResult axrEngineAssetCreateModel_Triangle(const std::string& modelName, AxrModel& model);
-
 /// Create the 'Square' engine asset model
 /// @param modelName Model name
 /// @param model Output created model
 /// @returns AXR_SUCCESS if the function succeeded
 AxrResult axrEngineAssetCreateModel_Square(const std::string& modelName, AxrModel& model);
-
 /// Create the 'Cube' engine asset model
 /// @param modelName Model name
 /// @param model Output created model
 /// @returns AXR_SUCCESS if the function succeeded
 AxrResult axrEngineAssetCreateModel_Cube(const std::string& modelName, AxrModel& model);
+/// Create the 'UI Rectangle' engine asset model
+/// @param modelName Model name
+/// @param model Output created model
+/// @returns AXR_SUCCESS if the function succeeded
+AxrResult axrEngineAssetCreateModel_UIRectangle(const std::string& modelName, AxrModel& model);
 
 // ---------------------------------------------------------------------------------- //
-//                                Image Engine Assets                                 //
+//                                Image Sampler Engine Assets                                 //
 // ---------------------------------------------------------------------------------- //
 
 /// Check if the given engine asset is an image sampler
@@ -181,13 +235,19 @@ AxrResult axrEngineAssetCreateImageSampler(
 /// @param imageSamplerName Image sampler name
 /// @param imageSampler Output created image sampler
 /// @returns AXR_SUCCESS if the function succeeded
-AxrResult axrEngineAssetCreateImageSampler_NearestRepeat(const std::string& imageSamplerName, AxrImageSampler& imageSampler);
+AxrResult axrEngineAssetCreateImageSampler_NearestRepeat(
+    const std::string& imageSamplerName,
+    AxrImageSampler& imageSampler
+);
 
 /// Create the 'LinearRepeat' engine asset image sampler
 /// @param imageSamplerName Image sampler name
 /// @param imageSampler Output created image sampler
 /// @returns AXR_SUCCESS if the function succeeded
-AxrResult axrEngineAssetCreateImageSampler_LinearRepeat(const std::string& imageSamplerName, AxrImageSampler& imageSampler);
+AxrResult axrEngineAssetCreateImageSampler_LinearRepeat(
+    const std::string& imageSamplerName,
+    AxrImageSampler& imageSampler
+);
 
 // ---------------------------------------------------------------------------------- //
 //                                Image Engine Assets                                 //

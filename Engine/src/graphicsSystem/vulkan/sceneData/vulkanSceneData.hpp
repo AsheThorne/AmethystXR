@@ -125,6 +125,9 @@ public:
     [[nodiscard]] const std::vector<AxrVulkanMaterialForRendering>& getMaterialsForRendering(
         AxrMaterialAlphaRenderModeEnum alphaRenderMode
     ) const;
+    /// Get the `UI Rectangle` material for rendering
+    /// @returns The `UI Rectangle` material for rendering. Or nullptr if it doesn't exist.
+    [[nodiscard]] const AxrVulkanMaterialForRendering* getUIRectangleMaterialForRendering() const;
 
     /// Set platform specific uniform buffer data
     /// @param platformType Platform type
@@ -186,6 +189,10 @@ private:
     std::unordered_map<std::string, std::array<AxrVulkanUniformBufferData, AXR_MAX_XR_VIEWS>>
     m_XrSessionUniformBufferData;
 
+    // TODO: Store local copies of the window/xrsession uniform buffers here like the m_LocalMaterials.
+    //  This way we won't need AxrVulkanUniformBufferData to take either an engine asset or an AxrUniformBuffer.
+    std::vector<AxrUniformBuffer> m_LocalUniformBuffers;
+    std::vector<AxrMaterial> m_LocalMaterials;
     std::unordered_map<std::string, AxrVulkanUniformBufferData> m_UniformBufferData;
     std::unordered_map<std::string, AxrVulkanModelData> m_ModelData;
     std::unordered_map<std::string, AxrVulkanImageData> m_ImageData;
@@ -195,6 +202,8 @@ private:
     std::vector<AxrVulkanMaterialForRendering> m_OpaqueMaterialsForRendering;
     std::vector<AxrVulkanMaterialForRendering> m_AlphaBlendMaterialsForRendering;
     std::vector<AxrVulkanMaterialForRendering> m_OITMaterialsForRendering;
+    std::vector<AxrVulkanMaterialForRendering> m_UIMaterialsForRendering;
+    int32_t m_UIRectangleMaterialForRenderingIndex = -1;
 
     // ----------------------------------------- //
     // Private Functions
@@ -410,7 +419,10 @@ private:
     /// @param material Material to use
     /// @param materialData Output material data
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult initializeMaterialData(const AxrMaterial& material, AxrVulkanMaterialData& materialData) const;
+    [[nodiscard]] AxrResult initializeMaterialData(
+        const AxrMaterial& material,
+        AxrVulkanMaterialData& materialData
+    ) const;
 
     /// Create all window specific material data
     /// @returns AXR_SUCCESS if the function succeeded
@@ -467,6 +479,12 @@ private:
     /// Destroy all materials for rendering
     void destroyAllMaterialsForRendering();
 
+    /// Create all UI materials for rendering
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createUIMaterialsForRendering();
+    /// Destroy all UI materials for rendering
+    void destroyUIMaterialsForRendering();
+
     /// Add a material for rendering to either m_OpaqueMaterialsForRendering, m_AlphaBlendMaterialsForRendering
     /// or m_OITMaterialsForRendering depending on it's alpha rendering mode. 
     /// @param transformComponent Transform component
@@ -476,6 +494,16 @@ private:
         const AxrTransformComponent& transformComponent,
         const AxrModelComponent& modelComponent
     );
+    /// Build a simple material for rendering using the given material and model data
+    /// @param materialData Material data to use
+    /// @param modelData Model data to use
+    /// @param materialForRendering Output material for rendering
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult buildMaterialForRendering(
+        const AxrVulkanMaterialData* materialData,
+        const AxrVulkanModelData* modelData,
+        AxrVulkanMaterialForRendering& materialForRendering
+    ) const;
 
     /// 'On new renderable entity' callback for the entt registry
     /// @param registry The entt registry 

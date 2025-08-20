@@ -371,5 +371,16 @@ AxrResult AxrApplication::setupGlobalAssetCollection() {
     axrResult = m_GlobalAssetCollection.createImage(AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE);
     if (AXR_FAILED(axrResult)) return axrResult;
 
+    // ---- UI Assets ----
+
+    axrResult = m_GlobalAssetCollection.createShader(AXR_ENGINE_ASSET_SHADER_UI_ELEMENT_VERT);
+    if (AXR_FAILED(axrResult)) return axrResult;
+
+    axrResult = m_GlobalAssetCollection.createShader(AXR_ENGINE_ASSET_SHADER_UI_RECTANGLE_FRAG);
+    if (AXR_FAILED(axrResult)) return axrResult;
+
+    axrResult = m_GlobalAssetCollection.createModel(AXR_ENGINE_ASSET_MODEL_UI_RECTANGLE);
+    if (AXR_FAILED(axrResult)) return axrResult;
+
     return AXR_SUCCESS;
 }

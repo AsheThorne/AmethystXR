@@ -88,6 +88,13 @@ public:
     /// Get the model buffer
     /// @returns The model buffer
     [[nodiscard]] const vk::Buffer& getModelBuffer() const;
+    /// Get the model mesh count
+    /// @returns The model mesh count
+    [[nodiscard]] uint32_t getMeshCount() const;
+    /// Get the submesh count for the given mesh index
+    /// @param meshIndex Mesh index to use
+    /// @returns The submesh count
+    [[nodiscard]] uint32_t getSubmeshCount(uint32_t meshIndex) const;
     /// Get the submesh buffer indices offset for the given mesh and submesh index
     /// @param meshIndex Mesh index
     /// @param submeshIndex Submesh index

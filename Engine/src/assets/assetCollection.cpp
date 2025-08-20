@@ -443,6 +443,11 @@ AxrResult AxrAssetCollection::createModel(const AxrModelConfig& modelConfig) {
     // Validation
     // ----------------------------------------- //
 
+    if (axrEngineAssetIsModelNameReserved(modelConfig.Name)) {
+        axrLogError("Unable to create model. The model name: {0} is reserved by the engine.", modelConfig.Name);
+        return AXR_ERROR;
+    }
+
     if (m_Models.contains(modelConfig.Name)) {
         axrLogError("Unable to create model. A model named: {0} already exists.", modelConfig.Name);
         return AXR_ERROR;
@@ -470,6 +475,11 @@ AxrResult AxrAssetCollection::createModel(const std::string& modelName, const Ax
 
     if (!axrEngineAssetIsModel(engineAssetEnum)) {
         axrLogError("Unable to create model. Engine asset is not a model.");
+        return AXR_ERROR;
+    }
+
+    if (axrEngineAssetIsModelNameReserved(modelName.c_str())) {
+        axrLogError("Unable to create model. The model name: {0} is reserved by the engine.", modelName.c_str());
         return AXR_ERROR;
     }
 
@@ -714,6 +724,49 @@ AxrResult AxrAssetCollection::createImageSampler(const AxrImageSamplerConfig& im
     }
 
     OnImageSamplerCreatedCallbackGraphics(&insertResult.first->second);
+
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrAssetCollection::createModel(const AxrEngineAssetEnum engineAssetEnum) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (!axrEngineAssetIsModel(engineAssetEnum)) {
+        axrLogError("Unable to create model. Engine asset is not a model.");
+        return AXR_ERROR;
+    }
+
+    const std::string& modelName = axrEngineAssetGetName(engineAssetEnum);
+    if (modelName.empty()) {
+        axrLogError("Unable to create model. Unknown image engine asset name.");
+        return AXR_ERROR;
+    }
+
+    if (m_Models.contains(modelName)) {
+        axrLogError("Unable to create model. An model named: {0} already exists.", modelName.c_str());
+        return AXR_ERROR;
+    }
+
+    AxrModel model;
+    const AxrResult axrResult = axrEngineAssetCreateModel(modelName, engineAssetEnum, model);
+    if (AXR_FAILED(axrResult)) {
+        axrLogErrorLocation("Failed to create model engine asset.");
+        return axrResult;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const auto insertResult = m_Models.insert(std::pair(modelName, std::move(model)));
+    if (!insertResult.second) {
+        axrLogErrorLocation("Failed to insert model.");
+        return AXR_ERROR;
+    }
+
+    OnModelCreatedCallbackGraphics(&insertResult.first->second);
 
     return AXR_SUCCESS;
 }

@@ -45,6 +45,8 @@ AxrVulkanGraphicsSystem::AxrVulkanGraphicsSystem(const Config& config):
     m_GraphicsCommandPool(VK_NULL_HANDLE),
     m_TransferCommandPool(VK_NULL_HANDLE),
     m_MaxFramesInFlight(2),
+    m_ClayContext(nullptr),
+    m_ClayArena(),
     m_WindowGraphics(nullptr),
     m_XrGraphics(nullptr) {
     m_Dispatch.init();
@@ -110,6 +112,12 @@ AxrVulkanGraphicsSystem::~AxrVulkanGraphicsSystem() {
 
 AxrResult AxrVulkanGraphicsSystem::setup() {
     AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = setupClay();
+    if (AXR_FAILED(axrResult)) {
+        resetSetup();
+        return axrResult;
+    }
 
     axrResult = createInstance();
     if (AXR_FAILED(axrResult)) {
@@ -269,6 +277,7 @@ void AxrVulkanGraphicsSystem::resetSetup() {
     resetPhysicalDevice();
     destroyDebugUtils();
     destroyInstance();
+    resetSetupClay();
 }
 
 AxrResult AxrVulkanGraphicsSystem::createInstance() {
@@ -1347,20 +1356,29 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
         return AXR_SUCCESS;
     }
 
-    AxrUICanvasConfig uiCanvasConfig{};
-    Clay_Context* clayContext = renderCommands.getClayContext();
-    const AxrScene::CallbackData& canvasCallbackData = scene->getUICanvasCallback();
-    if (clayContext != nullptr && canvasCallbackData.Function != nullptr) {
-        uiCanvasConfig = canvasCallbackData.Function(
-            canvasCallbackData.UserData,
-            renderCommands.getPlatformType(),
-            clayContext
-        );
-    }
-
     AxrResult axrResult = AXR_SUCCESS;
 
     axrResult = renderCommands.beginRendering(sceneData);
+
+    // Do the clay stuff after beginning to render because the XR session sets it's ViewableRegionExtent in the beginRender() function.
+    AxrUICanvasConfig uiCanvasConfig{};
+    const AxrScene::CallbackData& canvasCallbackData = scene->getUICanvasCallback();
+    if (canvasCallbackData.Function != nullptr) {
+        const vk::Extent2D extent = renderCommands.getUIRegion();
+        Clay_SetLayoutDimensions(
+            Clay_Dimensions{
+                static_cast<float>(extent.width),
+                static_cast<float>(extent.height)
+            }
+        );
+
+        uiCanvasConfig = canvasCallbackData.Function(
+            canvasCallbackData.UserData,
+            renderCommands.getPlatformType(),
+            Clay_GetCurrentContext()
+        );
+    }
+
     if (axrResult == AXR_DONT_RENDER) return AXR_SUCCESS;
     if (AXR_FAILED(axrResult)) return axrResult;
 
@@ -1415,6 +1433,7 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
                 },
                 material.DynamicOffsets
             );
+            // TODO: I think we just remove push constants from materials maybe... only have it at the model level
             renderCommands.pushConstants(
                 viewIndex,
                 *material.PipelineLayout,
@@ -1438,6 +1457,8 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
             renderCommands.draw(viewIndex, mesh);
         };
 
+        // ---- Render Opaque Materials ----
+
         for (const AxrVulkanMaterialForRendering& material :
              sceneData->getMaterialsForRendering(AXR_MATERIAL_ALPHA_RENDER_MODE_OPAQUE)) {
             if (material.PipelineLayout == nullptr) {
@@ -1451,6 +1472,8 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
                 renderMesh(*material.PipelineLayout, mesh);
             }
         }
+
+        // ---- Render Alpha Blended Materials ----
 
         glm::mat4 viewMatrix;
         float nearPlane;
@@ -1492,8 +1515,10 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
 
         // TODO: Advanced transparency with Weighted Blended OIT
 
+        // ---- Screen Space UI ----
+
         if (uiCanvasConfig.Enabled) {
-            renderClayUI(renderCommands, clayContext, uiCanvasConfig);
+            renderClayUI(viewIndex, renderCommands, sceneData, uiCanvasConfig);
         }
 
         renderCommands.endRenderPass(viewIndex);
@@ -1517,30 +1542,110 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
 
 template <typename RenderTarget>
 void AxrVulkanGraphicsSystem::renderClayUI(
+    const uint32_t viewIndex,
     const AxrVulkanRenderCommands<RenderTarget>& renderCommands,
-    Clay_Context* clayContext,
+    AxrVulkanSceneData* sceneData,
     const AxrUICanvasConfig& uiCanvasConfig
 ) const {
-    for (int32_t i = 0; i < uiCanvasConfig.ClayRenderCommands.length; ++i) {
-        const Clay_RenderCommand clayRenderCommand = uiCanvasConfig.ClayRenderCommands.internalArray[i];
-        // TODO...
+    auto currentPipelines = AxrVulkanRenderCommandPipelines{
+        .WindowPipeline = VK_NULL_HANDLE,
+        .XrSessionPipeline = VK_NULL_HANDLE,
+    };
+
+    // TODO: Set buffer data for every element before rendering
+
+    for (int32_t renderCommandIndex = 0;
+         renderCommandIndex < uiCanvasConfig.ClayRenderCommands.length;
+         ++renderCommandIndex
+    ) {
+        const AxrVulkanMaterialForRendering* materialForRendering = nullptr;
+        const Clay_RenderCommand clayRenderCommand = uiCanvasConfig.ClayRenderCommands.internalArray[
+            renderCommandIndex];
+
         switch (clayRenderCommand.commandType) {
             case CLAY_RENDER_COMMAND_TYPE_NONE:
-                break;
+                continue;
             case CLAY_RENDER_COMMAND_TYPE_RECTANGLE:
+                materialForRendering = sceneData->getUIRectangleMaterialForRendering();
                 break;
             case CLAY_RENDER_COMMAND_TYPE_BORDER:
+                axrLogErrorLocation("`Border` clay render command not supported.");
                 break;
             case CLAY_RENDER_COMMAND_TYPE_TEXT:
+                axrLogErrorLocation("`Text` clay render command not supported.");
                 break;
             case CLAY_RENDER_COMMAND_TYPE_IMAGE:
+                axrLogErrorLocation("`Image` clay render command not supported.");
                 break;
             case CLAY_RENDER_COMMAND_TYPE_SCISSOR_START:
+                axrLogErrorLocation("`Scissor Start` clay render command not supported.");
                 break;
             case CLAY_RENDER_COMMAND_TYPE_SCISSOR_END:
+                axrLogErrorLocation("`Scissor End` clay render command not supported.");
                 break;
             case CLAY_RENDER_COMMAND_TYPE_CUSTOM:
+                axrLogErrorLocation("`Custom` clay render command not supported.");
                 break;
+            default: {
+                axrLogErrorLocation("Unknown clay render command.");
+                continue;
+            }
+        }
+
+        if (materialForRendering == nullptr) {
+            axrLogErrorLocation("Failed to find material for rendering.");
+            continue;
+        }
+
+        if (materialForRendering->PipelineLayout == nullptr ||
+            materialForRendering->WindowPipeline == nullptr ||
+            materialForRendering->XrSessionPipeline == nullptr ||
+            materialForRendering->WindowDescriptorSets == nullptr ||
+            materialForRendering->XrSessionDescriptorSets == nullptr) {
+            axrLogErrorLocation("Material for rendering is incomplete.");
+            continue;
+        }
+
+        // TODO: must be a multiple of VkPhysicalDeviceLimits::minUniformBufferOffsetAlignment
+        uint32_t bufferDataOffset = renderCommandIndex *
+            axrEngineAssetGetUniformBufferInstanceSize(AXR_ENGINE_ASSET_UNIFORM_BUFFER_UI_ELEMENTS);
+
+        auto pipelines = AxrVulkanRenderCommandPipelines{
+            .WindowPipeline = *materialForRendering->WindowPipeline,
+            .XrSessionPipeline = *materialForRendering->XrSessionPipeline,
+        };
+
+        // Only bind a new pipeline if it's different from the currently bound one
+        if (currentPipelines != pipelines) {
+            renderCommands.bindPipeline(
+                viewIndex,
+                pipelines
+            );
+
+            currentPipelines = pipelines;
+        }
+
+        renderCommands.bindDescriptorSets(
+            viewIndex,
+            *materialForRendering->PipelineLayout,
+            AxrVulkanRenderCommandDescriptorSets{
+                .WindowDescriptorSets = *materialForRendering->WindowDescriptorSets,
+                .XrSessionDescriptorSets = *materialForRendering->XrSessionDescriptorSets,
+            },
+            std::vector{
+                bufferDataOffset,
+            }
+        );
+
+        for (const AxrVulkanMeshForRendering& mesh : materialForRendering->Meshes) {
+            renderCommands.pushConstants(
+                viewIndex,
+                *materialForRendering->PipelineLayout,
+                mesh.PushConstant,
+                mesh.TransformComponent,
+                sceneData
+            );
+            renderCommands.draw(viewIndex, mesh);
         }
     }
 }
@@ -1652,6 +1757,56 @@ uint64_t AxrVulkanGraphicsSystem::createSortKey(
     const uint32_t materialIndex
 ) const {
     return (static_cast<int64_t>(depth) << 32) | static_cast<uint64_t>(materialIndex);
+}
+
+AxrResult AxrVulkanGraphicsSystem::setupClay() {
+    const uint64_t totalMemorySize = Clay_MinMemorySize();
+    m_ClayArena = Clay_CreateArenaWithCapacityAndMemory(totalMemorySize, malloc(totalMemorySize));
+
+    m_ClayContext = Clay_Initialize(
+        m_ClayArena,
+        Clay_Dimensions{
+            // These values will get set during rendering, depending on the platform that's being rendered
+            .width = 0, .height = 0
+        },
+        Clay_ErrorHandler{
+            // ReSharper disable once CppPassValueParameterByConstReference
+            .errorHandlerFunction = [](const Clay_ErrorData errorData) -> void {
+                const auto graphicsSystem = static_cast<AxrVulkanGraphicsSystem*>(errorData.userData);
+                graphicsSystem->handleClayErrors(errorData);
+            },
+            .userData = this,
+        }
+    );
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanGraphicsSystem::resetSetupClay() {
+    if (m_ClayContext == nullptr || m_ClayArena.memory == nullptr) return;
+
+    bool resetCurrentContext = false;
+    if (Clay_GetCurrentContext() == m_ClayContext) {
+        resetCurrentContext = true;
+    }
+
+    free(m_ClayArena.memory);
+    m_ClayArena = {};
+    m_ClayContext = nullptr;
+
+    if (resetCurrentContext) {
+        Clay_SetCurrentContext(nullptr);
+    }
+}
+
+void AxrVulkanGraphicsSystem::handleClayErrors(const Clay_ErrorData& errorData) const {
+    const char* messageTypeString = axrToString(errorData.errorType);
+
+    axrLogError(
+        "[Clay | XR Graphics | {0}] : {1}",
+        messageTypeString,
+        errorData.errorText.chars
+    );
 }
 
 // ---- Private Static Functions ----

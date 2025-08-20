@@ -28,7 +28,7 @@ find_program(GLSLC glslc)
 # Generate vulkan shaders
 function(generate_vulkan_shaders shaders_directory target)
     if (Vulkan_FOUND)
-        file(GLOB SHADERS
+        file(GLOB_RECURSE SHADERS
             "${shaders_directory}/*.vert"
             "${shaders_directory}/*.frag"
             "${shaders_directory}/*.comp"
@@ -45,7 +45,7 @@ function(generate_vulkan_shaders shaders_directory target)
         foreach (shader ${SHADERS})
             get_filename_component(SHADER_NAME ${shader} NAME)
             add_custom_command(TARGET ${target} POST_BUILD COMMAND
-                ${GLSLC} ${shader} -o ${shaders_directory}/${SHADER_NAME}.spv
+                ${GLSLC} ${shader} -o ${shader}.spv
             )
         endforeach ()
     endif ()

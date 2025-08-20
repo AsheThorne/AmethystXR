@@ -34,13 +34,13 @@ struct AxrVulkanMeshForRendering {
 /// Material references for rendering
 struct AxrVulkanMaterialForRendering {
     std::string MaterialName;
-    const vk::PipelineLayout* PipelineLayout;
-    const vk::Pipeline* WindowPipeline;
-    const vk::Pipeline* XrSessionPipeline;
+    const vk::PipelineLayout* PipelineLayout = nullptr;
+    const vk::Pipeline* WindowPipeline = nullptr;
+    const vk::Pipeline* XrSessionPipeline = nullptr;
     /// One for each frame in flight
-    const std::vector<vk::DescriptorSet>* WindowDescriptorSets;
+    const std::vector<vk::DescriptorSet>* WindowDescriptorSets = nullptr;
     /// One for each frame in flight
-    const std::vector<vk::DescriptorSet>* XrSessionDescriptorSets;
+    const std::vector<vk::DescriptorSet>* XrSessionDescriptorSets = nullptr;
     AxrVulkanPushConstantForRendering PushConstant;
     std::vector<AxrVulkanMeshForRendering> Meshes;
     std::vector<uint32_t> DynamicOffsets;

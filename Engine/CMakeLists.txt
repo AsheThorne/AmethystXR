@@ -94,6 +94,7 @@ set(AXR_HEADER_FILES
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanBuffer.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanRenderCommands.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanImage.hpp
+    ${AXR_SRC_DIR}/graphicsSystem/vulkan/vulkanRenderStructs.hpp
     # ---- Graphics System - Vulkan - Scene Data ----
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanSceneData.hpp
     ${AXR_SRC_DIR}/graphicsSystem/vulkan/sceneData/vulkanModelData.hpp
@@ -213,6 +214,9 @@ set(AXR_ASSET_FILES
     # ---- Shaders ----
     ${AXR_SHADERS_DIR}/shader.vert
     ${AXR_SHADERS_DIR}/shader.frag
+    # ---- Shaders UI ----
+    ${AXR_SHADERS_DIR}/ui/element.vert
+    ${AXR_SHADERS_DIR}/ui/rectangle.frag
 )
 
 # ---------------------------------------------

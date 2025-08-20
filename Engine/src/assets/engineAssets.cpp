@@ -9,6 +9,7 @@
 #include "material.hpp"
 #include "image.hpp"
 #include "imageSampler.hpp"
+#include "uniformBuffer.hpp"
 
 // ----------------------------------------- //
 // C/C++ Headers
@@ -16,6 +17,11 @@
 #include <ranges>
 #include <unordered_map>
 #include <string>
+
+// ----------------------------------------- //
+// Clay Headers
+// ----------------------------------------- //
+#include "clay.h"
 
 // ---------------------------------------------------------------------------------- //
 //                                 Global Variables                                   //
@@ -39,21 +45,45 @@ const std::unordered_map EngineAssetShaderNames{
         AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG_MASK,
         "AXR:ShaderDefaultFrag_Mask"
     ),
+    std::pair(
+        AXR_ENGINE_ASSET_SHADER_UI_ELEMENT_VERT,
+        "AXR:ShaderUIElementVert"
+    ),
+    std::pair(
+        AXR_ENGINE_ASSET_SHADER_UI_RECTANGLE_FRAG,
+        "AXR:ShaderUIRectangleFrag"
+    ),
 };
 
 // ----------------------------------------- //
 // Buffer Engine Assets
 // ----------------------------------------- //
 
-/// Engine asset buffer properties
+/// Engine asset buffer names
 const std::unordered_map EngineAssetBufferNames{
     std::pair(
         AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA,
         "AXR:UniformBufferSceneData"
     ),
     std::pair(
+        AXR_ENGINE_ASSET_UNIFORM_BUFFER_UI_ELEMENTS,
+        "AXR:UniformBufferUIElements"
+    ),
+    std::pair(
         AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX,
         "AXR:PushConstantBufferModelMatrix"
+    ),
+};
+
+// ----------------------------------------- //
+// Model Engine Assets
+// ----------------------------------------- //
+
+/// Engine asset image names
+const std::unordered_map EngineAssetModelNames{
+    std::pair(
+        AXR_ENGINE_ASSET_MODEL_UI_RECTANGLE,
+        "AXR:ModelUIRectangle"
     ),
 };
 
@@ -85,6 +115,18 @@ const std::unordered_map EngineAssetImageNames{
     ),
 };
 
+// ----------------------------------------- //
+// Material Engine Assets
+// ----------------------------------------- //
+
+/// Engine asset buffer properties
+const std::unordered_map EngineAssetMaterialNames{
+    std::pair(
+        AXR_ENGINE_ASSET_MATERIAL_UI_RECTANGLE,
+        "AXR:MaterialUIRectangle"
+    ),
+};
+
 // ---------------------------------------------------------------------------------- //
 //                                External Functions                                  //
 // ---------------------------------------------------------------------------------- //
@@ -93,7 +135,9 @@ bool axrEngineAssetIsNameReserved(const char* name) {
     return axrEngineAssetIsShaderNameReserved(name) ||
         axrEngineAssetIsBufferNameReserved(name) ||
         axrEngineAssetIsImageSamplerNameReserved(name) ||
-        axrEngineAssetIsImageNameReserved(name);
+        axrEngineAssetIsImageNameReserved(name) ||
+        axrEngineAssetIsModelNameReserved(name) ||
+        axrEngineAssetIsMaterialNameReserved(name);
 }
 
 const char* axrEngineAssetGetName(const AxrEngineAssetEnum engineAssetEnum) {
@@ -112,6 +156,12 @@ const char* axrEngineAssetGetName(const AxrEngineAssetEnum engineAssetEnum) {
     }
     if (axrEngineAssetIsImage(engineAssetEnum)) {
         return axrEngineAssetGetImageName(engineAssetEnum);
+    }
+    if (axrEngineAssetIsModel(engineAssetEnum)) {
+        return axrEngineAssetGetModelName(engineAssetEnum);
+    }
+    if (axrEngineAssetIsMaterial(engineAssetEnum)) {
+        return axrEngineAssetGetMaterialName(engineAssetEnum);
     }
 
     axrLogErrorLocation("Unknown engine asset enum.");
@@ -132,6 +182,14 @@ uint64_t axrEngineAssetGetUniformBufferSize(const AxrEngineAssetEnum engineAsset
         case AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA: {
             return sizeof(AxrEngineAssetUniformBuffer_SceneData);
         }
+        case AXR_ENGINE_ASSET_UNIFORM_BUFFER_UI_ELEMENTS: {
+            if (Clay_GetCurrentContext() == nullptr) {
+                axrLogWarningLocation("Clay context is null.");
+                return sizeof(AxrEngineAssetUniformBuffer_UIElement);
+            }
+
+            return sizeof(AxrEngineAssetUniformBuffer_UIElement) * Clay_GetMaxElementCount();
+        }
         case AXR_ENGINE_ASSET_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
             return 0;
@@ -149,6 +207,9 @@ uint64_t axrEngineAssetGetUniformBufferInstanceSize(const AxrEngineAssetEnum eng
         case AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA: {
             return sizeof(AxrEngineAssetUniformBuffer_SceneData);
         }
+        case AXR_ENGINE_ASSET_UNIFORM_BUFFER_UI_ELEMENTS: {
+            return sizeof(AxrEngineAssetUniformBuffer_UIElement);
+        }
         case AXR_ENGINE_ASSET_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
             return 0;
@@ -165,6 +226,9 @@ AxrUniformBufferTypeEnum axrEngineAssetGetUniformBufferType(const AxrEngineAsset
     switch (engineAssetEnum) {
         case AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA: {
             return AXR_UNIFORM_BUFFER_TYPE_STANDARD;
+        }
+        case AXR_ENGINE_ASSET_UNIFORM_BUFFER_UI_ELEMENTS: {
+            return AXR_UNIFORM_BUFFER_TYPE_DYNAMIC;
         }
         case AXR_ENGINE_ASSET_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
@@ -249,6 +313,12 @@ AxrResult axrEngineAssetCreateShader(
         }
         case AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG_MASK: {
             return axrEngineAssetCreateShader_DefaultFrag_Mask(graphicsApi, shader);
+        }
+        case AXR_ENGINE_ASSET_SHADER_UI_ELEMENT_VERT: {
+            return axrEngineAssetCreateShader_UIElementVert(graphicsApi, shader);
+        }
+        case AXR_ENGINE_ASSET_SHADER_UI_RECTANGLE_FRAG: {
+            return axrEngineAssetCreateShader_UIRectangleFrag(graphicsApi, shader);
         }
         case AXR_ENGINE_ASSET_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
@@ -417,6 +487,108 @@ AxrResult axrEngineAssetCreateShader_DefaultFrag_Mask(const AxrGraphicsApiEnum g
     return AXR_SUCCESS;
 }
 
+AxrResult axrEngineAssetCreateShader_UIElementVert(const AxrGraphicsApiEnum graphicsApi, AxrShader& shader) {
+    std::array vertexAttributes{
+        AxrShaderVertexAttribute{
+            .Type = AXR_SHADER_VERTEX_ATTRIBUTE_POSITION,
+            .Location = 0,
+        },
+        AxrShaderVertexAttribute{
+            .Type = AXR_SHADER_VERTEX_ATTRIBUTE_TEXCOORD_0,
+            .Location = 1,
+        }
+    };
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    AxrShaderPushConstantBufferLayout modelMatrixBufferLayout{
+        .BufferSize = axrEngineAssetGetPushConstantBufferSize(AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX)
+    };
+#endif
+
+    std::array bufferLayouts{
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+        reinterpret_cast<AxrShaderBufferLayout_T>(&modelMatrixBufferLayout),
+#endif
+    };
+
+    AxrVertexShaderProperties shaderProperties{
+        .VertexAttributeCount = static_cast<uint32_t>(vertexAttributes.size()),
+        .VertexAttributes = vertexAttributes.data(),
+        .BufferLayoutCount = static_cast<uint32_t>(bufferLayouts.size()),
+        .BufferLayouts = bufferLayouts.data(),
+    };
+
+    std::string shaderPath;
+    if (graphicsApi == AXR_GRAPHICS_API_VULKAN) {
+        shaderPath = axrGetEngineAssetsDirectoryPath().append("shaders/ui/element.vert.spv").generic_string();
+    } else {
+        shaderPath = axrGetEngineAssetsDirectoryPath().append("shaders/ui/element.vert").generic_string();
+    }
+
+    AxrShaderConfig shaderConfig{
+        .Name = {},
+        .FilePath = {},
+        .Properties = reinterpret_cast<AxrShaderProperties_T>(&shaderProperties)
+    };
+    strncpy_s(
+        shaderConfig.Name,
+        axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_UI_ELEMENT_VERT),
+        AXR_MAX_ASSET_NAME_SIZE
+    );
+    strncpy_s(shaderConfig.FilePath, shaderPath.c_str(), AXR_MAX_FILE_PATH_SIZE);
+
+    if (!axrShaderConfigIsValid(&shaderConfig)) {
+        return AXR_ERROR;
+    }
+
+    shader = AxrShader(shaderConfig);
+
+    return AXR_SUCCESS;
+}
+
+AxrResult axrEngineAssetCreateShader_UIRectangleFrag(const AxrGraphicsApiEnum graphicsApi, AxrShader& shader) {
+    AxrShaderDynamicUniformBufferLayout dynamicUniformBufferLayout{
+        .Binding = 0,
+        .InstanceSize = sizeof(AxrEngineAssetUniformBuffer_UIElement),
+    };
+
+    std::array bufferLayouts{
+        reinterpret_cast<AxrShaderBufferLayout_T>(&dynamicUniformBufferLayout),
+    };
+
+    AxrFragmentShaderProperties shaderProperties{
+        .BufferLayoutCount = static_cast<uint32_t>(bufferLayouts.size()),
+        .BufferLayouts = bufferLayouts.data(),
+    };
+
+    std::string shaderPath;
+    if (graphicsApi == AXR_GRAPHICS_API_VULKAN) {
+        shaderPath = axrGetEngineAssetsDirectoryPath().append("shaders/ui/rectangle.frag.spv").generic_string();
+    } else {
+        shaderPath = axrGetEngineAssetsDirectoryPath().append("shaders/ui/rectangle.frag").generic_string();
+    }
+
+    AxrShaderConfig shaderConfig{
+        .Name = {},
+        .FilePath = {},
+        .Properties = reinterpret_cast<AxrShaderProperties_T>(&shaderProperties)
+    };
+    strncpy_s(
+        shaderConfig.Name,
+        axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_UI_RECTANGLE_FRAG),
+        AXR_MAX_ASSET_NAME_SIZE
+    );
+    strncpy_s(shaderConfig.FilePath, shaderPath.c_str(), AXR_MAX_FILE_PATH_SIZE);
+
+    if (!axrShaderConfigIsValid(&shaderConfig)) {
+        return AXR_ERROR;
+    }
+
+    shader = AxrShader(shaderConfig);
+
+    return AXR_SUCCESS;
+}
+
 // ----------------------------------------- //
 // Buffer Engine Assets
 // ----------------------------------------- //
@@ -505,9 +677,64 @@ bool axrEngineAssetIsPushConstantBufferNameReserved(const char* name) {
 }
 #endif
 
+AxrResult axrEngineAssetCreateUniformBuffer_UIElements(AxrUniformBuffer& uniformBuffer) {
+    uint32_t maxElementCount = 1;
+    if (Clay_GetCurrentContext() != nullptr) {
+        maxElementCount = Clay_GetMaxElementCount();
+    } else {
+        axrLogWarningLocation("Clay context is null.");
+    }
+
+    AxrDynamicUniformBufferConfig uniformBufferConfig{
+        .Name = {},
+        .InstanceCount = maxElementCount,
+        .InstanceSize = axrEngineAssetGetUniformBufferInstanceSize(AXR_ENGINE_ASSET_UNIFORM_BUFFER_UI_ELEMENTS),
+        .Data = nullptr,
+    };
+    strncpy_s(
+        uniformBufferConfig.Name,
+        axrEngineAssetGetUniformBufferName(AXR_ENGINE_ASSET_UNIFORM_BUFFER_UI_ELEMENTS),
+        AXR_MAX_ASSET_NAME_SIZE
+    );
+
+    uniformBuffer = AxrUniformBuffer(uniformBufferConfig);
+
+    return AXR_SUCCESS;
+}
+
 // ----------------------------------------- //
 // Material Engine Assets
 // ----------------------------------------- //
+
+bool axrEngineAssetIsMaterial(const AxrEngineAssetEnum engineAssetEnum) {
+    return engineAssetEnum >= AXR_ENGINE_ASSET_MATERIAL_START &&
+        engineAssetEnum <= AXR_ENGINE_ASSET_MATERIAL_END;
+}
+
+const char* axrEngineAssetGetMaterialName(const AxrEngineAssetEnum engineAssetEnum) {
+    if (!axrEngineAssetIsMaterial(engineAssetEnum)) {
+        axrLogErrorLocation("Engine asset is not a material.");
+        return "";
+    }
+
+    const auto foundEngineAssetIt = EngineAssetMaterialNames.find(engineAssetEnum);
+    if (foundEngineAssetIt == EngineAssetMaterialNames.end()) {
+        axrLogError("Failed to find name for engine asset: {0}.", static_cast<int>(engineAssetEnum));
+        return "";
+    }
+
+    return foundEngineAssetIt->second;
+}
+
+bool axrEngineAssetIsMaterialNameReserved(const char* name) {
+    for (const auto& engineAssetName : EngineAssetMaterialNames | std::views::values) {
+        if (std::strcmp(engineAssetName, name) == 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
     const std::string& materialName,
@@ -608,6 +835,71 @@ AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
     return AXR_SUCCESS;
 }
 
+AxrResult axrEngineAssetCreateMaterial_UIRectangle(
+    AxrMaterial& material,
+    std::vector<AxrEngineAssetEnum>& materialShaders
+) {
+    AxrShaderValues vertexShaderValues{
+        .BufferLinkCount = 0,
+        .BufferLinks = nullptr,
+    };
+
+    AxrShaderUniformBufferLink dynamicUniformBufferLink{
+        .Binding = 0,
+        .BufferName = {},
+    };
+    strncpy_s(
+        dynamicUniformBufferLink.BufferName,
+        axrEngineAssetGetUniformBufferName(AXR_ENGINE_ASSET_UNIFORM_BUFFER_UI_ELEMENTS),
+        AXR_MAX_ASSET_NAME_SIZE
+    );
+
+    std::array fragmentBufferLinks{
+        reinterpret_cast<AxrShaderBufferLink_T>(&dynamicUniformBufferLink),
+    };
+
+    AxrShaderValues fragmentShaderValues{
+        .BufferLinkCount = static_cast<uint32_t>(fragmentBufferLinks.size()),
+        .BufferLinks = fragmentBufferLinks.data()
+    };
+
+    AxrMaterialConfig materialConfig{
+        .Name = {},
+        .VertexShaderName = {},
+        .FragmentShaderName = {},
+        .PushConstantBufferName = {},
+        .VertexShaderValues = &vertexShaderValues,
+        .FragmentShaderValues = &fragmentShaderValues,
+        .BackfaceCullMode = AXR_MATERIAL_BACKFACE_CULL_MODE_BACK,
+        .AlphaRenderMode = AXR_MATERIAL_ALPHA_RENDER_MODE_ALPHA_BLEND,
+    };
+    strncpy_s(
+        materialConfig.Name,
+        axrEngineAssetGetMaterialName(AXR_ENGINE_ASSET_MATERIAL_UI_RECTANGLE),
+        AXR_MAX_ASSET_NAME_SIZE
+    );
+    strncpy_s(
+        materialConfig.VertexShaderName,
+        axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_UI_ELEMENT_VERT),
+        AXR_MAX_ASSET_NAME_SIZE
+    );
+    materialShaders.push_back(AXR_ENGINE_ASSET_SHADER_UI_ELEMENT_VERT);
+    strncpy_s(
+        materialConfig.FragmentShaderName,
+        axrEngineAssetGetShaderName(AXR_ENGINE_ASSET_SHADER_UI_RECTANGLE_FRAG),
+        AXR_MAX_ASSET_NAME_SIZE
+    );
+    materialShaders.push_back(AXR_ENGINE_ASSET_SHADER_UI_RECTANGLE_FRAG);
+
+    if (!axrMaterialConfigIsValid(&materialConfig)) {
+        return AXR_ERROR;
+    }
+
+    material = AxrMaterial(materialConfig);
+
+    return AXR_SUCCESS;
+}
+
 // ----------------------------------------- //
 // Model Engine Assets
 // ----------------------------------------- //
@@ -615,6 +907,31 @@ AxrResult axrEngineAssetCreateMaterial_DefaultMaterial(
 bool axrEngineAssetIsModel(const AxrEngineAssetEnum engineAssetEnum) {
     return engineAssetEnum >= AXR_ENGINE_ASSET_MODEL_START &&
         engineAssetEnum <= AXR_ENGINE_ASSET_MODEL_END;
+}
+
+const char* axrEngineAssetGetModelName(const AxrEngineAssetEnum engineAssetEnum) {
+    if (!axrEngineAssetIsModel(engineAssetEnum)) {
+        axrLogErrorLocation("Engine asset is not a model.");
+        return "";
+    }
+
+    const auto foundEngineAssetIt = EngineAssetModelNames.find(engineAssetEnum);
+    if (foundEngineAssetIt == EngineAssetModelNames.end()) {
+        axrLogError("Failed to find name for engine asset: {0}.", static_cast<int>(engineAssetEnum));
+        return "";
+    }
+
+    return foundEngineAssetIt->second;
+}
+
+bool axrEngineAssetIsModelNameReserved(const char* name) {
+    for (const auto& engineAssetName : EngineAssetModelNames | std::views::values) {
+        if (std::strcmp(engineAssetName, name) == 0) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 AxrResult axrEngineAssetCreateModel(
@@ -636,6 +953,9 @@ AxrResult axrEngineAssetCreateModel(
         }
         case AXR_ENGINE_ASSET_MODEL_CUBE: {
             return axrEngineAssetCreateModel_Cube(modelName, model);
+        }
+        case AXR_ENGINE_ASSET_MODEL_UI_RECTANGLE: {
+            return axrEngineAssetCreateModel_UIRectangle(modelName, model);
         }
         case AXR_ENGINE_ASSET_UNDEFINED:
         default: { // NOLINT(clang-diagnostic-covered-switch-default)
@@ -707,22 +1027,22 @@ AxrResult axrEngineAssetCreateModel_Square(const std::string& modelName, AxrMode
 
     std::vector<AxrVertex> vertices{
         AxrVertex{
-            .Position = {0.5f, 1.0f, 0.0f},
+            .Position = {0.5f, 0.5f, 0.0f},
             .Color = {1.0f, 1.0f, 1.0f},
             .TexCoord_0 = {1.0f, 0.0f},
         },
         AxrVertex{
-            .Position = {-0.5f, 1.0f, 0.0f},
+            .Position = {-0.5f, 0.5f, 0.0f},
             .Color = {1.0f, 1.0f, 1.0f},
             .TexCoord_0 = {0.0f, 0.0f},
         },
         AxrVertex{
-            .Position = {-0.5f, 0.0f, 0.0f},
+            .Position = {-0.5f, -0.5f, 0.0f},
             .Color = {1.0f, 1.0f, 1.0f},
             .TexCoord_0 = {0.0f, 1.0f},
         },
         AxrVertex{
-            .Position = {0.5f, 0.0f, 0.0f},
+            .Position = {0.5f, -0.5f, 0.0f},
             .Color = {1.0f, 1.0f, 1.0f},
             .TexCoord_0 = {1.0f, 1.0f},
         },
@@ -920,6 +1240,63 @@ AxrResult axrEngineAssetCreateModel_Cube(const std::string& modelName, AxrModel&
         // Right face
         20, 21, 22,
         22, 23, 20,
+    };
+
+    AxrSubmesh submesh{
+        .VertexCount = static_cast<uint32_t>(vertices.size()),
+        .Vertices = vertices.data(),
+        .IndexCount = static_cast<uint32_t>(indices.size()),
+        .Indices = indices.data(),
+    };
+
+    const AxrMesh mesh{
+        .SubmeshCount = 1,
+        .Submeshes = &submesh,
+    };
+
+    const AxrResult axrResult = model.setData(1, &mesh);
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+
+AxrResult axrEngineAssetCreateModel_UIRectangle(const std::string& modelName, AxrModel& model) {
+    AxrModelConfig modelConfig{
+        .Name = {},
+        .FilePath = {},
+    };
+    strncpy_s(modelConfig.Name, modelName.c_str(), AXR_MAX_ASSET_NAME_SIZE);
+
+    model = AxrModel(modelConfig);
+
+    std::vector<AxrVertex> vertices{
+        AxrVertex{
+            .Position = {1.0f, 1.0f, 0.0f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoord_0 = {1.0f, 0.0f},
+        },
+        AxrVertex{
+            .Position = {0.0f, 1.0f, 0.0f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoord_0 = {0.0f, 0.0f},
+        },
+        AxrVertex{
+            .Position = {0.0f, 0.0f, 0.0f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoord_0 = {0.0f, 1.0f},
+        },
+        AxrVertex{
+            .Position = {1.0f, 0.0f, 0.0f},
+            .Color = {1.0f, 1.0f, 1.0f},
+            .TexCoord_0 = {1.0f, 1.0f},
+        },
+    };
+
+    std::vector<uint32_t> indices{
+        0, 1, 2,
+        2, 3, 0,
     };
 
     AxrSubmesh submesh{

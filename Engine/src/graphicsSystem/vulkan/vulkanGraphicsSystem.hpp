@@ -2,11 +2,6 @@
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 
 // ----------------------------------------- //
-// C/C++ Headers
-// ----------------------------------------- //
-#include <cstdint>
-
-// ----------------------------------------- //
 // AXR Headers
 // ----------------------------------------- //
 #include "axr/common/enums.h"
@@ -167,6 +162,8 @@ private:
     vk::CommandPool m_GraphicsCommandPool;
     vk::CommandPool m_TransferCommandPool;
     uint32_t m_MaxFramesInFlight;
+    Clay_Context* m_ClayContext;
+    Clay_Arena m_ClayArena;
 
     AxrVulkanLoadedScenesCollection m_LoadedScenes;
     AxrVulkanWindowGraphics* m_WindowGraphics;
@@ -381,21 +378,22 @@ private:
     /// @returns AXR_SUCCESS if the function succeeded
     template <typename RenderTarget>
     [[nodiscard]] AxrResult renderCurrentFrame(RenderTarget& renderTarget) const;
-    /// Blit the current frame from the xr graphics to the window graphics
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult blitToWindowFromXrDevice() const;
-
     /// Render the clay UI elements according to the given uiCanvasConfig
     /// @tparam RenderTarget Render target class. Like a window or xr device
+    /// @param viewIndex View index to render for
     /// @param renderCommands Vulkan render commands
-    /// @param clayContext Clay context
+    /// @param sceneData Active scene data
     /// @param uiCanvasConfig UI Canvas config
     template <typename RenderTarget>
     void renderClayUI(
+        uint32_t viewIndex,
         const AxrVulkanRenderCommands<RenderTarget>& renderCommands,
-        Clay_Context* clayContext,
+        AxrVulkanSceneData* sceneData,
         const AxrUICanvasConfig& uiCanvasConfig
     ) const;
+    /// Blit the current frame from the xr graphics to the window graphics
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult blitToWindowFromXrDevice() const;
 
     /// Get a collection of each mesh in the given 'materials for rendering' sorted by depth
     /// @param viewMatrix Camera view matrix
@@ -428,6 +426,17 @@ private:
     /// @param materialIndex Material index
     /// @returns The sort key value
     [[nodiscard]] uint64_t createSortKey(uint32_t depth, uint32_t materialIndex) const;
+
+    // ---- Clay ----
+
+    /// Set up the clay data
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setupClay();
+    /// Reset setupClay()
+    void resetSetupClay();
+    /// Callback function to handle clay errors
+    /// @param errorData Clay error data
+    void handleClayErrors(const Clay_ErrorData& errorData) const;
 
     // ----------------------------------------- //
     // Private Static Functions

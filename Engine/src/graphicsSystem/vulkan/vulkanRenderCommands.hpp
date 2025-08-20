@@ -33,6 +33,14 @@ struct AxrVulkanRenderCommandPipelines {
     vk::Pipeline XrSessionPipeline = VK_NULL_HANDLE;
 };
 
+constexpr bool operator==(
+    const AxrVulkanRenderCommandPipelines& first,
+    const AxrVulkanRenderCommandPipelines& second
+) noexcept {
+    return first.WindowPipeline == second.WindowPipeline &&
+        first.XrSessionPipeline == second.XrSessionPipeline;
+}
+
 /// Render command descriptor sets
 struct AxrVulkanRenderCommandDescriptorSets {
     const std::vector<vk::DescriptorSet>& WindowDescriptorSets;
@@ -91,10 +99,10 @@ public:
         return m_RenderTarget.getPlatformType();
     }
 
-    /// Get the clay context for the render target
-    /// @returns The clay context for the render target
-    [[nodiscard]] Clay_Context* getClayContext() const {
-        return m_RenderTarget.getClayContext();
+    /// Get the UI region
+    /// @returns The UI region
+    [[nodiscard]] vk::Extent2D getUIRegion() const {
+        return m_RenderTarget.getUIRegion();
     }
 
     /// Update all necessary uniform buffers for the current frame
@@ -383,7 +391,7 @@ public:
     /// @param sceneData Scene data to search for the push constant data in
     void pushConstants(
         const uint32_t viewIndex,
-        const vk::PipelineLayout pipelineLayout,
+        const vk::PipelineLayout& pipelineLayout,
         const AxrVulkanPushConstantForRendering& pushConstant,
         const AxrTransformComponent* transformComponent,
         const AxrVulkanSceneData* sceneData

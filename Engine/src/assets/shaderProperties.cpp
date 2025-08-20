@@ -487,6 +487,11 @@ AxrShaderBufferLayout_T AxrShaderPropertiesRAII::clone(const AxrShaderBufferLayo
                 reinterpret_cast<AxrShaderUniformBufferLayoutConst_T>(shaderBufferLayout)
             ));
         }
+        case AXR_SHADER_BUFFER_LAYOUT_DYNAMIC_UNIFORM_BUFFER: {
+            return reinterpret_cast<AxrShaderBufferLayout_T>(clone(
+                reinterpret_cast<AxrShaderDynamicUniformBufferLayoutConst_T>(shaderBufferLayout)
+            ));
+        }
         case AXR_SHADER_BUFFER_LAYOUT_IMAGE_SAMPLER_BUFFER: {
             return reinterpret_cast<AxrShaderBufferLayout_T>(clone(
                 reinterpret_cast<AxrShaderImageSamplerBufferLayoutConst_T>(shaderBufferLayout)
@@ -517,6 +522,11 @@ void AxrShaderPropertiesRAII::destroy(AxrShaderBufferLayout_T& shaderBufferLayou
         case AXR_SHADER_BUFFER_LAYOUT_UNIFORM_BUFFER: {
             // NOLINTNEXTLINE(clang-diagnostic-undefined-reinterpret-cast)
             destroy(reinterpret_cast<AxrShaderUniformBufferLayout_T&>(shaderBufferLayout));
+            break;
+        }
+        case AXR_SHADER_BUFFER_LAYOUT_DYNAMIC_UNIFORM_BUFFER: {
+            // NOLINTNEXTLINE(clang-diagnostic-undefined-reinterpret-cast)
+            destroy(reinterpret_cast<AxrShaderDynamicUniformBufferLayout_T&>(shaderBufferLayout));
             break;
         }
         case AXR_SHADER_BUFFER_LAYOUT_IMAGE_SAMPLER_BUFFER: {
@@ -735,6 +745,19 @@ bool AxrShaderPropertiesRAII::isValid(
                 if (bufferBindings.contains(uniformBufferLayout->Binding)) {
                     axrLogError(
                         "Validation for shader buffer layouts failed. Uniform buffer layout has a duplicate binding."
+                    );
+                    return false;
+                }
+                bufferBindings.insert(uniformBufferLayout->Binding);
+                break;
+            }
+            case AXR_SHADER_BUFFER_LAYOUT_DYNAMIC_UNIFORM_BUFFER: {
+                const auto uniformBufferLayout = reinterpret_cast<AxrShaderDynamicUniformBufferLayoutConst_T>(
+                    bufferLayouts[
+                        i]);
+                if (bufferBindings.contains(uniformBufferLayout->Binding)) {
+                    axrLogError(
+                        "Validation for shader buffer layouts failed. Dynamic uniform buffer layout has a duplicate binding."
                     );
                     return false;
                 }

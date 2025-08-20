@@ -45,15 +45,19 @@ by another asset that the application wants to use and that asset doesn't alread
 | AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT               |         Yes         |   Constructable   |    Only If Necessary    |
 | AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG               |         Yes         |   Constructable   |    Only If Necessary    |
 | AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG_MASK          |         Yes         |   Constructable   |    Only If Necessary    |
+| AXR_ENGINE_ASSET_SHADER_UI_ELEMENT_VERT            |         Yes         |   Constructable   |           Yes           |
+| AXR_ENGINE_ASSET_SHADER_UI_RECTANGLE_FRAG          |         Yes         |   Constructable   |           Yes           |
 | AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA         |         Yes         |     ReadOnly      |           Yes           |
 | AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX |         Yes         |     ReadOnly      |           Yes           |
 | AXR_ENGINE_ASSET_IMAGE_MISSING_TEXTURE             |         Yes         |   Constructable   |           Yes           |
 | AXR_ENGINE_ASSET_IMAGE_UV_TESTER                   |         No          |   Constructable   |           No            |
 | AXR_ENGINE_ASSET_IMAGE_SAMPLER_NEAREST_REPEAT      |         Yes         |   Constructable   |           Yes           |
 | AXR_ENGINE_ASSET_IMAGE_SAMPLER_LINEAR_REPEAT       |         Yes         |   Constructable   |           Yes           |
+| AXR_ENGINE_ASSET_MATERIAL_UI_RECTANGLE             |         Yes         |     ReadOnly      |           Yes           |
 | AXR_ENGINE_ASSET_MODEL_TRIANGLE                    |         No          |   Constructable   |           No            |
 | AXR_ENGINE_ASSET_MODEL_SQUARE                      |         No          |   Constructable   |           No            |
 | AXR_ENGINE_ASSET_MODEL_CUBE                        |         No          |   Constructable   |           No            |
+| AXR_ENGINE_ASSET_MODEL_UI_RECTANGLE                |         Yes         |   Constructable   |           Yes           |
 
 If an asset has `App Accessibility` set to `Constructable` and `Engine Creates Defaults` set to `Yes`,
 then it gets added to the `GlobalAssetCollection` as part of the `AxrApplication`.

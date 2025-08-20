@@ -169,9 +169,9 @@ public:
     /// Get the platform type
     /// @returns the platform type
     [[nodiscard]] AxrPlatformType getPlatformType() const;
-    /// Get the clay context
-    /// @returns The clay context
-    [[nodiscard]] Clay_Context* getClayContext() const;
+    /// Get the UI region
+    /// @returns The UI region
+    [[nodiscard]] vk::Extent2D getUIRegion() const;
     /// Get the render pass
     /// @returns The render pass
     [[nodiscard]] vk::RenderPass getRenderPass() const;
@@ -295,8 +295,6 @@ private:
     uint32_t m_CurrentFrame;
     vk::SampleCountFlagBits m_MsaaSampleCount;
     vk::Extent2D m_ViewableRegionExtent;
-    Clay_Context* m_ClayContext;
-    Clay_Arena m_ClayArena;
 
     RenderData m_FrameRenderData;
 
@@ -472,17 +470,6 @@ private:
     [[nodiscard]] AxrResult createMsaaImages(View& view) const;
     /// Destroy the msaa images
     void destroyMsaaImages(View& view) const;
-
-    // ---- Clay ----
-
-    /// Set up the clay data
-    /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setupClay();
-    /// Reset setupClay()
-    void resetSetupClay();
-    /// Callback function to handle clay errors
-    /// @param errorData Clay error data
-    void handleClayErrors(const Clay_ErrorData& errorData) const;
 
     // ---- Callbacks ----
 

@@ -30,8 +30,6 @@ AxrVulkanXrGraphics::AxrVulkanXrGraphics(const Config& config):
     m_CurrentFrame(0),
     m_MsaaSampleCount(vk::SampleCountFlagBits::e1),
     m_ViewableRegionExtent(vk::Extent2D(0, 0)),
-    m_ClayContext(nullptr),
-    m_ClayArena(),
     m_FrameRenderData() {
 }
 
@@ -245,8 +243,8 @@ AxrPlatformType AxrVulkanXrGraphics::getPlatformType() const {
     return AXR_PLATFORM_TYPE_XR_DEVICE;
 }
 
-Clay_Context* AxrVulkanXrGraphics::getClayContext() const {
-    return m_ClayContext;
+vk::Extent2D AxrVulkanXrGraphics::getUIRegion() const {
+    return m_ViewableRegionExtent;
 }
 
 vk::RenderPass AxrVulkanXrGraphics::getRenderPass() const {
@@ -476,12 +474,6 @@ AxrResult AxrVulkanXrGraphics::setupXrSessionGraphics() {
         return axrResult;
     }
 
-    axrResult = setupClay();
-    if (AXR_FAILED(axrResult)) {
-        resetSetupXrSessionGraphics();
-        return axrResult;
-    }
-
     axrResult = m_LoadedScenes.setupXrSessionData(
         m_RenderPass,
         m_MsaaSampleCount,
@@ -500,7 +492,6 @@ void AxrVulkanXrGraphics::resetSetupXrSessionGraphics() {
     m_IsReady = false;
 
     m_LoadedScenes.resetSetupXrSessionData();
-    resetSetupClay();
     resetSetupAllViews();
     destroyRenderPass();
     resetMsaaSampleCount();
@@ -1314,63 +1305,6 @@ void AxrVulkanXrGraphics::destroyMsaaImages(View& view) const {
         msaaImage.destroyImage();
     }
     view.SwapchainMsaaImages.clear();
-}
-
-AxrResult AxrVulkanXrGraphics::setupClay() {
-    const uint64_t totalMemorySize = Clay_MinMemorySize();
-    m_ClayArena = Clay_CreateArenaWithCapacityAndMemory(totalMemorySize, malloc(totalMemorySize));
-
-    // We don't account for the view overlaps here, but this is good enough for initialization.
-    float width = 0;
-    float height = 0;
-    if (!m_Views.empty()) {
-        width = m_Views[0].SwapchainExtent.width;
-        height = m_Views[0].SwapchainExtent.height;
-    }
-
-    m_ClayContext = Clay_Initialize(
-        m_ClayArena,
-        Clay_Dimensions{
-            .width = width, .height = height
-        },
-        Clay_ErrorHandler{
-            // ReSharper disable once CppPassValueParameterByConstReference
-            .errorHandlerFunction = [](const Clay_ErrorData errorData) -> void {
-                const auto xrGraphics = static_cast<AxrVulkanXrGraphics*>(errorData.userData);
-                xrGraphics->handleClayErrors(errorData);
-            },
-            .userData = this,
-        }
-    );
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanXrGraphics::resetSetupClay() {
-    if (m_ClayContext == nullptr || m_ClayArena.memory == nullptr) return;
-
-    bool resetCurrentContext = false;
-    if (Clay_GetCurrentContext() == m_ClayContext) {
-        resetCurrentContext = true;
-    }
-
-    free(m_ClayArena.memory);
-    m_ClayArena = {};
-    m_ClayContext = nullptr;
-
-    if (resetCurrentContext) {
-        Clay_SetCurrentContext(nullptr);
-    }
-}
-
-void AxrVulkanXrGraphics::handleClayErrors(const Clay_ErrorData& errorData) const {
-    const char* messageTypeString = axrToString(errorData.errorType);
-
-    axrLogError(
-        "[Clay | XR Graphics | {0}] : {1}",
-        messageTypeString,
-        errorData.errorText.chars
-    );
 }
 
 AxrResult AxrVulkanXrGraphics::onXrSessionStateChangedCallback(const bool isSessionRunning) {

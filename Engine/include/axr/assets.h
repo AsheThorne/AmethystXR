@@ -840,11 +840,14 @@ enum AxrEngineAssetEnum {
     AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT = 1,
     AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG = 2,
     AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG_MASK = 3,
+    AXR_ENGINE_ASSET_SHADER_UI_ELEMENT_VERT = 4,
+    AXR_ENGINE_ASSET_SHADER_UI_RECTANGLE_FRAG = 5,
     AXR_ENGINE_ASSET_SHADER_END = 64,
 
     // ---- Uniform Buffers - Max of 32 ----
     AXR_ENGINE_ASSET_UNIFORM_BUFFER_START = 65,
     AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA = 65,
+    AXR_ENGINE_ASSET_UNIFORM_BUFFER_UI_ELEMENTS = 66,
     AXR_ENGINE_ASSET_UNIFORM_BUFFER_END = 96,
 
     // ---- Push Constant Buffers - Max of 32 ----
@@ -864,12 +867,18 @@ enum AxrEngineAssetEnum {
     AXR_ENGINE_ASSET_IMAGE_SAMPLER_LINEAR_REPEAT = 194,
     AXR_ENGINE_ASSET_IMAGE_SAMPLER_END = 200,
 
+    // ---- Materials - Max of 64 ----
+    AXR_ENGINE_ASSET_MATERIAL_START = 201,
+    AXR_ENGINE_ASSET_MATERIAL_UI_RECTANGLE = 201,
+    AXR_ENGINE_ASSET_MATERIAL_END = 264,
+
     // ---- Models - Max of 64 ----
-    AXR_ENGINE_ASSET_MODEL_START = 201,
-    AXR_ENGINE_ASSET_MODEL_TRIANGLE = 201,
-    AXR_ENGINE_ASSET_MODEL_SQUARE = 202,
-    AXR_ENGINE_ASSET_MODEL_CUBE = 203,
-    AXR_ENGINE_ASSET_MODEL_END = 264,
+    AXR_ENGINE_ASSET_MODEL_START = 265,
+    AXR_ENGINE_ASSET_MODEL_TRIANGLE = 265,
+    AXR_ENGINE_ASSET_MODEL_SQUARE = 266,
+    AXR_ENGINE_ASSET_MODEL_CUBE = 267,
+    AXR_ENGINE_ASSET_MODEL_UI_RECTANGLE = 268,
+    AXR_ENGINE_ASSET_MODEL_END = 328,
 };
 
 // ----------------------------------------- //
@@ -882,6 +891,28 @@ enum AxrEngineAssetEnum {
 struct AxrEngineAssetUniformBuffer_SceneData {
     alignas(16) glm::mat4 ViewMatrix;
     alignas(16) glm::mat4 ProjectionMatrix;
+};
+
+struct AxrEngineAssetUniformBuffer_UIRectangle {
+    glm::vec4 BackgroundColor;
+    // AxrCornerRadius CornerRadius;
+};
+
+struct AxrEngineAssetUniformBuffer_UIImage {
+    glm::vec4 BackgroundColor;
+    // AxrCornerRadius CornerRadius;
+};
+
+struct AxrEngineAssetUniformBuffer_UIBorder {
+    glm::vec4 BackgroundColor;
+    // AxrCornerRadius CornerRadius;
+    // AxrBorderWidth Width;
+};
+
+union AxrEngineAssetUniformBuffer_UIElement {
+    AxrEngineAssetUniformBuffer_UIRectangle Rectangle;
+    AxrEngineAssetUniformBuffer_UIImage Image;
+    AxrEngineAssetUniformBuffer_UIBorder Border;
 };
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
@@ -897,7 +928,7 @@ struct AxrEngineAssetPushConstantBuffer_ModelMatrix {
 struct AxrEngineAssetMaterial_DefaultMaterial {
     AxrMaterialBackfaceCullModeEnum BackfaceCullMode;
     AxrMaterialAlphaRenderModeEnum AlphaRenderMode;
-    /// This can be an empty string
+    /// Alpha cutoff can be an empty string
     char AlphaCutoffBufferName[AXR_MAX_ASSET_NAME_SIZE];
     char ImageName[AXR_MAX_ASSET_NAME_SIZE];
     char ImageSamplerName[AXR_MAX_ASSET_NAME_SIZE];

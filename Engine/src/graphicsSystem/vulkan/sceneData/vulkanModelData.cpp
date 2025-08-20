@@ -85,7 +85,7 @@ const std::string& AxrVulkanModelData::getName() const {
     if (m_ModelHandle == nullptr) {
         return m_DummyName;
     }
-    
+
     return m_ModelHandle->getName();
 }
 
@@ -93,11 +93,25 @@ const vk::Buffer& AxrVulkanModelData::getModelBuffer() const {
     return m_ModelBuffer.getBuffer();
 }
 
-const vk::DeviceSize& AxrVulkanModelData::getSubmeshBufferIndicesOffset(const uint32_t meshIndex, const uint32_t submeshIndex) const {
+uint32_t AxrVulkanModelData::getMeshCount() const {
+    return m_MeshBufferLocations.size();
+}
+
+uint32_t AxrVulkanModelData::getSubmeshCount(const uint32_t meshIndex) const {
+    return m_MeshBufferLocations[meshIndex].SubmeshLocations.size();
+}
+
+const vk::DeviceSize& AxrVulkanModelData::getSubmeshBufferIndicesOffset(
+    const uint32_t meshIndex,
+    const uint32_t submeshIndex
+) const {
     return m_MeshBufferLocations[meshIndex].SubmeshLocations[submeshIndex].IndicesOffset;
 }
 
-const vk::DeviceSize& AxrVulkanModelData::getSubmeshBufferVerticesOffset(const uint32_t meshIndex, const uint32_t submeshIndex) const {
+const vk::DeviceSize& AxrVulkanModelData::getSubmeshBufferVerticesOffset(
+    const uint32_t meshIndex,
+    const uint32_t submeshIndex
+) const {
     return m_MeshBufferLocations[meshIndex].SubmeshLocations[submeshIndex].VerticesOffset;
 }
 

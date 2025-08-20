@@ -11,7 +11,6 @@
 #include "vulkanImage.hpp"
 #include "../../assets/engineAssets.hpp"
 #include "../../scene/scene.hpp"
-#include "../../scene/sceneUtils.hpp"
 
 // ---- Special Functions ----
 
@@ -41,9 +40,7 @@ AxrVulkanWindowGraphics::AxrVulkanWindowGraphics(const Config& config):
     m_CurrentImageIndex(0),
     m_CurrentFrame(0),
     m_IsSwapchainOutOfDate(false),
-    m_MsaaSampleCount(vk::SampleCountFlagBits::e1),
-    m_ClayContext(nullptr),
-    m_ClayArena() {
+    m_MsaaSampleCount(vk::SampleCountFlagBits::e1) {
 }
 
 AxrVulkanWindowGraphics::~AxrVulkanWindowGraphics() {
@@ -205,8 +202,8 @@ AxrPlatformType AxrVulkanWindowGraphics::getPlatformType() const {
     return AXR_PLATFORM_TYPE_WINDOW;
 }
 
-Clay_Context* AxrVulkanWindowGraphics::getClayContext() const {
-    return m_ClayContext;
+vk::Extent2D AxrVulkanWindowGraphics::getUIRegion() const {
+    return m_SwapchainExtent;
 }
 
 vk::RenderPass AxrVulkanWindowGraphics::getRenderPass() const {
@@ -465,12 +462,6 @@ AxrResult AxrVulkanWindowGraphics::setupWindowGraphics() {
         return axrResult;
     }
 
-    axrResult = setupClay();
-    if (AXR_FAILED(axrResult)) {
-        resetSetupWindowGraphics();
-        return axrResult;
-    }
-
     axrResult = m_LoadedScenes.setupWindowData(m_RenderPass, m_MsaaSampleCount);
     if (AXR_FAILED(axrResult)) {
         resetSetupWindowGraphics();
@@ -489,7 +480,6 @@ void AxrVulkanWindowGraphics::resetSetupWindowGraphics() {
     m_WindowSystem.OnWindowResizedCallbackGraphics.reset();
 
     m_LoadedScenes.resetSetupWindowData();
-    resetSetupClay();
     resetSetupSwapchain();
     destroyCommandBuffers();
     destroySyncObjects();
@@ -672,7 +662,6 @@ AxrResult AxrVulkanWindowGraphics::recreateSwapchain() {
         return AXR_ERROR;
     }
 
-    resetSetupClay();
     resetSetupSwapchain();
 
     const auto surfaceDetails = AxrVulkanSurfaceDetails(m_PhysicalDevice, m_Surface, m_Dispatch);
@@ -686,7 +675,6 @@ AxrResult AxrVulkanWindowGraphics::recreateSwapchain() {
         return axrResult;
     }
 
-    axrResult = setupClay();
     if (AXR_FAILED(axrResult)) {
         resetSetupWindowGraphics();
         return axrResult;
@@ -1431,56 +1419,6 @@ void AxrVulkanWindowGraphics::destroyMsaaImages() {
         msaaImage.destroyImage();
     }
     m_SwapchainMsaaImages.clear();
-}
-
-AxrResult AxrVulkanWindowGraphics::setupClay() {
-    const uint64_t totalMemorySize = Clay_MinMemorySize();
-    m_ClayArena = Clay_CreateArenaWithCapacityAndMemory(totalMemorySize, malloc(totalMemorySize));
-
-    m_ClayContext = Clay_Initialize(
-        m_ClayArena,
-        Clay_Dimensions{
-            .width = static_cast<float>(m_SwapchainExtent.width),
-            .height = static_cast<float>(m_SwapchainExtent.height)
-        },
-        Clay_ErrorHandler{
-            // ReSharper disable once CppPassValueParameterByConstReference
-            .errorHandlerFunction = [](const Clay_ErrorData errorData) -> void {
-                const auto windowGraphics = static_cast<AxrVulkanWindowGraphics*>(errorData.userData);
-                windowGraphics->handleClayErrors(errorData);
-            },
-            .userData = this,
-        }
-    );
-
-    return AXR_SUCCESS;
-}
-
-void AxrVulkanWindowGraphics::resetSetupClay() {
-    if (m_ClayContext == nullptr || m_ClayArena.memory == nullptr) return;
-
-    bool resetCurrentContext = false;
-    if (Clay_GetCurrentContext() == m_ClayContext) {
-        resetCurrentContext = true;
-    }
-
-    free(m_ClayArena.memory);
-    m_ClayArena = {};
-    m_ClayContext = nullptr;
-
-    if (resetCurrentContext) {
-        Clay_SetCurrentContext(nullptr);
-    }
-}
-
-void AxrVulkanWindowGraphics::handleClayErrors(const Clay_ErrorData& errorData) const {
-    const char* messageTypeString = axrToString(errorData.errorType);
-
-    axrLogError(
-        "[Clay | Window Graphics | {0}] : {1}",
-        messageTypeString,
-        errorData.errorText.chars
-    );
 }
 
 AxrResult AxrVulkanWindowGraphics::onWindowOpenStateChangedCallback(const bool isWindowOpen) {
