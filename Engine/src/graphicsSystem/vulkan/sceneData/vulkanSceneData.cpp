@@ -30,7 +30,12 @@ AxrVulkanSceneData::AxrVulkanSceneData(const Config& config):
     m_MaxSamplerAnisotropy(config.MaxSamplerAnisotropy),
     m_DispatchHandle(config.DispatchHandle),
     m_IsWindowDataLoaded(false),
-    m_IsXrSessionDataLoaded(false) {
+    m_IsXrSessionDataLoaded(false),
+    m_PlatformUniformBuffers(
+        {
+            AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA,
+        }
+    ) {
 }
 
 AxrVulkanSceneData::~AxrVulkanSceneData() {
@@ -509,11 +514,7 @@ AxrResult AxrVulkanSceneData::createAllUniformBufferData() {
         AxrResult axrResult = AXR_SUCCESS;
 
         AxrVulkanUniformBufferData uniformBufferData;
-        axrResult = initializeUniformBufferData(
-            &uniformBuffer,
-            AXR_ENGINE_ASSET_UNDEFINED,
-            uniformBufferData
-        );
+        axrResult = initializeUniformBufferData(uniformBuffer, uniformBufferData);
         if (AXR_FAILED(axrResult)) {
             return;
         }
@@ -538,6 +539,13 @@ AxrResult AxrVulkanSceneData::createAllUniformBufferData() {
     };
 
     if (isThisGlobalSceneData()) {
+        for (const AxrEngineAssetEnum engineAsset : m_PlatformUniformBuffers) {
+            AxrUniformBuffer uniformBuffer;
+            axrEngineAssetCreateUniformBuffer(engineAsset, uniformBuffer);
+            m_LocalUniformBuffers.push_back(std::move(uniformBuffer));
+            // Platform uniform buffers get created during the platform setup
+        }
+
         AxrUniformBuffer uiElementsUniformBuffer;
         axrEngineAssetCreateUniformBuffer_UIElements(uiElementsUniformBuffer);
         m_LocalUniformBuffers.push_back(std::move(uiElementsUniformBuffer));
@@ -558,34 +566,15 @@ void AxrVulkanSceneData::destroyAllUniformBufferData() {
 }
 
 AxrResult AxrVulkanSceneData::initializeUniformBufferData(
-    const AxrUniformBuffer* uniformBufferHandle,
-    const AxrEngineAssetEnum engineAsset,
+    const AxrUniformBuffer& uniformBufferHandle,
     AxrVulkanUniformBufferData& uniformBufferData
 ) const {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
-
-    if (
-        (uniformBufferHandle == nullptr && engineAsset == AXR_ENGINE_ASSET_UNDEFINED) ||
-        (uniformBufferHandle != nullptr && engineAsset != AXR_ENGINE_ASSET_UNDEFINED)
-    ) {
-        axrLogErrorLocation("Either a uniformBufferHandle must be defined, or a uniformBufferSize must be defined.");
-        return AXR_ERROR;
-    }
-
-    if (engineAsset != AXR_ENGINE_ASSET_UNDEFINED && !axrEngineAssetIsUniformBuffer(engineAsset)) {
-        axrLogErrorLocation("Engine asset is not a uniform buffer.");
-        return AXR_ERROR;
-    }
-
     // ----------------------------------------- //
     // Process
     // ----------------------------------------- //
 
     const AxrVulkanUniformBufferData::Config uniformBufferDataConfig{
-        .UniformBufferHandle = uniformBufferHandle,
-        .UniformBufferEngineAsset = engineAsset,
+        .UniformBufferHandle = &uniformBufferHandle,
         .MaxFramesInFlight = m_MaxFramesInFlight,
         .PhysicalDevice = m_PhysicalDevice,
         .Device = m_Device,
@@ -652,6 +641,16 @@ const AxrVulkanUniformBufferData* AxrVulkanSceneData::findUniformBufferData_shar
     return nullptr;
 }
 
+const AxrUniformBuffer* AxrVulkanSceneData::findLocalUniformBuffer(const std::string& name) const {
+    for (const AxrUniformBuffer& uniformBuffer : m_LocalUniformBuffers) {
+        if (uniformBuffer.getName() == name) {
+            return &uniformBuffer;
+        }
+    }
+
+    return nullptr;
+}
+
 AxrResult AxrVulkanSceneData::createAllWindowUniformBufferData() {
     // ----------------------------------------- //
     // Validation
@@ -674,17 +673,18 @@ AxrResult AxrVulkanSceneData::createAllWindowUniformBufferData() {
     AxrResult axrResult = AXR_SUCCESS;
 
     if (isThisGlobalSceneData()) {
-        constexpr std::array engineAssetsToCreate{
-            AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA,
-        };
+        for (const AxrEngineAssetEnum engineAsset : m_PlatformUniformBuffers) {
+            const char* uniformBufferName = axrEngineAssetGetUniformBufferName(engineAsset);
 
-        for (const AxrEngineAssetEnum engineAsset : engineAssetsToCreate) {
+            const AxrUniformBuffer* foundUniformBuffer = findLocalUniformBuffer(uniformBufferName);
+
+            if (foundUniformBuffer == nullptr) {
+                axrLogErrorLocation("Failed to find uniform buffer named: {0}.", uniformBufferName);
+                continue;
+            }
+
             AxrVulkanUniformBufferData uniformBufferData;
-            axrResult = initializeUniformBufferData(
-                nullptr,
-                engineAsset,
-                uniformBufferData
-            );
+            axrResult = initializeUniformBufferData(*foundUniformBuffer, uniformBufferData);
             if (AXR_FAILED(axrResult)) {
                 continue;
             }
@@ -767,20 +767,20 @@ AxrResult AxrVulkanSceneData::createAllXrSessionUniformBufferData() {
     AxrResult axrResult = AXR_SUCCESS;
 
     if (isThisGlobalSceneData()) {
-        constexpr std::array engineAssetsToCreate{
-            AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA,
-        };
+        for (const AxrEngineAssetEnum engineAsset : m_PlatformUniformBuffers) {
+            const char* uniformBufferName = axrEngineAssetGetUniformBufferName(engineAsset);
 
-        for (const AxrEngineAssetEnum engineAsset : engineAssetsToCreate) {
+            const AxrUniformBuffer* foundUniformBuffer = findLocalUniformBuffer(uniformBufferName);
+
+            if (foundUniformBuffer == nullptr) {
+                axrLogErrorLocation("Failed to find uniform buffer named: {0}.", uniformBufferName);
+                continue;
+            }
+
             std::array<AxrVulkanUniformBufferData, AXR_MAX_XR_VIEWS> uniformBuffers;
-
             for (uint32_t viewIndex = 0; viewIndex < m_LoadXrSessionDataConfig.ViewCount; ++viewIndex) {
                 AxrVulkanUniformBufferData uniformBufferData;
-                axrResult = initializeUniformBufferData(
-                    nullptr,
-                    engineAsset,
-                    uniformBufferData
-                );
+                axrResult = initializeUniformBufferData(*foundUniformBuffer, uniformBufferData);
                 if (AXR_FAILED(axrResult)) {
                     // Break instead of continue because it's only valid if every view was successful
                     break;
@@ -862,11 +862,7 @@ void AxrVulkanSceneData::onUniformBufferCreatedCallback(const AxrUniformBufferCo
     AxrResult axrResult = AXR_SUCCESS;
 
     AxrVulkanUniformBufferData uniformBufferData;
-    axrResult = initializeUniformBufferData(
-        uniformBuffer,
-        AXR_ENGINE_ASSET_UNDEFINED,
-        uniformBufferData
-    );
+    axrResult = initializeUniformBufferData(*uniformBuffer, uniformBufferData);
     if (AXR_FAILED(axrResult)) {
         return;
     }

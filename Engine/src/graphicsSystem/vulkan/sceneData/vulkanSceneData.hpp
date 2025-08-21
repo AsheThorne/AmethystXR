@@ -189,8 +189,7 @@ private:
     std::unordered_map<std::string, std::array<AxrVulkanUniformBufferData, AXR_MAX_XR_VIEWS>>
     m_XrSessionUniformBufferData;
 
-    // TODO: Store local copies of the window/xrsession uniform buffers here like the m_LocalMaterials.
-    //  This way we won't need AxrVulkanUniformBufferData to take either an engine asset or an AxrUniformBuffer.
+    std::vector<AxrEngineAssetEnum> m_PlatformUniformBuffers;
     std::vector<AxrUniformBuffer> m_LocalUniformBuffers;
     std::vector<AxrMaterial> m_LocalMaterials;
     std::unordered_map<std::string, AxrVulkanUniformBufferData> m_UniformBufferData;
@@ -254,14 +253,12 @@ private:
     /// Destroy all uniform buffer data
     void destroyAllUniformBufferData();
 
-    /// Initialize a single uniform buffer's data. Define either a uniformBufferHandle or a uniform buffer engineAsset
+    /// Initialize a single uniform buffer's data for the given uniform buffer
     /// @param uniformBufferHandle Uniform buffer handle to use
-    /// @param engineAsset Uniform buffer engine asset to use
     /// @param uniformBufferData Output Uniform buffer data
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult initializeUniformBufferData(
-        const AxrUniformBuffer* uniformBufferHandle,
-        AxrEngineAssetEnum engineAsset,
+        const AxrUniformBuffer& uniformBufferHandle,
         AxrVulkanUniformBufferData& uniformBufferData
     ) const;
 
@@ -275,6 +272,10 @@ private:
         AxrPlatformType platformType,
         uint32_t viewIndex
     ) const;
+    /// Find the named local uniform buffer
+    /// @param name The name of the uniform buffer
+    /// @returns A handle to the found uniform buffer. Or nullptr if it wasn't found
+    [[nodiscard]] const AxrUniformBuffer* findLocalUniformBuffer(const std::string& name) const;
 
     /// Create all window uniform buffer data
     /// @results AXR_SUCCESS if the function succeeded

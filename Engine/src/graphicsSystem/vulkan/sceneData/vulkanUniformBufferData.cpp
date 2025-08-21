@@ -15,7 +15,6 @@
 
 AxrVulkanUniformBufferData::AxrVulkanUniformBufferData():
     m_UniformBufferHandle(nullptr),
-    m_UniformBufferEngineAsset(AXR_ENGINE_ASSET_UNDEFINED),
     m_MaxFramesInFlight(0),
     m_PhysicalDevice(VK_NULL_HANDLE),
     m_Device(VK_NULL_HANDLE),
@@ -26,26 +25,18 @@ AxrVulkanUniformBufferData::AxrVulkanUniformBufferData():
 
 AxrVulkanUniformBufferData::AxrVulkanUniformBufferData(const Config& config):
     m_UniformBufferHandle(config.UniformBufferHandle),
-    m_UniformBufferEngineAsset(config.UniformBufferEngineAsset),
     m_MaxFramesInFlight(config.MaxFramesInFlight),
     m_PhysicalDevice(config.PhysicalDevice),
     m_Device(config.Device),
     m_TransferCommandPool(config.TransferCommandPool),
     m_TransferQueue(config.TransferQueue),
     m_DispatchHandle(config.DispatchHandle) {
-    if (m_UniformBufferHandle != nullptr) {
-        m_Name = m_UniformBufferHandle->getName();
-    } else if (m_UniformBufferEngineAsset != AXR_ENGINE_ASSET_UNDEFINED) {
-        m_Name = axrEngineAssetGetUniformBufferName(m_UniformBufferEngineAsset);
-    }
 }
 
 AxrVulkanUniformBufferData::AxrVulkanUniformBufferData(AxrVulkanUniformBufferData&& src) noexcept {
-    m_Name = std::move(src.m_Name);
     m_UniformBuffers = std::move(src.m_UniformBuffers);
 
     m_UniformBufferHandle = src.m_UniformBufferHandle;
-    m_UniformBufferEngineAsset = src.m_UniformBufferEngineAsset;
     m_MaxFramesInFlight = src.m_MaxFramesInFlight;
     m_PhysicalDevice = src.m_PhysicalDevice;
     m_Device = src.m_Device;
@@ -54,7 +45,6 @@ AxrVulkanUniformBufferData::AxrVulkanUniformBufferData(AxrVulkanUniformBufferDat
     m_DispatchHandle = src.m_DispatchHandle;
 
     src.m_UniformBufferHandle = nullptr;
-    src.m_UniformBufferEngineAsset = AXR_ENGINE_ASSET_UNDEFINED;
     src.m_MaxFramesInFlight = 0;
     src.m_PhysicalDevice = VK_NULL_HANDLE;
     src.m_Device = VK_NULL_HANDLE;
@@ -71,11 +61,9 @@ AxrVulkanUniformBufferData& AxrVulkanUniformBufferData::operator=(AxrVulkanUnifo
     if (this != &src) {
         cleanup();
 
-        m_Name = std::move(src.m_Name);
         m_UniformBuffers = std::move(src.m_UniformBuffers);
 
         m_UniformBufferHandle = src.m_UniformBufferHandle;
-        m_UniformBufferEngineAsset = src.m_UniformBufferEngineAsset;
         m_MaxFramesInFlight = src.m_MaxFramesInFlight;
         m_PhysicalDevice = src.m_PhysicalDevice;
         m_Device = src.m_Device;
@@ -84,7 +72,6 @@ AxrVulkanUniformBufferData& AxrVulkanUniformBufferData::operator=(AxrVulkanUnifo
         m_DispatchHandle = src.m_DispatchHandle;
 
         src.m_UniformBufferHandle = nullptr;
-        src.m_UniformBufferEngineAsset = AXR_ENGINE_ASSET_UNDEFINED;
         src.m_MaxFramesInFlight = 0;
         src.m_PhysicalDevice = VK_NULL_HANDLE;
         src.m_Device = VK_NULL_HANDLE;
@@ -99,7 +86,11 @@ AxrVulkanUniformBufferData& AxrVulkanUniformBufferData::operator=(AxrVulkanUnifo
 // ---- Public Functions ----
 
 const std::string& AxrVulkanUniformBufferData::getName() const {
-    return m_Name;
+    if (m_UniformBufferHandle == nullptr) {
+        return m_DummyName;
+    }
+
+    return m_UniformBufferHandle->getName();
 }
 
 const AxrVulkanBuffer& AxrVulkanUniformBufferData::getBuffer(const uint32_t frameIndex) const {
@@ -107,28 +98,27 @@ const AxrVulkanBuffer& AxrVulkanUniformBufferData::getBuffer(const uint32_t fram
 }
 
 vk::DeviceSize AxrVulkanUniformBufferData::getBufferSize() const {
-    if (m_UniformBufferHandle != nullptr) {
-        return m_UniformBufferHandle->getDataSize();
+    if (m_UniformBufferHandle == nullptr) {
+        return 0;
     }
 
-    return axrEngineAssetGetUniformBufferSize(m_UniformBufferEngineAsset);
+    return m_UniformBufferHandle->getDataSize();
 }
 
 vk::DeviceSize AxrVulkanUniformBufferData::getInstanceSize() const {
-    if (m_UniformBufferHandle != nullptr) {
-        return m_UniformBufferHandle->getInstanceSize();
+    if (m_UniformBufferHandle == nullptr) {
+        return 0;
     }
 
-    return axrEngineAssetGetUniformBufferInstanceSize(m_UniformBufferEngineAsset);
+    return m_UniformBufferHandle->getInstanceSize();
 }
 
 AxrUniformBufferTypeEnum AxrVulkanUniformBufferData::getBufferType() const {
-    if (m_UniformBufferHandle != nullptr) {
-        return m_UniformBufferHandle->getBufferType();
+    if (m_UniformBufferHandle == nullptr) {
+        return AXR_UNIFORM_BUFFER_TYPE_UNDEFINED;
     }
 
-    return axrEngineAssetGetUniformBufferType(m_UniformBufferEngineAsset);
-
+    return m_UniformBufferHandle->getBufferType();
 }
 
 bool AxrVulkanUniformBufferData::doesDataExist() const {
@@ -220,7 +210,6 @@ AxrResult AxrVulkanUniformBufferData::setData(
 // ---- Private Functions ----
 
 void AxrVulkanUniformBufferData::cleanup() {
-    m_Name.clear();
     m_UniformBufferHandle = nullptr;
     m_MaxFramesInFlight = 0;
     m_PhysicalDevice = VK_NULL_HANDLE;
@@ -240,10 +229,8 @@ AxrResult AxrVulkanUniformBufferData::createUniformBuffer(AxrVulkanBuffer& buffe
         return AXR_ERROR;
     }
 
-    if (m_UniformBufferHandle == nullptr && m_UniformBufferEngineAsset == AXR_ENGINE_ASSET_UNDEFINED) {
-        axrLogErrorLocation(
-            "Uniform buffer handle is null and uniform buffer engine asset is undefined. One of these must be defined."
-        );
+    if (m_UniformBufferHandle == nullptr) {
+        axrLogErrorLocation("Uniform buffer handle is null.");
         return AXR_ERROR;
     }
 
@@ -255,12 +242,8 @@ AxrResult AxrVulkanUniformBufferData::createUniformBuffer(AxrVulkanBuffer& buffe
     uint64_t size = 0;
     const void* data = nullptr;
 
-    if (m_UniformBufferHandle != nullptr) {
-        size = m_UniformBufferHandle->getDataSize();
-        data = m_UniformBufferHandle->getData();
-    } else {
-        size = axrEngineAssetGetUniformBufferSize(m_UniformBufferEngineAsset);
-    }
+    size = m_UniformBufferHandle->getDataSize();
+    data = m_UniformBufferHandle->getData();
 
     axrResult = buffer.createBuffer(
         false,

@@ -26,12 +26,7 @@ public:
 
     /// Uniform buffer data config
     struct Config {
-        /// We don't define both UniformBufferHandle and UniformBufferEngineAsset. It's one or the other.
-        /// If UniformBufferHandle is used instead of UniformBufferEngineAsset, Then we don't need to manually update the uniform buffer
-        /// when the AxrUniformBuffer updates.
         const AxrUniformBuffer* UniformBufferHandle;
-        /// We don't define both UniformBufferHandle and UniformBufferEngineAsset. It's one or the other.
-        AxrEngineAssetEnum UniformBufferEngineAsset;
         uint32_t MaxFramesInFlight;
         vk::PhysicalDevice PhysicalDevice;
         vk::Device Device;
@@ -50,7 +45,7 @@ public:
     AxrVulkanUniformBufferData();
     /// Constructor
     /// @param config Uniform buffer data config
-    AxrVulkanUniformBufferData(const Config& config);
+    explicit AxrVulkanUniformBufferData(const Config& config);
     /// Copy Constructor
     /// @param src Source AxrVulkanUniformBufferData to copy from
     AxrVulkanUniformBufferData(const AxrVulkanUniformBufferData& src) = delete;
@@ -117,9 +112,7 @@ private:
     // ----------------------------------------- //
 
     // ---- Config Variables ----
-    std::string m_Name;
     const AxrUniformBuffer* m_UniformBufferHandle;
-    AxrEngineAssetEnum m_UniformBufferEngineAsset;
     uint32_t m_MaxFramesInFlight;
     vk::PhysicalDevice m_PhysicalDevice;
     vk::Device m_Device;
@@ -128,6 +121,8 @@ private:
     vk::DispatchLoaderDynamic* m_DispatchHandle;
 
     // ---- Data ----
+    /// This should never be used for anything other than returning a reference to the name if no name can be found.
+    std::string m_DummyName;
     /// One buffer per frame in flight
     std::vector<AxrVulkanBuffer> m_UniformBuffers;
 

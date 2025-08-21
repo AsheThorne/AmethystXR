@@ -677,6 +677,44 @@ bool axrEngineAssetIsPushConstantBufferNameReserved(const char* name) {
 }
 #endif
 
+AxrResult axrEngineAssetCreateUniformBuffer(const AxrEngineAssetEnum engineAssetEnum, AxrUniformBuffer& uniformBuffer) {
+    if (!axrEngineAssetIsUniformBuffer(engineAssetEnum)) {
+        axrLogErrorLocation("Engine asset is not a uniform buffer.");
+        return AXR_ERROR;
+    }
+
+    switch (engineAssetEnum) {
+        case AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA: {
+            return axrEngineAssetCreateUniformBuffer_SceneData(uniformBuffer);
+        }
+        case AXR_ENGINE_ASSET_UNIFORM_BUFFER_UI_ELEMENTS: {
+            return axrEngineAssetCreateUniformBuffer_UIElements(uniformBuffer);
+        }
+        case AXR_ENGINE_ASSET_UNDEFINED:
+        default: { // NOLINT(clang-diagnostic-covered-switch-default)
+            axrLogErrorLocation("Unknown uniform buffer engine asset.");
+            return AXR_ERROR;
+        }
+    }
+}
+
+AxrResult axrEngineAssetCreateUniformBuffer_SceneData(AxrUniformBuffer& uniformBuffer) {
+    AxrUniformBufferConfig uniformBufferConfig{
+        .Name = {},
+        .DataSize = axrEngineAssetGetUniformBufferSize(AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA),
+        .Data = nullptr,
+    };
+    strncpy_s(
+        uniformBufferConfig.Name,
+        axrEngineAssetGetUniformBufferName(AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA),
+        AXR_MAX_ASSET_NAME_SIZE
+    );
+
+    uniformBuffer = AxrUniformBuffer(uniformBufferConfig);
+
+    return AXR_SUCCESS;
+}
+
 AxrResult axrEngineAssetCreateUniformBuffer_UIElements(AxrUniformBuffer& uniformBuffer) {
     uint32_t maxElementCount = 1;
     if (Clay_GetCurrentContext() != nullptr) {

@@ -113,6 +113,16 @@ bool axrEngineAssetIsUniformBufferNameReserved(const char* name);
 bool axrEngineAssetIsPushConstantBufferNameReserved(const char* name);
 #endif
 
+/// Create an engine asset uniform buffer
+/// @param engineAssetEnum Uniform buffer engine asset
+/// @param uniformBuffer Output created uniform buffer
+/// @returns AXR_SUCCESS if the function succeeded
+AxrResult axrEngineAssetCreateUniformBuffer(AxrEngineAssetEnum engineAssetEnum, AxrUniformBuffer& uniformBuffer);
+
+/// Create the 'Scene Data' engine asset uniform buffer
+/// @param uniformBuffer Output created uniform buffer
+/// @returns AXR_SUCCESS if the function succeeded
+AxrResult axrEngineAssetCreateUniformBuffer_SceneData(AxrUniformBuffer& uniformBuffer);
 /// Create the 'UI Elements' engine asset uniform buffer
 /// @param uniformBuffer Output created uniform buffer
 /// @returns AXR_SUCCESS if the function succeeded

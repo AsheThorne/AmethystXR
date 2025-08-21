@@ -135,7 +135,7 @@ private:
     vk::DispatchLoaderDynamic* m_DispatchHandle;
 
     // ---- Data ----
-    /// These should never be used for anything other than returning a reference to the name if no name can be found.
+    /// This should never be used for anything other than returning a reference to the name if no name can be found.
     std::string m_DummyName;
     AxrVulkanBuffer m_ModelBuffer;
     std::vector<MeshBufferLocation> m_MeshBufferLocations;
