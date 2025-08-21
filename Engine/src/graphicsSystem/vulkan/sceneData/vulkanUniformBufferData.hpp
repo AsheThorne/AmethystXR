@@ -123,6 +123,7 @@ private:
     // ---- Data ----
     /// This should never be used for anything other than returning a reference to the name if no name can be found.
     std::string m_DummyName;
+    uint64_t m_UniformBufferAlignment;
     /// One buffer per frame in flight
     std::vector<AxrVulkanBuffer> m_UniformBuffers;
 
@@ -134,6 +135,12 @@ private:
     void cleanup();
 
     // ---- Data ----
+
+    /// Set the uniform buffer alignment
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setAlignment();
+    /// Reset the uniform buffer alignment
+    void resetAlignment();
 
     /// Create a vulkan buffer to use as the uniform buffer
     /// @param buffer Output vulkan buffer

@@ -20,7 +20,8 @@ AxrVulkanUniformBufferData::AxrVulkanUniformBufferData():
     m_Device(VK_NULL_HANDLE),
     m_TransferCommandPool(VK_NULL_HANDLE),
     m_TransferQueue(VK_NULL_HANDLE),
-    m_DispatchHandle(nullptr) {
+    m_DispatchHandle(nullptr),
+    m_UniformBufferAlignment(0) {
 }
 
 AxrVulkanUniformBufferData::AxrVulkanUniformBufferData(const Config& config):
@@ -30,7 +31,8 @@ AxrVulkanUniformBufferData::AxrVulkanUniformBufferData(const Config& config):
     m_Device(config.Device),
     m_TransferCommandPool(config.TransferCommandPool),
     m_TransferQueue(config.TransferQueue),
-    m_DispatchHandle(config.DispatchHandle) {
+    m_DispatchHandle(config.DispatchHandle),
+    m_UniformBufferAlignment(0) {
 }
 
 AxrVulkanUniformBufferData::AxrVulkanUniformBufferData(AxrVulkanUniformBufferData&& src) noexcept {
@@ -43,6 +45,7 @@ AxrVulkanUniformBufferData::AxrVulkanUniformBufferData(AxrVulkanUniformBufferDat
     m_TransferCommandPool = src.m_TransferCommandPool;
     m_TransferQueue = src.m_TransferQueue;
     m_DispatchHandle = src.m_DispatchHandle;
+    m_UniformBufferAlignment = src.m_UniformBufferAlignment;
 
     src.m_UniformBufferHandle = nullptr;
     src.m_MaxFramesInFlight = 0;
@@ -51,6 +54,7 @@ AxrVulkanUniformBufferData::AxrVulkanUniformBufferData(AxrVulkanUniformBufferDat
     src.m_TransferCommandPool = VK_NULL_HANDLE;
     src.m_TransferQueue = VK_NULL_HANDLE;
     src.m_DispatchHandle = nullptr;
+    src.m_UniformBufferAlignment = 0;
 }
 
 AxrVulkanUniformBufferData::~AxrVulkanUniformBufferData() {
@@ -70,6 +74,7 @@ AxrVulkanUniformBufferData& AxrVulkanUniformBufferData::operator=(AxrVulkanUnifo
         m_TransferCommandPool = src.m_TransferCommandPool;
         m_TransferQueue = src.m_TransferQueue;
         m_DispatchHandle = src.m_DispatchHandle;
+        m_UniformBufferAlignment = src.m_UniformBufferAlignment;
 
         src.m_UniformBufferHandle = nullptr;
         src.m_MaxFramesInFlight = 0;
@@ -78,6 +83,7 @@ AxrVulkanUniformBufferData& AxrVulkanUniformBufferData::operator=(AxrVulkanUnifo
         src.m_TransferCommandPool = VK_NULL_HANDLE;
         src.m_TransferQueue = VK_NULL_HANDLE;
         src.m_DispatchHandle = nullptr;
+        src.m_UniformBufferAlignment = 0;
     }
 
     return *this;
@@ -140,6 +146,13 @@ AxrResult AxrVulkanUniformBufferData::createData() {
     // ----------------------------------------- //
 
     AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = setAlignment();
+    if (AXR_FAILED(axrResult)) {
+        destroyData();
+        return axrResult;
+    }
+
     m_UniformBuffers.resize(m_MaxFramesInFlight);
 
     for (uint32_t i = 0; i < m_MaxFramesInFlight; ++i) {
@@ -173,6 +186,7 @@ void AxrVulkanUniformBufferData::destroyData() {
         destroyUniformBuffer(uniformBuffer);
     }
     m_UniformBuffers.clear();
+    resetAlignment();
 }
 
 AxrResult AxrVulkanUniformBufferData::setData(
@@ -210,6 +224,8 @@ AxrResult AxrVulkanUniformBufferData::setData(
 // ---- Private Functions ----
 
 void AxrVulkanUniformBufferData::cleanup() {
+    destroyData();
+
     m_UniformBufferHandle = nullptr;
     m_MaxFramesInFlight = 0;
     m_PhysicalDevice = VK_NULL_HANDLE;
@@ -217,6 +233,50 @@ void AxrVulkanUniformBufferData::cleanup() {
     m_TransferCommandPool = VK_NULL_HANDLE;
     m_TransferQueue = VK_NULL_HANDLE;
     m_DispatchHandle = nullptr;
+    m_UniformBufferAlignment = 0;
+}
+
+AxrResult AxrVulkanUniformBufferData::setAlignment() {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (m_PhysicalDevice == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Physical device is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_DispatchHandle == nullptr) {
+        axrLogErrorLocation("Dispatch handle is null.");
+        return AXR_ERROR;
+    }
+
+    if (m_UniformBufferHandle == nullptr) {
+        axrLogErrorLocation("Uniform buffer handle is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const vk::PhysicalDeviceProperties properties = m_PhysicalDevice.getProperties(*m_DispatchHandle);
+    const uint64_t minUniformBufferOffsetAlignment = properties.limits.minUniformBufferOffsetAlignment;
+
+    const uint64_t instanceSize = m_UniformBufferHandle->getInstanceSize();
+
+    m_UniformBufferAlignment = instanceSize;
+
+    if (minUniformBufferOffsetAlignment > 0) {
+        m_UniformBufferAlignment =
+            (m_UniformBufferAlignment + minUniformBufferOffsetAlignment - 1) & ~(minUniformBufferOffsetAlignment - 1);
+    }
+
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanUniformBufferData::resetAlignment() {
+    m_UniformBufferAlignment = 0;
 }
 
 AxrResult AxrVulkanUniformBufferData::createUniformBuffer(AxrVulkanBuffer& buffer) const {
@@ -239,11 +299,15 @@ AxrResult AxrVulkanUniformBufferData::createUniformBuffer(AxrVulkanBuffer& buffe
     // ----------------------------------------- //
     AxrResult axrResult = AXR_SUCCESS;
 
-    uint64_t size = 0;
-    const void* data = nullptr;
-
-    size = m_UniformBufferHandle->getDataSize();
-    data = m_UniformBufferHandle->getData();
+    const uint64_t instanceSize = m_UniformBufferHandle->getInstanceSize();
+    const bool isDataAligned = instanceSize == m_UniformBufferAlignment;
+    const bool alignData = m_UniformBufferHandle->getBufferType() == AXR_UNIFORM_BUFFER_TYPE_DYNAMIC && !isDataAligned;
+    uint64_t size;
+    if (alignData) {
+        size = m_UniformBufferHandle->getInstanceCount() * m_UniformBufferAlignment;
+    } else {
+        size = m_UniformBufferHandle->getDataSize();
+    }
 
     axrResult = buffer.createBuffer(
         false,
@@ -255,8 +319,27 @@ AxrResult AxrVulkanUniformBufferData::createUniformBuffer(AxrVulkanBuffer& buffe
         return axrResult;
     }
 
-    if (data != nullptr) {
-        axrResult = buffer.setBufferData(0, size, data);
+    const void* srcData = m_UniformBufferHandle->getData();
+
+    if (srcData != nullptr) {
+        if (alignData) {
+            void* alignedData = calloc(1, size);
+
+            for (int i = 0; i < m_UniformBufferHandle->getInstanceCount(); ++i) {
+                memcpy_s(
+                    static_cast<int8_t*>(alignedData) + m_UniformBufferAlignment * i,
+                    size - m_UniformBufferAlignment * i,
+                    static_cast<const int8_t*>(srcData) + m_UniformBufferAlignment * i,
+                    instanceSize
+                );
+            }
+
+            axrResult = buffer.setBufferData(0, size, alignedData);
+            free(alignedData);
+        } else {
+            axrResult = buffer.setBufferData(0, size, srcData);
+        }
+
         if (AXR_FAILED(axrResult)) {
             destroyUniformBuffer(buffer);
             return axrResult;
