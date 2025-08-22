@@ -383,12 +383,14 @@ private:
     /// @param viewIndex View index to render for
     /// @param renderCommands Vulkan render commands
     /// @param sceneData Active scene data
+    /// @param cameraPosition The main camera's position
     /// @param uiCanvasConfig UI Canvas config
     template <typename RenderTarget>
     void renderClayUI(
         uint32_t viewIndex,
         const AxrVulkanRenderCommands<RenderTarget>& renderCommands,
         AxrVulkanSceneData* sceneData,
+        const glm::vec3& cameraPosition,
         const AxrUICanvasConfig& uiCanvasConfig
     ) const;
     /// Blit the current frame from the xr graphics to the window graphics

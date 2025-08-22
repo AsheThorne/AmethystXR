@@ -347,11 +347,15 @@ void AxrVulkanWindowGraphics::getRenderingMatrices(
     glm::mat4& projectionMatrix
 ) const {
     float fov;
+    glm::vec3 position;
+    glm::quat orientation;
     float nearPlane;
     float farPlane;
-    if (AXR_FAILED(getCameraData(viewIndex, viewMatrix, fov, nearPlane, farPlane))) {
+    if (AXR_FAILED(getCameraData(viewIndex, position, orientation, fov, nearPlane, farPlane))) {
         return;
     }
+
+    viewMatrix = glm::inverse(glm::translate(glm::mat4(1.0f), position) * glm::toMat4(orientation));
 
     const float aspectRatio = static_cast<float>(m_SwapchainExtent.height) / static_cast<float>(m_SwapchainExtent.
         width);
@@ -368,17 +372,19 @@ void AxrVulkanWindowGraphics::getRenderingMatrices(
 
 AxrResult AxrVulkanWindowGraphics::getCameraData(
     const uint32_t viewIndex,
-    glm::mat4& viewMatrix,
+    glm::vec3& position,
+    glm::quat& orientation,
     float& nearPlane,
     float& farPlane
 ) const {
     float fov;
-    return getCameraData(viewIndex, viewMatrix, fov, nearPlane, farPlane);
+    return getCameraData(viewIndex, position, orientation, fov, nearPlane, farPlane);
 }
 
 AxrResult AxrVulkanWindowGraphics::getCameraData(
     const uint32_t viewIndex,
-    glm::mat4& viewMatrix,
+    glm::vec3& position,
+    glm::quat& orientation,
     float& fov,
     float& nearPlane,
     float& farPlane
@@ -398,10 +404,8 @@ AxrResult AxrVulkanWindowGraphics::getCameraData(
     auto [cameraComponent, cameraTransformComponent] = cameraEntity
         .get<AxrCameraComponent, AxrTransformComponent>();
 
-    viewMatrix = glm::inverse(
-        glm::translate(glm::mat4(1.0f), cameraTransformComponent.Position) *
-        glm::toMat4(cameraTransformComponent.Orientation)
-    );
+    position = cameraTransformComponent.Position;
+    orientation = cameraTransformComponent.Orientation;
 
     fov = cameraComponent.Fov;
     nearPlane = cameraComponent.NearPlane;

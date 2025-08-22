@@ -1468,15 +1468,20 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
 
         // ---- Render Alpha Blended Materials ----
 
-        glm::mat4 viewMatrix;
+        glm::vec3 cameraPosition;
+        glm::quat cameraOrientation;
         float nearPlane;
         float farPlane;
         // We always use view index 0 here because we want all views to order the transparent objects the same.
         // It would look terrible if both eyes in VR rendered the objects in a different order.
-        axrResult = renderCommands.getCameraData(0, viewMatrix, nearPlane, farPlane);
+        axrResult = renderCommands.getCameraData(0, cameraPosition, cameraOrientation, nearPlane, farPlane);
         if (AXR_SUCCEEDED(axrResult)) {
             std::vector<AxrVulkanMaterialForRendering> alphaBlendMaterials =
                 sceneData->getMaterialsForRendering(AXR_MATERIAL_ALPHA_RENDER_MODE_ALPHA_BLEND);
+            glm::mat4 viewMatrix = glm::inverse(
+                glm::translate(glm::mat4(1.0f), cameraPosition) *
+                glm::toMat4(cameraOrientation)
+            );
             std::vector<SortableMeshReference> sortedMeshReferences = getSortedMeshReferences(
                 viewMatrix,
                 nearPlane,
@@ -1511,7 +1516,7 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
         // ---- Screen Space UI ----
 
         if (uiCanvasConfig.Enabled) {
-            renderClayUI(viewIndex, renderCommands, sceneData, uiCanvasConfig);
+            renderClayUI(viewIndex, renderCommands, sceneData, cameraPosition, uiCanvasConfig);
         }
 
         renderCommands.endRenderPass(viewIndex);
@@ -1538,6 +1543,7 @@ void AxrVulkanGraphicsSystem::renderClayUI(
     const uint32_t viewIndex,
     const AxrVulkanRenderCommands<RenderTarget>& renderCommands,
     AxrVulkanSceneData* sceneData,
+    const glm::vec3& cameraPosition,
     const AxrUICanvasConfig& uiCanvasConfig
 ) const {
     auto currentPipelines = AxrVulkanRenderCommandPipelines{
@@ -1630,10 +1636,10 @@ void AxrVulkanGraphicsSystem::renderClayUI(
             }
         );
 
-        // TODO: Get the camera transform
         auto cameraTransform = AxrTransformComponent{
-            .Position = glm::vec3(0.0f, 1.0f, -0.5f),
+            .Position = cameraPosition,
             .Scale = glm::vec3(1.0f, 1.0f, 1.0f),
+            // TODO: Add billboard option in uniform buffer so we can remove this
             .Orientation = glm::quat(glm::vec3(0.0f, glm::radians(90.0f), 0.0f)),
         };
 

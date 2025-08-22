@@ -114,12 +114,14 @@ public:
         const uint32_t currentFrame = m_RenderTarget.getCurrentRenderingFrame();
         const AxrPlatformType platformType = m_RenderTarget.getPlatformType();
 
-        glm::mat4 viewMatrix;
+        glm::vec3 cameraPosition;
+        glm::quat cameraOrientation;
         float nearPlane;
         float farPlane;
         axrResult = m_RenderTarget.getCameraData(
             viewIndex,
-            viewMatrix,
+            cameraPosition,
+            cameraOrientation,
             nearPlane,
             farPlane
         );
@@ -159,18 +161,21 @@ public:
 
     /// Get the camera data for the given view
     /// @param viewIndex View index
-    /// @param viewMatrix Output view matrix
+    /// @param position Output camera position
+    /// @param orientation Output camera orientation
     /// @param nearPlane Output near plane
     /// @param farPlane Output far plane
     [[nodiscard]] AxrResult getCameraData(
         const uint32_t viewIndex,
-        glm::mat4& viewMatrix,
+        glm::vec3& position,
+        glm::quat& orientation,
         float& nearPlane,
         float& farPlane
     ) const {
         return m_RenderTarget.getCameraData(
             viewIndex,
-            viewMatrix,
+            position,
+            orientation,
             nearPlane,
             farPlane
         );

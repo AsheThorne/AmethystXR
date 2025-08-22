@@ -238,24 +238,28 @@ public:
     void getRenderingMatrices(uint32_t viewIndex, glm::mat4& viewMatrix, glm::mat4& projectionMatrix) const;
     /// Get the camera data for the given view
     /// @param viewIndex View index
-    /// @param viewMatrix Output view matrix
+    /// @param position Output camera position
+    /// @param orientation Output camera orientation
     /// @param nearPlane Output near plane
     /// @param farPlane Output far plane
     [[nodiscard]] AxrResult getCameraData(
         uint32_t viewIndex,
-        glm::mat4& viewMatrix,
+        glm::vec3& position,
+        glm::quat& orientation,
         float& nearPlane,
         float& farPlane
     ) const;
     /// Get the camera data for the given view
     /// @param viewIndex View index
-    /// @param viewMatrix Output view matrix
+    /// @param position Output camera position
+    /// @param orientation Output camera orientation
     /// @param fov Output fov
     /// @param nearPlane Output near plane
     /// @param farPlane Output far plane
     [[nodiscard]] AxrResult getCameraData(
         uint32_t viewIndex,
-        glm::mat4& viewMatrix,
+        glm::vec3& position,
+        glm::quat& orientation,
         XrFovf& fov,
         float& nearPlane,
         float& farPlane

@@ -364,11 +364,15 @@ void AxrVulkanXrGraphics::getRenderingMatrices(
     glm::mat4& projectionMatrix
 ) const {
     XrFovf fov;
+    glm::vec3 position;
+    glm::quat orientation;
     float nearPlane;
     float farPlane;
-    if (AXR_FAILED(getCameraData(viewIndex, viewMatrix, fov, nearPlane, farPlane))) {
+    if (AXR_FAILED(getCameraData(viewIndex, position, orientation, fov, nearPlane, farPlane))) {
         return;
     }
+
+    viewMatrix = glm::inverse(glm::translate(glm::mat4(1.0f), position) * glm::toMat4(orientation));
 
     projectionMatrix = createProjectionMatrix(
         fov,
@@ -379,17 +383,19 @@ void AxrVulkanXrGraphics::getRenderingMatrices(
 
 AxrResult AxrVulkanXrGraphics::getCameraData(
     const uint32_t viewIndex,
-    glm::mat4& viewMatrix,
+    glm::vec3& position,
+    glm::quat& orientation,
     float& nearPlane,
     float& farPlane
 ) const {
     XrFovf fov;
-    return getCameraData(viewIndex, viewMatrix, fov, nearPlane, farPlane);
+    return getCameraData(viewIndex, position, orientation, fov, nearPlane, farPlane);
 }
 
 AxrResult AxrVulkanXrGraphics::getCameraData(
     const uint32_t viewIndex,
-    glm::mat4& viewMatrix,
+    glm::vec3& position,
+    glm::quat& orientation,
     XrFovf& fov,
     float& nearPlane,
     float& farPlane
@@ -399,21 +405,16 @@ AxrResult AxrVulkanXrGraphics::getCameraData(
         return AXR_ERROR;
     }
 
-    const glm::vec3 position = glm::vec3(
+    position = glm::vec3(
         m_FrameRenderData.CompositionLayerViews[viewIndex].pose.position.x,
         m_FrameRenderData.CompositionLayerViews[viewIndex].pose.position.y,
         m_FrameRenderData.CompositionLayerViews[viewIndex].pose.position.z
     );
-    const glm::quat orientation = glm::quat(
+    orientation = glm::quat(
         m_FrameRenderData.CompositionLayerViews[viewIndex].pose.orientation.w,
         m_FrameRenderData.CompositionLayerViews[viewIndex].pose.orientation.x,
         m_FrameRenderData.CompositionLayerViews[viewIndex].pose.orientation.y,
         m_FrameRenderData.CompositionLayerViews[viewIndex].pose.orientation.z
-    );
-
-    viewMatrix = glm::inverse(
-        glm::translate(glm::mat4(1.0f), position) *
-        glm::toMat4(orientation)
     );
 
     fov = m_FrameRenderData.CompositionLayerViews[viewIndex].fov;
