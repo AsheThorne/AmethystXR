@@ -499,6 +499,11 @@ AxrResult axrEngineAssetCreateShader_UIElementVert(const AxrGraphicsApiEnum grap
         }
     };
 
+    AxrShaderUniformBufferLayout sceneDataBufferLayout{
+        .Binding = 0,
+        .BufferSize = axrEngineAssetGetUniformBufferSize(AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA)
+    };
+
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     AxrShaderPushConstantBufferLayout modelMatrixBufferLayout{
         .BufferSize = axrEngineAssetGetPushConstantBufferSize(AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX)
@@ -506,6 +511,7 @@ AxrResult axrEngineAssetCreateShader_UIElementVert(const AxrGraphicsApiEnum grap
 #endif
 
     std::array bufferLayouts{
+        reinterpret_cast<AxrShaderBufferLayout_T>(&sceneDataBufferLayout),
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
         reinterpret_cast<AxrShaderBufferLayout_T>(&modelMatrixBufferLayout),
 #endif
@@ -548,7 +554,7 @@ AxrResult axrEngineAssetCreateShader_UIElementVert(const AxrGraphicsApiEnum grap
 
 AxrResult axrEngineAssetCreateShader_UIRectangleFrag(const AxrGraphicsApiEnum graphicsApi, AxrShader& shader) {
     AxrShaderDynamicUniformBufferLayout dynamicUniformBufferLayout{
-        .Binding = 0,
+        .Binding = 1,
         .InstanceSize = sizeof(AxrEngineAssetUniformBuffer_UIElement),
     };
 
@@ -877,13 +883,27 @@ AxrResult axrEngineAssetCreateMaterial_UIRectangle(
     AxrMaterial& material,
     std::vector<AxrEngineAssetEnum>& materialShaders
 ) {
+    AxrShaderUniformBufferLink sceneDataBufferLink{
+        .Binding = 0,
+        .BufferName = {},
+    };
+    strncpy_s(
+        sceneDataBufferLink.BufferName,
+        axrEngineAssetGetUniformBufferName(AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA),
+        AXR_MAX_ASSET_NAME_SIZE
+    );
+
+    std::array vertexBufferLinks{
+        reinterpret_cast<AxrShaderBufferLink_T>(&sceneDataBufferLink),
+    };
+
     AxrShaderValues vertexShaderValues{
-        .BufferLinkCount = 0,
-        .BufferLinks = nullptr,
+        .BufferLinkCount = static_cast<uint32_t>(vertexBufferLinks.size()),
+        .BufferLinks = vertexBufferLinks.data(),
     };
 
     AxrShaderUniformBufferLink dynamicUniformBufferLink{
-        .Binding = 0,
+        .Binding = 1,
         .BufferName = {},
     };
     strncpy_s(

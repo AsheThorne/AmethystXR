@@ -1637,12 +1637,27 @@ void AxrVulkanGraphicsSystem::renderClayUI(
             }
         );
 
+        // TODO: Get the camera transform
+        auto cameraTransform = AxrTransformComponent{
+            .Position = glm::vec3(0.0f, 1.0f, -0.5f),
+            .Scale = glm::vec3(1.0f, 1.0f, 1.0f),
+            .Orientation = glm::quat(glm::vec3(0.0f, glm::radians(90.0f), 0.0f)),
+        };
+
+        vk::ShaderStageFlags shaderStage = vk::ShaderStageFlagBits::eVertex;
+
         for (const AxrVulkanMeshForRendering& mesh : materialForRendering->Meshes) {
             renderCommands.pushConstants(
                 viewIndex,
                 *materialForRendering->PipelineLayout,
-                mesh.PushConstant,
-                mesh.TransformComponent,
+                // TODO: Probably set this somewhere else. material engine asset?
+                AxrVulkanPushConstantForRendering{
+                    .ShaderStages = &shaderStage,
+                    .BufferName = axrEngineAssetGetPushConstantBufferName(
+                        AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX
+                    ),
+                },
+                &cameraTransform,
                 sceneData
             );
             renderCommands.draw(viewIndex, mesh);

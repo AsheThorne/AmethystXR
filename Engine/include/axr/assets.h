@@ -853,6 +853,7 @@ enum AxrEngineAssetEnum {
     // ---- Push Constant Buffers - Max of 32 ----
     AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_START = 97,
     AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX = 97,
+    // TODO: Add AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MVP_MATRIX which is model, view, projection already calculated
     AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_END = 128,
 
     // ---- Images - Max of 64 ----
@@ -888,27 +889,35 @@ enum AxrEngineAssetEnum {
 // ---- Buffers ----
 
 /// Engine asset uniform buffer named 'Scene Data' structure
-struct AxrEngineAssetUniformBuffer_SceneData {
+struct alignas(16) AxrEngineAssetUniformBuffer_SceneData {
     alignas(16) glm::mat4 ViewMatrix;
     alignas(16) glm::mat4 ProjectionMatrix;
+    alignas(16) glm::mat4 ViewProjectionMatrix;
+    alignas(4) float CameraNearPlane;
+    alignas(4) float CameraFarPlane;
+    float _padding[2];
 };
 
-struct AxrEngineAssetUniformBuffer_UIRectangle {
-    glm::vec4 BackgroundColor;
+/// Engine asset uniform buffer named 'UI Rectangle' structure
+struct alignas(16) AxrEngineAssetUniformBuffer_UIRectangle {
+    alignas(16) glm::vec4 BackgroundColor;
     // AxrCornerRadius CornerRadius;
 };
 
-struct AxrEngineAssetUniformBuffer_UIImage {
-    glm::vec4 BackgroundColor;
+/// Engine asset uniform buffer named 'UI Image' structure
+struct alignas(16) AxrEngineAssetUniformBuffer_UIImage {
+    alignas(16) glm::vec4 BackgroundColor;
     // AxrCornerRadius CornerRadius;
 };
 
-struct AxrEngineAssetUniformBuffer_UIBorder {
-    glm::vec4 BackgroundColor;
+/// Engine asset uniform buffer named 'UI Border' structure
+struct alignas(16) AxrEngineAssetUniformBuffer_UIBorder {
+    alignas(16) glm::vec4 BackgroundColor;
     // AxrCornerRadius CornerRadius;
     // AxrBorderWidth Width;
 };
 
+/// Engine asset uniform buffer for a general UI element.
 union AxrEngineAssetUniformBuffer_UIElement {
     AxrEngineAssetUniformBuffer_UIRectangle Rectangle;
     AxrEngineAssetUniformBuffer_UIImage Image;
@@ -917,8 +926,8 @@ union AxrEngineAssetUniformBuffer_UIElement {
 
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
 /// Engine asset push constant buffer named 'Model Matrix' structure
-struct AxrEngineAssetPushConstantBuffer_ModelMatrix {
-    glm::mat4 ModelMatrix;
+struct alignas(16) AxrEngineAssetPushConstantBuffer_ModelMatrix {
+    alignas(16) glm::mat4 ModelMatrix;
 };
 #endif
 

@@ -10,14 +10,17 @@ layout(push_constant) uniform PushConstants {
 
 layout (binding = 0) uniform SceneData {
     mat4 viewMatrix;
-    mat4 projectionMatrix; 
+    mat4 projectionMatrix;
+    mat4 viewProjectionMatrix;
+    float cameraNearPlane;
+    float cameraFarPlane;
 };
 
 layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec2 fragTexCoord;
 
 void main() {
-    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(inPosition, 1.0);
+    gl_Position = viewProjectionMatrix * modelMatrix * vec4(inPosition, 1.0);
     fragColor = inColor;
     fragTexCoord = inTexCoord;
 }

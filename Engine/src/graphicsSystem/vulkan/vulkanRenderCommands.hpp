@@ -114,12 +114,31 @@ public:
         const uint32_t currentFrame = m_RenderTarget.getCurrentRenderingFrame();
         const AxrPlatformType platformType = m_RenderTarget.getPlatformType();
 
+        glm::mat4 viewMatrix;
+        float nearPlane;
+        float farPlane;
+        axrResult = m_RenderTarget.getCameraData(
+            viewIndex,
+            viewMatrix,
+            nearPlane,
+            farPlane
+        );
+        if (AXR_FAILED(axrResult)) {
+            axrLogErrorLocation("Failed to get camera data.");
+            return axrResult;
+        }
+
         AxrEngineAssetUniformBuffer_SceneData sceneDataUniformBuffer{};
+        sceneDataUniformBuffer.CameraNearPlane = nearPlane;
+        sceneDataUniformBuffer.CameraFarPlane = farPlane;
+
         m_RenderTarget.getRenderingMatrices(
             viewIndex,
             sceneDataUniformBuffer.ViewMatrix,
             sceneDataUniformBuffer.ProjectionMatrix
         );
+        sceneDataUniformBuffer.ViewProjectionMatrix =
+            sceneDataUniformBuffer.ProjectionMatrix * sceneDataUniformBuffer.ViewMatrix;
 
         axrResult = sceneData->setPlatformUniformBufferData(
             platformType,

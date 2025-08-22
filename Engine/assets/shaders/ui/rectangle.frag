@@ -2,7 +2,7 @@
 
 layout(location = 0) in vec2 fragTexCoord;
 
-layout(binding = 0) uniform DynamicUniformBuffer {
+layout(binding = 1) uniform DynamicUniformBuffer {
     vec4 backgroundColor;
 };
 

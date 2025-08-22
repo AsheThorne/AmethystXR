@@ -2959,12 +2959,16 @@ namespace axr {
     // ---- Uniform Buffers ----
 
     /// Engine asset uniform buffer named 'Scene Data' structure
-    struct EngineAssetUniformBuffer_SceneData {
+    struct alignas(16) EngineAssetUniformBuffer_SceneData {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-        alignas(16) glm::mat4 ViewMatrix;
-        alignas(16) glm::mat4 ProjectionMatrix;
+        alignas(16) glm::mat4 ViewMatrix = {};
+        alignas(16) glm::mat4 ProjectionMatrix = {};
+        alignas(16) glm::mat4 ViewProjectionMatrix = {};
+        alignas(4) float CameraNearPlane = 0.0f;
+        alignas(4) float CameraFarPlane = 0.0f;
+        float _padding[2] = {};
 
         // ----------------------------------------- //
         // Special Functions
@@ -2973,19 +2977,23 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        EngineAssetUniformBuffer_SceneData():
-            ViewMatrix{},
-            ProjectionMatrix{} {
-        }
+        EngineAssetUniformBuffer_SceneData() = default;
 
         /// Constructor
         /// @param viewMatrix The view matrix
         /// @param projectionMatrix The projection matrix
+        /// @param cameraNearPlane The cameras near clipping plane
+        /// @param cameraFarPlane The cameras far clipping plane
         EngineAssetUniformBuffer_SceneData(
             const glm::mat4& viewMatrix,
-            const glm::mat4& projectionMatrix
+            const glm::mat4& projectionMatrix,
+            const float cameraNearPlane,
+            const float cameraFarPlane
         ): ViewMatrix(viewMatrix),
-            ProjectionMatrix(projectionMatrix) {
+            ProjectionMatrix(projectionMatrix),
+            ViewProjectionMatrix(projectionMatrix * viewMatrix),
+            CameraNearPlane(cameraNearPlane),
+            CameraFarPlane(cameraFarPlane) {
         }
 
         // ----------------------------------------- //
@@ -3010,15 +3018,12 @@ namespace axr {
         "Original type and wrapper have different size!"
     );
 
-    // ---- Push Constant Buffers ----
-
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    /// Engine asset push constant buffer named 'Model Matrix' structure
-    struct EngineAssetPushConstantBuffer_ModelMatrix {
+    /// Engine asset uniform buffer named 'UI Rectangle' structure
+    struct alignas(16) EngineAssetUniformBuffer_UIRectangle {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
-        glm::mat4 ModelMatrix;
+        alignas(16) glm::vec4 BackgroundColor = {};
 
         // ----------------------------------------- //
         // Special Functions
@@ -3027,9 +3032,145 @@ namespace axr {
         // ---- Constructors ----
 
         /// Default Constructor
-        EngineAssetPushConstantBuffer_ModelMatrix():
-            ModelMatrix{} {
+        EngineAssetUniformBuffer_UIRectangle() = default;
+
+        /// Constructor
+        /// @param backgroundColor The background color
+        EngineAssetUniformBuffer_UIRectangle(
+            const glm::vec4& backgroundColor
+        ): BackgroundColor(backgroundColor) {
         }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the EngineAssetUniformBuffer_UIRectangle as an AxrEngineAssetUniformBuffer_UIRectangle
+        /// @returns This as an AxrEngineAssetUniformBuffer_UIRectangle
+        const AxrEngineAssetUniformBuffer_UIRectangle* toRaw() const {
+            return reinterpret_cast<const AxrEngineAssetUniformBuffer_UIRectangle*>(this);
+        }
+
+        /// Get a handle to the EngineAssetUniformBuffer_UIRectangle as an AxrEngineAssetUniformBuffer_UIRectangle
+        /// @returns This as an AxrEngineAssetUniformBuffer_UIRectangle
+        AxrEngineAssetUniformBuffer_UIRectangle* toRaw() {
+            return reinterpret_cast<AxrEngineAssetUniformBuffer_UIRectangle*>(this);
+        }
+    };
+
+    static_assert(
+        sizeof(AxrEngineAssetUniformBuffer_UIRectangle) == sizeof(axr::EngineAssetUniformBuffer_UIRectangle),
+        "Original type and wrapper have different size!"
+    );
+
+    /// Engine asset uniform buffer named 'UI Image' structure
+    struct alignas(16) EngineAssetUniformBuffer_UIImage {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        alignas(16) glm::vec4 BackgroundColor = {};
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        EngineAssetUniformBuffer_UIImage() = default;
+
+        /// Constructor
+        /// @param backgroundColor The background color
+        EngineAssetUniformBuffer_UIImage(
+            const glm::vec4& backgroundColor
+        ): BackgroundColor(backgroundColor) {
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the EngineAssetUniformBuffer_UIImage as an AxrEngineAssetUniformBuffer_UIImage
+        /// @returns This as an AxrEngineAssetUniformBuffer_UIImage
+        const AxrEngineAssetUniformBuffer_UIImage* toRaw() const {
+            return reinterpret_cast<const AxrEngineAssetUniformBuffer_UIImage*>(this);
+        }
+
+        /// Get a handle to the EngineAssetUniformBuffer_UIImage as an AxrEngineAssetUniformBuffer_UIImage
+        /// @returns This as an AxrEngineAssetUniformBuffer_UIImage
+        AxrEngineAssetUniformBuffer_UIImage* toRaw() {
+            return reinterpret_cast<AxrEngineAssetUniformBuffer_UIImage*>(this);
+        }
+    };
+
+    static_assert(
+        sizeof(AxrEngineAssetUniformBuffer_UIImage) == sizeof(axr::EngineAssetUniformBuffer_UIImage),
+        "Original type and wrapper have different size!"
+    );
+
+    /// Engine asset uniform buffer named 'UI Border' structure
+    struct alignas(16) EngineAssetUniformBuffer_UIBorder {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        alignas(16) glm::vec4 BackgroundColor = {};
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        EngineAssetUniformBuffer_UIBorder() = default;
+
+        /// Constructor
+        /// @param backgroundColor The background color
+        EngineAssetUniformBuffer_UIBorder(
+            const glm::vec4& backgroundColor
+        ): BackgroundColor(backgroundColor) {
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the EngineAssetUniformBuffer_UIBorder as an AxrEngineAssetUniformBuffer_UIBorder
+        /// @returns This as an AxrEngineAssetUniformBuffer_UIBorder
+        const AxrEngineAssetUniformBuffer_UIBorder* toRaw() const {
+            return reinterpret_cast<const AxrEngineAssetUniformBuffer_UIBorder*>(this);
+        }
+
+        /// Get a handle to the EngineAssetUniformBuffer_UIBorder as an AxrEngineAssetUniformBuffer_UIBorder
+        /// @returns This as an AxrEngineAssetUniformBuffer_UIBorder
+        AxrEngineAssetUniformBuffer_UIBorder* toRaw() {
+            return reinterpret_cast<AxrEngineAssetUniformBuffer_UIBorder*>(this);
+        }
+    };
+
+    static_assert(
+        sizeof(AxrEngineAssetUniformBuffer_UIBorder) == sizeof(axr::EngineAssetUniformBuffer_UIBorder),
+        "Original type and wrapper have different size!"
+    );
+
+    // ---- Push Constant Buffers ----
+
+#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
+    /// Engine asset push constant buffer named 'Model Matrix' structure
+    struct alignas(16) EngineAssetPushConstantBuffer_ModelMatrix {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        alignas(16) glm::mat4 ModelMatrix = {};
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        EngineAssetPushConstantBuffer_ModelMatrix() = default;
 
         /// Constructor
         /// @param modelMatrix The model matrix
