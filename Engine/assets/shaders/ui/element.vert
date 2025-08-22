@@ -18,7 +18,6 @@ layout (binding = 0) uniform SceneData {
 layout(location = 0) out vec2 fragTexCoord;
 
 void main() {
-    // TODO: Add togglable billboard effect 
     gl_Position = viewProjectionMatrix * modelMatrix * vec4(inPosition, 1.0);
     fragTexCoord = inTexCoord;
 }

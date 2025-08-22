@@ -1658,8 +1658,7 @@ void AxrVulkanGraphicsSystem::renderClayUI(
         auto cameraTransform = AxrTransformComponent{
             .Position = cameraPosition + nearPlaneOffset,
             .Scale = glm::vec3(1.0f, 1.0f, 1.0f),
-            // TODO: Add billboard option in uniform buffer so we can remove this
-            .Orientation = glm::quat(glm::vec3(0.0f, glm::radians(90.0f), 0.0f)),
+            .Orientation = cameraOrientation,
         };
 
         for (const AxrVulkanMeshForRendering& mesh : materialForRendering->Meshes) {
