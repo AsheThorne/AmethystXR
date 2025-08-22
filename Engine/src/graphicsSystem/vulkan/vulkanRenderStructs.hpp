@@ -15,12 +15,6 @@
 // Structs
 // ----------------------------------------- //
 
-/// Push constant references for rendering
-struct AxrVulkanPushConstantForRendering {
-    const vk::ShaderStageFlags* ShaderStages = nullptr;
-    const char* BufferName = "";
-};
-
 /// Mesh references for rendering
 struct AxrVulkanMeshForRendering {
     const vk::Buffer* Buffer = nullptr;
@@ -28,7 +22,8 @@ struct AxrVulkanMeshForRendering {
     const vk::DeviceSize* BufferVerticesOffset = nullptr;
     const uint32_t* IndexCount = nullptr;
     const AxrTransformComponent* TransformComponent = nullptr;
-    AxrVulkanPushConstantForRendering PushConstant;
+    const vk::ShaderStageFlags* PushConstantShaderStages = nullptr;
+    const char* PushConstantBufferName = "";
 };
 
 /// Material references for rendering
@@ -41,7 +36,6 @@ struct AxrVulkanMaterialForRendering {
     const std::vector<vk::DescriptorSet>* WindowDescriptorSets = nullptr;
     /// One for each frame in flight
     const std::vector<vk::DescriptorSet>* XrSessionDescriptorSets = nullptr;
-    AxrVulkanPushConstantForRendering PushConstant;
     std::vector<AxrVulkanMeshForRendering> Meshes;
     std::vector<uint32_t> DynamicOffsets;
 };

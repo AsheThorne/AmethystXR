@@ -124,10 +124,6 @@ const vk::Pipeline& AxrVulkanMaterialData::getXrSessionPipeline() const {
     return m_XrSessionPipeline;
 }
 
-const std::string& AxrVulkanMaterialData::getPushConstantBufferName() const {
-    return m_MaterialHandle->getPushConstantBufferName();
-}
-
 const std::vector<vk::DescriptorSet>& AxrVulkanMaterialData::getDescriptorSets(
     const AxrPlatformType platformType
 ) const {

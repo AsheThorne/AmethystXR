@@ -789,9 +789,6 @@ struct AxrMaterialConfig {
     char Name[AXR_MAX_ASSET_NAME_SIZE];
     char VertexShaderName[AXR_MAX_ASSET_NAME_SIZE];
     char FragmentShaderName[AXR_MAX_ASSET_NAME_SIZE];
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    char PushConstantBufferName[AXR_MAX_ASSET_NAME_SIZE];
-#endif
     AxrShaderValues_T VertexShaderValues;
     AxrShaderValues_T FragmentShaderValues;
     AxrMaterialBackfaceCullModeEnum BackfaceCullMode;

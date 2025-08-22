@@ -46,9 +46,6 @@ AxrMaterial::AxrMaterial(const AxrMaterialConfig& config):
     m_Name(config.Name),
     m_VertexShaderName(config.VertexShaderName),
     m_FragmentShaderName(config.FragmentShaderName),
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    m_PushConstantBufferName(config.PushConstantBufferName),
-#endif
     m_VertexShaderValues(config.VertexShaderValues),
     m_FragmentShaderValues(config.FragmentShaderValues),
     m_BackfaceCullMode(config.BackfaceCullMode),
@@ -69,9 +66,6 @@ AxrMaterial::AxrMaterial(const AxrMaterial& src) {
     m_Name = src.m_Name;
     m_VertexShaderName = src.m_VertexShaderName;
     m_FragmentShaderName = src.m_FragmentShaderName;
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    m_PushConstantBufferName = src.m_PushConstantBufferName;
-#endif
     m_VertexShaderValues = src.m_VertexShaderValues;
     m_FragmentShaderValues = src.m_FragmentShaderValues;
     m_BackfaceCullMode = src.m_BackfaceCullMode;
@@ -81,9 +75,6 @@ AxrMaterial::AxrMaterial(const AxrMaterial& src) {
 AxrMaterial::AxrMaterial(AxrMaterial&& src) noexcept {
     m_VertexShaderValues = std::move(src.m_VertexShaderValues);
     m_FragmentShaderValues = std::move(src.m_FragmentShaderValues);
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    m_PushConstantBufferName = std::move(src.m_PushConstantBufferName);
-#endif
 
     m_Name = src.m_Name;
     m_VertexShaderName = src.m_VertexShaderName;
@@ -109,9 +100,6 @@ AxrMaterial& AxrMaterial::operator=(const AxrMaterial& src) {
         m_Name = src.m_Name;
         m_VertexShaderName = src.m_VertexShaderName;
         m_FragmentShaderName = src.m_FragmentShaderName;
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-        m_PushConstantBufferName = src.m_PushConstantBufferName;
-#endif
         m_VertexShaderValues = src.m_VertexShaderValues;
         m_FragmentShaderValues = src.m_FragmentShaderValues;
         m_BackfaceCullMode = src.m_BackfaceCullMode;
@@ -127,9 +115,6 @@ AxrMaterial& AxrMaterial::operator=(AxrMaterial&& src) noexcept {
 
         m_VertexShaderValues = std::move(src.m_VertexShaderValues);
         m_FragmentShaderValues = std::move(src.m_FragmentShaderValues);
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-        m_PushConstantBufferName = std::move(src.m_PushConstantBufferName);
-#endif
 
         m_Name = src.m_Name;
         m_VertexShaderName = src.m_VertexShaderName;
@@ -238,15 +223,9 @@ std::string AxrMaterial::getMaterialLayoutName() const {
     return std::string(std::string(m_VertexShaderName) + '_' + m_FragmentShaderName);
 }
 
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-const std::string& AxrMaterial::getPushConstantBufferName() const {
-    return m_PushConstantBufferName;
-}
-
 const std::vector<AxrDynamicUniformBufferOffsetConfig>& AxrMaterial::getDynamicUniformBufferOffsets() const {
     return m_DynamicUniformBufferOffsets;
 }
-#endif
 
 bool AxrMaterial::isValid() const {
     return !m_Name.empty() &&
@@ -257,12 +236,9 @@ bool AxrMaterial::isValid() const {
 }
 
 void AxrMaterial::cleanup() {
-    m_Name = "";
-    m_VertexShaderName = "";
-    m_FragmentShaderName = "";
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    m_PushConstantBufferName.clear();
-#endif
+    m_Name.clear();
+    m_VertexShaderName.clear();
+    m_FragmentShaderName.clear();
 
     m_VertexShaderValues.cleanup();
     m_FragmentShaderValues.cleanup();

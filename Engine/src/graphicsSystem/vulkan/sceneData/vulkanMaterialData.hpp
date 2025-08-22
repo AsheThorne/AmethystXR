@@ -81,9 +81,6 @@ public:
     /// Get the xr session pipeline
     /// @returns The xr session pipeline
     [[nodiscard]] const vk::Pipeline& getXrSessionPipeline() const;
-    /// Get the push constant buffer name
-    /// @returns The push constant buffer name
-    [[nodiscard]] const std::string& getPushConstantBufferName() const;
     /// Get the descriptor sets for the given platform
     /// @param platformType Platform to get the descriptor sets of
     /// @returns The descriptor sets

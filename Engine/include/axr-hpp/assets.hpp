@@ -2502,9 +2502,6 @@ namespace axr {
         char Name[AXR_MAX_ASSET_NAME_SIZE]{};
         char VertexShaderName[AXR_MAX_ASSET_NAME_SIZE]{};
         char FragmentShaderName[AXR_MAX_ASSET_NAME_SIZE]{};
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-        char PushConstantBufferName[AXR_MAX_ASSET_NAME_SIZE]{};
-#endif
         AxrShaderValues_T VertexShaderValues = nullptr;
         AxrShaderValues_T FragmentShaderValues = nullptr;
         axr::MaterialBackfaceCullModeEnum BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
@@ -2562,71 +2559,12 @@ namespace axr {
             );
         }
 
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-        /// Constructor
-        /// @param name The material name
-        /// @param vertexShaderName The vertex shader name
-        /// @param fragmentShaderName The fragment shader name
-        /// @param pushConstantBufferName The push constant buffer name
-        /// @param vertexShaderValues The vertex shader values to use
-        /// @param fragmentShaderValues The fragment shader values to use
-        /// @param backfaceCullMode The material backface culling mode
-        /// @param alphaRenderMode The material alpha rendering mode
-        /// @param dynamicUniformBufferOffsetCount Dynamic uniform buffer offset count
-        /// @param dynamicUniformBufferOffsets Dynamic uniform buffer offsets
-        MaterialConfig(
-            const char* name,
-            const char* vertexShaderName,
-            const char* fragmentShaderName,
-            const char* pushConstantBufferName,
-            const axr::ShaderValues& vertexShaderValues,
-            const axr::ShaderValues& fragmentShaderValues,
-            const axr::MaterialBackfaceCullModeEnum backfaceCullMode,
-            const axr::MaterialAlphaRenderModeEnum alphaRenderMode,
-            const uint32_t dynamicUniformBufferOffsetCount,
-            const DynamicUniformBufferOffsetConfig* dynamicUniformBufferOffsets
-        ): VertexShaderValues(vertexShaderValues.cloneRaw()),
-            FragmentShaderValues(fragmentShaderValues.cloneRaw()),
-            BackfaceCullMode(backfaceCullMode),
-            AlphaRenderMode(alphaRenderMode) {
-            if (name != nullptr) {
-                strncpy_s(Name, name, AXR_MAX_ASSET_NAME_SIZE);
-            }
-            if (vertexShaderName != nullptr) {
-                strncpy_s(VertexShaderName, vertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
-            }
-            if (fragmentShaderName != nullptr) {
-                strncpy_s(FragmentShaderName, fragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
-            }
-            if (pushConstantBufferName != nullptr) {
-                strncpy_s(PushConstantBufferName, pushConstantBufferName, AXR_MAX_ASSET_NAME_SIZE);
-            }
-
-            DynamicUniformBufferOffsetCount = dynamicUniformBufferOffsetCount;
-            DynamicUniformBufferOffsets = clone(
-                dynamicUniformBufferOffsetCount,
-                dynamicUniformBufferOffsets
-            );
-        }
-#endif
-
         /// Copy Constructor
         /// @param src Source MaterialConfig to copy from
         MaterialConfig(const axr::MaterialConfig& src) {
-            if (src.Name != nullptr) {
-                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
-            }
-            if (src.VertexShaderName != nullptr) {
-                strncpy_s(VertexShaderName, src.VertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
-            }
-            if (src.FragmentShaderName != nullptr) {
-                strncpy_s(FragmentShaderName, src.FragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
-            }
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            if (src.PushConstantBufferName != nullptr) {
-                strncpy_s(PushConstantBufferName, src.PushConstantBufferName, AXR_MAX_ASSET_NAME_SIZE);
-            }
-#endif
+            strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            strncpy_s(VertexShaderName, src.VertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
+            strncpy_s(FragmentShaderName, src.FragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
 
             if (src.VertexShaderValues != nullptr) {
                 VertexShaderValues = axrShaderValuesClone(src.VertexShaderValues);
@@ -2652,20 +2590,10 @@ namespace axr {
         /// Move Constructor
         /// @param src Source MaterialConfig to move from
         MaterialConfig(MaterialConfig&& src) noexcept {
-            if (src.Name != nullptr) {
-                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
-            }
-            if (src.VertexShaderName != nullptr) {
-                strncpy_s(VertexShaderName, src.VertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
-            }
-            if (src.FragmentShaderName != nullptr) {
-                strncpy_s(FragmentShaderName, src.FragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
-            }
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            if (src.PushConstantBufferName != nullptr) {
-                strncpy_s(PushConstantBufferName, src.PushConstantBufferName, AXR_MAX_ASSET_NAME_SIZE);
-            }
-#endif
+            strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+            strncpy_s(VertexShaderName, src.VertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
+            strncpy_s(FragmentShaderName, src.FragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
+
             VertexShaderValues = src.VertexShaderValues;
             FragmentShaderValues = src.FragmentShaderValues;
             BackfaceCullMode = src.BackfaceCullMode;
@@ -2676,9 +2604,6 @@ namespace axr {
             memset(src.Name, 0, sizeof(src.Name));
             memset(src.VertexShaderName, 0, sizeof(src.VertexShaderName));
             memset(src.FragmentShaderName, 0, sizeof(src.FragmentShaderName));
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            memset(src.PushConstantBufferName, 0, sizeof(src.PushConstantBufferName));
-#endif
             src.VertexShaderValues = nullptr;
             src.FragmentShaderValues = nullptr;
             src.BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
@@ -2702,20 +2627,9 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                if (src.Name != nullptr) {
-                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
-                }
-                if (src.VertexShaderName != nullptr) {
-                    strncpy_s(VertexShaderName, src.VertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
-                }
-                if (src.FragmentShaderName != nullptr) {
-                    strncpy_s(FragmentShaderName, src.FragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
-                }
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-                if (src.PushConstantBufferName != nullptr) {
-                    strncpy_s(PushConstantBufferName, src.PushConstantBufferName, AXR_MAX_ASSET_NAME_SIZE);
-                }
-#endif
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                strncpy_s(VertexShaderName, src.VertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
+                strncpy_s(FragmentShaderName, src.FragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
 
                 if (src.VertexShaderValues != nullptr) {
                     VertexShaderValues = axrShaderValuesClone(src.VertexShaderValues);
@@ -2747,20 +2661,10 @@ namespace axr {
             if (this != &src) {
                 cleanup();
 
-                if (src.Name != nullptr) {
-                    strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
-                }
-                if (src.VertexShaderName != nullptr) {
-                    strncpy_s(VertexShaderName, src.VertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
-                }
-                if (src.FragmentShaderName != nullptr) {
-                    strncpy_s(FragmentShaderName, src.FragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
-                }
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-                if (src.PushConstantBufferName != nullptr) {
-                    strncpy_s(PushConstantBufferName, src.PushConstantBufferName, AXR_MAX_ASSET_NAME_SIZE);
-                }
-#endif
+                strncpy_s(Name, src.Name, AXR_MAX_ASSET_NAME_SIZE);
+                strncpy_s(VertexShaderName, src.VertexShaderName, AXR_MAX_ASSET_NAME_SIZE);
+                strncpy_s(FragmentShaderName, src.FragmentShaderName, AXR_MAX_ASSET_NAME_SIZE);
+
                 VertexShaderValues = src.VertexShaderValues;
                 FragmentShaderValues = src.FragmentShaderValues;
                 BackfaceCullMode = src.BackfaceCullMode;
@@ -2771,9 +2675,6 @@ namespace axr {
                 memset(src.Name, 0, sizeof(src.Name));
                 memset(src.VertexShaderName, 0, sizeof(src.VertexShaderName));
                 memset(src.FragmentShaderName, 0, sizeof(src.FragmentShaderName));
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-                memset(src.PushConstantBufferName, 0, sizeof(src.PushConstantBufferName));
-#endif
                 src.VertexShaderValues = nullptr;
                 src.FragmentShaderValues = nullptr;
                 src.BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
@@ -2826,9 +2727,6 @@ namespace axr {
             memset(Name, 0, sizeof(Name));
             memset(VertexShaderName, 0, sizeof(VertexShaderName));
             memset(FragmentShaderName, 0, sizeof(FragmentShaderName));
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-            memset(PushConstantBufferName, 0, sizeof(PushConstantBufferName));
-#endif
             BackfaceCullMode = axr::MaterialBackfaceCullModeEnum::None;
             AlphaRenderMode = axr::MaterialAlphaRenderModeEnum::Opaque;
         }

@@ -98,11 +98,6 @@ public:
     /// Get the material layout's name
     /// @returns The material layout's name
     [[nodiscard]] std::string getMaterialLayoutName() const;
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    /// Get the push constant buffer name
-    /// @returns The push constant buffer name
-    [[nodiscard]] const std::string& getPushConstantBufferName() const;
-#endif
     /// Get the dynamic uniform buffer offsets
     /// @returns The dynamic uniform buffer offsets
     [[nodiscard]] const std::vector<AxrDynamicUniformBufferOffsetConfig>& getDynamicUniformBufferOffsets() const;
@@ -120,9 +115,6 @@ private:
     std::string m_Name;
     std::string m_VertexShaderName;
     std::string m_FragmentShaderName;
-#ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
-    std::string m_PushConstantBufferName;
-#endif
     AxrShaderValuesRAII m_VertexShaderValues;
     AxrShaderValuesRAII m_FragmentShaderValues;
     AxrMaterialBackfaceCullModeEnum m_BackfaceCullMode;

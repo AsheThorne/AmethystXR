@@ -1433,14 +1433,6 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
                 },
                 material.DynamicOffsets
             );
-            // TODO: I think we just remove push constants from materials maybe... only have it at the model level
-            renderCommands.pushConstants(
-                viewIndex,
-                *material.PipelineLayout,
-                material.PushConstant,
-                nullptr,
-                sceneData
-            );
         };
 
         auto renderMesh = [renderCommands, viewIndex, sceneData](
@@ -1450,7 +1442,8 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
             renderCommands.pushConstants(
                 viewIndex,
                 pipelineLayout,
-                mesh.PushConstant,
+                mesh.PushConstantShaderStages,
+                mesh.PushConstantBufferName,
                 mesh.TransformComponent,
                 sceneData
             );
@@ -1650,13 +1643,11 @@ void AxrVulkanGraphicsSystem::renderClayUI(
             renderCommands.pushConstants(
                 viewIndex,
                 *materialForRendering->PipelineLayout,
-                // TODO: Probably set this somewhere else. material engine asset?
-                AxrVulkanPushConstantForRendering{
-                    .ShaderStages = &shaderStage,
-                    .BufferName = axrEngineAssetGetPushConstantBufferName(
-                        AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX
-                    ),
-                },
+                // TODO: Probably set these push constant things somewhere else.
+                &shaderStage,
+                axrEngineAssetGetPushConstantBufferName(
+                    AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX
+                ),
                 &cameraTransform,
                 sceneData
             );

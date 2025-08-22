@@ -405,17 +405,24 @@ public:
     /// Add a vkCmdPushConstants command to the render target's command buffer
     /// @param viewIndex The view index
     /// @param pipelineLayout Pipeline layout to use
-    /// @param pushConstant Push constant to use
+    /// @param stageFlags Push constant shader stage flags
+    /// @param bufferName Push constant buffer name
     /// @param transformComponent Mesh transform component
     /// @param sceneData Scene data to search for the push constant data in
     void pushConstants(
         const uint32_t viewIndex,
         const vk::PipelineLayout& pipelineLayout,
-        const AxrVulkanPushConstantForRendering& pushConstant,
+        const vk::ShaderStageFlags* stageFlags,
+        const char* bufferName,
         const AxrTransformComponent* transformComponent,
         const AxrVulkanSceneData* sceneData
     ) const {
-        if (axrStringIsEmpty(pushConstant.BufferName)) return;
+        if (axrStringIsEmpty(bufferName)) return;
+
+        if (stageFlags == nullptr) {
+            axrLogErrorLocation("Shader stages are null.");
+            return;
+        }
 
         const vk::CommandBuffer commandBuffer = m_RenderTarget.getRenderingCommandBuffer(viewIndex);
         if (commandBuffer == VK_NULL_HANDLE) return;
@@ -424,15 +431,10 @@ public:
 
         if (strcmp(
             axrEngineAssetGetPushConstantBufferName(AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX),
-            pushConstant.BufferName
+            bufferName
         ) == 0) {
             if (transformComponent == nullptr) {
                 axrLogErrorLocation("Unable to use model matrix push constant. Transform component is null.");
-                return;
-            }
-
-            if (pushConstant.ShaderStages == nullptr) {
-                axrLogErrorLocation("Shader stages are null.");
                 return;
             }
 
@@ -442,7 +444,7 @@ public:
 
             commandBuffer.pushConstants(
                 pipelineLayout,
-                *pushConstant.ShaderStages,
+                *stageFlags,
                 0,
                 sizeof(engineAssetData),
                 &engineAssetData,
@@ -453,17 +455,15 @@ public:
 
         // ---- Set User Defined Push Constant Buffer ----
 
-        const AxrPushConstantBuffer* foundBuffer = sceneData->findPushConstantBuffer_shared(
-            pushConstant.BufferName
-        );
+        const AxrPushConstantBuffer* foundBuffer = sceneData->findPushConstantBuffer_shared(bufferName);
         if (foundBuffer == nullptr) {
-            axrLogErrorLocation("Failed to find push constant buffer named: {0}.", pushConstant.BufferName);
+            axrLogErrorLocation("Failed to find push constant buffer named: {0}.", bufferName);
             return;
         }
 
         commandBuffer.pushConstants(
             pipelineLayout,
-            *pushConstant.ShaderStages,
+            *stageFlags,
             0,
             foundBuffer->getSize(),
             foundBuffer->getData(),

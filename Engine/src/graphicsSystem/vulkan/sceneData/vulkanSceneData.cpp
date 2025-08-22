@@ -2049,13 +2049,8 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
                 .BufferVerticesOffset = &foundModelData->getSubmeshBufferVerticesOffset(meshIndex, submeshIndex),
                 .IndexCount = &foundModelData->getSubmeshIndexCount(meshIndex, submeshIndex),
                 .TransformComponent = &transformComponent,
-                .PushConstant = axrStringIsEmpty(modelComponent.PushConstantBufferName) ||
-                                pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
-                                    ? AxrVulkanPushConstantForRendering{}
-                                    : AxrVulkanPushConstantForRendering{
-                                        .ShaderStages = &pushConstantStageFlags,
-                                        .BufferName = modelComponent.PushConstantBufferName,
-                                    },
+                .PushConstantShaderStages = &pushConstantStageFlags,
+                .PushConstantBufferName = modelComponent.PushConstantBufferName,
             };
 
             AxrVulkanMaterialForRendering* foundMaterialForRendering = findMaterialForRendering(
@@ -2132,8 +2127,6 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
                     axrLogErrorLocation("Missing dynamic uniform buffer offsets.");
                 }
 
-                const std::string& materialPushConstantBufferName = foundMaterialData->getPushConstantBufferName();
-
                 materialsForRendering->emplace_back(
                     AxrVulkanMaterialForRendering{
                         .MaterialName = currentMaterialName,
@@ -2144,13 +2137,6 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
                         .XrSessionDescriptorSets = &foundMaterialData->getDescriptorSets(
                             AXR_PLATFORM_TYPE_XR_DEVICE
                         ),
-                        .PushConstant = materialPushConstantBufferName.empty() ||
-                                        pushConstantStageFlags == static_cast<vk::ShaderStageFlagBits>(0)
-                                            ? AxrVulkanPushConstantForRendering{}
-                                            : AxrVulkanPushConstantForRendering{
-                                                .ShaderStages = &pushConstantStageFlags,
-                                                .BufferName = materialPushConstantBufferName.c_str(),
-                                            },
                         .Meshes = {
                             meshForRendering,
                         },
@@ -2200,7 +2186,8 @@ AxrResult AxrVulkanSceneData::buildMaterialForRendering(
                     .BufferVerticesOffset = &modelData->getSubmeshBufferVerticesOffset(meshIndex, submeshIndex),
                     .IndexCount = &modelData->getSubmeshIndexCount(meshIndex, submeshIndex),
                     .TransformComponent = nullptr,
-                    .PushConstant = {},
+                    .PushConstantShaderStages = nullptr,
+                    .PushConstantBufferName = "",
                 }
             );
         }
@@ -2213,7 +2200,6 @@ AxrResult AxrVulkanSceneData::buildMaterialForRendering(
         .XrSessionPipeline = &materialData->getXrSessionPipeline(),
         .WindowDescriptorSets = &materialData->getDescriptorSets(AXR_PLATFORM_TYPE_WINDOW),
         .XrSessionDescriptorSets = &materialData->getDescriptorSets(AXR_PLATFORM_TYPE_XR_DEVICE),
-        .PushConstant = {},
         .Meshes = meshesForRendering,
         .DynamicOffsets = {},
     };
