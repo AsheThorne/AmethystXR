@@ -22,7 +22,9 @@ struct AxrVulkanMeshForRendering {
     const vk::DeviceSize* BufferVerticesOffset = nullptr;
     const uint32_t* IndexCount = nullptr;
     const AxrTransformComponent* TransformComponent = nullptr;
-    const vk::ShaderStageFlags* PushConstantShaderStages = nullptr;
+    const vk::ShaderStageFlags PushConstantShaderStages = static_cast<vk::ShaderStageFlags>(
+        VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM
+    );
     const char* PushConstantBufferName = "";
 };
 

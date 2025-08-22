@@ -500,7 +500,7 @@ private:
     /// @param modelData Model data to use
     /// @param materialForRendering Output material for rendering
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult buildMaterialForRendering(
+    [[nodiscard]] AxrResult buildUIMaterialForRendering(
         const AxrVulkanMaterialData* materialData,
         const AxrVulkanModelData* modelData,
         AxrVulkanMaterialForRendering& materialForRendering

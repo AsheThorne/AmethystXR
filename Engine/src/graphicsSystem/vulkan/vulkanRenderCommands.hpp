@@ -412,14 +412,14 @@ public:
     void pushConstants(
         const uint32_t viewIndex,
         const vk::PipelineLayout& pipelineLayout,
-        const vk::ShaderStageFlags* stageFlags,
+        const vk::ShaderStageFlags stageFlags,
         const char* bufferName,
         const AxrTransformComponent* transformComponent,
         const AxrVulkanSceneData* sceneData
     ) const {
         if (axrStringIsEmpty(bufferName)) return;
 
-        if (stageFlags == nullptr) {
+        if (stageFlags == static_cast<vk::ShaderStageFlags>(VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM)) {
             axrLogErrorLocation("Shader stages are null.");
             return;
         }
@@ -444,7 +444,7 @@ public:
 
             commandBuffer.pushConstants(
                 pipelineLayout,
-                *stageFlags,
+                stageFlags,
                 0,
                 sizeof(engineAssetData),
                 &engineAssetData,
@@ -463,7 +463,7 @@ public:
 
         commandBuffer.pushConstants(
             pipelineLayout,
-            *stageFlags,
+            stageFlags,
             0,
             foundBuffer->getSize(),
             foundBuffer->getData(),

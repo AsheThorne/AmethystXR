@@ -1643,11 +1643,8 @@ void AxrVulkanGraphicsSystem::renderClayUI(
             renderCommands.pushConstants(
                 viewIndex,
                 *materialForRendering->PipelineLayout,
-                // TODO: Probably set these push constant things somewhere else.
-                &shaderStage,
-                axrEngineAssetGetPushConstantBufferName(
-                    AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX
-                ),
+                mesh.PushConstantShaderStages,
+                mesh.PushConstantBufferName,
                 &cameraTransform,
                 sceneData
             );

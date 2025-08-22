@@ -1972,7 +1972,7 @@ AxrResult AxrVulkanSceneData::createUIMaterialsForRendering() {
         axrLogErrorLocation("Failed to find UI Rectangle material asset.");
     } else {
         AxrVulkanMaterialForRendering materialForRendering;
-        axrResult = buildMaterialForRendering(foundMaterialData, foundModelData, materialForRendering);
+        axrResult = buildUIMaterialForRendering(foundMaterialData, foundModelData, materialForRendering);
         if (AXR_SUCCEEDED(axrResult)) {
             m_UIRectangleMaterialForRenderingIndex = m_UIMaterialsForRendering.size();
             m_UIMaterialsForRendering.push_back(std::move(materialForRendering));
@@ -2049,7 +2049,7 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
                 .BufferVerticesOffset = &foundModelData->getSubmeshBufferVerticesOffset(meshIndex, submeshIndex),
                 .IndexCount = &foundModelData->getSubmeshIndexCount(meshIndex, submeshIndex),
                 .TransformComponent = &transformComponent,
-                .PushConstantShaderStages = &pushConstantStageFlags,
+                .PushConstantShaderStages = pushConstantStageFlags,
                 .PushConstantBufferName = modelComponent.PushConstantBufferName,
             };
 
@@ -2150,7 +2150,7 @@ AxrResult AxrVulkanSceneData::addMaterialForRendering(
     return AXR_SUCCESS;
 }
 
-AxrResult AxrVulkanSceneData::buildMaterialForRendering(
+AxrResult AxrVulkanSceneData::buildUIMaterialForRendering(
     const AxrVulkanMaterialData* materialData,
     const AxrVulkanModelData* modelData,
     AxrVulkanMaterialForRendering& materialForRendering
@@ -2186,8 +2186,10 @@ AxrResult AxrVulkanSceneData::buildMaterialForRendering(
                     .BufferVerticesOffset = &modelData->getSubmeshBufferVerticesOffset(meshIndex, submeshIndex),
                     .IndexCount = &modelData->getSubmeshIndexCount(meshIndex, submeshIndex),
                     .TransformComponent = nullptr,
-                    .PushConstantShaderStages = nullptr,
-                    .PushConstantBufferName = "",
+                    .PushConstantShaderStages = vk::ShaderStageFlagBits::eVertex,
+                    .PushConstantBufferName = axrEngineAssetGetPushConstantBufferName(
+                        AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX
+                    ),
                 }
             );
         }
