@@ -384,6 +384,8 @@ private:
     /// @param renderCommands Vulkan render commands
     /// @param sceneData Active scene data
     /// @param cameraPosition The main camera's position
+    /// @param cameraOrientation The main camera's orientation
+    /// @param cameraNearPlane The main camera's near clipping plane
     /// @param uiCanvasConfig UI Canvas config
     template <typename RenderTarget>
     void renderClayUI(
@@ -391,6 +393,8 @@ private:
         const AxrVulkanRenderCommands<RenderTarget>& renderCommands,
         AxrVulkanSceneData* sceneData,
         const glm::vec3& cameraPosition,
+        const glm::quat& cameraOrientation,
+        float cameraNearPlane,
         const AxrUICanvasConfig& uiCanvasConfig
     ) const;
     /// Blit the current frame from the xr graphics to the window graphics

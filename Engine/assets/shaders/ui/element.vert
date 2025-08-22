@@ -19,9 +19,6 @@ layout(location = 0) out vec2 fragTexCoord;
 
 void main() {
     // TODO: Add togglable billboard effect 
-    // TODO: Add togglable clipping plane offset 
-    // Offset it just in front of the camera's near clipping plane
-    vec4 position = vec4(inPosition.x, inPosition.y, inPosition.z - (cameraNearPlane * 2 + 0.000001), 1.0);
-    gl_Position = viewProjectionMatrix * modelMatrix * position;
+    gl_Position = viewProjectionMatrix * modelMatrix * vec4(inPosition, 1.0);
     fragTexCoord = inTexCoord;
 }

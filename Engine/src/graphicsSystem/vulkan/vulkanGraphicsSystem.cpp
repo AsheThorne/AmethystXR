@@ -1470,11 +1470,17 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
 
         glm::vec3 cameraPosition;
         glm::quat cameraOrientation;
-        float nearPlane;
-        float farPlane;
+        float cameraNearPlane;
+        float cameraFarPlane;
         // We always use view index 0 here because we want all views to order the transparent objects the same.
         // It would look terrible if both eyes in VR rendered the objects in a different order.
-        axrResult = renderCommands.getCameraData(0, cameraPosition, cameraOrientation, nearPlane, farPlane);
+        axrResult = renderCommands.getCameraData(
+            0,
+            cameraPosition,
+            cameraOrientation,
+            cameraNearPlane,
+            cameraFarPlane
+        );
         if (AXR_SUCCEEDED(axrResult)) {
             std::vector<AxrVulkanMaterialForRendering> alphaBlendMaterials =
                 sceneData->getMaterialsForRendering(AXR_MATERIAL_ALPHA_RENDER_MODE_ALPHA_BLEND);
@@ -1484,8 +1490,8 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
             );
             std::vector<SortableMeshReference> sortedMeshReferences = getSortedMeshReferences(
                 viewMatrix,
-                nearPlane,
-                farPlane,
+                cameraNearPlane,
+                cameraFarPlane,
                 alphaBlendMaterials
             );
 
@@ -1516,7 +1522,15 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
         // ---- Screen Space UI ----
 
         if (uiCanvasConfig.Enabled) {
-            renderClayUI(viewIndex, renderCommands, sceneData, cameraPosition, uiCanvasConfig);
+            renderClayUI(
+                viewIndex,
+                renderCommands,
+                sceneData,
+                cameraPosition,
+                cameraOrientation,
+                cameraNearPlane,
+                uiCanvasConfig
+            );
         }
 
         renderCommands.endRenderPass(viewIndex);
@@ -1544,6 +1558,8 @@ void AxrVulkanGraphicsSystem::renderClayUI(
     const AxrVulkanRenderCommands<RenderTarget>& renderCommands,
     AxrVulkanSceneData* sceneData,
     const glm::vec3& cameraPosition,
+    const glm::quat& cameraOrientation,
+    const float cameraNearPlane,
     const AxrUICanvasConfig& uiCanvasConfig
 ) const {
     auto currentPipelines = AxrVulkanRenderCommandPipelines{
@@ -1636,14 +1652,15 @@ void AxrVulkanGraphicsSystem::renderClayUI(
             }
         );
 
+        // Add offset so it's just in front of the camera's near clipping plane
+        glm::vec3 nearPlaneOffset = cameraOrientation * glm::vec3(0.0f, 0.0f, -cameraNearPlane * 2);
+
         auto cameraTransform = AxrTransformComponent{
-            .Position = cameraPosition,
+            .Position = cameraPosition + nearPlaneOffset,
             .Scale = glm::vec3(1.0f, 1.0f, 1.0f),
             // TODO: Add billboard option in uniform buffer so we can remove this
             .Orientation = glm::quat(glm::vec3(0.0f, glm::radians(90.0f), 0.0f)),
         };
-
-        vk::ShaderStageFlags shaderStage = vk::ShaderStageFlagBits::eVertex;
 
         for (const AxrVulkanMeshForRendering& mesh : materialForRendering->Meshes) {
             renderCommands.pushConstants(
