@@ -840,103 +840,60 @@ bool AxrShaderPropertiesRAII::areCompatible(
     }
 
     // ---- Uniform Buffers ----
-    // Check that there aren't uniform buffers that share the same binding but have different buffer sizes.
-    // This is because 2 shaders can share the same binding if it points to the same uniform buffer.
-    // Up to this point though, we can only check that the sizes are the same. So if they are,
-    // we assume the same buffer will be used
+    // Find all uniform buffer bindings
 
     const std::vector<AxrShaderUniformBufferLayoutConst_T> uniformBufferLayouts1 = properties1.
         getUniformBufferLayouts();
     const std::vector<AxrShaderUniformBufferLayoutConst_T> uniformBufferLayouts2 = properties2.
         getUniformBufferLayouts();
 
-    // Key is binding, Value is buffer size
-    std::unordered_map<uint32_t, uint64_t> uniformBufferBindings;
-    bool isUniformBufferValid = true;
+    std::unordered_set<uint32_t> uniformBufferBindings;
 
     for (const AxrShaderUniformBufferLayoutConst_T bufferLayout : uniformBufferLayouts1) {
-        isUniformBufferValid = isUniformBufferLayoutBindingValid(bufferLayout, uniformBufferBindings);
-        if (!isUniformBufferValid) {
-            break;
-        }
-
-        uniformBufferBindings.insert(std::pair(bufferLayout->Binding, bufferLayout->BufferSize));
+        uniformBufferBindings.insert(bufferLayout->Binding);
     }
 
-    if (isUniformBufferValid) {
-        for (const AxrShaderUniformBufferLayoutConst_T bufferLayout : uniformBufferLayouts2) {
-            isUniformBufferValid = isUniformBufferLayoutBindingValid(bufferLayout, uniformBufferBindings);
-            if (!isUniformBufferValid) {
-                break;
-            }
-
-            uniformBufferBindings.insert(std::pair(bufferLayout->Binding, bufferLayout->BufferSize));
-        }
-    }
-
-    if (!isUniformBufferValid) {
-        axrLogError(
-            "Validation for shader compatibility failed. Incompatibility found within the uniform buffers."
-        );
-        return false;
+    for (const AxrShaderUniformBufferLayoutConst_T bufferLayout : uniformBufferLayouts2) {
+        uniformBufferBindings.insert(bufferLayout->Binding);
     }
 
     // ---- Dynamic Uniform Buffers ----
-    // Check that there aren't dynamic uniform buffers that share the same binding but have different buffer sizes.
-    // This is because 2 shaders can share the same binding if it points to the same dynamic uniform buffer.
-    // Up to this point though, we can only check that the sizes are the same. So if they are,
-    // we assume the same buffer will be used.
-    //
-    // Also check that a dynamic uniform buffer doesn't share a binding with a normal uniform buffer.
+    // Check that a dynamic uniform buffer doesn't share a binding with a normal uniform buffer.
 
     const std::vector<AxrShaderDynamicUniformBufferLayoutConst_T> dynamicUniformBufferLayouts1 = properties1.
         getDynamicUniformBufferLayouts();
     const std::vector<AxrShaderDynamicUniformBufferLayoutConst_T> dynamicUniformBufferLayouts2 = properties2.
         getDynamicUniformBufferLayouts();
 
-    // Key is binding, Value is instance size
-    std::unordered_map<uint32_t, uint64_t> dynamicUniformBufferBindings;
-    bool isDynamicUniformBufferValid = true;
+    std::unordered_set<uint32_t> dynamicUniformBufferBindings;
+    const char* dynamicUniformBufferError = nullptr;
 
     for (const AxrShaderDynamicUniformBufferLayoutConst_T bufferLayout : dynamicUniformBufferLayouts1) {
         if (uniformBufferBindings.contains(bufferLayout->Binding)) {
-            isDynamicUniformBufferValid = false;
+            dynamicUniformBufferError =
+                "Duplicate binding found for dynamic uniform buffer and standard uniform buffer.";
             break;
         }
 
-        isDynamicUniformBufferValid = isDynamicUniformBufferLayoutBindingValid(
-            bufferLayout,
-            dynamicUniformBufferBindings
-        );
-        if (!isDynamicUniformBufferValid) {
-            break;
-        }
-
-        dynamicUniformBufferBindings.insert(std::pair(bufferLayout->Binding, bufferLayout->InstanceSize));
+        dynamicUniformBufferBindings.insert(bufferLayout->Binding);
     }
 
-    if (isDynamicUniformBufferValid) {
+    if (dynamicUniformBufferError == nullptr) {
         for (const AxrShaderDynamicUniformBufferLayoutConst_T bufferLayout : dynamicUniformBufferLayouts2) {
             if (uniformBufferBindings.contains(bufferLayout->Binding)) {
-                isDynamicUniformBufferValid = false;
+                dynamicUniformBufferError =
+                    "Duplicate binding found for dynamic uniform buffer and standard uniform buffer.";
                 break;
             }
 
-            isDynamicUniformBufferValid = isDynamicUniformBufferLayoutBindingValid(
-                bufferLayout,
-                dynamicUniformBufferBindings
-            );
-            if (!isDynamicUniformBufferValid) {
-                break;
-            }
-
-            dynamicUniformBufferBindings.insert(std::pair(bufferLayout->Binding, bufferLayout->InstanceSize));
+            dynamicUniformBufferBindings.insert(bufferLayout->Binding);
         }
     }
 
-    if (!isDynamicUniformBufferValid) {
+    if (dynamicUniformBufferError != nullptr) {
         axrLogError(
-            "Validation for shader compatibility failed. Incompatibility found within the dynamic uniform buffers."
+            "Validation for shader compatibility failed. {0}.",
+            dynamicUniformBufferError
         );
         return false;
     }
@@ -949,37 +906,42 @@ bool AxrShaderPropertiesRAII::areCompatible(
     const std::vector<AxrShaderImageSamplerBufferLayoutConst_T> imageSamplerBufferLayouts2 = properties2.
         getImageSamplerBufferLayouts();
 
-    bool isImageSamplerValid = true;
+    const char* imageSamplerBufferError = nullptr;
 
     for (const AxrShaderImageSamplerBufferLayoutConst_T bufferLayout : imageSamplerBufferLayouts1) {
         if (uniformBufferBindings.contains(bufferLayout->Binding)) {
-            isImageSamplerValid = false;
+            imageSamplerBufferError =
+                "Duplicate binding found for image sampler buffer and standard uniform buffer.";
             break;
         }
 
         if (dynamicUniformBufferBindings.contains(bufferLayout->Binding)) {
-            isImageSamplerValid = false;
+            imageSamplerBufferError =
+                "Duplicate binding found for image sampler buffer and dynamic uniform buffer.";
             break;
         }
     }
 
-    if (isImageSamplerValid) {
+    if (imageSamplerBufferError == nullptr) {
         for (const AxrShaderImageSamplerBufferLayoutConst_T bufferLayout : imageSamplerBufferLayouts2) {
             if (uniformBufferBindings.contains(bufferLayout->Binding)) {
-                isImageSamplerValid = false;
+                imageSamplerBufferError =
+                    "Duplicate binding found for image sampler buffer and standard uniform buffer.";
                 break;
             }
 
             if (dynamicUniformBufferBindings.contains(bufferLayout->Binding)) {
-                isImageSamplerValid = false;
+                imageSamplerBufferError =
+                    "Duplicate binding found for image sampler buffer and dynamic uniform buffer.";
                 break;
             }
         }
     }
 
-    if (!isImageSamplerValid) {
+    if (imageSamplerBufferError != nullptr) {
         axrLogError(
-            "Validation for shader compatibility failed. Duplicate bindings with different buffer types were found."
+            "Validation for shader compatibility failed. {0}.",
+            imageSamplerBufferError
         );
         return false;
     }
@@ -1082,39 +1044,3 @@ AxrShaderPushConstantBufferLayoutConst_T AxrShaderPropertiesRAII::getPushConstan
     return nullptr;
 }
 #endif
-
-// ---- Static Private Functions ----
-
-bool AxrShaderPropertiesRAII::isUniformBufferLayoutBindingValid(
-    const AxrShaderUniformBufferLayoutConst_T uniformBufferLayout,
-    std::unordered_map<uint32_t, uint64_t>& uniformBufferBindings
-) {
-    if (uniformBufferLayout == nullptr) return false;
-
-    const auto foundUniformBufferBindingSize = uniformBufferBindings.find(uniformBufferLayout->Binding);
-    // If a duplicate uniform buffer is found with a different size...
-    if (foundUniformBufferBindingSize != uniformBufferBindings.end() &&
-        foundUniformBufferBindingSize->second != uniformBufferLayout->BufferSize) {
-        axrLogErrorLocation("Duplicate bindings with different buffer sizes were found.");
-        return false;
-    }
-
-    return true;
-}
-
-bool AxrShaderPropertiesRAII::isDynamicUniformBufferLayoutBindingValid(
-    const AxrShaderDynamicUniformBufferLayoutConst_T uniformBufferLayout,
-    std::unordered_map<uint32_t, uint64_t>& uniformBufferBindings
-) {
-    if (uniformBufferLayout == nullptr) return false;
-
-    const auto foundUniformBufferBindingSize = uniformBufferBindings.find(uniformBufferLayout->Binding);
-    // If a duplicate dynamic uniform buffer is found with a different size...
-    if (foundUniformBufferBindingSize != uniformBufferBindings.end() &&
-        foundUniformBufferBindingSize->second != uniformBufferLayout->InstanceSize) {
-        axrLogErrorLocation("Duplicate bindings with different instance sizes were found.");
-        return false;
-    }
-
-    return true;
-}

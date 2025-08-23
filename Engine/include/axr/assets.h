@@ -897,18 +897,27 @@ struct alignas(16) AxrEngineAssetUniformBuffer_SceneData {
 
 /// Engine asset uniform buffer named 'UI Rectangle' structure
 struct alignas(16) AxrEngineAssetUniformBuffer_UIRectangle {
+    // Every element MUST start with `position` and `size` since they're used in the vertex shader that all ui elements use
+    alignas(8) glm::vec2 Position;
+    alignas(8) glm::vec2 Size;
     alignas(16) glm::vec4 BackgroundColor;
     // AxrCornerRadius CornerRadius;
 };
 
 /// Engine asset uniform buffer named 'UI Image' structure
 struct alignas(16) AxrEngineAssetUniformBuffer_UIImage {
+    // Every element MUST start with `position` and `size` since they're used in the vertex shader that all ui elements use
+    alignas(8) glm::vec2 Position;
+    alignas(8) glm::vec2 Size;
     alignas(16) glm::vec4 BackgroundColor;
     // AxrCornerRadius CornerRadius;
 };
 
 /// Engine asset uniform buffer named 'UI Border' structure
 struct alignas(16) AxrEngineAssetUniformBuffer_UIBorder {
+    // Every element MUST start with `position` and `size` since they're used in the vertex shader that all ui elements use
+    alignas(8) glm::vec2 Position;
+    alignas(8) glm::vec2 Size;
     alignas(16) glm::vec4 BackgroundColor;
     // AxrCornerRadius CornerRadius;
     // AxrBorderWidth Width;

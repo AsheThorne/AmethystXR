@@ -504,6 +504,11 @@ AxrResult axrEngineAssetCreateShader_UIElementVert(const AxrGraphicsApiEnum grap
         .BufferSize = axrEngineAssetGetUniformBufferSize(AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA)
     };
 
+    AxrShaderDynamicUniformBufferLayout uiElementBufferLayout{
+        .Binding = 1,
+        .InstanceSize = axrEngineAssetGetUniformBufferInstanceSize(AXR_ENGINE_ASSET_UNIFORM_BUFFER_UI_ELEMENTS)
+    };
+
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
     AxrShaderPushConstantBufferLayout modelMatrixBufferLayout{
         .BufferSize = axrEngineAssetGetPushConstantBufferSize(AXR_ENGINE_ASSET_PUSH_CONSTANT_BUFFER_MODEL_MATRIX)
@@ -512,6 +517,7 @@ AxrResult axrEngineAssetCreateShader_UIElementVert(const AxrGraphicsApiEnum grap
 
     std::array bufferLayouts{
         reinterpret_cast<AxrShaderBufferLayout_T>(&sceneDataBufferLayout),
+        reinterpret_cast<AxrShaderBufferLayout_T>(&uiElementBufferLayout),
 #ifdef AXR_SUPPORTED_GRAPHICS_VULKAN
         reinterpret_cast<AxrShaderBufferLayout_T>(&modelMatrixBufferLayout),
 #endif
@@ -555,7 +561,7 @@ AxrResult axrEngineAssetCreateShader_UIElementVert(const AxrGraphicsApiEnum grap
 AxrResult axrEngineAssetCreateShader_UIRectangleFrag(const AxrGraphicsApiEnum graphicsApi, AxrShader& shader) {
     AxrShaderDynamicUniformBufferLayout dynamicUniformBufferLayout{
         .Binding = 1,
-        .InstanceSize = sizeof(AxrEngineAssetUniformBuffer_UIElement),
+        .InstanceSize = axrEngineAssetGetUniformBufferInstanceSize(AXR_ENGINE_ASSET_UNIFORM_BUFFER_UI_ELEMENTS),
     };
 
     std::array bufferLayouts{

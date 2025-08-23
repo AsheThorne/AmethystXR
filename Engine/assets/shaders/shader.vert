@@ -8,7 +8,7 @@ layout(push_constant) uniform PushConstants {
     mat4 modelMatrix;
 };
 
-layout (binding = 0) uniform SceneData {
+layout (std140, binding = 0) uniform SceneData {
     mat4 viewMatrix;
     mat4 projectionMatrix;
     mat4 viewProjectionMatrix;

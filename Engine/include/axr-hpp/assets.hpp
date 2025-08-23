@@ -2921,6 +2921,9 @@ namespace axr {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
+        // Every element MUST start with `position` and `size` since they're used in the vertex shader that all ui elements use
+        alignas(8) glm::vec2 Position = {};
+        alignas(8) glm::vec2 Size = {};
         alignas(16) glm::vec4 BackgroundColor = {};
 
         // ----------------------------------------- //
@@ -2933,10 +2936,16 @@ namespace axr {
         EngineAssetUniformBuffer_UIRectangle() = default;
 
         /// Constructor
+        /// @param position The UI element position
+        /// @param size The UI element size
         /// @param backgroundColor The background color
         EngineAssetUniformBuffer_UIRectangle(
+            const glm::vec2& position,
+            const glm::vec2& size,
             const glm::vec4& backgroundColor
-        ): BackgroundColor(backgroundColor) {
+        ): Position(position),
+            Size(size),
+            BackgroundColor(backgroundColor) {
         }
 
         // ----------------------------------------- //
@@ -2966,6 +2975,9 @@ namespace axr {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
+        // Every element MUST start with `position` and `size` since they're used in the vertex shader that all ui elements use
+        alignas(8) glm::vec2 Position = {};
+        alignas(8) glm::vec2 Size = {};
         alignas(16) glm::vec4 BackgroundColor = {};
 
         // ----------------------------------------- //
@@ -2978,10 +2990,16 @@ namespace axr {
         EngineAssetUniformBuffer_UIImage() = default;
 
         /// Constructor
+        /// @param position The UI element position
+        /// @param size The UI element size
         /// @param backgroundColor The background color
         EngineAssetUniformBuffer_UIImage(
+            const glm::vec2& position,
+            const glm::vec2& size,
             const glm::vec4& backgroundColor
-        ): BackgroundColor(backgroundColor) {
+        ): Position(position),
+            Size(size),
+            BackgroundColor(backgroundColor) {
         }
 
         // ----------------------------------------- //
@@ -3011,6 +3029,9 @@ namespace axr {
         // ----------------------------------------- //
         // Public Variables
         // ----------------------------------------- //
+        // Every element MUST start with `position` and `size` since they're used in the vertex shader that all ui elements use
+        alignas(8) glm::vec2 Position = {};
+        alignas(8) glm::vec2 Size = {};
         alignas(16) glm::vec4 BackgroundColor = {};
 
         // ----------------------------------------- //
@@ -3023,10 +3044,16 @@ namespace axr {
         EngineAssetUniformBuffer_UIBorder() = default;
 
         /// Constructor
+        /// @param position The UI element position
+        /// @param size The UI element size
         /// @param backgroundColor The background color
         EngineAssetUniformBuffer_UIBorder(
+            const glm::vec2& position,
+            const glm::vec2& size,
             const glm::vec4& backgroundColor
-        ): BackgroundColor(backgroundColor) {
+        ): Position(position),
+            Size(size),
+            BackgroundColor(backgroundColor) {
         }
 
         // ----------------------------------------- //

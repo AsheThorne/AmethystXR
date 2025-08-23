@@ -154,7 +154,9 @@ public:
     /// Clone the given shader dynamic uniform buffer layout
     /// @param shaderBufferLayout Shader buffer layout to clone
     /// @returns The cloned shader buffer layout
-    [[nodiscard]] static AxrShaderDynamicUniformBufferLayout_T clone(AxrShaderDynamicUniformBufferLayoutConst_T shaderBufferLayout);
+    [[nodiscard]] static AxrShaderDynamicUniformBufferLayout_T clone(
+        AxrShaderDynamicUniformBufferLayoutConst_T shaderBufferLayout
+    );
     /// Destroy the given shader dynamic uniform buffer layout
     /// @param shaderBufferLayout Shader buffer layout to destroy
     static void destroy(AxrShaderDynamicUniformBufferLayout_T& shaderBufferLayout);
@@ -281,26 +283,4 @@ public:
         const AxrShaderBufferLayoutConst_T* bufferLayouts
     );
 #endif
-
-private:
-    // ----------------------------------------- //
-    // Static Private Functions
-    // ----------------------------------------- //
-
-    /// Check if the given uniform buffer layout has a duplicate binding but with a different buffer size in the given collection
-    /// @param uniformBufferLayout Uniform buffer layout to check
-    /// @param uniformBufferBindings Collection to check within
-    /// @returns True if the given uniform buffer layout is compatible with the given collection
-    [[nodiscard]] static bool isUniformBufferLayoutBindingValid(
-        AxrShaderUniformBufferLayoutConst_T uniformBufferLayout,
-        std::unordered_map<uint32_t, uint64_t>& uniformBufferBindings
-    );
-    /// Check if the given dynamic uniform buffer layout has a duplicate binding but with a different buffer size in the given collection
-    /// @param uniformBufferLayout Dynamic uniform buffer layout to check
-    /// @param uniformBufferBindings Collection to check within
-    /// @returns True if the given dynamic uniform buffer layout is compatible with the given collection
-    [[nodiscard]] static bool isDynamicUniformBufferLayoutBindingValid(
-        AxrShaderDynamicUniformBufferLayoutConst_T uniformBufferLayout,
-        std::unordered_map<uint32_t, uint64_t>& uniformBufferBindings
-    );
 };

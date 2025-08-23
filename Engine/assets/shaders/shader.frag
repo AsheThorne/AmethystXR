@@ -4,7 +4,7 @@ layout(location = 0) in vec3 fragColor;
 layout(location = 1) in vec2 fragTexCoord;
 layout(binding = 1) uniform sampler2D texSampler;
 #ifdef ALPHA_MODE_MASK
-layout(binding = 2) uniform MaterialProperties{
+layout(std140, binding = 2) uniform MaterialProperties{
     float alphaCutoff;
 };
 #endif

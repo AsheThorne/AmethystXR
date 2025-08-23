@@ -7,7 +7,7 @@ layout(push_constant) uniform PushConstants {
     mat4 modelMatrix;
 };
 
-layout (binding = 0) uniform SceneData {
+layout(std140, binding = 0) uniform SceneData {
     mat4 viewMatrix;
     mat4 projectionMatrix;
     mat4 viewProjectionMatrix;
@@ -15,9 +15,15 @@ layout (binding = 0) uniform SceneData {
     float cameraFarPlane;
 };
 
+layout(std140, binding = 1) uniform UIElement {
+    vec2 position;
+    vec2 size;
+} uiElement;
+
 layout(location = 0) out vec2 fragTexCoord;
 
 void main() {
+    vec2 test = uiElement.position;
     gl_Position = viewProjectionMatrix * modelMatrix * vec4(inPosition, 1.0);
     fragTexCoord = inTexCoord;
 }
