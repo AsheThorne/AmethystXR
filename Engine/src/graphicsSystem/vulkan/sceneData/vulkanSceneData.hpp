@@ -129,20 +129,23 @@ public:
     /// @returns The `UI Rectangle` material for rendering. Or nullptr if it doesn't exist.
     [[nodiscard]] const AxrVulkanMaterialForRendering* getUIRectangleMaterialForRendering() const;
 
-    /// Set platform specific uniform buffer data
+    /// Set uniform buffer data.
+    /// If `alignData` is true, `data` must contain whole instance objects without any padding between them.
     /// @param platformType Platform type
     /// @param bufferName Buffer name
     /// @param frameIndex Frame index to use
     /// @param viewIndex View index
+    /// @param alignData True if we want to align it with the min uniform buffer offset alignment.
     /// @param offset Data offset
     /// @param dataSize Data size
     /// @param data Data
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setPlatformUniformBufferData(
+    [[nodiscard]] AxrResult setUniformBufferData(
         AxrPlatformType platformType,
         const std::string& bufferName,
         uint32_t frameIndex,
         uint32_t viewIndex,
+        bool alignData,
         vk::DeviceSize offset,
         vk::DeviceSize dataSize,
         const void* data

@@ -918,7 +918,7 @@ struct alignas(16) AxrEngineAssetUniformBuffer_UIBorder {
     // Every element MUST start with `position` and `size` since they're used in the vertex shader that all ui elements use
     alignas(8) glm::vec2 Position;
     alignas(8) glm::vec2 Size;
-    alignas(16) glm::vec4 BackgroundColor;
+    alignas(16) glm::vec4 Color;
     // AxrCornerRadius CornerRadius;
     // AxrBorderWidth Width;
 };

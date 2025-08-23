@@ -191,6 +191,7 @@ void AxrVulkanUniformBufferData::destroyData() {
 
 AxrResult AxrVulkanUniformBufferData::setData(
     const uint32_t index,
+    const bool alignData,
     const vk::DeviceSize offset,
     const vk::DeviceSize size,
     const void* data
@@ -218,7 +219,40 @@ AxrResult AxrVulkanUniformBufferData::setData(
     // Process
     // ----------------------------------------- //
 
-    return m_UniformBuffers[index].setBufferData(offset, size, data);
+    return setData(m_UniformBuffers[index], alignData, offset, size, data);
+}
+
+// ---- Public Static Functions ----
+
+vk::DeviceSize AxrVulkanUniformBufferData::calculateUniformBufferAlignment(
+    const vk::PhysicalDevice physicalDevice,
+    const vk::DeviceSize instanceSize,
+    const vk::DispatchLoaderDynamic& dispatch
+) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (physicalDevice == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Physical device is null.");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+
+    const vk::PhysicalDeviceProperties properties = physicalDevice.getProperties(dispatch);
+    const uint64_t minUniformBufferOffsetAlignment = properties.limits.minUniformBufferOffsetAlignment;
+
+    vk::DeviceSize uniformBufferAlignment = instanceSize;
+
+    if (minUniformBufferOffsetAlignment > 0) {
+        uniformBufferAlignment =
+            (uniformBufferAlignment + minUniformBufferOffsetAlignment - 1) & ~(minUniformBufferOffsetAlignment - 1);
+    }
+
+    return uniformBufferAlignment;
 }
 
 // ---- Private Functions ----
@@ -241,11 +275,6 @@ AxrResult AxrVulkanUniformBufferData::setAlignment() {
     // Validation
     // ----------------------------------------- //
 
-    if (m_PhysicalDevice == VK_NULL_HANDLE) {
-        axrLogErrorLocation("Physical device is null.");
-        return AXR_ERROR;
-    }
-
     if (m_DispatchHandle == nullptr) {
         axrLogErrorLocation("Dispatch handle is null.");
         return AXR_ERROR;
@@ -260,17 +289,11 @@ AxrResult AxrVulkanUniformBufferData::setAlignment() {
     // Process
     // ----------------------------------------- //
 
-    const vk::PhysicalDeviceProperties properties = m_PhysicalDevice.getProperties(*m_DispatchHandle);
-    const uint64_t minUniformBufferOffsetAlignment = properties.limits.minUniformBufferOffsetAlignment;
-
-    const uint64_t instanceSize = m_UniformBufferHandle->getInstanceSize();
-
-    m_UniformBufferAlignment = instanceSize;
-
-    if (minUniformBufferOffsetAlignment > 0) {
-        m_UniformBufferAlignment =
-            (m_UniformBufferAlignment + minUniformBufferOffsetAlignment - 1) & ~(minUniformBufferOffsetAlignment - 1);
-    }
+    m_UniformBufferAlignment = calculateUniformBufferAlignment(
+        m_PhysicalDevice,
+        m_UniformBufferHandle->getInstanceSize(),
+        *m_DispatchHandle
+    );
 
     return AXR_SUCCESS;
 }
@@ -299,19 +322,18 @@ AxrResult AxrVulkanUniformBufferData::createUniformBuffer(AxrVulkanBuffer& buffe
     // ----------------------------------------- //
     AxrResult axrResult = AXR_SUCCESS;
 
-    const uint64_t instanceSize = m_UniformBufferHandle->getInstanceSize();
-    const bool isDataAligned = instanceSize == m_UniformBufferAlignment;
-    const bool alignData = m_UniformBufferHandle->getBufferType() == AXR_UNIFORM_BUFFER_TYPE_DYNAMIC && !isDataAligned;
-    uint64_t size;
+    const bool alignData = m_UniformBufferHandle->getBufferType() == AXR_UNIFORM_BUFFER_TYPE_DYNAMIC;
+    const uint64_t srcBufferSize = m_UniformBufferHandle->getDataSize();
+    uint64_t dstBufferSize;
     if (alignData) {
-        size = m_UniformBufferHandle->getInstanceCount() * m_UniformBufferAlignment;
+        dstBufferSize = m_UniformBufferHandle->getInstanceCount() * m_UniformBufferAlignment;
     } else {
-        size = m_UniformBufferHandle->getDataSize();
+        dstBufferSize = srcBufferSize;
     }
 
     axrResult = buffer.createBuffer(
         false,
-        size,
+        dstBufferSize,
         vk::BufferUsageFlagBits::eUniformBuffer
     );
     if (AXR_FAILED(axrResult)) {
@@ -322,23 +344,7 @@ AxrResult AxrVulkanUniformBufferData::createUniformBuffer(AxrVulkanBuffer& buffe
     const void* srcData = m_UniformBufferHandle->getData();
 
     if (srcData != nullptr) {
-        if (alignData) {
-            void* alignedData = calloc(1, size);
-
-            for (int i = 0; i < m_UniformBufferHandle->getInstanceCount(); ++i) {
-                memcpy_s(
-                    static_cast<int8_t*>(alignedData) + m_UniformBufferAlignment * i,
-                    size - m_UniformBufferAlignment * i,
-                    static_cast<const int8_t*>(srcData) + m_UniformBufferAlignment * i,
-                    instanceSize
-                );
-            }
-
-            axrResult = buffer.setBufferData(0, size, alignedData);
-            free(alignedData);
-        } else {
-            axrResult = buffer.setBufferData(0, size, srcData);
-        }
+        axrResult = setData(buffer, alignData, 0, srcBufferSize, srcData);
 
         if (AXR_FAILED(axrResult)) {
             destroyUniformBuffer(buffer);
@@ -351,6 +357,72 @@ AxrResult AxrVulkanUniformBufferData::createUniformBuffer(AxrVulkanBuffer& buffe
 
 void AxrVulkanUniformBufferData::destroyUniformBuffer(AxrVulkanBuffer& buffer) const {
     buffer.destroyBuffer();
+}
+
+AxrResult AxrVulkanUniformBufferData::setData(
+    const AxrVulkanBuffer& buffer,
+    const bool alignData,
+    const vk::DeviceSize offset,
+    const vk::DeviceSize size,
+    const void* data
+) const {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (data == nullptr) {
+        axrLogErrorLocation("Data is null.");
+        return AXR_ERROR;
+    }
+
+    if (offset + size > buffer.getSize()) {
+        axrLogErrorLocation("Invalid offset and size. Out of bounds");
+        return AXR_ERROR;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+    const uint64_t instanceSize = m_UniformBufferHandle->getInstanceSize();
+
+    // If the instances are already aligned, then we don't need to do anything special
+    if (!alignData || instanceSize == m_UniformBufferAlignment) {
+        return buffer.setBufferData(offset, size, data);
+    }
+
+    // Check that when we get instanceCount below, it's a whole number
+    if (size % instanceSize != 0) {
+        axrLogErrorLocation("Data size is not a multiple of the instance size.");
+        return AXR_ERROR;
+    }
+
+    const uint32_t instanceCount = size / instanceSize;
+    const uint64_t alignedSize = instanceCount * m_UniformBufferAlignment;
+
+    // Check if it's out of bounds again. But this time, accounting for the alignment too
+    if (offset + alignedSize > buffer.getSize()) {
+        axrLogErrorLocation("Invalid offset and size. Out of bounds");
+        return AXR_ERROR;
+    }
+
+    void* alignedData = calloc(1, alignedSize);
+    for (int i = 0; i < instanceCount; ++i) {
+        memcpy_s(
+            static_cast<int8_t*>(alignedData) + m_UniformBufferAlignment * i,
+            alignedSize - m_UniformBufferAlignment * i,
+            static_cast<const int8_t*>(data) + instanceSize * i,
+            instanceSize
+        );
+    }
+    const AxrResult axrResult = buffer.setBufferData(offset, alignedSize, alignedData);
+    free(alignedData);
+
+    if (AXR_FAILED(axrResult)) {
+        axrLogErrorLocation("Failed to set uniform buffer data.");
+        return AXR_ERROR;
+    }
+
+    return AXR_SUCCESS;
 }
 
 #endif

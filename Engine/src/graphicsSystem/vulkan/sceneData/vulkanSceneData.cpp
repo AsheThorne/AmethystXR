@@ -289,45 +289,30 @@ const AxrVulkanMaterialForRendering* AxrVulkanSceneData::getUIRectangleMaterialF
     return &m_UIMaterialsForRendering[m_UIRectangleMaterialForRenderingIndex];
 }
 
-AxrResult AxrVulkanSceneData::setPlatformUniformBufferData(
+AxrResult AxrVulkanSceneData::setUniformBufferData(
     const AxrPlatformType platformType,
     const std::string& bufferName,
     const uint32_t frameIndex,
     const uint32_t viewIndex,
+    const bool alignData,
     const vk::DeviceSize offset,
     const vk::DeviceSize dataSize,
     const void* data
 ) const {
-    const AxrVulkanUniformBufferData* uniformBufferData = nullptr;
-
-    switch (platformType) {
-        case AXR_PLATFORM_TYPE_WINDOW: {
-            uniformBufferData = findWindowUniformBufferData_shared(bufferName);
-            if (uniformBufferData == nullptr) {
-                axrLogErrorLocation("Window uniform buffer does not exist.");
-                return AXR_ERROR;
-            }
-            break;
-        }
-        case AXR_PLATFORM_TYPE_XR_DEVICE: {
-            uniformBufferData = findXrSessionUniformBufferData_shared(bufferName, viewIndex);
-            if (uniformBufferData == nullptr) {
-                axrLogErrorLocation("Xr session uniform buffer does not exist.");
-                return AXR_ERROR;
-            }
-            break;
-        }
-        case AXR_PLATFORM_TYPE_UNDEFINED:
-        default: {
-            axrLogErrorLocation("Unknown platform type.");
-            return AXR_ERROR;
-        }
+    const AxrVulkanUniformBufferData* uniformBufferData = findUniformBufferData_shared(
+        bufferName,
+        platformType,
+        viewIndex
+    );
+    if (uniformBufferData == nullptr) {
+        axrLogErrorLocation("Uniform buffer named: {0} does not exist.", bufferName.c_str());
+        return AXR_ERROR;
     }
 
-    const AxrResult axrResult = uniformBufferData->setData(frameIndex, offset, dataSize, data);
+    const AxrResult axrResult = uniformBufferData->setData(frameIndex, alignData, offset, dataSize, data);
     if (AXR_FAILED(axrResult)) {
         axrLogErrorLocation(
-            "Failed to set uniform buffer data for buffer named: {0}. At index: {1}",
+            "Failed to set uniform buffer data for buffer named: {0}. At frame index: {1}",
             bufferName.c_str(),
             frameIndex
         );

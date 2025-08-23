@@ -114,6 +114,10 @@ const vk::Buffer& AxrVulkanBuffer::getBuffer() const {
     return m_Buffer;
 }
 
+vk::DeviceSize AxrVulkanBuffer::getSize() const {
+    return m_BufferSize;
+}
+
 AxrResult AxrVulkanBuffer::createBuffer(
     const bool willBufferBeStatic,
     const vk::DeviceSize bufferSize,

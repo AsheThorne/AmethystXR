@@ -3032,7 +3032,7 @@ namespace axr {
         // Every element MUST start with `position` and `size` since they're used in the vertex shader that all ui elements use
         alignas(8) glm::vec2 Position = {};
         alignas(8) glm::vec2 Size = {};
-        alignas(16) glm::vec4 BackgroundColor = {};
+        alignas(16) glm::vec4 Color = {};
 
         // ----------------------------------------- //
         // Special Functions
@@ -3046,14 +3046,14 @@ namespace axr {
         /// Constructor
         /// @param position The UI element position
         /// @param size The UI element size
-        /// @param backgroundColor The background color
+        /// @param color The color
         EngineAssetUniformBuffer_UIBorder(
             const glm::vec2& position,
             const glm::vec2& size,
-            const glm::vec4& backgroundColor
+            const glm::vec4& color
         ): Position(position),
             Size(size),
-            BackgroundColor(backgroundColor) {
+            Color(color) {
         }
 
         // ----------------------------------------- //

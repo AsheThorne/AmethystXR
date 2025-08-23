@@ -1383,7 +1383,7 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
     if (AXR_FAILED(axrResult)) return axrResult;
 
     for (uint32_t viewIndex = 0; viewIndex < renderCommands.getViewCount(); ++viewIndex) {
-        axrResult = renderCommands.updateUniformBuffers(viewIndex, sceneData);
+        axrResult = renderCommands.updateUniformBuffers(viewIndex, sceneData, uiCanvasConfig);
         if (AXR_FAILED(axrResult)) return axrResult;
 
         axrResult = renderCommands.waitForFrameFence(viewIndex);
@@ -1405,7 +1405,7 @@ AxrResult AxrVulkanGraphicsSystem::renderCurrentFrame(
 
         // TODO: Use Forward+ rendering technique
 
-        auto prepareMaterial = [renderCommands, viewIndex, sceneData](
+        auto prepareMaterial = [renderCommands, viewIndex](
             const AxrVulkanMaterialForRendering& material
         ) -> void {
             if (material.PipelineLayout == nullptr ||
@@ -1562,20 +1562,31 @@ void AxrVulkanGraphicsSystem::renderClayUI(
     const float cameraNearPlane,
     const AxrUICanvasConfig& uiCanvasConfig
 ) const {
+    if (m_PhysicalDevice == VK_NULL_HANDLE) {
+        axrLogErrorLocation("Physical Device is null.");
+        return;
+    }
+
     auto currentPipelines = AxrVulkanRenderCommandPipelines{
         .WindowPipeline = VK_NULL_HANDLE,
         .XrSessionPipeline = VK_NULL_HANDLE,
     };
 
-    // TODO: Set buffer data for every element before rendering
+    const vk::DeviceSize uniformBufferAlignment = AxrVulkanUniformBufferData::calculateUniformBufferAlignment(
+        m_PhysicalDevice,
+        axrEngineAssetGetUniformBufferInstanceSize(
+            AXR_ENGINE_ASSET_UNIFORM_BUFFER_UI_ELEMENTS
+        ),
+        m_Dispatch
+    );
 
     for (int32_t renderCommandIndex = 0;
          renderCommandIndex < uiCanvasConfig.ClayRenderCommands.length;
          ++renderCommandIndex
     ) {
         const AxrVulkanMaterialForRendering* materialForRendering = nullptr;
-        const Clay_RenderCommand clayRenderCommand = uiCanvasConfig.ClayRenderCommands.internalArray[
-            renderCommandIndex];
+        const Clay_RenderCommand clayRenderCommand =
+            uiCanvasConfig.ClayRenderCommands.internalArray[renderCommandIndex];
 
         switch (clayRenderCommand.commandType) {
             case CLAY_RENDER_COMMAND_TYPE_NONE:
@@ -1621,9 +1632,7 @@ void AxrVulkanGraphicsSystem::renderClayUI(
             continue;
         }
 
-        // TODO: must be a multiple of VkPhysicalDeviceLimits::minUniformBufferOffsetAlignment
-        uint32_t bufferDataOffset = renderCommandIndex *
-            axrEngineAssetGetUniformBufferInstanceSize(AXR_ENGINE_ASSET_UNIFORM_BUFFER_UI_ELEMENTS);
+        uint32_t bufferDataOffset = renderCommandIndex * uniformBufferAlignment;
 
         auto pipelines = AxrVulkanRenderCommandPipelines{
             .WindowPipeline = *materialForRendering->WindowPipeline,

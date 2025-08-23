@@ -360,28 +360,36 @@ axr::UICanvasConfig SponzaScene::uiCallback(const axr::PlatformType platformType
         Clay_ElementDeclaration {
         .id = CLAY_ID("OuterContainer"),
         .layout = Clay_LayoutConfig {
-        .sizing = Clay_Sizing {CLAY_SIZING_FIT(100),
-        CLAY_SIZING_FIT(100)},
+        .sizing = Clay_Sizing {
+        .width = CLAY_SIZING_FIT(100),
+        .height = CLAY_SIZING_FIT(100)},
         .padding = CLAY_PADDING_ALL(16),
         .childGap = 16,
         },
-        .backgroundColor = Clay_Color{250,
-        250,
-        255,
-        255},
+        .backgroundColor = Clay_Color{0.9f,
+        0.9f,
+        1.0f,
+        0.5f},
         }
     ) {
-        // CLAY(
-        //     {
-        //     .id = CLAY_ID("SideBar"),
-        //     .layout = { .sizing = { .width = CLAY_SIZING_FIXED(300),
-        //     .height = CLAY_SIZING_GROW(0) },
-        //     .padding = CLAY_PADDING_ALL(16),
-        //     .childGap = 16,
-        //     .layoutDirection = CLAY_TOP_TO_BOTTOM,
-        //     },
-        //     }
-        // ) {
+        CLAY(
+            {
+            .id = CLAY_ID("SideBar"),
+            .layout = Clay_LayoutConfig {
+            .sizing = Clay_Sizing {
+            .width = CLAY_SIZING_FIXED(300),
+            .height = CLAY_SIZING_GROW(0) },
+            .padding = CLAY_PADDING_ALL(16),
+            .childGap = 16,
+            .layoutDirection = CLAY_TOP_TO_BOTTOM,
+            },
+            .backgroundColor = Clay_Color{0.2f,
+            0.7f,
+            0.0f,
+            0.9f},
+            }
+        ) {
+        }
         //     CLAY(
         //         { .id = CLAY_ID("ProfilePictureOuter"),
         //         .layout = { .sizing = { .width = CLAY_SIZING_GROW(0) },

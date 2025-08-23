@@ -69,6 +69,9 @@ public:
     /// Get the vulkan buffer
     /// @returns The vulkan buffer
     [[nodiscard]] const vk::Buffer& getBuffer() const;
+    /// Get the buffer size
+    /// @returns The buffer size
+    [[nodiscard]] vk::DeviceSize getSize() const;
 
     /// Create the buffer
     /// @param willBufferBeStatic Set to true if the buffer will get converted to a static buffer

@@ -108,11 +108,18 @@ public:
     /// Update all necessary uniform buffers for the current frame
     /// @param viewIndex The view index
     /// @param sceneData The active scene
+    /// @param uiCanvasConfig The scene ui canvas config
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult updateUniformBuffers(const uint32_t viewIndex, const AxrVulkanSceneData* sceneData) const {
+    [[nodiscard]] AxrResult updateUniformBuffers(
+        const uint32_t viewIndex,
+        const AxrVulkanSceneData* sceneData,
+        const AxrUICanvasConfig& uiCanvasConfig
+    ) const {
         AxrResult axrResult = AXR_SUCCESS;
         const uint32_t currentFrame = m_RenderTarget.getCurrentRenderingFrame();
         const AxrPlatformType platformType = m_RenderTarget.getPlatformType();
+
+        // ---- Scene Data Uniform Buffer----
 
         glm::vec3 cameraPosition;
         glm::quat cameraOrientation;
@@ -142,11 +149,12 @@ public:
         sceneDataUniformBuffer.ViewProjectionMatrix =
             sceneDataUniformBuffer.ProjectionMatrix * sceneDataUniformBuffer.ViewMatrix;
 
-        axrResult = sceneData->setPlatformUniformBufferData(
+        axrResult = sceneData->setUniformBufferData(
             platformType,
             axrEngineAssetGetUniformBufferName(AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA),
             currentFrame,
             viewIndex,
+            false,
             0,
             sizeof(sceneDataUniformBuffer),
             &sceneDataUniformBuffer
@@ -154,6 +162,120 @@ public:
         if (AXR_FAILED(axrResult)) {
             axrLogErrorLocation("Failed to set engine asset uniform buffer scene data.");
             return axrResult;
+        }
+
+        // ---- UI Elements Uniform Buffer ----
+
+        if (uiCanvasConfig.Enabled) {
+            std::vector<AxrEngineAssetUniformBuffer_UIElement> uiElements;
+
+            for (int32_t renderCommandIndex = 0;
+                 renderCommandIndex < uiCanvasConfig.ClayRenderCommands.length;
+                 ++renderCommandIndex
+            ) {
+                const Clay_RenderCommand clayRenderCommand =
+                    uiCanvasConfig.ClayRenderCommands.internalArray[renderCommandIndex];
+
+                switch (clayRenderCommand.commandType) {
+                    case CLAY_RENDER_COMMAND_TYPE_RECTANGLE: {
+                        uiElements.emplace_back(
+                            AxrEngineAssetUniformBuffer_UIElement{
+                                .Rectangle = AxrEngineAssetUniformBuffer_UIRectangle{
+                                    .Position = glm::vec2(
+                                        clayRenderCommand.boundingBox.x,
+                                        clayRenderCommand.boundingBox.y
+                                    ),
+                                    .Size = glm::vec2(
+                                        clayRenderCommand.boundingBox.width,
+                                        clayRenderCommand.boundingBox.height
+                                    ),
+                                    .BackgroundColor = glm::vec4(
+                                        clayRenderCommand.renderData.rectangle.backgroundColor.r,
+                                        clayRenderCommand.renderData.rectangle.backgroundColor.g,
+                                        clayRenderCommand.renderData.rectangle.backgroundColor.b,
+                                        clayRenderCommand.renderData.rectangle.backgroundColor.a
+                                    ),
+                                }
+                            }
+                        );
+                        break;
+                    }
+                    case CLAY_RENDER_COMMAND_TYPE_BORDER: {
+                        uiElements.emplace_back(
+                            AxrEngineAssetUniformBuffer_UIElement{
+                                .Border = AxrEngineAssetUniformBuffer_UIBorder{
+                                    .Position = glm::vec2(
+                                        clayRenderCommand.boundingBox.x,
+                                        clayRenderCommand.boundingBox.y
+                                    ),
+                                    .Size = glm::vec2(
+                                        clayRenderCommand.boundingBox.width,
+                                        clayRenderCommand.boundingBox.height
+                                    ),
+                                    .Color = glm::vec4(
+                                        clayRenderCommand.renderData.border.color.r,
+                                        clayRenderCommand.renderData.border.color.g,
+                                        clayRenderCommand.renderData.border.color.b,
+                                        clayRenderCommand.renderData.border.color.a
+                                    ),
+                                }
+                            }
+                        );
+                        break;
+                    }
+                    case CLAY_RENDER_COMMAND_TYPE_TEXT: {
+                        axrLogErrorLocation("UI text isn't supported yet.");
+                        break;
+                    }
+                    case CLAY_RENDER_COMMAND_TYPE_IMAGE: {
+                        uiElements.emplace_back(
+                            AxrEngineAssetUniformBuffer_UIElement{
+                                .Image = AxrEngineAssetUniformBuffer_UIImage{
+                                    .Position = glm::vec2(
+                                        clayRenderCommand.boundingBox.x,
+                                        clayRenderCommand.boundingBox.y
+                                    ),
+                                    .Size = glm::vec2(
+                                        clayRenderCommand.boundingBox.width,
+                                        clayRenderCommand.boundingBox.height
+                                    ),
+                                    .BackgroundColor = glm::vec4(
+                                        clayRenderCommand.renderData.image.backgroundColor.r,
+                                        clayRenderCommand.renderData.image.backgroundColor.g,
+                                        clayRenderCommand.renderData.image.backgroundColor.b,
+                                        clayRenderCommand.renderData.image.backgroundColor.a
+                                    ),
+                                }
+                            }
+                        );
+                        break;
+                    }
+                    case CLAY_RENDER_COMMAND_TYPE_SCISSOR_START:
+                    case CLAY_RENDER_COMMAND_TYPE_SCISSOR_END:
+                    case CLAY_RENDER_COMMAND_TYPE_CUSTOM:
+                    case CLAY_RENDER_COMMAND_TYPE_NONE: {
+                        // No data to set
+                        continue;
+                    }
+                }
+            }
+
+            if (!uiElements.empty()) {
+                axrResult = sceneData->setUniformBufferData(
+                    AXR_PLATFORM_TYPE_UNDEFINED,
+                    axrEngineAssetGetUniformBufferName(AXR_ENGINE_ASSET_UNIFORM_BUFFER_UI_ELEMENTS),
+                    currentFrame,
+                    viewIndex,
+                    true,
+                    0,
+                    sizeof(uiElements[0]) * uiElements.size(),
+                    uiElements.data()
+                );
+                if (AXR_FAILED(axrResult)) {
+                    axrLogErrorLocation("Failed to set engine asset uniform buffer UI elements.");
+                    return axrResult;
+                }
+            }
         }
 
         return AXR_SUCCESS;

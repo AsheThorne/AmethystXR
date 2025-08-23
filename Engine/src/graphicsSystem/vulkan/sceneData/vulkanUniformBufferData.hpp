@@ -98,13 +98,36 @@ public:
     /// Destroy the uniform buffer data
     void destroyData();
 
-    /// Set the buffer data
+    /// Set the buffer data.
+    /// If `alignData` is true, `data` must contain whole instance objects without any padding between them.
     /// @param index Frame in flight index
+    /// @param alignData True if we want to align it with the min uniform buffer offset alignment.
     /// @param offset Offset of the data to set
     /// @param size Size of the data to set
     /// @param data Data to set
     /// @returns AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setData(uint32_t index, vk::DeviceSize offset, vk::DeviceSize size, const void* data) const;
+    [[nodiscard]] AxrResult setData(
+        uint32_t index,
+        bool alignData,
+        vk::DeviceSize offset,
+        vk::DeviceSize size,
+        const void* data
+    ) const;
+
+    // ----------------------------------------- //
+    // Public Static Functions
+    // ----------------------------------------- //
+
+    /// Calculate the uniform buffer offset alignment for the given instance size
+    /// @param physicalDevice Physical device to use
+    /// @param instanceSize Instance size
+    /// @param dispatch Dispatch to use
+    /// @returns The uniform buffer offset alignment
+    [[nodiscard]] static vk::DeviceSize calculateUniformBufferAlignment(
+        vk::PhysicalDevice physicalDevice,
+        vk::DeviceSize instanceSize,
+        const vk::DispatchLoaderDynamic& dispatch
+    );
 
 private:
     // ----------------------------------------- //
@@ -123,7 +146,7 @@ private:
     // ---- Data ----
     /// This should never be used for anything other than returning a reference to the name if no name can be found.
     std::string m_DummyName;
-    uint64_t m_UniformBufferAlignment;
+    vk::DeviceSize m_UniformBufferAlignment;
     /// One buffer per frame in flight
     std::vector<AxrVulkanBuffer> m_UniformBuffers;
 
@@ -148,6 +171,21 @@ private:
     [[nodiscard]] AxrResult createUniformBuffer(AxrVulkanBuffer& buffer) const;
     /// Destroy a vulkan buffer
     void destroyUniformBuffer(AxrVulkanBuffer& buffer) const;
-};
 
+    /// Set the buffer data.
+    /// If `alignData` is true, `data` must contain whole instance objects without any padding between them.
+    /// @param buffer Buffer to set the data for
+    /// @param alignData True if we want to align it with the min uniform buffer offset alignment.
+    /// @param offset Offset of the data to set
+    /// @param size Size of the data to set
+    /// @param data Data to set
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setData(
+        const AxrVulkanBuffer& buffer,
+        bool alignData,
+        vk::DeviceSize offset,
+        vk::DeviceSize size,
+        const void* data
+    ) const;
+};
 #endif
