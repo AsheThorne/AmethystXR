@@ -121,25 +121,7 @@ public:
 
         // ---- Scene Data Uniform Buffer----
 
-        glm::vec3 cameraPosition;
-        glm::quat cameraOrientation;
-        float nearPlane;
-        float farPlane;
-        axrResult = m_RenderTarget.getCameraData(
-            viewIndex,
-            cameraPosition,
-            cameraOrientation,
-            nearPlane,
-            farPlane
-        );
-        if (AXR_FAILED(axrResult)) {
-            axrLogErrorLocation("Failed to get camera data.");
-            return axrResult;
-        }
-
         AxrEngineAssetUniformBuffer_SceneData sceneDataUniformBuffer{};
-        sceneDataUniformBuffer.CameraNearPlane = nearPlane;
-        sceneDataUniformBuffer.CameraFarPlane = farPlane;
 
         m_RenderTarget.getRenderingMatrices(
             viewIndex,
@@ -161,6 +143,45 @@ public:
         );
         if (AXR_FAILED(axrResult)) {
             axrLogErrorLocation("Failed to set engine asset uniform buffer scene data.");
+            return axrResult;
+        }
+
+        // ---- Camera Data Uniform Buffer----
+
+        glm::vec3 cameraPosition;
+        glm::quat cameraOrientation;
+        float nearPlane;
+        float farPlane;
+        axrResult = m_RenderTarget.getCameraData(
+            viewIndex,
+            cameraPosition,
+            cameraOrientation,
+            nearPlane,
+            farPlane
+        );
+        if (AXR_FAILED(axrResult)) {
+            axrLogErrorLocation("Failed to get camera data.");
+            return axrResult;
+        }
+
+        AxrEngineAssetUniformBuffer_CameraData cameraDataUniformBuffer{};
+        // TODO: Get camera dimensions
+        cameraDataUniformBuffer.Dimensions = glm::vec2(0.0f, 0.0f);
+        cameraDataUniformBuffer.NearPlane = nearPlane;
+        cameraDataUniformBuffer.FarPlane = farPlane;
+
+        axrResult = sceneData->setUniformBufferData(
+            platformType,
+            axrEngineAssetGetUniformBufferName(AXR_ENGINE_ASSET_UNIFORM_BUFFER_CAMERA_DATA),
+            currentFrame,
+            viewIndex,
+            false,
+            0,
+            sizeof(cameraDataUniformBuffer),
+            &cameraDataUniformBuffer
+        );
+        if (AXR_FAILED(axrResult)) {
+            axrLogErrorLocation("Failed to set engine asset uniform buffer camera data.");
             return axrResult;
         }
 

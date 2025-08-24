@@ -2825,6 +2825,7 @@ namespace axr {
         // ---- Uniform Buffers ----
         UniformBufferStart = AXR_ENGINE_ASSET_UNIFORM_BUFFER_START,
         UniformBufferSceneData = AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA,
+        UniformBufferCameraData = AXR_ENGINE_ASSET_UNIFORM_BUFFER_CAMERA_DATA,
         UniformBufferUIElements = AXR_ENGINE_ASSET_UNIFORM_BUFFER_UI_ELEMENTS,
         UniformBufferEnd = AXR_ENGINE_ASSET_UNIFORM_BUFFER_END,
 
@@ -2873,9 +2874,6 @@ namespace axr {
         alignas(16) glm::mat4 ViewMatrix = {};
         alignas(16) glm::mat4 ProjectionMatrix = {};
         alignas(16) glm::mat4 ViewProjectionMatrix = {};
-        alignas(4) float CameraNearPlane = 0.0f;
-        alignas(4) float CameraFarPlane = 0.0f;
-        float _padding[2] = {};
 
         // ----------------------------------------- //
         // Special Functions
@@ -2889,18 +2887,12 @@ namespace axr {
         /// Constructor
         /// @param viewMatrix The view matrix
         /// @param projectionMatrix The projection matrix
-        /// @param cameraNearPlane The cameras near clipping plane
-        /// @param cameraFarPlane The cameras far clipping plane
         EngineAssetUniformBuffer_SceneData(
             const glm::mat4& viewMatrix,
-            const glm::mat4& projectionMatrix,
-            const float cameraNearPlane,
-            const float cameraFarPlane
+            const glm::mat4& projectionMatrix
         ): ViewMatrix(viewMatrix),
             ProjectionMatrix(projectionMatrix),
-            ViewProjectionMatrix(projectionMatrix * viewMatrix),
-            CameraNearPlane(cameraNearPlane),
-            CameraFarPlane(cameraFarPlane) {
+            ViewProjectionMatrix(projectionMatrix * viewMatrix) {
         }
 
         // ----------------------------------------- //
@@ -2922,6 +2914,59 @@ namespace axr {
 
     static_assert(
         sizeof(AxrEngineAssetUniformBuffer_SceneData) == sizeof(axr::EngineAssetUniformBuffer_SceneData),
+        "Original type and wrapper have different size!"
+    );
+
+    /// Engine asset uniform buffer named 'Camera Data' structure
+    struct alignas(16) EngineAssetUniformBuffer_CameraData {
+        // ----------------------------------------- //
+        // Public Variables
+        // ----------------------------------------- //
+        alignas(8) glm::vec2 Dimensions = {};
+        alignas(4) float CameraNearPlane = 0.0f;
+        alignas(4) float CameraFarPlane = 0.0f;
+
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        EngineAssetUniformBuffer_CameraData() = default;
+
+        /// Constructor
+        /// @param dimensions The screen dimensions
+        /// @param cameraNearPlane The cameras near clipping plane
+        /// @param cameraFarPlane The cameras far clipping plane
+        EngineAssetUniformBuffer_CameraData(
+            const glm::vec2& dimensions,
+            const float cameraNearPlane,
+            const float cameraFarPlane
+        ): Dimensions(dimensions),
+            CameraNearPlane(cameraNearPlane),
+            CameraFarPlane(cameraFarPlane) {
+        }
+
+        // ----------------------------------------- //
+        // Public Functions
+        // ----------------------------------------- //
+
+        /// Get a handle to the EngineAssetUniformBuffer_CameraData as an AxrEngineAssetUniformBuffer_CameraData
+        /// @returns This as an AxrEngineAssetUniformBuffer_CameraData
+        const AxrEngineAssetUniformBuffer_CameraData* toRaw() const {
+            return reinterpret_cast<const AxrEngineAssetUniformBuffer_CameraData*>(this);
+        }
+
+        /// Get a handle to the EngineAssetUniformBuffer_CameraData as an AxrEngineAssetUniformBuffer_CameraData
+        /// @returns This as an AxrEngineAssetUniformBuffer_CameraData
+        AxrEngineAssetUniformBuffer_CameraData* toRaw() {
+            return reinterpret_cast<AxrEngineAssetUniformBuffer_CameraData*>(this);
+        }
+    };
+
+    static_assert(
+        sizeof(AxrEngineAssetUniformBuffer_CameraData) == sizeof(axr::EngineAssetUniformBuffer_CameraData),
         "Original type and wrapper have different size!"
     );
 

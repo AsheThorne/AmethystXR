@@ -11,11 +11,15 @@ layout (std140, binding = 0) uniform SceneData {
     mat4 viewMatrix;
     mat4 projectionMatrix;
     mat4 viewProjectionMatrix;
+} scene;
+
+layout (std140, binding = 1) uniform CameraData {
+    vec2 dimensions;
     float cameraNearPlane;
     float cameraFarPlane;
-};
+} camera;
 
-layout (std140, binding = 1) uniform UIElement {
+layout (std140, binding = 2) uniform UIElement {
     vec2 position;
     vec2 size;
 } uiElement;
@@ -23,7 +27,6 @@ layout (std140, binding = 1) uniform UIElement {
 layout (location = 0) out vec2 fragTexCoord;
 
 void main() {
-    vec2 test = uiElement.position;
-    gl_Position = viewProjectionMatrix * modelMatrix * vec4(inPosition, 1.0);
+    gl_Position = scene.viewProjectionMatrix * modelMatrix * vec4(inPosition, 1.0);
     fragTexCoord = inTexCoord;
 }

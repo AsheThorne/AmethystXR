@@ -844,7 +844,8 @@ enum AxrEngineAssetEnum {
     // ---- Uniform Buffers - Max of 32 ----
     AXR_ENGINE_ASSET_UNIFORM_BUFFER_START = 65,
     AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA = 65,
-    AXR_ENGINE_ASSET_UNIFORM_BUFFER_UI_ELEMENTS = 66,
+    AXR_ENGINE_ASSET_UNIFORM_BUFFER_CAMERA_DATA = 66,
+    AXR_ENGINE_ASSET_UNIFORM_BUFFER_UI_ELEMENTS = 67,
     AXR_ENGINE_ASSET_UNIFORM_BUFFER_END = 96,
 
     // ---- Push Constant Buffers - Max of 32 ----
@@ -890,9 +891,13 @@ struct alignas(16) AxrEngineAssetUniformBuffer_SceneData {
     alignas(16) glm::mat4 ViewMatrix;
     alignas(16) glm::mat4 ProjectionMatrix;
     alignas(16) glm::mat4 ViewProjectionMatrix;
-    alignas(4) float CameraNearPlane;
-    alignas(4) float CameraFarPlane;
-    float _padding[2];
+};
+
+/// Engine asset uniform buffer named 'Camera Data' structure
+struct alignas(16) AxrEngineAssetUniformBuffer_CameraData {
+    alignas(8) glm::vec2 Dimensions;
+    alignas(4) float NearPlane;
+    alignas(4) float FarPlane;
 };
 
 /// Engine asset uniform buffer named 'UI Rectangle' structure

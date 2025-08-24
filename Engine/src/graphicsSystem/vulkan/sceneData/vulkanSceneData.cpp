@@ -34,6 +34,7 @@ AxrVulkanSceneData::AxrVulkanSceneData(const Config& config):
     m_PlatformUniformBuffers(
         {
             AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA,
+            AXR_ENGINE_ASSET_UNIFORM_BUFFER_CAMERA_DATA,
         }
     ) {
 }
@@ -531,6 +532,8 @@ AxrResult AxrVulkanSceneData::createAllUniformBufferData() {
             // Platform uniform buffers get created during the platform setup
         }
 
+        // TODO: Shouldn't the UI elements be platform specific? because it is possible for there to be differences
+        //  depending on the platform
         AxrUniformBuffer uiElementsUniformBuffer;
         axrEngineAssetCreateUniformBuffer_UIElements(uiElementsUniformBuffer);
         m_LocalUniformBuffers.push_back(std::move(uiElementsUniformBuffer));
