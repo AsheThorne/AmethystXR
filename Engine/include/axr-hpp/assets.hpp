@@ -2818,11 +2818,14 @@ namespace axr {
         ShaderDefaultVert = AXR_ENGINE_ASSET_SHADER_DEFAULT_VERT,
         ShaderDefaultFrag = AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG,
         ShaderDefaultFrag_Mask = AXR_ENGINE_ASSET_SHADER_DEFAULT_FRAG_MASK,
+        ShaderUIElementVert = AXR_ENGINE_ASSET_SHADER_UI_ELEMENT_VERT,
+        ShaderUIRectangleFrag = AXR_ENGINE_ASSET_SHADER_UI_RECTANGLE_FRAG,
         ShaderEnd = AXR_ENGINE_ASSET_SHADER_END,
 
         // ---- Uniform Buffers ----
         UniformBufferStart = AXR_ENGINE_ASSET_UNIFORM_BUFFER_START,
         UniformBufferSceneData = AXR_ENGINE_ASSET_UNIFORM_BUFFER_SCENE_DATA,
+        UniformBufferUIElements = AXR_ENGINE_ASSET_UNIFORM_BUFFER_UI_ELEMENTS,
         UniformBufferEnd = AXR_ENGINE_ASSET_UNIFORM_BUFFER_END,
 
         // ---- Push Constant Buffers ----
@@ -2836,17 +2839,23 @@ namespace axr {
         ImageUvTester = AXR_ENGINE_ASSET_IMAGE_UV_TESTER,
         ImageEnd = AXR_ENGINE_ASSET_IMAGE_END,
 
-        // ---- Image Samplers - Max of 8 ----
+        // ---- Image Samplers ----
         ImageSamplerStart = AXR_ENGINE_ASSET_IMAGE_SAMPLER_START,
         ImageSamplerNearestRepeat = AXR_ENGINE_ASSET_IMAGE_SAMPLER_NEAREST_REPEAT,
         ImageSamplerLinearRepeat = AXR_ENGINE_ASSET_IMAGE_SAMPLER_LINEAR_REPEAT,
         ImageSamplerEnd = AXR_ENGINE_ASSET_IMAGE_SAMPLER_END,
+
+        // ---- Materials ----
+        MaterialStart = AXR_ENGINE_ASSET_MATERIAL_START,
+        MaterialUIRectangle = AXR_ENGINE_ASSET_MATERIAL_UI_RECTANGLE,
+        MaterialEnd = AXR_ENGINE_ASSET_MATERIAL_END,
 
         // ---- Models ----
         ModelStart = AXR_ENGINE_ASSET_MODEL_START,
         ModelTriangle = AXR_ENGINE_ASSET_MODEL_TRIANGLE,
         ModelSquare = AXR_ENGINE_ASSET_MODEL_SQUARE,
         ModelCube = AXR_ENGINE_ASSET_MODEL_CUBE,
+        ModelUISquare = AXR_ENGINE_ASSET_MODEL_UI_RECTANGLE,
         ModelEnd = AXR_ENGINE_ASSET_MODEL_END,
     };
 
@@ -3077,6 +3086,9 @@ namespace axr {
         sizeof(AxrEngineAssetUniformBuffer_UIBorder) == sizeof(axr::EngineAssetUniformBuffer_UIBorder),
         "Original type and wrapper have different size!"
     );
+
+    /// Engine asset uniform buffer for a general UI element.
+    using EngineAssetUniformBuffer_UIElement = AxrEngineAssetUniformBuffer_UIElement;
 
     // ---- Push Constant Buffers ----
 
