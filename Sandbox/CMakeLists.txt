@@ -1,17 +1,26 @@
 # ---------------------------------------------
 # Create Sandbox Project
 # ---------------------------------------------
-cmake_minimum_required(VERSION 3.15.0)
+cmake_minimum_required(VERSION 3.25.0)
 project(Sandbox VERSION 0.1.0)
 
 set(AXR_SANDBOX_SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/src)
+
+# ---------------------------------------------
+# Set Header Files
+# ---------------------------------------------
+set(AXR_SANDBOX_HEADER_FILES
+    # ---- Root ----
+    ${AXR_SANDBOX_SRC_DIR}/sandbox.h
+)
 
 # ---------------------------------------------
 # Set CPP Files
 # ---------------------------------------------
 set(AXR_SANDBOX_CPP_FILES
     # ---- Root ----
-    ${AXR_SANDBOX_SRC_DIR}/main.cpp
+    ${AXR_SANDBOX_SRC_DIR}/sandbox.cpp
+    ${AXR_SANDBOX_SRC_DIR}/entrypoint_${AXR_PLATFORM}.cpp
 )
 
 # ---------------------------------------------
@@ -21,7 +30,7 @@ list(APPEND AXR_SANDBOX_FILES ${AXR_SANDBOX_CPP_FILES})
 
 if(WIN32)
     add_executable(Sandbox WIN32 ${AXR_SANDBOX_FILES})
-elseif(UNIX AND NOT APPLE)
+elseif(LINUX)
     add_executable(Sandbox ${AXR_SANDBOX_FILES})
 endif()
 
@@ -43,6 +52,6 @@ target_link_libraries(Sandbox
 if(WIN32)
     add_compile_definitions(AXR_PLATFORM_WIN32)
     add_compile_definitions(NOMINMAX)
-elseif(UNIX AND NOT APPLE)
+elseif(LINUX)
     add_compile_definitions(AXR_PLATFORM_LINUX)
 endif()

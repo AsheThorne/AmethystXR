@@ -1,7 +1,7 @@
 # ---------------------------------------------
 # Project Setup
 # ---------------------------------------------
-cmake_minimum_required(VERSION 3.15.0)
+cmake_minimum_required(VERSION 3.25.0)
 project(AXR_Engine VERSION 0.1.0)
 
 set(AXR_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/include)
@@ -60,6 +60,6 @@ add_compile_definitions(AXR_BUILD_DLL)
 if(WIN32)
     add_compile_definitions(AXR_PLATFORM_WIN32)
     add_compile_definitions(NOMINMAX)
-elseif(UNIX AND NOT APPLE)
+elseif(LINUX)
     add_compile_definitions(AXR_PLATFORM_LINUX)
 endif()
