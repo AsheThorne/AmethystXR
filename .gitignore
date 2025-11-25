@@ -1,3 +1,7 @@
+# Directories
+cmake-build/
+
+# Files
 CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles

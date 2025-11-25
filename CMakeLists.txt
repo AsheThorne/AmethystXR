@@ -1,0 +1,34 @@
+# ---------------------------------------------
+# Project Setup
+# ---------------------------------------------
+cmake_minimum_required(VERSION 3.15.0)
+project(AmethystXR VERSION 0.1.0)
+
+# ---------------------------------------------
+# Set Global Variables/Properties
+# ---------------------------------------------
+set(OUTPUT_DIRECTORY $<CONFIG>-$<PLATFORM_ID>)
+
+# ---------------------------------------------
+# Set Output Directories
+# ---------------------------------------------
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/builds/${OUTPUT_DIRECTORY}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/builds/${OUTPUT_DIRECTORY}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/builds/${OUTPUT_DIRECTORY}/bin)
+
+# ---------------------------------------------
+# Testing
+# ---------------------------------------------
+# TODO:...
+#include(CTest)
+#enable_testing()
+
+# ---------------------------------------------
+# Include AmethystXR Engine
+# ---------------------------------------------
+add_subdirectory(Engine)
+
+# ---------------------------------------------
+# Include AmethystXR Sandbox
+# ---------------------------------------------
+add_subdirectory(Sandbox)
