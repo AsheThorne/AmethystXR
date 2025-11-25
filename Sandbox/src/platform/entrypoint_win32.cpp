@@ -1,7 +1,7 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
-#include "sandbox.h"
+#include "../sandbox.h"
 #include <windows.h>
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,

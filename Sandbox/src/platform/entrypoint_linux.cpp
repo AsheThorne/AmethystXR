@@ -1,7 +1,7 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
-#include "sandbox.h"
+#include "../sandbox.h"
 
 int main() {
     return start();

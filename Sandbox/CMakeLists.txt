@@ -20,7 +20,8 @@ set(AXR_SANDBOX_HEADER_FILES
 set(AXR_SANDBOX_CPP_FILES
     # ---- Root ----
     ${AXR_SANDBOX_SRC_DIR}/sandbox.cpp
-    ${AXR_SANDBOX_SRC_DIR}/entrypoint_${AXR_PLATFORM}.cpp
+    # ---- Platform ----
+    ${AXR_SANDBOX_SRC_DIR}/platform/entrypoint_${AXR_PLATFORM}.cpp
 )
 
 # ---------------------------------------------
