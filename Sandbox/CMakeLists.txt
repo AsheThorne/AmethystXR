@@ -25,6 +25,12 @@ set(AXR_SANDBOX_CPP_FILES
 )
 
 # ---------------------------------------------
+# Set Sandbox linker options
+# ---------------------------------------------
+
+add_link_options(-municode)
+
+# ---------------------------------------------
 # Create Sandbox Executable
 # ---------------------------------------------
 list(APPEND AXR_SANDBOX_FILES ${AXR_SANDBOX_CPP_FILES})
@@ -50,6 +56,8 @@ target_link_libraries(Sandbox
 # ---------------------------------------------
 # Set Sandbox compile definitions
 # ---------------------------------------------
+add_compile_definitions(UNICODE)
+
 if(WIN32)
     add_compile_definitions(AXR_PLATFORM_WIN32)
     add_compile_definitions(NOMINMAX)

@@ -7,7 +7,7 @@ project(AmethystXR VERSION 0.1.0)
 # ---------------------------------------------
 # Set Global Variables/Properties
 # ---------------------------------------------
-set(OUTPUT_DIRECTORY $<CONFIG>-$<PLATFORM_ID>)
+set(OUTPUT_DIRECTORY $<CONFIG>)
 
 # ---------------------------------------------
 # Set Output Directories

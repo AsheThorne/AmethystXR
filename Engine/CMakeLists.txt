@@ -56,6 +56,7 @@ target_include_directories(AXR_Engine
 # Set AXR_Engine compile definitions
 # ---------------------------------------------
 add_compile_definitions(AXR_BUILD_DLL)
+add_compile_definitions(UNICODE)
 
 if(WIN32)
     add_compile_definitions(AXR_PLATFORM_WIN32)
