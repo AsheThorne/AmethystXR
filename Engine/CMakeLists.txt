@@ -50,6 +50,7 @@ set_target_properties(AXR_Engine PROPERTIES
 # ---------------------------------------------
 target_include_directories(AXR_Engine
     PUBLIC ${AXR_INCLUDE_DIR}
+    ${SPDLOG_DIRECTORY}/include
 )
 
 # ---------------------------------------------

@@ -9,18 +9,20 @@ project(AmethystXR VERSION 0.1.0)
 # ---------------------------------------------
 set(OUTPUT_DIRECTORY $<CONFIG>)
 
-# ---------------------------------------------
-# Set Output Directories
-# ---------------------------------------------
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/builds/${OUTPUT_DIRECTORY}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/builds/${OUTPUT_DIRECTORY}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/builds/${OUTPUT_DIRECTORY}/bin)
+set(SPDLOG_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/spdlog)
 
 if(WIN32)
     set(AXR_PLATFORM win32)
 elseif(LINUX)
     set(AXR_PLATFORM linux)
 endif()
+
+# ---------------------------------------------
+# Set Output Directories
+# ---------------------------------------------
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/builds/${OUTPUT_DIRECTORY}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/builds/${OUTPUT_DIRECTORY}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/builds/${OUTPUT_DIRECTORY}/bin)
 
 # ---------------------------------------------
 # Testing

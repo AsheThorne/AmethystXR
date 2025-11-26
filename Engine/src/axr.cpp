@@ -3,10 +3,12 @@
 // ----------------------------------------- //
 #include "axr/axr.h"
 #include <iostream>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
 
 // ----------------------------------------- //
 // External Functions
 // ----------------------------------------- //
 void axrTest() {
-    std::cout << "Hello, from AmethystXR!" << std::endl;
+    spdlog::info("Hello, from AmethystXR!");
 }
