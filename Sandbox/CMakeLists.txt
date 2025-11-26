@@ -25,12 +25,6 @@ set(AXR_SANDBOX_CPP_FILES
 )
 
 # ---------------------------------------------
-# Set Sandbox linker options
-# ---------------------------------------------
-
-add_link_options(-municode)
-
-# ---------------------------------------------
 # Create Sandbox Executable
 # ---------------------------------------------
 list(APPEND AXR_SANDBOX_FILES ${AXR_SANDBOX_CPP_FILES})
@@ -47,6 +41,17 @@ set_target_properties(Sandbox PROPERTIES
 )
 
 # ---------------------------------------------
+# Set Sandbox linker options
+# ---------------------------------------------
+
+if(WIN32 AND MINGW)
+    target_link_options(Sandbox PRIVATE 
+        "-Wl,--subsystem,console" 
+        -municode
+    )
+endif()
+
+# ---------------------------------------------
 # Link libraries to Sandbox 
 # ---------------------------------------------
 target_link_libraries(Sandbox 
@@ -56,11 +61,16 @@ target_link_libraries(Sandbox
 # ---------------------------------------------
 # Set Sandbox compile definitions
 # ---------------------------------------------
-add_compile_definitions(UNICODE)
 
 if(WIN32)
-    add_compile_definitions(AXR_PLATFORM_WIN32)
-    add_compile_definitions(NOMINMAX)
+    target_compile_definitions(Sandbox PRIVATE
+        AXR_PLATFORM_WIN32 
+        NOMINMAX 
+        UNICODE 
+        _UNICODE
+    )
 elseif(LINUX)
-    add_compile_definitions(AXR_PLATFORM_LINUX)
+    target_compile_definitions(Sandbox PRIVATE
+        AXR_PLATFORM_LINUX
+    )
 endif()

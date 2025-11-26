@@ -55,12 +55,19 @@ target_include_directories(AXR_Engine
 # ---------------------------------------------
 # Set AXR_Engine compile definitions
 # ---------------------------------------------
-add_compile_definitions(AXR_BUILD_DLL)
-add_compile_definitions(UNICODE)
+target_compile_definitions(AXR_Engine PRIVATE
+    AXR_BUILD_DLL 
+)
 
 if(WIN32)
-    add_compile_definitions(AXR_PLATFORM_WIN32)
-    add_compile_definitions(NOMINMAX)
+    target_compile_definitions(AXR_Engine PRIVATE
+        AXR_PLATFORM_WIN32 
+        NOMINMAX 
+        UNICODE 
+        _UNICODE
+    )
 elseif(LINUX)
-    add_compile_definitions(AXR_PLATFORM_LINUX)
+    target_compile_definitions(AXR_Engine PRIVATE
+        AXR_PLATFORM_LINUX 
+    )
 endif()
