@@ -55,6 +55,15 @@ target_include_directories(AXR_Engine
 )
 
 # ---------------------------------------------
+# Set AXR_Engine compile options
+# ---------------------------------------------
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_compile_options(AXR_Engine PRIVATE
+        $<$<CONFIG:Debug>:-Wall>
+    )
+endif()
+
+# ---------------------------------------------
 # Set AXR_Engine compile definitions
 # ---------------------------------------------
 target_compile_definitions(AXR_Engine PRIVATE

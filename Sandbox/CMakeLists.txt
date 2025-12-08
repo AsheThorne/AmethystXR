@@ -52,6 +52,15 @@ if(WIN32 AND MINGW)
 endif()
 
 # ---------------------------------------------
+# Set AXR_Engine compile options
+# ---------------------------------------------
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_compile_options(Sandbox PRIVATE
+        $<$<CONFIG:Debug>:-Wall>
+    )
+endif()
+
+# ---------------------------------------------
 # Link libraries to Sandbox 
 # ---------------------------------------------
 target_link_libraries(Sandbox 
@@ -61,7 +70,6 @@ target_link_libraries(Sandbox
 # ---------------------------------------------
 # Set Sandbox compile definitions
 # ---------------------------------------------
-
 target_compile_definitions(Sandbox PRIVATE
     $<$<CONFIG:Debug>:AXR_LOG_SOURCE_LOCATION>
 )
