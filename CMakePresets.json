@@ -2,27 +2,27 @@
     "version": 8,
     "configurePresets": [
         {
-            "name": "GCC-Linux",
+            "name": "GCC-Linux-Debug",
             "displayName": "GCC 15.2.1 x86_64-pc-linux-gnu",
-            "description": "Using compilers: C = /usr/bin/gcc, CXX = /usr/bin/g++",
-            "binaryDir": "${sourceDir}/cmake-build/${presetName}",
+            "description": "Using compilers: C = gcc, CXX = g++",
+            "binaryDir": "${sourceDir}/cmake-build/GCC-Linux",
             "cacheVariables": {
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/cmake-build/${presetName}/install",
-                "CMAKE_C_COMPILER": "/usr/bin/gcc",
-                "CMAKE_CXX_COMPILER": "/usr/bin/g++",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/cmake-build/GCC-Linux/install",
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_CXX_COMPILER": "g++",
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
         {
-            "name": "GCC-Win32",
+            "name": "GCC-Win32-Debug",
             "displayName": "GCC 12.1.0 x86_64-w64-mingw32",
-            "description": "Using compilers: C = C:\\msys64\\ucrt64\\bin\\gcc.exe, CXX = C:\\msys64\\ucrt64\\bin\\g++.exe",
-            "binaryDir": "${sourceDir}/cmake-build/${presetName}",
+            "description": "Using compilers: C = gcc, CXX = g++",
+            "binaryDir": "${sourceDir}/cmake-build/GCC-Win32",
             "generator": "Ninja",
             "cacheVariables": {
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/cmake-build/${presetName}/install",
-                "CMAKE_C_COMPILER": "C:/msys64/ucrt64/bin/gcc.exe",
-                "CMAKE_CXX_COMPILER": "C:/msys64/ucrt64/bin/g++.exe",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/cmake-build/GCC-Win32/install",
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_CXX_COMPILER": "g++",
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         }
