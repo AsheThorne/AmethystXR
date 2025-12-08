@@ -60,6 +60,7 @@ target_include_directories(AXR_Engine
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(AXR_Engine PRIVATE
         $<$<CONFIG:Debug>:-Wall>
+        $<$<CONFIG:Debug>:-Werror>
     )
 endif()
 

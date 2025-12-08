@@ -57,6 +57,7 @@ endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(Sandbox PRIVATE
         $<$<CONFIG:Debug>:-Wall>
+        $<$<CONFIG:Debug>:-Werror>
     )
 endif()
 
