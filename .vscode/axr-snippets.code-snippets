@@ -15,6 +15,33 @@
 	// 	],
 	// 	"description": "Log output to console"
 	// }
+	"New axr library header file": {
+		"scope": "c,cpp",
+		"prefix": "libh",
+		"body": [
+			"#pragma once",
+			"",
+			"// ----------------------------------------- //",
+			"// Headers",
+			"// ----------------------------------------- //",
+			"",
+			"// ----------------------------------------- //",
+			"// Enums",
+			"// ----------------------------------------- //",
+			"",
+			"// ----------------------------------------- //",
+			"// Structs",
+			"// ----------------------------------------- //",
+			"",
+			"// ----------------------------------------- //",
+			"// External Function Definitions",
+			"// ----------------------------------------- //",
+			"extern \"C\" {",
+			"}",
+			"$0",
+		],
+		"description": "Generate the boiler plate for a new axr library header file.",
+	},
 	"Create Title Comment": {
 		"scope": "c,cpp",
 		"prefix": "cmtt",
@@ -22,7 +49,15 @@
 			"// ----------------------------------------- //",
 			"// ${1:title}",
 			"// ----------------------------------------- //",
-			"$0",
 		],
-	}
+		"description": "Create a new title comment.",
+	},
+	"Create Sub-Title Comment": {
+		"scope": "c,cpp",
+		"prefix": "cmtts",
+		"body": [
+			"// ---- ${1:title} ----",
+		],
+		"description": "Create a new sub-title comment.",
+	},
 }
