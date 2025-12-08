@@ -10,11 +10,12 @@
 #include <spdlog/spdlog.h>
 
 // ----------------------------------------- //
-// Structs
+// Classes
 // ----------------------------------------- //
 
 /// Log message with a location
-struct AxrLogMessageWithLocation {
+class AxrLogMessageWithLocation {
+public:
     // ----------------------------------------- //
     // Public Variables
     // ----------------------------------------- //
@@ -36,10 +37,6 @@ struct AxrLogMessageWithLocation {
         Location(location) {
     }
 };
-
-// ----------------------------------------- //
-// Classes
-// ----------------------------------------- //
 
 // Reference: https://deepwiki.com/gabime/spdlog/7.2-custom-types-and-formatters
 // Based on spdlog::details::full_formatter (the default spdlog formatter)
@@ -150,18 +147,18 @@ void axrLoggerSetup(const std::string& loggerName);
 /// @brief Create a new logger
 /// @param loggerName The logger's name
 /// @return AXR_SUCCESS on success. AXR_DUPLICATE if the logger name already exists.
-AxrResult axrLoggerCreate(const std::string& loggerName);
+[[nodiscard]] AxrResult axrLoggerCreate(const std::string& loggerName);
 /// @brief Set the default logger to the named logger
 /// @param loggerName The logger's name
 /// @return AXR_SUCCESS on success. AXR_ERROR_NOT_FOUND if the logger doesn't exist.
-AxrResult axrLoggerSetDefault(const std::string& loggerName);
+[[nodiscard]] AxrResult axrLoggerSetDefault(const std::string& loggerName);
 
 // ---- Util Functions ----
 
 /// @brief Convert a AxrLogLevelEnum to a spdlog level enum
 /// @param level The AxrLogLevelEnum
 /// @return The spdlog level enum
-spdlog::level::level_enum axrToSpdlogLevel(AxrLogLevelEnum level);
+[[nodiscard]] spdlog::level::level_enum axrToSpdlogLevel(AxrLogLevelEnum level);
 
 // ---- Basic Logging Functions ----
 
@@ -265,8 +262,8 @@ void axrLogForLogger(const std::string& loggerName,
 // ---- Logger ----
 
 inline void axrLoggerSetup(const std::string& loggerName) {
-    axrLoggerCreate(loggerName);
-    axrLoggerSetDefault(loggerName);
+    (void)axrLoggerCreate(loggerName);
+    (void)axrLoggerSetDefault(loggerName);
 }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to create logger. "
