@@ -58,7 +58,8 @@ target_include_directories(AXR_Engine
 # Set AXR_Engine compile definitions
 # ---------------------------------------------
 target_compile_definitions(AXR_Engine PRIVATE
-    AXR_BUILD_DLL 
+    AXR_BUILD_DLL
+    $<$<CONFIG:Debug>:AXR_LOG_SOURCE_LOCATION>
 )
 
 if(WIN32)

@@ -1,29 +1,61 @@
 {
     "version": 8,
+    "buildPresets": [
+        {
+            "name": "linux-debug",
+            "displayName": "Linux Debug",
+            "configurePreset": "linux",
+            "configuration": "Debug",
+            "description": "Target Linux with GCC (Debug)"
+        },
+        {
+            "name": "linux-release",
+            "displayName": "Linux Release",
+            "configurePreset": "linux",
+            "configuration": "Release",
+            "description": "Target Linux with GCC (Release)"
+        },
+        {
+            "name": "windows-debug",
+            "displayName": "Windows Debug",
+            "configurePreset": "windows",
+            "configuration": "Debug",
+            "description": "Target Windows with GCC (Debug)"
+        },
+        {
+            "name": "windows-release",
+            "displayName": "Windows Release",
+            "configurePreset": "windows",
+            "configuration": "Release",
+            "description": "Target Windows with GCC (Release)"
+        }
+    ],
     "configurePresets": [
         {
-            "name": "GCC-Linux-Debug",
-            "displayName": "GCC 15.2.1 x86_64-pc-linux-gnu",
-            "description": "Using compilers: C = gcc, CXX = g++",
-            "binaryDir": "${sourceDir}/cmake-build/GCC-Linux",
+            "name": "GCC-Base",
+            "displayName": "GCC Base",
+            "description": "Base configuration with gcc",
+            "generator": "Ninja Multi-Config",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/cmake-build/${presetName}",
             "cacheVariables": {
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/cmake-build/GCC-Linux/install",
                 "CMAKE_C_COMPILER": "gcc",
                 "CMAKE_CXX_COMPILER": "g++",
-                "CMAKE_BUILD_TYPE": "Debug"
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/cmake-build/${presetName}/install"
             }
         },
         {
-            "name": "GCC-Win32-Debug",
-            "displayName": "GCC 12.1.0 x86_64-w64-mingw32",
-            "description": "Using compilers: C = gcc, CXX = g++",
-            "binaryDir": "${sourceDir}/cmake-build/GCC-Win32",
-            "generator": "Ninja",
+            "name": "linux",
+            "displayName": "Linux",
+            "description": "Target Linux with GCC",
+            "inherits": "GCC-Base"
+        },
+        {
+            "name": "windows",
+            "displayName": "Windows",
+            "description": "Target Windows with GCC",
+            "inherits": "GCC-Base",
             "cacheVariables": {
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/cmake-build/GCC-Win32/install",
-                "CMAKE_C_COMPILER": "gcc",
-                "CMAKE_CXX_COMPILER": "g++",
-                "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_EXE_LINKER_FLAGS": "-static-libgcc -static-libstdc++"
             }
         }

@@ -62,6 +62,10 @@ target_link_libraries(Sandbox
 # Set Sandbox compile definitions
 # ---------------------------------------------
 
+target_compile_definitions(Sandbox PRIVATE
+    $<$<CONFIG:Debug>:AXR_LOG_SOURCE_LOCATION>
+)
+
 if(WIN32)
     target_compile_definitions(Sandbox PRIVATE
         AXR_PLATFORM_WIN32 

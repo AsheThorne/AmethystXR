@@ -18,6 +18,11 @@ elseif(LINUX)
 endif()
 
 # ---------------------------------------------
+# Setup Build Configurations
+# ---------------------------------------------
+set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
+
+# ---------------------------------------------
 # Set Output Directories
 # ---------------------------------------------
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/builds/${OUTPUT_DIRECTORY}/lib)
