@@ -14,3 +14,7 @@
       at the end. It's to help the readability of errors/warnings and reduce repeating the same string for multiple
       errors. Create a human-readable message in the macro to point to what function failed. And in the log message, add
       a reason for the failure. Look at `axrLoggerCreate` in `logging.h` as an example.
+- If you don't care about a function's return value, then cast the function to void like so `(void)f();`. This will
+  prevent warnings about unused return values. like what we see in `axrLoggerSetup()` in `logging.h`.
+- Make sure to keep memory alignment in mind when defining classes/structs
+    - Probably would be a good idea to be explicit about padding too (example, `uint8_t _padding[n]`)

@@ -6,7 +6,7 @@
   system. So we should design the engine with multiplayer in mind from the start.
 - Create wrappers for third party libraries
     - The main reason is it makes it easier to swap things out if we decide to later.
-- Build a custom memory management stystem
+- Build a custom memory management system
 - Build the renderer decoupled from everything. Unlike V2 of AmethystXR. It should take in a surface to render too and
   assets to draw as inputs.
 - Platform specific stuff should follow the pattern of: One header file defined and each platform gets its own file.
@@ -18,8 +18,6 @@
     - [[nodiscard]]
     - [[likely]]/[[unlikely]]
 - Use [`concepts`](https://en.cppreference.com/w/cpp/language/constraints.html) to limit template usage
-- Make sure to keep memory alignment in mind when defining classes/structs
-    - Probaly would be a good idea to be explicit about padding too (example, `uint8_t _padding[n]`)
 
 ## Specific Notes
 
