@@ -11,3 +11,10 @@ An OpenXR focused game engine written in c++
 ### Troubleshooting
 
 if you get a clang format error that looks like this: `The 'clang-format' command is not available. Please check your clang-format.executable user setting and ensure it is installed.` Make sure you have clang installed on your machine.
+
+## Linux
+
+### Troubleshooting
+
+If console color isn't working, make sure you have the $TERM env variable set. You can set it globally, within
+`/etc/environment` like so, `TERM=xterm-256color`.

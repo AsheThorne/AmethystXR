@@ -9,6 +9,6 @@
 // ----------------------------------------- //
 
 int start() {
-    axrTest();
+    axrLoggerSetup("Application");
     return 0;
 }

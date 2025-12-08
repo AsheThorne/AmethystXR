@@ -22,8 +22,10 @@ set(AXR_PUBLIC_HEADER_FILES
     # ---- Root ----
     ${AXR_INCLUDE_DIR}/axr/axr.h
     ${AXR_INCLUDE_DIR}/axr/common.h
+    ${AXR_INCLUDE_DIR}/axr/logging.h
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr/common/defines.h
+    ${AXR_INCLUDE_DIR}/axr/common/enums.h
 )
 
 # ---------------------------------------------
