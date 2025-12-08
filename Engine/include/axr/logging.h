@@ -143,7 +143,7 @@ inline AxrResult axrLoggerCreate(const std::string& loggerName) {
         return AXR_DUPLICATE;
     }
 
-    const std::shared_ptr<spdlog::logger> logger = spdlog::stdout_color_mt(loggerName, spdlog::color_mode::always);
+    const std::shared_ptr<spdlog::logger> logger = spdlog::stdout_color_mt(loggerName);
     auto formatter = std::make_unique<spdlog::pattern_formatter>();
     formatter->add_flag<AxrFlagFormatter>('.').set_pattern("%.");
     logger->set_formatter(std::move(formatter));
