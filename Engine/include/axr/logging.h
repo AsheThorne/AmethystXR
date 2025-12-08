@@ -50,22 +50,22 @@ public:
 
         dest.append(cached_datetime_.begin(), cached_datetime_.end());
 
-        msg.color_range_start = dest.size();
-
         // Append level name
         dest.push_back(' ');
+        dest.push_back('[');
+        msg.color_range_start = dest.size();
         const auto levelStringView = spdlog::level::to_string_view(msg.level);
         // Capitalize the first character
         dest.push_back(static_cast<const char>(std::toupper(levelStringView.data()[0])));
         dest.append(levelStringView.begin() + 1, levelStringView.end());
+        msg.color_range_end = dest.size();
+        dest.push_back(']');
 
         // Append logger name
         dest.push_back(' ');
         dest.push_back('[');
         spdlog::details::fmt_helper::append_string_view(msg.logger_name, dest);
         dest.push_back(']');
-
-        msg.color_range_end = dest.size();
 
         // Append source location if it exists
         if (!msg.source.empty()) {
@@ -138,28 +138,35 @@ inline void axrLoggerSetup(const std::string& loggerName) {
     axrLoggerSetDefault(loggerName);
 }
 
+#define AXR_FUNCTION_FAILED_STRING "Failed to create logger. "
 inline AxrResult axrLoggerCreate(const std::string& loggerName) {
     if (spdlog::get(loggerName) != nullptr) {
+        spdlog::warn(AXR_FUNCTION_FAILED_STRING "Logger named \"{}\" already exists.", loggerName.c_str());
         return AXR_DUPLICATE;
     }
 
     const std::shared_ptr<spdlog::logger> logger = spdlog::stdout_color_mt(loggerName);
     auto formatter = std::make_unique<spdlog::pattern_formatter>();
     formatter->add_flag<AxrFlagFormatter>('.').set_pattern("%.");
+    formatter->need_localtime(true);
     logger->set_formatter(std::move(formatter));
     logger->set_level(spdlog::level::trace);
 
-    logger->log(spdlog::level::info, "Logger Created.");
+    logger->log(spdlog::level::info, "Logger created.");
 
     return AXR_SUCCESS;
 }
+#undef AXR_FUNCTION_FAILED_STRING
 
+#define AXR_FUNCTION_FAILED_STRING "Failed to set default logger. "
 inline AxrResult axrLoggerSetDefault(const std::string& loggerName) {
     const std::shared_ptr<spdlog::logger> logger = spdlog::get(loggerName);
     if (logger == nullptr) {
+        spdlog::error(AXR_FUNCTION_FAILED_STRING "Logger named \"{}\" could not be found.", loggerName.c_str());
         return AXR_ERROR_NOT_FOUND;
     }
 
     spdlog::set_default_logger(logger);
     return AXR_SUCCESS;
 }
+#undef AXR_FUNCTION_FAILED_STRING

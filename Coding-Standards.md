@@ -8,3 +8,9 @@
     - Errors MUST be prefixed with `AXR_ERROR_`
         - If any return code is not prefixed with `AXR_ERROR_`, then it's assumed to not cause much issue and probably
           won't need to be handled.
+    - Usually, any success code (positive code) that isn't `AXR_SUCCESS`, is a warning.
+- Logging messages
+    - It's highly recommended to define a `AXR_FUNCTION_FAILED_STRING` macro at the start of a function, and undefine it
+      at the end. It's to help the readability of errors/warnings and reduce repeating the same string for multiple
+      errors. Create a human-readable message in the macro to point to what function failed. And in the log message, add
+      a reason for the failure. Look at `axrLoggerCreate` in `logging.h` as an example.
