@@ -146,7 +146,7 @@ enum AxrLogLevelEnum {
 void axrLoggerSetup(const std::string& loggerName);
 /// @brief Create a new logger
 /// @param loggerName The logger's name
-/// @return AXR_SUCCESS on success. AXR_DUPLICATE if the logger name already exists.
+/// @return AXR_SUCCESS on success. AXR_ERROR_DUPLICATE if the logger name already exists.
 [[nodiscard]] AxrResult axrLoggerCreate(const std::string& loggerName);
 /// @brief Set the default logger to the named logger
 /// @param loggerName The logger's name
@@ -270,7 +270,7 @@ inline void axrLoggerSetup(const std::string& loggerName) {
 inline AxrResult axrLoggerCreate(const std::string& loggerName) {
     if (spdlog::get(loggerName) != nullptr) {
         axrLogWarning(AXR_FUNCTION_FAILED_STRING "Logger named \"{}\" already exists.", loggerName.c_str());
-        return AXR_DUPLICATE;
+        return AXR_ERROR_DUPLICATE;
     }
 
     const std::shared_ptr<spdlog::logger> logger = spdlog::stdout_color_mt(loggerName);
