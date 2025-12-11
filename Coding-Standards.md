@@ -23,3 +23,5 @@
 - Make sure to keep memory alignment in mind when defining classes/structs
     - Probably would be a good idea to be explicit about padding too (example, `uint8_t _padding[n]`)
 - Keep heap allocations to a minimum and NEVER from the heap within a tight loop.
+- Avoid namespaces in the engine source code. This is because we can't use them in exported functions (including return
+  types and parameters). so to keep things consistent, we'll just avoid using them.

@@ -16,7 +16,7 @@ configure_file(
 )
 
 # ---------------------------------------------
-# Set Header Files
+# Set Public Header Files
 # ---------------------------------------------
 set(AXR_PUBLIC_HEADER_FILES
     # ---- Root ----
@@ -29,20 +29,23 @@ set(AXR_PUBLIC_HEADER_FILES
 )
 
 # ---------------------------------------------
-# Set CPP Files
+# Set Source Files
 # ---------------------------------------------
-set(AXR_CPP_FILES
+set(AXR_SOURCE_FILES
     # ---- Root ----
+    # ---- Memory ----
+    ${AXR_SRC_DIR}/memory/allocator.h
+    ${AXR_SRC_DIR}/memory/allocator.cpp
 )
 
 # ---------------------------------------------
 # Create AXR_Engine library
 # ---------------------------------------------
-list(APPEND AXR_FILES ${AXR_CPP_FILES} ${AXR_PUBLIC_HEADER_FILES})
+list(APPEND AXR_FILES ${AXR_SOURCE_FILES} ${AXR_PUBLIC_HEADER_FILES})
 add_library(AXR_Engine SHARED ${AXR_FILES})
 
-set_target_properties(AXR_Engine PROPERTIES 
-    LINKER_LANGUAGE CXX 
+set_target_properties(AXR_Engine PROPERTIES
+    LINKER_LANGUAGE CXX
     CXX_STANDARD 20
 )
 
@@ -74,13 +77,13 @@ target_compile_definitions(AXR_Engine PRIVATE
 
 if(WIN32)
     target_compile_definitions(AXR_Engine PRIVATE
-        AXR_PLATFORM_WIN32 
-        NOMINMAX 
-        UNICODE 
+        AXR_PLATFORM_WIN32
+        NOMINMAX
+        UNICODE
         _UNICODE
     )
 elseif(LINUX)
     target_compile_definitions(AXR_Engine PRIVATE
-        AXR_PLATFORM_LINUX 
+        AXR_PLATFORM_LINUX
     )
 endif()
