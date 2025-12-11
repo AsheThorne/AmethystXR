@@ -23,6 +23,7 @@ set(AXR_PUBLIC_HEADER_FILES
     ${AXR_INCLUDE_DIR}/axr/axr.h
     ${AXR_INCLUDE_DIR}/axr/common.h
     ${AXR_INCLUDE_DIR}/axr/logging.h
+    ${AXR_INCLUDE_DIR}/axr/lifecycle.h
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr/common/defines.h
     ${AXR_INCLUDE_DIR}/axr/common/enums.h
@@ -33,6 +34,7 @@ set(AXR_PUBLIC_HEADER_FILES
 # ---------------------------------------------
 set(AXR_SOURCE_FILES
     # ---- Root ----
+    ${AXR_SRC_DIR}/lifecycle.cpp
     # ---- Memory ----
     ${AXR_SRC_DIR}/memory/allocator.h
     ${AXR_SRC_DIR}/memory/allocator.cpp

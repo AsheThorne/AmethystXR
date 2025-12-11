@@ -1,0 +1,34 @@
+// ----------------------------------------- //
+// Headers
+// ----------------------------------------- //
+#include "axr/lifecycle.h"
+#include "axr/logging.h"
+#include "memory/allocator.h"
+
+// ----------------------------------------- //
+// External Function Definitions
+// ----------------------------------------- //
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to set up axr engine. "
+AxrResult axrSetup(const AxrEngineConfig* config) {
+    // NOTE (Ashe): If we decide to use the AxrAllocator for the logger too then we obviously cannot set up the logger
+    //  first. One issue with that though, is we can't do logging until that's set up.
+    axrLoggerSetup(AxrEngineName);
+
+    if (config == nullptr) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "`config` is null.");
+        return AXR_ERROR_NULLPTR;
+    }
+
+    if (AXR_FAILED(AxrAllocator::get().setup(AxrAllocator::Config{}))) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "AxrAllocator.setup() failed.");
+        return AXR_ERROR_FALLTHROUGH;
+    }
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+void axrShutdown() {
+    AxrAllocator::get().shutDown();
+}

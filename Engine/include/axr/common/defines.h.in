@@ -32,9 +32,14 @@
 #define AXR_VERSION_MINOR(version) (((uint32_t)(version) >> 12U) & 0x3FFU)
 #define AXR_VERSION_PATCH(version) ((uint32_t)(version) & 0xFFFU)
 
-// ----------------------------------------- //
-// AXR Engine Data
-// ----------------------------------------- //
 // clang-format off
 #define AXR_ENGINE_VERSION AXR_MAKE_VERSION(@AXR_Engine_VERSION_MAJOR@, @AXR_Engine_VERSION_MINOR@, @AXR_Engine_VERSION_PATCH@)
 // clang-format on
+
+// ---- Max String Sizes ----
+#define AXR_MAX_ENGINE_NAME_SIZE 128
+
+// ----------------------------------------- //
+// AXR Engine Data
+// ----------------------------------------- //
+inline char AxrEngineName[AXR_MAX_ENGINE_NAME_SIZE] = "AmethystXR";

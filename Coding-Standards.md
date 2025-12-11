@@ -18,6 +18,11 @@
       at the end. It's to help the readability of errors/warnings and reduce repeating the same string for multiple
       errors. Create a human-readable message in the macro to point to what function failed. And in the log message, add
       a reason for the failure. Look at `axrLoggerCreate` in `logging.h` as an example.
+- Error checking
+    - If an error check can fail due to user (someone using the engine) error, then check it normally and return the
+      correct error code. e.g. `if (AXR_FAILED(...)) return AXR_ERROR_...`.
+    - If an error check can only fail due to programmer error, then use the `assert()` macro. They won't get picked up
+      outside of debug mode, so be careful with how it's used.
 - If you don't care about a function's return value, then cast the function to void like so `(void)f();`. This will
   prevent warnings about unused return values. like what we see in `axrLoggerSetup()` in `logging.h`.
 - Make sure to keep memory alignment in mind when defining classes/structs

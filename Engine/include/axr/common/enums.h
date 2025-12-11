@@ -15,4 +15,6 @@ enum AxrResult {
     AXR_ERROR_DUPLICATE = -2,
     /// Error, failed to find the object
     AXR_ERROR_NOT_FOUND = -3,
+    /// Error, encountered a nullptr
+    AXR_ERROR_NULLPTR = -4,
 };
