@@ -89,3 +89,44 @@ elseif(LINUX)
         AXR_PLATFORM_LINUX
     )
 endif()
+
+# ---------------------------------------------
+# Testing
+# ---------------------------------------------
+include(CTest)
+enable_testing()
+
+set(AXR_TEST_DIR ${CMAKE_CURRENT_LIST_DIR}/tests)
+
+# ---------------------------------------------
+# Set Testing Files
+# ---------------------------------------------
+set(AXR_TEST_FILES
+    # ---- Root ----
+    ${AXR_TEST_DIR}/test.cpp
+)
+
+# ---------------------------------------------
+# Create Test Executables
+# ---------------------------------------------
+
+if(WIN32)
+    add_executable(AXR_Test WIN32 ${AXR_TEST_FILES})
+elseif(LINUX)
+    add_executable(AXR_Test ${AXR_TEST_FILES})
+endif()
+
+target_link_libraries(AXR_Test PRIVATE
+    GTest::gtest_main
+    AXR_Engine
+)
+
+set_target_properties(AXR_Test PROPERTIES
+    LINKER_LANGUAGE CXX
+    CXX_STANDARD 20
+)
+
+# ---------------------------------------------
+# Add Tests
+# ---------------------------------------------
+add_test(AXR_Engine_Tests AXR_Test)
