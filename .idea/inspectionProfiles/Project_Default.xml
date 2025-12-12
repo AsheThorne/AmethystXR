@@ -3,5 +3,6 @@
     <option name="myName" value="Project Default" />
     <inspection_tool class="CppClassCanBeFinal" enabled="true" level="HINT" enabled_by_default="true" editorAttributes="HINT" />
     <inspection_tool class="CppTooWideScopeInitStatement" enabled="true" level="INFORMATION" enabled_by_default="true" editorAttributes="INFORMATION_ATTRIBUTES" />
+    <inspection_tool class="CppUseStructuredBinding" enabled="true" level="INFORMATION" enabled_by_default="true" editorAttributes="INFORMATION_ATTRIBUTES" />
   </profile>
 </component>
