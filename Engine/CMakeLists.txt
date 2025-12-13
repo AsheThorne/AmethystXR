@@ -27,6 +27,8 @@ set(AXR_PUBLIC_HEADER_FILES
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr/common/defines.h
     ${AXR_INCLUDE_DIR}/axr/common/enums.h
+    ${AXR_INCLUDE_DIR}/axr/common/callback.h
+    ${AXR_INCLUDE_DIR}/axr/common/utils.h
 )
 
 # ---------------------------------------------
