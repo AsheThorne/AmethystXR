@@ -8,7 +8,7 @@
 
 #include <cstdint>
 
-/// Double Stack allocator
+/// Double-Ended Stack allocator
 class AxrDoubleStackAllocator {
 public:
     // ----------------------------------------- //
