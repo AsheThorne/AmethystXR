@@ -15,19 +15,19 @@ public:
     // ---- Constructors ----
 
     /// Copy Constructor
-    /// @param src Source a to copy from
+    /// @param src Source AxrAllocator to copy from
     AxrAllocator(const AxrAllocator& src) = delete;
     /// Move Constructor
-    /// @param src Source a to move from
+    /// @param src Source AxrAllocator to move from
     AxrAllocator(AxrAllocator&& src) noexcept = delete;
 
     // ---- Operator Overloads ----
 
     /// Copy Assignment Operator
-    /// @param src Source a to copy from
+    /// @param src Source AxrAllocator to copy from
     AxrAllocator& operator=(const AxrAllocator& src) = delete;
     /// Move Assignment Operator
-    /// @param src Source a to move from
+    /// @param src Source AxrAllocator to move from
     AxrAllocator& operator=(AxrAllocator&& src) noexcept = delete;
 
 private:

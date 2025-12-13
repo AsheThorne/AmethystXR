@@ -38,8 +38,11 @@ set(AXR_SOURCE_FILES
     # ---- Root ----
     ${AXR_SRC_DIR}/lifecycle.cpp
     # ---- Memory ----
+    ${AXR_SRC_DIR}/memory/types.h
     ${AXR_SRC_DIR}/memory/allocator.h
     ${AXR_SRC_DIR}/memory/allocator.cpp
+    ${AXR_SRC_DIR}/memory/stackAllocator.h
+    ${AXR_SRC_DIR}/memory/stackAllocator.cpp
 )
 
 # ---------------------------------------------
@@ -105,7 +108,9 @@ set(AXR_TEST_DIR ${CMAKE_CURRENT_LIST_DIR}/tests)
 # ---------------------------------------------
 set(AXR_TEST_FILES
     # ---- Root ----
-    ${AXR_TEST_DIR}/test.cpp
+    ${AXR_TEST_DIR}/main.cpp
+    # ---- Memory ----
+    ${AXR_TEST_DIR}/memory/stackAllocatorTests.cpp
 )
 
 # ---------------------------------------------
@@ -126,6 +131,10 @@ target_link_libraries(AXR_Test PRIVATE
 set_target_properties(AXR_Test PROPERTIES
     LINKER_LANGUAGE CXX
     CXX_STANDARD 20
+)
+
+target_include_directories(AXR_Test PUBLIC
+    ${AXR_SRC_DIR}
 )
 
 # ---------------------------------------------

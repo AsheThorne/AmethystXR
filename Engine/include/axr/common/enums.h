@@ -17,4 +17,6 @@ enum AxrResult {
     AXR_ERROR_NOT_FOUND = -3,
     /// Error, encountered a nullptr
     AXR_ERROR_NULLPTR = -4,
+    /// Error, Ran out of memory
+    AXR_ERROR_OUT_OF_MEMORY = -5,
 };
