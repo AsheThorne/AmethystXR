@@ -119,9 +119,7 @@ inline uint8_t* AxrStackAllocator::begin() const {
 }
 
 inline uint8_t* AxrStackAllocator::end() const {
-    assert(m_Memory);
-
-    return m_Memory + m_Size;
+    return begin() + m_Size;
 }
 
 inline AxrStackAllocator::Marker AxrStackAllocator::getCurrentMarker() const {

@@ -27,8 +27,9 @@ public:
     /// Constructor
     /// @param size The number of bytes the given block of memory has
     /// @param memory A pointer to the block of memory this allocator has access to
-    /// @param deallocate A function pointer to use when we're done with the given memory block and wish to deallocate it
-    explicit AxrStackAllocator(std::size_t size, void* memory, const AxrDeallocate& deallocate);
+    /// @param deallocate A function pointer to use when we're done with the given memory block and wish to deallocate
+    /// it
+    AxrStackAllocator(std::size_t size, void* memory, const AxrDeallocate& deallocate);
     /// Copy Constructor
     /// @param src Source AxrStackAllocator to copy from
     AxrStackAllocator(const AxrStackAllocator& src) = delete;

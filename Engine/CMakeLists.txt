@@ -43,6 +43,8 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/memory/allocator.cpp
     ${AXR_SRC_DIR}/memory/stackAllocator.h
     ${AXR_SRC_DIR}/memory/stackAllocator.cpp
+    ${AXR_SRC_DIR}/memory/doubleStackAllocator.h
+    ${AXR_SRC_DIR}/memory/doubleStackAllocator.cpp
 )
 
 # ---------------------------------------------
@@ -111,6 +113,7 @@ set(AXR_TEST_FILES
     ${AXR_TEST_DIR}/main.cpp
     # ---- Memory ----
     ${AXR_TEST_DIR}/memory/stackAllocatorTests.cpp
+    ${AXR_TEST_DIR}/memory/doubleStackAllocatorTests.cpp
 )
 
 # ---------------------------------------------

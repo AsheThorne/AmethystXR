@@ -140,6 +140,7 @@ private:
 ## System Hierarchy
 
 A module must NEVER access anything above or next to themselves in the following chart, only below.
+
 ```
  -------------------------------------------------------------------------
 |                   Public API (public include headers)                   |
@@ -188,3 +189,8 @@ A module must NEVER access anything above or next to themselves in the following
   int value. The `pixels per meter` value defines the resolution.
     - UNSURE ON THIS BIT: Render the UI to an offscreen buffer, then use the output as an image on the UI canvas in
       world
+
+### Scenes
+
+- Use a double ended stack allocator for scene assets. The upper end can hold global resources while the lower end can
+  hold scene specific resources.
