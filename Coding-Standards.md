@@ -34,3 +34,4 @@
   pointers.
 - In a move constructor/move assignment operator, if you aren't using `std::move()` for a variable then make sure to set
   the source variable to its default value via `{}` after it's been copied. E.g. `a = src.a; src.a = {}`.
+- If you encounter a bug that wasn't picked up by the unit tests, then write a unit test for it if it's possible.
