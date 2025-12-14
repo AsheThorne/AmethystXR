@@ -11,6 +11,10 @@ static void deallocateCallback(void*& memory) {
     memory = nullptr;
 };
 
+// ----------------------------------------- //
+// PoolAllocator_TypeFitsPointer
+// ----------------------------------------- //
+
 TEST(PoolAllocator_TypeFitsPointer, DeallocatorCallback) {
     bool wasDeallocated = false;
     {
@@ -142,6 +146,147 @@ TEST(PoolAllocator_TypeFitsPointer, AllocateAllDeallocateTwoAllocateTwo) {
         uint32_t ID{};
         uint32_t Data[7]{};
     };
+
+    constexpr size_t chunkCount = 10;
+    constexpr size_t allocatorSize = chunkCount * sizeof(TestData);
+    AxrPoolAllocator<TestData> allocator(malloc(allocatorSize), allocatorSize, callback);
+
+    auto allocate = [&allocator](TestData*& outTestData) -> void {
+        const AxrResult axrResult = allocator.allocate(outTestData);
+        ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
+        ASSERT_TRUE(outTestData != nullptr);
+    };
+
+    TestData* outTestDatas[chunkCount]{};
+    for (TestData*& outTestData : outTestDatas) {
+        allocate(outTestData);
+    }
+
+    ASSERT_TRUE(allocator.size() == allocator.chunkCapacity());
+
+    allocator.deallocate(outTestDatas[0]);
+    allocator.deallocate(outTestDatas[1]);
+
+    ASSERT_TRUE(allocator.size() == allocator.chunkCapacity() - 2);
+
+    allocate(outTestDatas[0]);
+    allocate(outTestDatas[1]);
+
+    ASSERT_TRUE(allocator.size() == allocator.chunkCapacity());
+}
+
+// ----------------------------------------- //
+// PoolAllocator_TypeSmallerThanPointer
+// ----------------------------------------- //
+
+TEST(PoolAllocator_TypeSmallerThanPointer, DeallocatorCallback) {
+    bool wasDeallocated = false;
+    {
+        auto deallocateCallback = [](bool* wasDeallocated, void*& memory) -> void {
+            free(memory);
+            memory = nullptr;
+            *wasDeallocated = true;
+        };
+
+        using TestData = uint8_t;
+
+        AxrDeallocate callback;
+        callback.connect<deallocateCallback>(&wasDeallocated);
+
+        constexpr size_t chunkCount = 10;
+        constexpr size_t allocatorSize = chunkCount * sizeof(TestData);
+        AxrPoolAllocator<TestData> allocator(malloc(allocatorSize), allocatorSize, callback);
+    }
+    ASSERT_TRUE(wasDeallocated);
+}
+
+TEST(PoolAllocator_TypeSmallerThanPointer, AllocateOne) {
+    AxrDeallocate callback;
+    callback.connect<deallocateCallback>();
+
+    using TestData = uint8_t;
+
+    constexpr size_t chunkCount = 10;
+    constexpr size_t allocatorSize = chunkCount * sizeof(TestData);
+    AxrPoolAllocator<TestData> allocator(malloc(allocatorSize), allocatorSize, callback);
+
+    TestData* outTestData = nullptr;
+    const AxrResult axrResult = allocator.allocate(outTestData);
+    ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
+    ASSERT_TRUE(outTestData != nullptr);
+
+    // Check that the data is empty and zeroed out
+    ASSERT_TRUE(*outTestData == TestData{});
+}
+
+TEST(PoolAllocator_TypeSmallerThanPointer, AllocateAll) {
+    AxrDeallocate callback;
+    callback.connect<deallocateCallback>();
+
+    using TestData = uint8_t;
+
+    constexpr size_t chunkCount = 5;
+    constexpr size_t allocatorSize = chunkCount * sizeof(TestData);
+    AxrPoolAllocator<TestData> allocator(malloc(allocatorSize), allocatorSize, callback);
+
+    constexpr TestData exampleTestDatas[chunkCount]{
+        TestData{16},
+        TestData{17},
+        TestData{18},
+        TestData{19},
+        TestData{20},
+    };
+
+    TestData* outTestDatas[chunkCount]{};
+    for (int i = 0; i < chunkCount; i++) {
+        const AxrResult axrResult = allocator.allocate(outTestDatas[i]);
+        ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
+        ASSERT_TRUE(outTestDatas[i] != nullptr);
+
+        // Check that the data is empty and zeroed out
+        ASSERT_TRUE(*outTestDatas[i] == TestData{});
+
+        *outTestDatas[i] = exampleTestDatas[i];
+    }
+
+    // Check that there are no overlaps in memory by assigning data (happens in the loop) and checking it
+    for (int i = 0; i < chunkCount; i++) {
+        ASSERT_TRUE(*outTestDatas[i] == exampleTestDatas[i]);
+    }
+
+    ASSERT_TRUE(allocator.size() == allocator.chunkCapacity());
+}
+
+TEST(PoolAllocator_TypeSmallerThanPointer, AllocateTooMuch) {
+    AxrDeallocate callback;
+    callback.connect<deallocateCallback>();
+
+    using TestData = uint8_t;
+
+    constexpr size_t chunkCount = 10;
+    constexpr size_t allocatorSize = chunkCount * sizeof(TestData);
+    AxrPoolAllocator<TestData> allocator(malloc(allocatorSize), allocatorSize, callback);
+
+    TestData* outTestDatas[chunkCount]{};
+    for (TestData*& outTestData : outTestDatas) {
+        const AxrResult axrResult = allocator.allocate(outTestData);
+        ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
+        ASSERT_TRUE(outTestData != nullptr);
+    }
+
+    ASSERT_TRUE(allocator.size() == allocator.chunkCapacity());
+
+    TestData* outTestData = nullptr;
+    const AxrResult axrResult = allocator.allocate(outTestData);
+    ASSERT_TRUE(axrResult == AXR_ERROR_OUT_OF_MEMORY);
+    ASSERT_TRUE(outTestData == nullptr);
+}
+
+TEST(PoolAllocator_TypeSmallerThanPointer, AllocateAllDeallocateTwoAllocateTwo) {
+    AxrDeallocate callback;
+    callback.connect<deallocateCallback>();
+
+    using TestData = uint8_t;
 
     constexpr size_t chunkCount = 10;
     constexpr size_t allocatorSize = chunkCount * sizeof(TestData);
