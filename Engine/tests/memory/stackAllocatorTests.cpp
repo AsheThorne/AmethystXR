@@ -116,6 +116,30 @@ TEST(StackAllocator, AllocateTwo) {
     ASSERT_TRUE(*testData2 == exampleTestData2);
 }
 
+TEST(StackAllocator, AllocateTooMuch) {
+    AxrDeallocate callback;
+    callback.connect<deallocateCallback>();
+
+    struct TestData {
+        uint32_t ID{};
+        uint32_t Data[7]{};
+    };
+
+    const size_t allocatorSize = sizeof(TestData) + AxrStackAllocator::getMarkerSize();
+    void* memory = malloc(allocatorSize);
+    AxrStackAllocator allocator(memory, allocatorSize, callback);
+
+    void* outTestData1 = nullptr;
+    AxrStackAllocator::MarkerID testData1MarkerID{};
+    AxrResult axrResult = allocator.allocate(sizeof(TestData), outTestData1, testData1MarkerID);
+    ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
+
+    void* outTestData2 = nullptr;
+    AxrStackAllocator::MarkerID testData2MarkerID{};
+    axrResult = allocator.allocate(sizeof(TestData), outTestData2, testData2MarkerID);
+    ASSERT_TRUE(axrResult == AXR_ERROR_OUT_OF_MEMORY);
+}
+
 TEST(StackAllocator, AllocateTwoDeallocateOne) {
     AxrDeallocate callback;
     callback.connect<deallocateCallback>();

@@ -249,6 +249,72 @@ TEST(DoubleStackAllocator, AllocateTwoUpper) {
     ASSERT_TRUE(*testData2 == exampleTestData2);
 }
 
+TEST(StackAllocator, AllocateTooMuchLower) {
+    AxrDeallocate callback;
+    callback.connect<deallocateCallback>();
+
+    struct TestData {
+        uint32_t ID{};
+        uint32_t Data[7]{};
+
+        bool operator==(const TestData& src) const {
+            return ID == src.ID && std::equal(std::begin(Data), std::end(Data), std::begin(src.Data));
+        }
+    };
+
+    const size_t allocatorSize = sizeof(TestData) + AxrDoubleStackAllocator::getMarkerSize();
+    void* memory = malloc(allocatorSize);
+    AxrDoubleStackAllocator allocator(memory, allocatorSize, callback);
+
+    void* outTestData1 = nullptr;
+    AxrDoubleStackAllocator::MarkerID testData1MarkerID{};
+    AxrResult axrResult = allocator.allocateLower(sizeof(TestData), outTestData1, testData1MarkerID);
+    ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
+
+    void* outTestData2 = nullptr;
+    AxrDoubleStackAllocator::MarkerID testData2MarkerID{};
+    axrResult = allocator.allocateLower(sizeof(TestData), outTestData2, testData2MarkerID);
+    ASSERT_TRUE(axrResult == AXR_ERROR_OUT_OF_MEMORY);
+
+    void* outTestData3 = nullptr;
+    AxrDoubleStackAllocator::MarkerID testData3MarkerID{};
+    axrResult = allocator.allocateUpper(sizeof(TestData), outTestData3, testData3MarkerID);
+    ASSERT_TRUE(axrResult == AXR_ERROR_OUT_OF_MEMORY);
+}
+
+TEST(StackAllocator, AllocateTooMuchUpper) {
+    AxrDeallocate callback;
+    callback.connect<deallocateCallback>();
+
+    struct TestData {
+        uint32_t ID{};
+        uint32_t Data[7]{};
+
+        bool operator==(const TestData& src) const {
+            return ID == src.ID && std::equal(std::begin(Data), std::end(Data), std::begin(src.Data));
+        }
+    };
+
+    const size_t allocatorSize = sizeof(TestData) + AxrDoubleStackAllocator::getMarkerSize();
+    void* memory = malloc(allocatorSize);
+    AxrDoubleStackAllocator allocator(memory, allocatorSize, callback);
+
+    void* outTestData1 = nullptr;
+    AxrDoubleStackAllocator::MarkerID testData1MarkerID{};
+    AxrResult axrResult = allocator.allocateUpper(sizeof(TestData), outTestData1, testData1MarkerID);
+    ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
+
+    void* outTestData2 = nullptr;
+    AxrDoubleStackAllocator::MarkerID testData2MarkerID{};
+    axrResult = allocator.allocateUpper(sizeof(TestData), outTestData2, testData2MarkerID);
+    ASSERT_TRUE(axrResult == AXR_ERROR_OUT_OF_MEMORY);
+
+    void* outTestData3 = nullptr;
+    AxrDoubleStackAllocator::MarkerID testData3MarkerID{};
+    axrResult = allocator.allocateLower(sizeof(TestData), outTestData3, testData3MarkerID);
+    ASSERT_TRUE(axrResult == AXR_ERROR_OUT_OF_MEMORY);
+}
+
 TEST(DoubleStackAllocator, AllocateTwoDeallocateOneLower) {
     AxrDeallocate callback;
     callback.connect<deallocateCallback>();
