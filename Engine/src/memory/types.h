@@ -14,7 +14,7 @@
 // ----------------------------------------- //
 
 /// Axr allocate memory function
-using AxrAllocate = AxrCallback<AxrResult(std::size_t size, void*& memory)>;
+using AxrAllocate = AxrCallback<AxrResult(size_t size, void*& memory)>;
 
 /// Axr deallocate memory function
 using AxrDeallocate = AxrCallback<void(void*& memory)>;

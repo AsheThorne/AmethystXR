@@ -10,7 +10,7 @@
 // Special Functions
 // ----------------------------------------- //
 
-AxrStackAllocator::AxrStackAllocator(const std::size_t size, void* memory, const AxrDeallocate& deallocate) {
+AxrStackAllocator::AxrStackAllocator(const size_t size, void* memory, const AxrDeallocate& deallocate) {
     m_Memory = static_cast<uint8_t*>(memory);
     m_Capacity = size;
     m_MainMemoryDeallocator = deallocate;
@@ -44,9 +44,9 @@ AxrStackAllocator& AxrStackAllocator::operator=(AxrStackAllocator&& src) noexcep
 // ----------------------------------------- //
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to allocate memory for AxrStackAllocator. "
-AxrResult AxrStackAllocator::allocate(const std::size_t size, void*& memory, MarkerID& markerID) {
+AxrResult AxrStackAllocator::allocate(const size_t size, void*& memory, MarkerID& markerID) {
     // Make sure there's enough space for both the requested memory size and for its marker.
-    const std::size_t blockSize = size + sizeof(Marker);
+    const size_t blockSize = size + sizeof(Marker);
     if (blockSize > m_Capacity - m_Size) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Ran out of memory for a block of size {} bytes.", size);
         return AXR_ERROR_OUT_OF_MEMORY;
@@ -83,11 +83,11 @@ void AxrStackAllocator::clear() {
     m_Size = 0;
 }
 
-std::size_t AxrStackAllocator::capacity() const {
+size_t AxrStackAllocator::capacity() const {
     return m_Capacity;
 }
 
-std::size_t AxrStackAllocator::size() const {
+size_t AxrStackAllocator::size() const {
     return m_Size;
 }
 bool AxrStackAllocator::empty() const {
@@ -144,7 +144,7 @@ inline void AxrStackAllocator::pop() {
         return;
     }
 
-    const std::size_t blockSize = currentMarker.Size + sizeof(Marker);
+    const size_t blockSize = currentMarker.Size + sizeof(Marker);
     // Don't zero out memory. We 0 it out when allocating
     m_Size -= blockSize;
 }

@@ -18,7 +18,7 @@ TEST(DoubleStackAllocator, DeallocatorCallback) {
         AxrDeallocate callback;
         callback.connect<deallocateCallback>(&wasDeallocated);
 
-        constexpr std::size_t allocatorSize = 128;
+        constexpr size_t allocatorSize = 128;
         void* memory = malloc(allocatorSize);
         AxrDoubleStackAllocator allocator(allocatorSize, memory, callback);
     }
@@ -43,7 +43,7 @@ TEST(DoubleStackAllocator, AllocateOneLower) {
         }
     };
 
-    const std::size_t allocatorSize = sizeof(TestData) + AxrDoubleStackAllocator::getMarkerSize();
+    const size_t allocatorSize = sizeof(TestData) + AxrDoubleStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
     AxrDoubleStackAllocator allocator(allocatorSize, memory, callback);
 
@@ -76,7 +76,7 @@ TEST(DoubleStackAllocator, AllocateOneUpper) {
         }
     };
 
-    const std::size_t allocatorSize = sizeof(TestData) + AxrDoubleStackAllocator::getMarkerSize();
+    const size_t allocatorSize = sizeof(TestData) + AxrDoubleStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
     AxrDoubleStackAllocator allocator(allocatorSize, memory, callback);
 
@@ -109,7 +109,7 @@ TEST(DoubleStackAllocator, AllocateOneLowerOneUpper) {
         }
     };
 
-    const std::size_t allocatorSize = (sizeof(TestData) + AxrDoubleStackAllocator::getMarkerSize()) * 2;
+    const size_t allocatorSize = (sizeof(TestData) + AxrDoubleStackAllocator::getMarkerSize()) * 2;
     void* memory = malloc(allocatorSize);
     AxrDoubleStackAllocator allocator(allocatorSize, memory, callback);
 
@@ -170,9 +170,9 @@ TEST(DoubleStackAllocator, AllocateTwoLower) {
         }
     };
 
-    const std::size_t testData1MemSize = sizeof(TestData1) + AxrDoubleStackAllocator::getMarkerSize();
-    const std::size_t testData2MemSize = sizeof(TestData2) + AxrDoubleStackAllocator::getMarkerSize();
-    const std::size_t allocatorSize = testData1MemSize + testData2MemSize;
+    const size_t testData1MemSize = sizeof(TestData1) + AxrDoubleStackAllocator::getMarkerSize();
+    const size_t testData2MemSize = sizeof(TestData2) + AxrDoubleStackAllocator::getMarkerSize();
+    const size_t allocatorSize = testData1MemSize + testData2MemSize;
     void* memory = malloc(allocatorSize);
     AxrDoubleStackAllocator allocator(allocatorSize, memory, callback);
 
@@ -233,9 +233,9 @@ TEST(DoubleStackAllocator, AllocateTwoUpper) {
         }
     };
 
-    const std::size_t testData1MemSize = sizeof(TestData1) + AxrDoubleStackAllocator::getMarkerSize();
-    const std::size_t testData2MemSize = sizeof(TestData2) + AxrDoubleStackAllocator::getMarkerSize();
-    const std::size_t allocatorSize = testData1MemSize + testData2MemSize;
+    const size_t testData1MemSize = sizeof(TestData1) + AxrDoubleStackAllocator::getMarkerSize();
+    const size_t testData2MemSize = sizeof(TestData2) + AxrDoubleStackAllocator::getMarkerSize();
+    const size_t allocatorSize = testData1MemSize + testData2MemSize;
     void* memory = malloc(allocatorSize);
     AxrDoubleStackAllocator allocator(allocatorSize, memory, callback);
 
@@ -288,9 +288,9 @@ TEST(DoubleStackAllocator, AllocateTwoDeallocateOneLower) {
         uint32_t Data[15];
     };
 
-    const std::size_t testData1MemSize = sizeof(TestData1) + AxrDoubleStackAllocator::getMarkerSize();
-    const std::size_t testData2MemSize = sizeof(TestData2) + AxrDoubleStackAllocator::getMarkerSize();
-    const std::size_t allocatorSize = testData1MemSize + testData2MemSize;
+    const size_t testData1MemSize = sizeof(TestData1) + AxrDoubleStackAllocator::getMarkerSize();
+    const size_t testData2MemSize = sizeof(TestData2) + AxrDoubleStackAllocator::getMarkerSize();
+    const size_t allocatorSize = testData1MemSize + testData2MemSize;
     void* memory = malloc(allocatorSize);
     AxrDoubleStackAllocator allocator(allocatorSize, memory, callback);
 
@@ -330,9 +330,9 @@ TEST(DoubleStackAllocator, AllocateTwoDeallocateOneUpper) {
         uint32_t Data[15];
     };
 
-    const std::size_t testData1MemSize = sizeof(TestData1) + AxrDoubleStackAllocator::getMarkerSize();
-    const std::size_t testData2MemSize = sizeof(TestData2) + AxrDoubleStackAllocator::getMarkerSize();
-    const std::size_t allocatorSize = testData1MemSize + testData2MemSize;
+    const size_t testData1MemSize = sizeof(TestData1) + AxrDoubleStackAllocator::getMarkerSize();
+    const size_t testData2MemSize = sizeof(TestData2) + AxrDoubleStackAllocator::getMarkerSize();
+    const size_t allocatorSize = testData1MemSize + testData2MemSize;
     void* memory = malloc(allocatorSize);
     AxrDoubleStackAllocator allocator(allocatorSize, memory, callback);
 
@@ -372,9 +372,9 @@ TEST(DoubleStackAllocator, AllocateTwoDeallocateMarker1Lower) {
         uint32_t Data[15];
     };
 
-    const std::size_t testData1MemSize = sizeof(TestData1) + AxrDoubleStackAllocator::getMarkerSize();
-    const std::size_t testData2MemSize = sizeof(TestData2) + AxrDoubleStackAllocator::getMarkerSize();
-    const std::size_t allocatorSize = testData1MemSize + testData2MemSize;
+    const size_t testData1MemSize = sizeof(TestData1) + AxrDoubleStackAllocator::getMarkerSize();
+    const size_t testData2MemSize = sizeof(TestData2) + AxrDoubleStackAllocator::getMarkerSize();
+    const size_t allocatorSize = testData1MemSize + testData2MemSize;
     void* memory = malloc(allocatorSize);
     AxrDoubleStackAllocator allocator(allocatorSize, memory, callback);
 
@@ -414,9 +414,9 @@ TEST(DoubleStackAllocator, AllocateTwoDeallocateMarker1Upper) {
         uint32_t Data[15];
     };
 
-    const std::size_t testData1MemSize = sizeof(TestData1) + AxrDoubleStackAllocator::getMarkerSize();
-    const std::size_t testData2MemSize = sizeof(TestData2) + AxrDoubleStackAllocator::getMarkerSize();
-    const std::size_t allocatorSize = testData1MemSize + testData2MemSize;
+    const size_t testData1MemSize = sizeof(TestData1) + AxrDoubleStackAllocator::getMarkerSize();
+    const size_t testData2MemSize = sizeof(TestData2) + AxrDoubleStackAllocator::getMarkerSize();
+    const size_t allocatorSize = testData1MemSize + testData2MemSize;
     void* memory = malloc(allocatorSize);
     AxrDoubleStackAllocator allocator(allocatorSize, memory, callback);
 

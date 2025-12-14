@@ -30,3 +30,5 @@
 - Keep heap allocations to a minimum and NEVER from the heap within a tight loop.
 - Avoid namespaces in the engine source code. This is because we can't use them in exported functions (including return
   types and parameters). so to keep things consistent, we'll just avoid using them.
+- If you free/delete memory, you should also set the pointer for that memory to `nullptr` to help prevent hanging
+  pointers.

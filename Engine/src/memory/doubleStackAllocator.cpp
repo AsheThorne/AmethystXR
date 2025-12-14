@@ -10,7 +10,7 @@
 // Special Functions
 // ----------------------------------------- //
 
-AxrDoubleStackAllocator::AxrDoubleStackAllocator(const std::size_t size,
+AxrDoubleStackAllocator::AxrDoubleStackAllocator(const size_t size,
                                                  void* memory,
                                                  const AxrDeallocate& deallocate) {
     m_Memory = static_cast<uint8_t*>(memory);
@@ -48,9 +48,9 @@ AxrDoubleStackAllocator& AxrDoubleStackAllocator::operator=(AxrDoubleStackAlloca
 // ----------------------------------------- //
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to allocate memory on the lower end for AxrDoubleStackAllocator. "
-AxrResult AxrDoubleStackAllocator::allocateLower(const std::size_t size, void*& memory, MarkerID& markerID) {
+AxrResult AxrDoubleStackAllocator::allocateLower(const size_t size, void*& memory, MarkerID& markerID) {
     // Make sure there's enough space for both the requested memory size and for its marker.
-    const std::size_t blockSize = size + sizeof(Marker);
+    const size_t blockSize = size + sizeof(Marker);
     if (blockSize > m_Capacity - AxrDoubleStackAllocator::size()) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Ran out of memory for a block of size {} bytes.", size);
         return AXR_ERROR_OUT_OF_MEMORY;
@@ -73,9 +73,9 @@ AxrResult AxrDoubleStackAllocator::allocateLower(const std::size_t size, void*& 
 #undef AXR_FUNCTION_FAILED_STRING
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to allocate memory on the lower end for AxrDoubleStackAllocator. "
-AxrResult AxrDoubleStackAllocator::allocateUpper(const std::size_t size, void*& memory, MarkerID& markerID) {
+AxrResult AxrDoubleStackAllocator::allocateUpper(const size_t size, void*& memory, MarkerID& markerID) {
     // Make sure there's enough space for both the requested memory size and for its marker.
-    const std::size_t blockSize = size + sizeof(Marker);
+    const size_t blockSize = size + sizeof(Marker);
     if (blockSize > m_Capacity - AxrDoubleStackAllocator::size()) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Ran out of memory for a block of size {} bytes.", size);
         return AXR_ERROR_OUT_OF_MEMORY;
@@ -134,19 +134,19 @@ void AxrDoubleStackAllocator::clearUpper() {
     m_SizeUpper = 0;
 }
 
-std::size_t AxrDoubleStackAllocator::capacity() const {
+size_t AxrDoubleStackAllocator::capacity() const {
     return m_Capacity;
 }
 
-std::size_t AxrDoubleStackAllocator::size() const {
+size_t AxrDoubleStackAllocator::size() const {
     return sizeLower() + sizeUpper();
 }
 
-std::size_t AxrDoubleStackAllocator::sizeLower() const {
+size_t AxrDoubleStackAllocator::sizeLower() const {
     return m_SizeLower;
 }
 
-std::size_t AxrDoubleStackAllocator::sizeUpper() const {
+size_t AxrDoubleStackAllocator::sizeUpper() const {
     return m_SizeUpper;
 }
 
@@ -242,7 +242,7 @@ inline void AxrDoubleStackAllocator::popLower() {
         return;
     }
 
-    const std::size_t blockSize = currentMarker.Size + sizeof(Marker);
+    const size_t blockSize = currentMarker.Size + sizeof(Marker);
     // Don't zero out memory. We 0 it out when allocating
     m_SizeLower -= blockSize;
 }
@@ -253,7 +253,7 @@ void AxrDoubleStackAllocator::popUpper() {
         return;
     }
 
-    const std::size_t blockSize = currentMarker.Size + sizeof(Marker);
+    const size_t blockSize = currentMarker.Size + sizeof(Marker);
     // Don't zero out memory. We 0 it out when allocating
     m_SizeUpper -= blockSize;
 }

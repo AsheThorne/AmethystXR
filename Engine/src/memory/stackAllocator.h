@@ -29,7 +29,7 @@ public:
     /// @param memory A pointer to the block of memory this allocator has access to
     /// @param deallocate A function pointer to use when we're done with the given memory block and wish to deallocate
     /// it
-    AxrStackAllocator(std::size_t size, void* memory, const AxrDeallocate& deallocate);
+    AxrStackAllocator(size_t size, void* memory, const AxrDeallocate& deallocate);
     /// Copy Constructor
     /// @param src Source AxrStackAllocator to copy from
     AxrStackAllocator(const AxrStackAllocator& src) = delete;
@@ -61,7 +61,7 @@ public:
     /// @param markerID Output marker ID for this memory
     /// @return AXR_SUCCESS if the function succeeded.
     /// AXR_ERROR_OUT_OF_MEMORY if there isn't enough space on the stack for the requested memory.
-    [[nodiscard]] AxrResult allocate(std::size_t size, void*& memory, MarkerID& markerID);
+    [[nodiscard]] AxrResult allocate(size_t size, void*& memory, MarkerID& markerID);
     /// Deallocate the memory for the given marker ID. Including all memory allocated after the given marker.
     /// @param markerID Memory marker ID
     void deallocate(MarkerID markerID);
@@ -74,10 +74,10 @@ public:
 
     /// Get the allocator's capacity
     /// @return The allocator's capacity
-    [[nodiscard]] std::size_t capacity() const;
+    [[nodiscard]] size_t capacity() const;
     /// Get the size of the allocated memory
     /// @return The size of the allocated memory
-    [[nodiscard]] std::size_t size() const;
+    [[nodiscard]] size_t size() const;
     /// Get the empty state of the allocator
     /// @return True if the allocator is empty
     [[nodiscard]] bool empty() const;
@@ -92,7 +92,7 @@ private:
     struct Marker {
         /// Size of the item behind this marker.
         /// Does not include the size of this marker.
-        std::size_t Size = 0;
+        size_t Size = 0;
         MarkerID ID = 0;
     };
 
@@ -101,8 +101,8 @@ private:
     // ----------------------------------------- //
     AxrDeallocate m_MainMemoryDeallocator;
     uint8_t* m_Memory = nullptr;
-    std::size_t m_Capacity = 0;
-    std::size_t m_Size = 0;
+    size_t m_Capacity = 0;
+    size_t m_Size = 0;
 
     // ----------------------------------------- //
     // Private Functions
