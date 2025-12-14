@@ -10,7 +10,7 @@
 // Special Functions
 // ----------------------------------------- //
 
-AxrStackAllocator::AxrStackAllocator(const size_t size, void* memory, const AxrDeallocate& deallocate) {
+AxrStackAllocator::AxrStackAllocator(void* memory, const size_t size, const AxrDeallocate& deallocate) {
     m_Memory = static_cast<uint8_t*>(memory);
     m_Capacity = size;
     m_MainMemoryDeallocator = deallocate;
@@ -21,6 +21,11 @@ AxrStackAllocator::AxrStackAllocator(AxrStackAllocator&& src) noexcept {
     m_Capacity = src.m_Capacity;
     m_Size = src.m_Size;
     m_MainMemoryDeallocator = src.m_MainMemoryDeallocator;
+
+    src.m_Memory = {};
+    src.m_Capacity = {};
+    src.m_Size = {};
+    src.m_MainMemoryDeallocator = {};
 }
 
 AxrStackAllocator::~AxrStackAllocator() {
@@ -35,6 +40,11 @@ AxrStackAllocator& AxrStackAllocator::operator=(AxrStackAllocator&& src) noexcep
         m_Capacity = src.m_Capacity;
         m_Size = src.m_Size;
         m_MainMemoryDeallocator = src.m_MainMemoryDeallocator;
+
+        src.m_Memory = {};
+        src.m_Capacity = {};
+        src.m_Size = {};
+        src.m_MainMemoryDeallocator = {};
     }
     return *this;
 }
@@ -107,8 +117,8 @@ void AxrStackAllocator::cleanup() {
                           "deallocator available.");
         }
     }
-    m_Capacity = 0;
-    m_Size = 0;
+    m_Capacity = {};
+    m_Size = {};
     m_MainMemoryDeallocator.reset();
 }
 

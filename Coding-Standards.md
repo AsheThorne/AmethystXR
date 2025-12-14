@@ -32,3 +32,5 @@
   types and parameters). so to keep things consistent, we'll just avoid using them.
 - If you free/delete memory, you should also set the pointer for that memory to `nullptr` to help prevent hanging
   pointers.
+- In a move constructor/move assignment operator, if you aren't using `std::move()` for a variable then make sure to set
+  the source variable to its default value via `{}` after it's been copied. E.g. `a = src.a; src.a = {}`.

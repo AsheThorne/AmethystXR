@@ -6,6 +6,11 @@
 #include "axr/common/defines.h"
 #include "memory/stackAllocator.h"
 
+static void deallocateCallback(void*& memory) {
+    free(memory);
+    memory = nullptr;
+};
+
 TEST(StackAllocator, DeallocatorCallback) {
     bool wasDeallocated = false;
     {
@@ -20,17 +25,12 @@ TEST(StackAllocator, DeallocatorCallback) {
 
         constexpr size_t allocatorSize = 128;
         void* memory = malloc(allocatorSize);
-        AxrStackAllocator allocator(allocatorSize, memory, callback);
+        AxrStackAllocator allocator(memory, allocatorSize, callback);
     }
     ASSERT_TRUE(wasDeallocated);
 }
 
 TEST(StackAllocator, AllocateOne) {
-    auto deallocateCallback = [](void*& memory) -> void {
-        free(memory);
-        memory = nullptr;
-    };
-
     AxrDeallocate callback;
     callback.connect<deallocateCallback>();
 
@@ -45,7 +45,7 @@ TEST(StackAllocator, AllocateOne) {
 
     const size_t allocatorSize = sizeof(TestData) + AxrStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
-    AxrStackAllocator allocator(allocatorSize, memory, callback);
+    AxrStackAllocator allocator(memory, allocatorSize, callback);
 
     void* outTestData = nullptr;
     AxrStackAllocator::MarkerID markerID{};
@@ -59,11 +59,6 @@ TEST(StackAllocator, AllocateOne) {
 }
 
 TEST(StackAllocator, AllocateTwo) {
-    auto deallocateCallback = [](void*& memory) -> void {
-        free(memory);
-        memory = nullptr;
-    };
-
     AxrDeallocate callback;
     callback.connect<deallocateCallback>();
 
@@ -89,7 +84,7 @@ TEST(StackAllocator, AllocateTwo) {
     const size_t testData2MemSize = sizeof(TestData2) + AxrStackAllocator::getMarkerSize();
     const size_t allocatorSize = testData1MemSize + testData2MemSize;
     void* memory = malloc(allocatorSize);
-    AxrStackAllocator allocator(allocatorSize, memory, callback);
+    AxrStackAllocator allocator(memory, allocatorSize, callback);
 
     void* outTestData1 = nullptr;
     void* outTestData2 = nullptr;
@@ -122,11 +117,6 @@ TEST(StackAllocator, AllocateTwo) {
 }
 
 TEST(StackAllocator, AllocateTwoDeallocateOne) {
-    auto deallocateCallback = [](void*& memory) -> void {
-        free(memory);
-        memory = nullptr;
-    };
-
     AxrDeallocate callback;
     callback.connect<deallocateCallback>();
 
@@ -144,7 +134,7 @@ TEST(StackAllocator, AllocateTwoDeallocateOne) {
     const size_t testData2MemSize = sizeof(TestData2) + AxrStackAllocator::getMarkerSize();
     const size_t allocatorSize = testData1MemSize + testData2MemSize;
     void* memory = malloc(allocatorSize);
-    AxrStackAllocator allocator(allocatorSize, memory, callback);
+    AxrStackAllocator allocator(memory, allocatorSize, callback);
 
     void* outTestData1 = nullptr;
     void* outTestData2 = nullptr;
@@ -164,11 +154,6 @@ TEST(StackAllocator, AllocateTwoDeallocateOne) {
 }
 
 TEST(StackAllocator, AllocateTwoDeallocateMarker1) {
-    auto deallocateCallback = [](void*& memory) -> void {
-        free(memory);
-        memory = nullptr;
-    };
-
     AxrDeallocate callback;
     callback.connect<deallocateCallback>();
 
@@ -186,7 +171,7 @@ TEST(StackAllocator, AllocateTwoDeallocateMarker1) {
     const size_t testData2MemSize = sizeof(TestData2) + AxrStackAllocator::getMarkerSize();
     const size_t allocatorSize = testData1MemSize + testData2MemSize;
     void* memory = malloc(allocatorSize);
-    AxrStackAllocator allocator(allocatorSize, memory, callback);
+    AxrStackAllocator allocator(memory, allocatorSize, callback);
 
     void* outTestData1 = nullptr;
     void* outTestData2 = nullptr;

@@ -25,11 +25,11 @@ public:
     // ---- Constructors ----
 
     /// Constructor
-    /// @param size The number of bytes the given block of memory has
     /// @param memory A pointer to the block of memory this allocator has access to
+    /// @param size The number of bytes the given block of memory has
     /// @param deallocate A function pointer to use when we're done with the given memory block and wish to deallocate
     /// it
-    AxrStackAllocator(size_t size, void* memory, const AxrDeallocate& deallocate);
+    AxrStackAllocator(void* memory, size_t size, const AxrDeallocate& deallocate);
     /// Copy Constructor
     /// @param src Source AxrStackAllocator to copy from
     AxrStackAllocator(const AxrStackAllocator& src) = delete;
@@ -92,17 +92,17 @@ private:
     struct Marker {
         /// Size of the item behind this marker.
         /// Does not include the size of this marker.
-        size_t Size = 0;
-        MarkerID ID = 0;
+        size_t Size{};
+        MarkerID ID{};
     };
 
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
-    AxrDeallocate m_MainMemoryDeallocator;
-    uint8_t* m_Memory = nullptr;
-    size_t m_Capacity = 0;
-    size_t m_Size = 0;
+    AxrDeallocate m_MainMemoryDeallocator{};
+    uint8_t* m_Memory{};
+    size_t m_Capacity{};
+    size_t m_Size{};
 
     // ----------------------------------------- //
     // Private Functions
