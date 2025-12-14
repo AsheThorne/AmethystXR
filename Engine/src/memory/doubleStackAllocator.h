@@ -25,11 +25,11 @@ public:
     // ---- Constructors ----
 
     /// Constructor
-    /// @param size The number of bytes the given block of memory has
     /// @param memory A pointer to the block of memory this allocator has access to
+    /// @param size The number of bytes the given block of memory has
     /// @param deallocate A function pointer to use when we're done with the given memory block and wish to deallocate
     /// it
-    AxrDoubleStackAllocator(size_t size, void* memory, const AxrDeallocate& deallocate);
+    AxrDoubleStackAllocator(void* memory, size_t size, const AxrDeallocate& deallocate);
     /// Copy Constructor
     /// @param src Source AxrDoubleStackAllocator to copy from
     AxrDoubleStackAllocator(const AxrDoubleStackAllocator& src) = delete;
@@ -132,11 +132,11 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
-    AxrDeallocate m_MainMemoryDeallocator;
-    uint8_t* m_Memory = nullptr;
-    size_t m_Capacity = 0;
-    size_t m_SizeLower = 0;
-    size_t m_SizeUpper = 0;
+    AxrDeallocate m_MainMemoryDeallocator{};
+    uint8_t* m_Memory{};
+    size_t m_Capacity{};
+    size_t m_SizeLower{};
+    size_t m_SizeUpper{};
 
     // ----------------------------------------- //
     // Private Functions

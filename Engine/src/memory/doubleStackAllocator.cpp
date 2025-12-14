@@ -10,9 +10,7 @@
 // Special Functions
 // ----------------------------------------- //
 
-AxrDoubleStackAllocator::AxrDoubleStackAllocator(const size_t size,
-                                                 void* memory,
-                                                 const AxrDeallocate& deallocate) {
+AxrDoubleStackAllocator::AxrDoubleStackAllocator(void* memory, const size_t size, const AxrDeallocate& deallocate) {
     m_Memory = static_cast<uint8_t*>(memory);
     m_Capacity = size;
     m_MainMemoryDeallocator = deallocate;
@@ -24,6 +22,12 @@ AxrDoubleStackAllocator::AxrDoubleStackAllocator(AxrDoubleStackAllocator&& src) 
     m_SizeLower = src.m_SizeLower;
     m_SizeUpper = src.m_SizeUpper;
     m_MainMemoryDeallocator = src.m_MainMemoryDeallocator;
+
+    src.m_Memory = {};
+    src.m_Capacity = {};
+    src.m_SizeLower = {};
+    src.m_SizeUpper = {};
+    src.m_MainMemoryDeallocator = {};
 }
 
 AxrDoubleStackAllocator::~AxrDoubleStackAllocator() {
@@ -39,6 +43,12 @@ AxrDoubleStackAllocator& AxrDoubleStackAllocator::operator=(AxrDoubleStackAlloca
         m_SizeLower = src.m_SizeLower;
         m_SizeUpper = src.m_SizeUpper;
         m_MainMemoryDeallocator = src.m_MainMemoryDeallocator;
+        
+        src.m_Memory = {};
+        src.m_Capacity = {};
+        src.m_SizeLower = {};
+        src.m_SizeUpper = {};
+        src.m_MainMemoryDeallocator = {};
     }
     return *this;
 }
@@ -176,9 +186,9 @@ void AxrDoubleStackAllocator::cleanup() {
                 "deallocator available.");
         }
     }
-    m_Capacity = 0;
-    m_SizeLower = 0;
-    m_SizeUpper = 0;
+    m_Capacity = {};
+    m_SizeLower = {};
+    m_SizeUpper = {};
     m_MainMemoryDeallocator.reset();
 }
 
