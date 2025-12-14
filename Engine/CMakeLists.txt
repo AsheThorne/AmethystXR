@@ -45,6 +45,7 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/memory/stackAllocator.cpp
     ${AXR_SRC_DIR}/memory/doubleStackAllocator.h
     ${AXR_SRC_DIR}/memory/doubleStackAllocator.cpp
+    ${AXR_SRC_DIR}/memory/poolAllocator.h
 )
 
 # ---------------------------------------------
@@ -114,6 +115,7 @@ set(AXR_TEST_FILES
     # ---- Memory ----
     ${AXR_TEST_DIR}/memory/stackAllocatorTests.cpp
     ${AXR_TEST_DIR}/memory/doubleStackAllocatorTests.cpp
+    ${AXR_TEST_DIR}/memory/poolAllocatorTests.cpp
 )
 
 # ---------------------------------------------
