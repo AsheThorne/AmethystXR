@@ -123,9 +123,9 @@ set(AXR_TEST_FILES
 # ---------------------------------------------
 
 if(WIN32)
-    add_executable(AXR_Test WIN32 ${AXR_TEST_FILES})
+    add_executable(AXR_Test WIN32 ${AXR_TEST_FILES} ${AXR_FILES})
 elseif(LINUX)
-    add_executable(AXR_Test ${AXR_TEST_FILES})
+    add_executable(AXR_Test ${AXR_TEST_FILES} ${AXR_FILES})
 endif()
 
 target_link_libraries(AXR_Test PRIVATE
