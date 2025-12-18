@@ -6,12 +6,14 @@
 #include "axr/common/enums.h"
 #include "axr/logging.h"
 #include "types.h"
+#include "utils.h"
 
 #include <cassert>
 
 /// Pool Allocator
 /// @tparam Type The type of object this pool holds
-template<typename Type>
+/// @tparam IsAligned Weather to align addresses optimally (Requires more memory but is better for performance)
+template<typename Type, bool IsAligned>
 class AxrPoolAllocator;
 
 // ---------------------------------------------------------------------------------- //
@@ -20,9 +22,10 @@ class AxrPoolAllocator;
 
 /// Pool Allocator where T is big enough to fit a 'next' pointer
 /// @tparam Type The type of object this pool holds
-template<typename Type>
-    requires(sizeof(Type) >= sizeof(void*))
-class AxrPoolAllocator<Type> {
+/// @tparam IsAligned Weather to align addresses optimally (Requires more memory but is better for performance)
+template<typename Type, bool IsAligned>
+    requires((IsAligned ? sizeof(Type) + alignof(Type) : sizeof(Type)) >= sizeof(void*))
+class AxrPoolAllocator<Type, IsAligned> {
 public:
     // ----------------------------------------- //
     // Special Functions
@@ -36,12 +39,12 @@ public:
     /// @param deallocate A function pointer to use when we're done with the given memory block and wish to deallocate
     /// it
     AxrPoolAllocator(void* memory, const size_t size, const AxrDeallocate& deallocate) {
-        assert(size % sizeof(Type) == 0);
+        assert(size % getChunkSize() == 0);
 
         m_MainMemoryDeallocator = deallocate;
         m_Memory = static_cast<Type*>(memory);
         m_MemoryCapacity = size;
-        m_ChunkCapacity = size / sizeof(Type);
+        m_ChunkCapacity = size / getChunkSize();
         m_FreeChunksHead = reinterpret_cast<Chunk*>(m_Memory);
 
         chainAllChunks();
@@ -110,34 +113,42 @@ public:
     // ----------------------------------------- //
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to allocate memory for AxrPoolAllocator. "
-    /// Allocate a new chunk from the pool
-    /// @param chunk Output allocated chunk
+    /// Allocate new memory from the pool
+    /// @param memory Output allocated memory
     /// @return AXR_SUCCESS if the function succeeded.
-    /// AXR_ERROR_OUT_OF_MEMORY if there aren't any free chunks in the pool.
-    [[nodiscard]] AxrResult allocate(Type*& chunk) {
+    /// AXR_ERROR_OUT_OF_MEMORY if there isn't any free memory in the pool.
+    [[nodiscard]] AxrResult allocate(Type*& memory) {
         if (m_FreeChunksHead == nullptr) {
             axrLogError(AXR_FUNCTION_FAILED_STRING "Ran out of chunks to allocate.");
             return AXR_ERROR_OUT_OF_MEMORY;
         }
 
-        chunk = reinterpret_cast<Type*>(m_FreeChunksHead);
+        Type* chunk = reinterpret_cast<Type*>(m_FreeChunksHead);
         m_FreeChunksHead = m_FreeChunksHead->Next;
+        std::memset(chunk, 0, getChunkSize());
 
-        std::memset(chunk, 0, sizeof(Type));
+        if (IsAligned) {
+            chunk = axrAlignMemory(chunk);
+        }
 
+        memory = chunk;
         m_UsedChunkCount++;
         return AXR_SUCCESS;
     }
 #undef AXR_FUNCTION_FAILED_STRING
 
-    /// Return the given chunk back to the pool
-    /// @param chunk Chunk to return to the pool
-    void deallocate(Type*& chunk) {
+    /// Return the given memory back to the pool
+    /// @param memory Memory to return to the pool
+    void deallocate(Type*& memory) {
+        Type* chunk = memory;
+        if (IsAligned) {
+            chunk = axrUnalignMemory(chunk);
+        }
         auto chunkCasted = reinterpret_cast<Chunk*>(chunk);
 
         chunkCasted->Next = m_FreeChunksHead;
         m_FreeChunksHead = chunkCasted;
-        chunk = nullptr;
+        memory = nullptr;
 
         m_UsedChunkCount--;
     }
@@ -222,10 +233,19 @@ private:
 
         auto currentChunk = reinterpret_cast<Chunk*>(m_Memory);
         for (int i = 0; i < m_ChunkCapacity - 1; ++i) {
-            currentChunk->Next = reinterpret_cast<Chunk*>(reinterpret_cast<Type*>(currentChunk) + 1);
+            currentChunk->Next = reinterpret_cast<Chunk*>(reinterpret_cast<uint8_t*>(currentChunk) + getChunkSize());
             currentChunk = currentChunk->Next;
         }
         currentChunk->Next = nullptr;
+    }
+
+    /// Get the size of a single chunk
+    /// @return The size of a single chunk
+    static size_t getChunkSize() {
+        if (IsAligned) {
+            return sizeof(Type) + alignof(Type);
+        }
+        return sizeof(Type);
     }
 };
 
@@ -270,9 +290,10 @@ struct AxrPoolAllocatorChunkIndexTraits<T> {
 
 /// Pool Allocator where T is smaller than a pointer
 /// @tparam Type The type of object this pool holds
-template<typename Type>
-    requires(sizeof(Type) < sizeof(void*))
-class AxrPoolAllocator<Type> {
+/// @tparam IsAligned Weather to align addresses optimally (Requires more memory but is better for performance)
+template<typename Type, bool IsAligned>
+    requires((IsAligned ? sizeof(Type) + alignof(Type) : sizeof(Type)) < sizeof(void*))
+class AxrPoolAllocator<Type, IsAligned> {
 public:
     // ----------------------------------------- //
     // Types
@@ -293,12 +314,12 @@ public:
     /// @param deallocate A function pointer to use when we're done with the given memory block and wish to deallocate
     /// it
     AxrPoolAllocator(void* memory, const size_t size, const AxrDeallocate& deallocate) {
-        assert(size % sizeof(Type) == 0);
+        assert(size % getChunkSize() == 0);
 
         m_MainMemoryDeallocator = deallocate;
         m_Memory = static_cast<Type*>(memory);
         m_MemoryCapacity = size;
-        m_ChunkCapacity = size / sizeof(Type);
+        m_ChunkCapacity = size / getChunkSize();
         m_FreeChunksHeadIndex = 0;
 
         assert(m_ChunkCapacity <= ChunkIndexTraits::Max);
@@ -369,35 +390,43 @@ public:
     // ----------------------------------------- //
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to allocate memory for AxrPoolAllocator. "
-    /// Allocate a new chunk from the pool
-    /// @param chunk Output allocated chunk
+    /// Allocate new memory from the pool
+    /// @param memory Output allocated memory
     /// @return AXR_SUCCESS if the function succeeded.
-    /// AXR_ERROR_OUT_OF_MEMORY if there aren't any free chunks in the pool.
-    [[nodiscard]] AxrResult allocate(Type*& chunk) {
+    /// AXR_ERROR_OUT_OF_MEMORY if there isn't any free memory in the pool.
+    [[nodiscard]] AxrResult allocate(Type*& memory) {
         if (m_FreeChunksHeadIndex == ChunkIndexTraits::Max) {
             axrLogError(AXR_FUNCTION_FAILED_STRING "Ran out of chunks to allocate.");
             return AXR_ERROR_OUT_OF_MEMORY;
         }
 
-        chunk = m_Memory + m_FreeChunksHeadIndex;
-        m_FreeChunksHeadIndex = m_Memory[m_FreeChunksHeadIndex];
+        Type* chunk = ptrAt(m_FreeChunksHeadIndex);
+        m_FreeChunksHeadIndex = at(m_FreeChunksHeadIndex);
+        std::memset(chunk, 0, getChunkSize());
 
-        std::memset(chunk, 0, sizeof(Type));
+        if (IsAligned) {
+            chunk = axrAlignMemory(chunk);
+        }
 
+        memory = chunk;
         m_UsedChunkCount++;
         return AXR_SUCCESS;
     }
 #undef AXR_FUNCTION_FAILED_STRING
 
-    /// Return the given chunk back to the pool
-    /// @param chunk Chunk to return to the pool
-    void deallocate(Type*& chunk) {
-        const auto index = static_cast<ChunkIndexTraits::Type>(chunk - m_Memory);
+    /// Return the given memory back to the pool
+    /// @param memory Memory to return to the pool
+    void deallocate(Type*& memory) {
+        uint8_t* chunk = memory;
+        if (IsAligned) {
+            chunk = axrUnalignMemory(chunk);
+        }
+        const auto index = static_cast<ChunkIndexTraits::Type>((chunk - m_Memory) / getChunkSize());
 
-        m_Memory[index] = m_FreeChunksHeadIndex;
+        at(index) = m_FreeChunksHeadIndex;
         m_FreeChunksHeadIndex = index;
+        memory = nullptr;
 
-        chunk = nullptr;
         m_UsedChunkCount--;
     }
 
@@ -437,7 +466,7 @@ private:
     // Private Variables
     // ----------------------------------------- //
     AxrDeallocate m_MainMemoryDeallocator{};
-    Type* m_Memory{};
+    uint8_t* m_Memory{};
     size_t m_MemoryCapacity{};
     size_t m_ChunkCapacity{};
     size_t m_UsedChunkCount{};
@@ -470,9 +499,39 @@ private:
         if (m_Memory == nullptr)
             return;
 
-        for (int i = 0; i < m_ChunkCapacity - 1; ++i) {
-            m_Memory[i] = i + 1;
+        Type* chunk = nullptr;
+        for (typename ChunkIndexTraits::Type i = 0; i < m_ChunkCapacity - 1; ++i) {
+            chunk = ptrAt(i);
+            *chunk = i + 1;
         }
-        m_Memory[m_ChunkCapacity - 1] = ChunkIndexTraits::Max;
+        chunk = ptrAt(m_ChunkCapacity - 1);
+        *chunk = ChunkIndexTraits::Max;
+    }
+
+    /// Get the data within memory at the given index
+    /// @param index Item index
+    Type at(ChunkIndexTraits::Type index) const {
+        return *ptrAt(index);
+    }
+
+    /// Get the data within memory at the given index
+    /// @param index Item index
+    Type& at(ChunkIndexTraits::Type index) {
+        return *ptrAt(index);
+    }
+
+    /// Get the data within memory at the given index
+    /// @param index Item index
+    Type* ptrAt(ChunkIndexTraits::Type index) const {
+        return m_Memory + (index * getChunkSize());
+    }
+
+    /// Get the size of a single chunk
+    /// @return The size of a single chunk
+    static size_t getChunkSize() {
+        if (IsAligned) {
+            return sizeof(Type) + alignof(Type);
+        }
+        return sizeof(Type);
     }
 };
