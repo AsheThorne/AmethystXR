@@ -249,7 +249,7 @@ TEST(DoubleStackAllocator, AllocateTwoUpper) {
     ASSERT_TRUE(*testData2 == exampleTestData2);
 }
 
-TEST(StackAllocator, AllocateTooMuchLower) {
+TEST(DoubleStackAllocator, AllocateTooMuchLower) {
     AxrDeallocate callback;
     callback.connect<deallocateCallback>();
 
@@ -282,7 +282,7 @@ TEST(StackAllocator, AllocateTooMuchLower) {
     ASSERT_TRUE(axrResult == AXR_ERROR_OUT_OF_MEMORY);
 }
 
-TEST(StackAllocator, AllocateTooMuchUpper) {
+TEST(DoubleStackAllocator, AllocateTooMuchUpper) {
     AxrDeallocate callback;
     callback.connect<deallocateCallback>();
 

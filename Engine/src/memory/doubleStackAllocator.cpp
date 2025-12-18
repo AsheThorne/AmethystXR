@@ -82,7 +82,7 @@ AxrResult AxrDoubleStackAllocator::allocateLower(const size_t size, void*& memor
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
-#define AXR_FUNCTION_FAILED_STRING "Failed to allocate memory on the lower end for AxrDoubleStackAllocator. "
+#define AXR_FUNCTION_FAILED_STRING "Failed to allocate memory on the upper end for AxrDoubleStackAllocator. "
 AxrResult AxrDoubleStackAllocator::allocateUpper(const size_t size, void*& memory, MarkerID& markerID) {
     // Make sure there's enough space for both the requested memory size and for its marker.
     const size_t blockSize = size + sizeof(Marker);
