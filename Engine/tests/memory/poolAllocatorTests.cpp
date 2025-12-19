@@ -10,16 +10,20 @@
 // Shared Types
 // ----------------------------------------- //
 
-struct TestData_Large {
-    uint32_t ID{};
-    uint32_t Data[7]{};
+namespace {
+    struct TestData_Large {
+        uint32_t ID{};
+        uint32_t Data[7]{};
 
-    bool operator==(const TestData_Large& src) const {
-        return ID == src.ID && std::equal(std::begin(Data), std::end(Data), std::begin(src.Data));
-    }
-};
+        bool operator==(const TestData_Large& src) const {
+            return ID == src.ID && std::equal(std::begin(Data), std::end(Data), std::begin(src.Data));
+        }
+    };
+} // namespace
 
-using TestData_Small = uint8_t;
+namespace {
+    using TestData_Small = uint8_t;
+} // namespace
 
 // ----------------------------------------- //
 // Shared Functions
