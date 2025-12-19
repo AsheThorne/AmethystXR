@@ -3,8 +3,10 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
+#include "axr/common/defines.h"
 #include "axr/common/enums.h"
 #include "types.h"
+#include "utils.h"
 
 #include <cstdint>
 
@@ -71,6 +73,75 @@ public:
     /// @return AXR_SUCCESS if the function succeeded.
     /// AXR_ERROR_OUT_OF_MEMORY if there isn't enough space on the stack for the requested memory.
     [[nodiscard]] AxrResult allocateUpper(size_t size, void*& memory, MarkerID& markerID);
+
+    /// Allocate new memory to the stack on the lower end.
+    /// MarkerIDs are NOT UNIQUE between upper and lower bounds so don't mix lower and upper markers.
+    /// @tparam Type The memory data type
+    /// @param memory Output allocated memory
+    /// @param markerID Output marker ID for this memory
+    /// @return AXR_SUCCESS if the function succeeded.
+    /// AXR_ERROR_OUT_OF_MEMORY if there isn't enough space on the stack for the requested memory.
+    template<typename Type>
+    [[nodiscard]] AxrResult allocateLower(Type*& memory, MarkerID& markerID) {
+        return allocateLower(sizeof(Type), reinterpret_cast<void*&>(memory), markerID);
+    }
+
+    /// Allocate new memory to the stack on the upper end.
+    /// MarkerIDs are NOT UNIQUE between upper and lower bounds so don't mix lower and upper markers.
+    /// @tparam Type The memory data type
+    /// @param memory Output allocated memory
+    /// @param markerID Output marker ID for this memory
+    /// @return AXR_SUCCESS if the function succeeded.
+    /// AXR_ERROR_OUT_OF_MEMORY if there isn't enough space on the stack for the requested memory.
+    template<typename Type>
+    [[nodiscard]] AxrResult allocateUpper(Type*& memory, MarkerID& markerID) {
+        return allocateUpper(sizeof(Type), reinterpret_cast<void*&>(memory), markerID);
+    }
+
+    /// Allocate new memory to the stack on the lower end with optimal alignment.
+    /// MarkerIDs are NOT UNIQUE between upper and lower bounds so don't mix lower and upper markers.
+    /// @tparam Type The memory data type
+    /// @param memory Output allocated memory
+    /// @param markerID Output marker ID for this memory
+    /// @return AXR_SUCCESS if the function succeeded.
+    /// AXR_ERROR_OUT_OF_MEMORY if there isn't enough space on the stack for the requested memory.
+    template<typename Type>
+    [[nodiscard]] AxrResult allocateLowerAligned(Type*& memory, MarkerID& markerID) {
+        const AxrResult axrResult =
+            allocateLower(sizeof(Type) + alignof(Type), reinterpret_cast<void*&>(memory), markerID);
+        if (AXR_FAILED(axrResult)) {
+            if (axrResult == AXR_ERROR_OUT_OF_MEMORY) {
+                return AXR_ERROR_OUT_OF_MEMORY;
+            }
+            return AXR_ERROR_FALLTHROUGH;
+        }
+
+        memory = axrAlignMemory(memory);
+        return axrResult;
+    }
+
+    /// Allocate new memory to the stack on the upper end with optimal alignment.
+    /// MarkerIDs are NOT UNIQUE between upper and lower bounds so don't mix lower and upper markers.
+    /// @tparam Type The memory data type
+    /// @param memory Output allocated memory
+    /// @param markerID Output marker ID for this memory
+    /// @return AXR_SUCCESS if the function succeeded.
+    /// AXR_ERROR_OUT_OF_MEMORY if there isn't enough space on the stack for the requested memory.
+    template<typename Type>
+    [[nodiscard]] AxrResult allocateUpperAligned(Type*& memory, MarkerID& markerID) {
+        const AxrResult axrResult =
+            allocateUpper(sizeof(Type) + alignof(Type), reinterpret_cast<void*&>(memory), markerID);
+        if (AXR_FAILED(axrResult)) {
+            if (axrResult == AXR_ERROR_OUT_OF_MEMORY) {
+                return AXR_ERROR_OUT_OF_MEMORY;
+            }
+            return AXR_ERROR_FALLTHROUGH;
+        }
+
+        memory = axrAlignMemory(memory);
+        return axrResult;
+    }
+
     /// Deallocate the memory for the given marker ID. Including all memory allocated after the given marker. On the
     /// lower end.
     /// MarkerIDs are NOT UNIQUE between upper and lower bounds so don't mix lower and upper markers.

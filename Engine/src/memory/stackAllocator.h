@@ -89,7 +89,6 @@ public:
             if (axrResult == AXR_ERROR_OUT_OF_MEMORY) {
                 return AXR_ERROR_OUT_OF_MEMORY;
             }
-
             return AXR_ERROR_FALLTHROUGH;
         }
 
