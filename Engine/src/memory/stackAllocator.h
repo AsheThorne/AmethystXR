@@ -3,8 +3,10 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
+#include "axr/common/defines.h"
 #include "axr/common/enums.h"
 #include "types.h"
+#include "utils.h"
 
 #include <cstdint>
 
@@ -62,6 +64,39 @@ public:
     /// @return AXR_SUCCESS if the function succeeded.
     /// AXR_ERROR_OUT_OF_MEMORY if there isn't enough space on the stack for the requested memory.
     [[nodiscard]] AxrResult allocate(size_t size, void*& memory, MarkerID& markerID);
+
+    /// Allocate new memory to the stack
+    /// @tparam Type The memory data type
+    /// @param memory Output allocated memory
+    /// @param markerID Output marker ID for this memory
+    /// @return AXR_SUCCESS if the function succeeded.
+    /// AXR_ERROR_OUT_OF_MEMORY if there isn't enough space on the stack for the requested memory.
+    template<typename Type>
+    [[nodiscard]] AxrResult allocate(Type*& memory, MarkerID& markerID) {
+        return allocate(sizeof(Type), reinterpret_cast<void*&>(memory), markerID);
+    }
+
+    /// Allocate new memory to the stack with optimal alignment
+    /// @tparam Type The memory data type
+    /// @param memory Output allocated memory
+    /// @param markerID Output marker ID for this memory
+    /// @return AXR_SUCCESS if the function succeeded.
+    /// AXR_ERROR_OUT_OF_MEMORY if there isn't enough space on the stack for the requested memory.
+    template<typename Type>
+    [[nodiscard]] AxrResult allocateAligned(Type*& memory, MarkerID& markerID) {
+        const AxrResult axrResult = allocate(sizeof(Type) + alignof(Type), reinterpret_cast<void*&>(memory), markerID);
+        if (AXR_FAILED(axrResult)) {
+            if (axrResult == AXR_ERROR_OUT_OF_MEMORY) {
+                return AXR_ERROR_OUT_OF_MEMORY;
+            }
+
+            return AXR_ERROR_FALLTHROUGH;
+        }
+
+        memory = axrAlignMemory(memory);
+        return axrResult;
+    }
+
     /// Deallocate the memory for the given marker ID. Including all memory allocated after the given marker.
     /// @param markerID Memory marker ID
     void deallocate(MarkerID markerID);
