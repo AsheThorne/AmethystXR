@@ -47,6 +47,9 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/memory/doubleStackAllocator.cpp
     ${AXR_SRC_DIR}/memory/poolAllocator.h
     ${AXR_SRC_DIR}/memory/utils.h
+    # ---- Application----
+    ${AXR_SRC_DIR}/application/application.h
+    ${AXR_SRC_DIR}/application/application.cpp
 )
 
 # ---------------------------------------------

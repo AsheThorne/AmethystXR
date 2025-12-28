@@ -2,6 +2,7 @@
 // Headers
 // ----------------------------------------- //
 #include "axr/lifecycle.h"
+#include "application/application.h"
 #include "axr/logging.h"
 #include "memory/allocator.h"
 
@@ -22,6 +23,11 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
 
     if (AXR_FAILED(AxrAllocator::get().setup(AxrAllocator::Config{}))) {
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrAllocator.setup() failed.");
+        return AXR_ERROR_FALLTHROUGH;
+    }
+
+    if (AXR_FAILED(AxrApplication::get().setup(AxrApplication::Config{}))) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "AxrApplication.setup() failed.");
         return AXR_ERROR_FALLTHROUGH;
     }
 

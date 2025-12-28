@@ -5,8 +5,8 @@
 // ----------------------------------------- //
 #include "axr/common/enums.h"
 
-/// Axr Main Allocator singleton
-class AxrAllocator {
+/// Axr Application singleton
+class AxrApplication {
 public:
     // ----------------------------------------- //
     // Public Special Functions
@@ -15,20 +15,20 @@ public:
     // ---- Constructors ----
 
     /// Copy Constructor
-    /// @param src Source AxrAllocator to copy from
-    AxrAllocator(const AxrAllocator& src) = delete;
+    /// @param src Source AxrApplication to copy from
+    AxrApplication(const AxrApplication& src) = delete;
     /// Move Constructor
-    /// @param src Source AxrAllocator to move from
-    AxrAllocator(AxrAllocator&& src) noexcept = delete;
+    /// @param src Source AxrApplication to move from
+    AxrApplication(AxrApplication&& src) noexcept = delete;
 
     // ---- Operator Overloads ----
 
     /// Copy Assignment Operator
-    /// @param src Source AxrAllocator to copy from
-    AxrAllocator& operator=(const AxrAllocator& src) = delete;
+    /// @param src Source AxrApplication to copy from
+    AxrApplication& operator=(const AxrApplication& src) = delete;
     /// Move Assignment Operator
-    /// @param src Source AxrAllocator to move from
-    AxrAllocator& operator=(AxrAllocator&& src) noexcept = delete;
+    /// @param src Source AxrApplication to move from
+    AxrApplication& operator=(AxrApplication&& src) noexcept = delete;
 
 private:
     // ----------------------------------------- //
@@ -38,34 +38,34 @@ private:
     // ---- Constructors ----
 
     /// Constructor
-    AxrAllocator() = default;
+    AxrApplication() = default;
 
     // ---- Destructor ----
 
     /// Destructor
-    ~AxrAllocator() = default;
+    ~AxrApplication() = default;
 
 public:
     // ----------------------------------------- //
     // Public Structs
     // ----------------------------------------- //
 
-    /// AxrAllocator Config
+    /// AxrApplication Config
     struct Config {};
 
     // ----------------------------------------- //
     // Public Functions
     // ----------------------------------------- //
 
-    /// Get the AxrAllocator singleton
-    /// @return A reference to the AxrAllocator singleton
-    static AxrAllocator& get();
+    /// Get the AxrApplication singleton
+    /// @return A reference to the AxrApplication singleton
+    static AxrApplication& get();
 
-    /// Set up the allocator
-    /// @param config Allocator config
+    /// Set up the application
+    /// @param config Application config
     /// @return AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setup(const Config& config);
-    /// Shut down the allocator
+    /// Shut down the application
     void shutDown();
 
 private:
