@@ -3,6 +3,7 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
+#include "axr/application.h"
 #include "axr/common/enums.h"
 
 /// Axr Application singleton
@@ -67,6 +68,13 @@ public:
     [[nodiscard]] AxrResult setup(const Config& config);
     /// Shut down the application
     void shutDown();
+
+    /// Check if the application is running
+    /// @return True if the application is running
+    [[nodiscard]] bool isRunning() const;
+    /// Process all application events
+    /// @return False if the application closed and the game loop should exit
+    [[nodiscard]] bool processEvents() const;
 
 private:
     // ----------------------------------------- //

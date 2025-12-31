@@ -38,6 +38,7 @@
 
 // ---- Max String Sizes ----
 #define AXR_MAX_ENGINE_NAME_SIZE 128
+#define AXR_MAX_WINDOW_TITLE_SIZE 128
 
 // ----------------------------------------- //
 // AXR Engine Data

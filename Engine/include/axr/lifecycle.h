@@ -6,12 +6,24 @@
 #include "axr/common/defines.h"
 #include "axr/common/enums.h"
 
+#include <cstdint>
+
 // ----------------------------------------- //
 // Structs
 // ----------------------------------------- //
 
+/// Window config
+struct AxrWindowConfig {
+    uint32_t Width;
+    uint32_t Height;
+    char Title[AXR_MAX_WINDOW_TITLE_SIZE];
+    bool Enabled;
+};
+
 /// Engine Config
-struct AxrEngineConfig {};
+struct AxrEngineConfig {
+    AxrWindowConfig WindowConfig;
+};
 
 // ----------------------------------------- //
 // External Function Declarations

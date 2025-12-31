@@ -26,12 +26,13 @@ AxrResult AxrPlatform::setup(const Config& config) {
         return AXR_ERROR_UNKNOWN;
     }
 
-    axrResult = createWindow();
-    if (AXR_FAILED(axrResult)) {
-        return AXR_ERROR_FALLTHROUGH;
+    if (config.WindowEnabled) {
+        axrResult = createWindow(config.WindowTitle, config.WindowWidth, config.WindowHeight);
+        if (AXR_FAILED(axrResult)) {
+            return AXR_ERROR_FALLTHROUGH;
+        }
     }
 
-    m_IsRunning = true;
     m_IsSetup = true;
     return AXR_SUCCESS;
 }
@@ -39,29 +40,33 @@ AxrResult AxrPlatform::setup(const Config& config) {
 
 void AxrPlatform::shutDown() {
     destroyWindow();
-    m_IsRunning = false;
     m_IsSetup = false;
 }
 
-bool AxrPlatform::isRunning() const {
-    return m_IsRunning;
+bool AxrPlatform::isWindowOpen() const {
+    return m_IsWindowOpen;
 }
 
-void AxrPlatform::processEvents() {
+bool AxrPlatform::processEvents() {
     assert(m_IsSetup);
 
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         if (event.type >= SDL_EVENT_WINDOW_FIRST && event.type <= SDL_EVENT_WINDOW_LAST) {
-            // HandleWindowEvent(event.window);
+            handleWindowEvent(event.window);
         } else if (event.type == SDL_EVENT_QUIT) {
-            m_IsRunning = false;
+            // Signal that the platform layer has requested to exit processing
+            return false;
         }
     }
+
+    return true;
 }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to create window. "
-AxrResult AxrPlatform::createWindow() {
+AxrResult AxrPlatform::createWindow(const char (&title)[AXR_MAX_WINDOW_TITLE_SIZE],
+                                    const uint32_t width,
+                                    const uint32_t height) {
     assert(!m_IsSetup);
 
     m_SDLWindow = SDL_CreateWindow("Test", 800, 600, 0);
@@ -70,14 +75,29 @@ AxrResult AxrPlatform::createWindow() {
         return AXR_ERROR_UNKNOWN;
     }
 
+    m_IsWindowOpen = true;
     return AXR_SUCCESS;
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
 void AxrPlatform::destroyWindow() {
-    if (m_SDLWindow == nullptr)
-        return;
+    if (m_SDLWindow != nullptr) {
+        SDL_DestroyWindow(m_SDLWindow);
+        m_SDLWindow = nullptr;
+    }
 
-    SDL_DestroyWindow(m_SDLWindow);
-    m_SDLWindow = nullptr;
+    m_IsWindowOpen = false;
+}
+
+void AxrPlatform::handleWindowEvent(const SDL_WindowEvent& event) {
+    switch (event.type) {
+        case SDL_EVENT_WINDOW_CLOSE_REQUESTED: {
+            destroyWindow();
+            break;
+        }
+        default: {
+            // Don't handle any unknown event
+            break;
+        }
+    }
 }

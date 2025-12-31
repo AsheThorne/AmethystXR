@@ -6,6 +6,20 @@
 
 #include <cassert>
 
+#include "../platform/platform.h"
+
+// ----------------------------------------- //
+// External Function Definitions
+// ----------------------------------------- //
+
+bool axrApplicationIsRunning() {
+    return AxrApplication::get().isRunning();
+}
+
+bool axrApplicationProcessEvents() {
+    return AxrApplication::get().processEvents();
+}
+
 // ----------------------------------------- //
 // Public Functions
 // ----------------------------------------- //
@@ -26,4 +40,13 @@ AxrResult AxrApplication::setup(const Config& config) {
 
 void AxrApplication::shutDown() {
     m_IsSetup = false;
+}
+bool AxrApplication::isRunning() const {
+    return AxrPlatform::get().isWindowOpen();
+}
+
+bool AxrApplication::processEvents() const {
+    // TODO (Ashe): When we integrate OpenXR, only return false if both OpenXR session and window is closed.
+    //  If the user wants to exit if only one exists, then they can manually do that
+    return AxrPlatform::get().processEvents();
 }

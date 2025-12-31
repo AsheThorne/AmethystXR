@@ -3,6 +3,7 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
+#include "axr/common/defines.h"
 #include "axr/common/enums.h"
 
 #include <SDL3/SDL.h>
@@ -53,7 +54,12 @@ public:
     // ----------------------------------------- //
 
     /// AxrPlatform Config
-    struct Config {};
+    struct Config {
+        uint32_t WindowWidth;
+        uint32_t WindowHeight;
+        char WindowTitle[AXR_MAX_WINDOW_TITLE_SIZE];
+        bool WindowEnabled;
+    };
 
     // ----------------------------------------- //
     // Public Functions
@@ -70,11 +76,12 @@ public:
     /// Shut down the platform
     void shutDown();
 
-    /// Check if the platform is running
-    /// @return True if the platform is running
-    [[nodiscard]] bool isRunning() const;
+    /// Check if the platform window is open
+    /// @return True if the platform window is open
+    [[nodiscard]] bool isWindowOpen() const;
     /// Process all platform events
-    void processEvents();
+    /// @return False if the window closed
+    [[nodiscard]] bool processEvents();
 
 private:
     // ----------------------------------------- //
@@ -82,11 +89,17 @@ private:
     // ----------------------------------------- //
     SDL_Window* m_SDLWindow = nullptr;
     bool m_IsSetup = false;
-    bool m_IsRunning = false;
+    bool m_IsWindowOpen = false;
 
     /// Create the desktop window
     /// @return AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult createWindow();
+    [[nodiscard]] AxrResult createWindow(const char (&title)[AXR_MAX_WINDOW_TITLE_SIZE],
+                                         uint32_t width,
+                                         uint32_t height);
     /// Destroy the desktop window
     void destroyWindow();
+
+    /// Handle the given window event
+    /// @param event Window event to handle
+    void handleWindowEvent(const SDL_WindowEvent& event);
 };
