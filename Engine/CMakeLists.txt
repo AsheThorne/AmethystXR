@@ -47,6 +47,9 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/memory/doubleStackAllocator.cpp
     ${AXR_SRC_DIR}/memory/poolAllocator.h
     ${AXR_SRC_DIR}/memory/utils.h
+    # ---- Platform ----
+    ${AXR_SRC_DIR}/platform/platform.h
+    ${AXR_SRC_DIR}/platform/platform.cpp
     # ---- Application----
     ${AXR_SRC_DIR}/application/application.h
     ${AXR_SRC_DIR}/application/application.cpp
@@ -61,6 +64,10 @@ add_library(AXR_Engine SHARED ${AXR_FILES})
 set_target_properties(AXR_Engine PROPERTIES
     LINKER_LANGUAGE CXX
     CXX_STANDARD 20
+)
+
+target_link_libraries(AXR_Engine PRIVATE
+    SDL3::SDL3
 )
 
 # ---------------------------------------------
@@ -136,6 +143,7 @@ endif()
 target_link_libraries(AXR_Test PRIVATE
     GTest::gtest_main
     AXR_Engine
+    SDL3::SDL3
 )
 
 set_target_properties(AXR_Test PROPERTIES

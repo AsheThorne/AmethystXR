@@ -10,6 +10,7 @@ project(AmethystXR VERSION 0.1.0)
 set(OUTPUT_DIRECTORY $<CONFIG>)
 
 set(SPDLOG_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/spdlog)
+set(SDL_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/SDL)
 
 if(WIN32)
     set(AXR_PLATFORM win32)
@@ -40,6 +41,11 @@ FetchContent_Declare(
     GIT_TAG release-1.12.1
 )
 FetchContent_MakeAvailable(googletest)
+
+# ---------------------------------------------
+# Include thirdparty libraries
+# ---------------------------------------------
+add_subdirectory(thirdparty/SDL EXCLUDE_FROM_ALL)
 
 # ---------------------------------------------
 # Include AmethystXR Engine
