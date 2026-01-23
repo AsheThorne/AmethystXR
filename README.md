@@ -33,3 +33,7 @@ platforms.
    `workspace-linux.xml`.
 2. Anytime you switch platforms, run the `fix-jetbrains-workspace-<platform>` file for the platform you've switched to.
    This will create a symlink for the `workspace.xml` file to the platforms respective workspace file.
+
+If you encounter an issue on linux where the symlink is being generated but Jetbrains still generates a workspace.xml
+and ignores the symlink, then the line seperator in the generator may be wrong. Run
+`dos2unix fix-jetbrains-workspace-linux.sh` to fix it.
