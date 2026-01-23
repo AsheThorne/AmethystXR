@@ -13,8 +13,6 @@
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to set up axr engine. "
 AxrResult axrSetup(const AxrEngineConfig* config) {
-    // NOTE (Ashe): If we decide to use the AxrAllocator for the logger too then we obviously cannot set up the logger
-    //  first. One issue with that though, is we can't do logging until that's set up.
     axrLoggerSetup(AxrEngineName);
 
     if (config == nullptr) {

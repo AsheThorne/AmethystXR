@@ -1,6 +1,15 @@
 #pragma once
 
 // ----------------------------------------- //
+//
+// NOTE (Ashe):
+//  The logger does not use AxrAllocator.
+//  It is safe to use at any stage of the engine's lifecycle.
+//
+// ----------------------------------------- //
+
+
+// ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
 #include <source_location>
