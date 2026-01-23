@@ -9,6 +9,9 @@ project(AmethystXR VERSION 0.1.0)
 # ---------------------------------------------
 set(OUTPUT_DIRECTORY $<CONFIG>)
 
+set(DEPS_SOURCE_DIRECTORY "${CMAKE_SOURCE_DIR}/cmake-deps-src")
+set(DEPS_BUILD_DIRECTORY "${CMAKE_BINARY_DIR}/cmake-deps-build")
+
 set(SPDLOG_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/spdlog)
 set(SDL_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/SDL)
 
@@ -35,12 +38,21 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/builds/${OUTPUT_DIRECTO
 # ---------------------------------------------
 include(FetchContent)
 
-FetchContent_Declare(
-    googletest
-    GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG release-1.12.1
+FetchContent_GetProperties(googletest)
+if(NOT googletest_POPULATED)
+    FetchContent_Populate(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG release-1.12.1
+        SOURCE_DIR "${DEPS_SOURCE_DIRECTORY}/googletest"
+        BINARY_DIR "${DEPS_BUILD_DIRECTORY}/googletest"
+    )
+endif()
+
+add_subdirectory(
+    "${googletest_SOURCE_DIR}"
+    "${googletest_BINARY_DIR}"
 )
-FetchContent_MakeAvailable(googletest)
 
 # ---------------------------------------------
 # Include thirdparty libraries
