@@ -125,6 +125,7 @@ public:
 
         Type* chunk = reinterpret_cast<Type*>(m_FreeChunksHead);
         m_FreeChunksHead = m_FreeChunksHead->Next;
+        // TODO (Ashe): Make zeroing out memory optional maybe. Possibly with a flag
         std::memset(chunk, 0, getChunkSize());
 
         if (IsAligned) {
@@ -402,6 +403,7 @@ public:
 
         Type* chunk = ptrAt(m_FreeChunksHeadIndex);
         m_FreeChunksHeadIndex = at(m_FreeChunksHeadIndex);
+        // TODO (Ashe): Make zeroing out memory optional maybe. Possibly with a flag
         std::memset(chunk, 0, getChunkSize());
 
         if (IsAligned) {

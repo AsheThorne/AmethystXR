@@ -63,6 +63,7 @@ AxrResult AxrStackAllocator::allocate(const size_t size, void*& memory, MarkerID
     }
 
     MarkerID currentID = getCurrentMarker().ID;
+    // TODO (Ashe): Make zeroing out memory optional maybe. Possibly with a flag
     std::memset(end(), 0, blockSize);
 
     memory = end();
@@ -89,8 +90,8 @@ void AxrStackAllocator::deallocate(const MarkerID markerID) {
 }
 
 void AxrStackAllocator::clear() {
-    // Don't zero out memory. We 0 it out when allocating
     m_Size = 0;
+    // Don't zero out memory
 }
 
 size_t AxrStackAllocator::capacity() const {
@@ -155,6 +156,6 @@ inline void AxrStackAllocator::pop() {
     }
 
     const size_t blockSize = currentMarker.Size + sizeof(Marker);
-    // Don't zero out memory. We 0 it out when allocating
     m_Size -= blockSize;
+    // Don't zero out memory.
 }

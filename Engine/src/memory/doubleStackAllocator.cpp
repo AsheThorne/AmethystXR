@@ -43,7 +43,7 @@ AxrDoubleStackAllocator& AxrDoubleStackAllocator::operator=(AxrDoubleStackAlloca
         m_SizeLower = src.m_SizeLower;
         m_SizeUpper = src.m_SizeUpper;
         m_MainMemoryDeallocator = src.m_MainMemoryDeallocator;
-        
+
         src.m_Memory = {};
         src.m_Capacity = {};
         src.m_SizeLower = {};
@@ -67,6 +67,7 @@ AxrResult AxrDoubleStackAllocator::allocateLower(const size_t size, void*& memor
     }
 
     MarkerID currentID = getCurrentMarkerLower().ID;
+    // TODO (Ashe): Make zeroing out memory optional maybe. Possibly with a flag
     std::memset(endLower(), 0, blockSize);
 
     memory = endLower();
@@ -92,6 +93,7 @@ AxrResult AxrDoubleStackAllocator::allocateUpper(const size_t size, void*& memor
     }
 
     MarkerID currentID = getCurrentMarkerUpper().ID;
+    // TODO (Ashe): Make zeroing out memory optional maybe. Possibly with a flag
     std::memset(endUpper() - blockSize, 0, blockSize);
 
     // minus size, not block size. if it was block size then the marker would be at the head of this address which we
@@ -135,13 +137,13 @@ void AxrDoubleStackAllocator::clear() {
 }
 
 void AxrDoubleStackAllocator::clearLower() {
-    // Don't zero out memory. We 0 it out when allocating
     m_SizeLower = 0;
+    // Don't zero out memory
 }
 
 void AxrDoubleStackAllocator::clearUpper() {
-    // Don't zero out memory. We 0 it out when allocating
     m_SizeUpper = 0;
+    // Don't zero out memory
 }
 
 size_t AxrDoubleStackAllocator::capacity() const {
@@ -253,8 +255,8 @@ inline void AxrDoubleStackAllocator::popLower() {
     }
 
     const size_t blockSize = currentMarker.Size + sizeof(Marker);
-    // Don't zero out memory. We 0 it out when allocating
     m_SizeLower -= blockSize;
+    // Don't zero out memory
 }
 
 void AxrDoubleStackAllocator::popUpper() {
@@ -264,6 +266,6 @@ void AxrDoubleStackAllocator::popUpper() {
     }
 
     const size_t blockSize = currentMarker.Size + sizeof(Marker);
-    // Don't zero out memory. We 0 it out when allocating
     m_SizeUpper -= blockSize;
+    // Don't zero out memory
 }
