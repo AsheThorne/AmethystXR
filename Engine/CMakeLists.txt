@@ -51,9 +51,12 @@ set(AXR_SOURCE_FILES
     # ---- Platform ----
     ${AXR_SRC_DIR}/platform/platform.h
     ${AXR_SRC_DIR}/platform/platform.cpp
-    # ---- Application----
+    # ---- Application ----
     ${AXR_SRC_DIR}/application/application.h
     ${AXR_SRC_DIR}/application/application.cpp
+    # ---- Server ----
+    ${AXR_SRC_DIR}/server/server.h
+    ${AXR_SRC_DIR}/server/server.cpp
 )
 
 # ---------------------------------------------

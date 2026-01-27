@@ -41,6 +41,7 @@ AxrResult AxrApplication::setup(const Config& config) {
 void AxrApplication::shutDown() {
     m_IsSetup = false;
 }
+
 bool AxrApplication::isRunning() const {
     return AxrPlatform::get().isWindowOpen();
 }
