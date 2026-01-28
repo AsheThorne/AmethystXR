@@ -6,6 +6,7 @@
 #include "axr/logging.h"
 #include "memory/allocator.h"
 #include "platform/platform.h"
+#include "renderer/renderer.h"
 #include "server/server.h"
 
 // ----------------------------------------- //
@@ -44,6 +45,11 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
         return AXR_ERROR_FALLTHROUGH;
     }
 
+    if (AXR_FAILED(AxrRenderer::get().setup(AxrRenderer::Config{}))) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "AxrRenderer.setup() failed.");
+        return AXR_ERROR_FALLTHROUGH;
+    }
+
     if (AXR_FAILED(AxrApplication::get().setup(AxrApplication::Config{}))) {
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrApplication.setup() failed.");
         return AXR_ERROR_FALLTHROUGH;
@@ -55,6 +61,7 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
 
 void axrShutdown() {
     AxrApplication::get().shutDown();
+    AxrRenderer::get().shutDown();
     AxrPlatform::get().shutDown();
     AxrServer::get().shutDown();
     AxrAllocator::get().shutDown();

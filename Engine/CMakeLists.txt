@@ -57,6 +57,9 @@ set(AXR_SOURCE_FILES
     # ---- Server ----
     ${AXR_SRC_DIR}/server/server.h
     ${AXR_SRC_DIR}/server/server.cpp
+    # ---- Renderer ----
+    ${AXR_SRC_DIR}/renderer/renderer.h
+    ${AXR_SRC_DIR}/renderer/renderer.cpp
 )
 
 # ---------------------------------------------
