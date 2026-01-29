@@ -3,8 +3,11 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
+#include "axr/common/defines.h"
 #include "axr/common/enums.h"
-#include "types.h"
+#include "vulkan/vulkanRenderer.h"
+
+#include <cstdint>
 
 /// Axr Renderer singleton
 class AxrRenderer {
@@ -52,7 +55,21 @@ public:
     // ----------------------------------------- //
 
     /// AxrRenderer Config
-    struct Config {};
+    struct Config {
+        AxrRendererApiTypeEnum ApiType{};
+        uint32_t ApplicationVersion{};
+        char ApplicationName[AXR_MAX_APPLICATION_NAME_SIZE]{};
+    };
+
+    /// AxrRenderer Context
+    struct Context {
+        union {
+            // Don't wrap in an AXR_VULKAN_SUPPORTED preprocessor.
+            // An empty AxrVulkanRenderer::Context struct is declared if AXR_VULKAN_SUPPORTED isn't defined
+            AxrVulkanRenderer::Context Vulkan;
+        };
+        AxrRendererApiTypeEnum ApiType{};
+    };
 
     // ----------------------------------------- //
     // Public Functions
@@ -63,9 +80,9 @@ public:
     static AxrRenderer& get();
 
     /// Set up the renderer
-    /// @param config Renderer config
+    /// @param rendererConfig Renderer config
     /// @return AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setup(const Config& config);
+    [[nodiscard]] AxrResult setup(const Config& rendererConfig);
     /// Shut down the renderer
     void shutDown();
 
@@ -73,5 +90,6 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
-    AxrRendererContext m_Context;
+    Context m_Context;
+    bool m_IsSetup;
 };

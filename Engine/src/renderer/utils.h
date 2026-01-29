@@ -4,7 +4,6 @@
 // Headers
 // ----------------------------------------- //
 #include "axr/logging.h"
-#include "types.h"
 #include "vulkan/vulkanRenderer.h"
 
 #include <utility>
@@ -37,7 +36,7 @@ concept InvocableWithVulkanContext = std::invocable<Func_T, AxrVulkanRenderer::C
 /// @param args Callback function arguments
 template<typename VulkanCallback_T, typename... Args>
     requires InvocableWithVulkanContext<VulkanCallback_T, Args...>
-decltype(auto) axrRendererContextExecute(AxrRendererContext& context,
+decltype(auto) axrRendererContextExecute(AxrRenderer::Context& context,
                                          VulkanCallback_T&& vulkanCallback,
                                          Args&&... args) {
     using R1_T = std::invoke_result_t<VulkanCallback_T, AxrVulkanRenderer::Context&, Args...>;
@@ -48,7 +47,7 @@ decltype(auto) axrRendererContextExecute(AxrRendererContext& context,
     using Return_T = R1_T;
 
     switch (context.ApiType) {
-        case AXR_RENDERER_CONTEXT_API_TYPE_VULKAN: {
+        case AXR_RENDERER_API_TYPE_VULKAN: {
             if constexpr (std::is_void_v<Return_T>) {
                 std::invoke(std::forward<VulkanCallback_T>(vulkanCallback),
                             context.Vulkan,
@@ -60,13 +59,17 @@ decltype(auto) axrRendererContextExecute(AxrRendererContext& context,
                                    std::forward<Args>(args)...);
             }
         }
-        case AXR_RENDERER_CONTEXT_API_TYPE_UNDEFINED:
+        case AXR_RENDERER_API_TYPE_UNDEFINED:
         default: {
             axrLogError(AXR_FUNCTION_FAILED_STRING "Unknown render api type.");
             if constexpr (std::is_void_v<Return_T>) {
                 return;
             } else {
-                return Return_T{};
+                if constexpr (std::is_same_v<Return_T, AxrResult>) {
+                    return AXR_ERROR_FALLTHROUGH;
+                } else {
+                    return Return_T{};
+                }
             }
         }
     }

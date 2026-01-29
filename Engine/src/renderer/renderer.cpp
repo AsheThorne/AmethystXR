@@ -25,18 +25,36 @@ AxrRenderer& AxrRenderer::get() {
     return singleton;
 }
 
-AxrResult AxrRenderer::setup(const Config& config) {
-    auto vulkan = [](AxrVulkanRenderer::Context& context) -> AxrResult {
-        return AxrVulkanRenderer::setup(context,
-                                        AxrVulkanRenderer::Config{
-                                            // TODO...
-                                            .ApplicationName = "",
-                                            .ApplicationVersion = 0,
-                                        });
+#define AXR_FUNCTION_FAILED_STRING "Failed to set up axr renderer. "
+AxrResult AxrRenderer::setup(const Config& rendererConfig) {
+    assert(!m_IsSetup);
+
+    m_Context = Context{
+        .ApiType = rendererConfig.ApiType,
     };
 
-    return axrRendererContextExecute(m_Context, vulkan);
+    auto vulkan = [](AxrVulkanRenderer::Context& context, const Config& config) -> AxrResult {
+        AxrVulkanRenderer::Config vulkanConfig{
+            .ApplicationVersion = config.ApplicationVersion,
+            .ApplicationName = "",
+        };
+
+        std::strncpy(vulkanConfig.ApplicationName, config.ApplicationName, AXR_MAX_APPLICATION_NAME_SIZE);
+
+        return AxrVulkanRenderer::setup(context, vulkanConfig);
+    };
+
+    const AxrResult axrResult = axrRendererContextExecute(m_Context, vulkan, rendererConfig);
+    if (AXR_FAILED(axrResult)) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "axrRendererContextExecute() failed.");
+        return AXR_ERROR_FALLTHROUGH;
+    }
+
+    m_IsSetup = true;
+
+    return axrResult;
 }
+#undef AXR_FUNCTION_FAILED_STRING
 
 void AxrRenderer::shutDown() {
     auto vulkan = [](AxrVulkanRenderer::Context& context) -> void {
@@ -44,6 +62,8 @@ void AxrRenderer::shutDown() {
     };
 
     axrRendererContextExecute(m_Context, vulkan);
+
+    m_IsSetup = false;
 }
 
 // ----------------------------------------- //

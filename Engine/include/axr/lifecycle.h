@@ -12,6 +12,12 @@
 // Structs
 // ----------------------------------------- //
 
+/// Application config
+struct AxrApplicationConfig {
+    uint32_t ApplicationVersion;
+    char ApplicationName[AXR_MAX_APPLICATION_NAME_SIZE];
+};
+
 /// Window config
 struct AxrWindowConfig {
     uint32_t Width;
@@ -20,9 +26,16 @@ struct AxrWindowConfig {
     bool Enabled;
 };
 
+/// Renderer config
+struct AxrRendererConfig {
+    AxrRendererApiTypeEnum ApiType;
+};
+
 /// Engine Config
 struct AxrEngineConfig {
+    AxrApplicationConfig ApplicationConfig;
     AxrWindowConfig WindowConfig;
+    AxrRendererConfig RendererConfig;
 };
 
 // ----------------------------------------- //

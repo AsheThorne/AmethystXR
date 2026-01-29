@@ -35,17 +35,28 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
     AxrPlatform::Config axrPlatformConfig{
         .WindowWidth = config->WindowConfig.Width,
         .WindowHeight = config->WindowConfig.Height,
+        .WindowTitle = "",
         .WindowEnabled = config->WindowConfig.Enabled,
     };
 
     std::strncpy(axrPlatformConfig.WindowTitle, config->WindowConfig.Title, AXR_MAX_WINDOW_TITLE_SIZE);
 
-    if (AXR_FAILED(AxrPlatform::get().setup(AxrPlatform::Config{axrPlatformConfig}))) {
+    if (AXR_FAILED(AxrPlatform::get().setup(axrPlatformConfig))) {
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrPlatform.setup() failed.");
         return AXR_ERROR_FALLTHROUGH;
     }
 
-    if (AXR_FAILED(AxrRenderer::get().setup(AxrRenderer::Config{}))) {
+    AxrRenderer::Config axrRendererConfig{
+        .ApiType = config->RendererConfig.ApiType,
+        .ApplicationVersion = config->ApplicationConfig.ApplicationVersion,
+        .ApplicationName = "",
+    };
+
+    std::strncpy(axrRendererConfig.ApplicationName,
+                 config->ApplicationConfig.ApplicationName,
+                 AXR_MAX_APPLICATION_NAME_SIZE);
+
+    if (AXR_FAILED(AxrRenderer::get().setup(axrRendererConfig))) {
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrRenderer.setup() failed.");
         return AXR_ERROR_FALLTHROUGH;
     }

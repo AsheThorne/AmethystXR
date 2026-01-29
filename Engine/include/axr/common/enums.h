@@ -3,6 +3,8 @@
 // ----------------------------------------- //
 // Enums
 // ----------------------------------------- //
+
+/// Axr result
 enum AxrResult {
     // ---- Succeeded ----
     /// The function succeeded as expected
@@ -21,4 +23,10 @@ enum AxrResult {
     AXR_ERROR_NULLPTR = -5,
     /// Error, Ran out of memory
     AXR_ERROR_OUT_OF_MEMORY = -6,
+};
+
+/// Axr renderer api type
+enum AxrRendererApiTypeEnum {
+    AXR_RENDERER_API_TYPE_UNDEFINED = 0,
+    AXR_RENDERER_API_TYPE_VULKAN = 1,
 };

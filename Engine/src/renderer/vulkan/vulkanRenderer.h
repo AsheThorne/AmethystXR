@@ -31,8 +31,8 @@ public:
 #else
     /// Vulkan renderer setup Config
     struct Config {
-        char ApplicationName[AXR_MAX_APPLICATION_NAME_SIZE]{};
         uint32_t ApplicationVersion{};
+        char ApplicationName[AXR_MAX_APPLICATION_NAME_SIZE]{};
         // TODO (Ashe): Api layers and extensions. Probably need to use the AxrAllocator.
     };
 #endif
