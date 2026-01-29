@@ -38,12 +38,12 @@ private:
     // ---- Constructors ----
 
     /// Constructor
-    AxrRenderer() = default;
+    AxrRenderer();
 
     // ---- Destructor ----
 
     /// Destructor
-    ~AxrRenderer() = default;
+    ~AxrRenderer();
 
 public:
     // ----------------------------------------- //

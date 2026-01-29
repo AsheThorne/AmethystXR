@@ -38,12 +38,12 @@ private:
     // ---- Constructors ----
 
     /// Constructor
-    AxrServer() = default;
+    AxrServer();
 
     // ---- Destructor ----
 
     /// Destructor
-    ~AxrServer() = default;
+    ~AxrServer();
 
 public:
     // ----------------------------------------- //

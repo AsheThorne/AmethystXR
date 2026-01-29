@@ -39,12 +39,12 @@ private:
     // ---- Constructors ----
 
     /// Constructor
-    AxrApplication() = default;
+    AxrApplication();
 
     // ---- Destructor ----
 
     /// Destructor
-    ~AxrApplication() = default;
+    ~AxrApplication();
 
 public:
     // ----------------------------------------- //

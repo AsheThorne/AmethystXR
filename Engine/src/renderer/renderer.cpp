@@ -7,8 +7,14 @@
 #include <cassert>
 
 // ----------------------------------------- //
-// External Function Definitions
+// Special Functions
 // ----------------------------------------- //
+
+AxrRenderer::AxrRenderer() = default;
+
+AxrRenderer::~AxrRenderer() {
+    shutDown();
+}
 
 // ----------------------------------------- //
 // Public Functions

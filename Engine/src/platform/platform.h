@@ -41,12 +41,12 @@ private:
     // ---- Constructors ----
 
     /// Constructor
-    AxrPlatform() = default;
+    AxrPlatform();
 
     // ---- Destructor ----
 
     /// Destructor
-    ~AxrPlatform() = default;
+    ~AxrPlatform();
 
 public:
     // ----------------------------------------- //
@@ -90,6 +90,10 @@ private:
     SDL_Window* m_SDLWindow = nullptr;
     bool m_IsSetup = false;
     bool m_IsWindowOpen = false;
+
+    // ----------------------------------------- //
+    // Private Functions
+    // ----------------------------------------- //
 
     /// Create the desktop window
     /// @return AXR_SUCCESS if the function succeeded

@@ -21,6 +21,16 @@ bool axrApplicationProcessEvents() {
 }
 
 // ----------------------------------------- //
+// Special Functions
+// ----------------------------------------- //
+
+AxrApplication::AxrApplication() = default;
+
+AxrApplication::~AxrApplication() {
+    shutDown();
+}
+
+// ----------------------------------------- //
 // Public Functions
 // ----------------------------------------- //
 

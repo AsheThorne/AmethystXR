@@ -38,12 +38,12 @@ private:
     // ---- Constructors ----
 
     /// Constructor
-    AxrAllocator() = default;
+    AxrAllocator();
 
     // ---- Destructor ----
 
     /// Destructor
-    ~AxrAllocator() = default;
+    ~AxrAllocator();
 
 public:
     // ----------------------------------------- //

@@ -6,6 +6,16 @@
 #include <cassert>
 
 // ----------------------------------------- //
+// Special Functions
+// ----------------------------------------- //
+
+AxrAllocator::AxrAllocator() = default;
+
+AxrAllocator::~AxrAllocator() {
+    shutDown();
+}
+
+// ----------------------------------------- //
 // Public Functions
 // ----------------------------------------- //
 

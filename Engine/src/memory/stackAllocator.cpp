@@ -109,6 +109,10 @@ uint32_t AxrStackAllocator::getMarkerSize() {
     return sizeof(Marker);
 }
 
+// ----------------------------------------- //
+// Private Functions
+// ----------------------------------------- //
+
 void AxrStackAllocator::cleanup() {
     if (m_Memory != nullptr) {
         if (m_MainMemoryDeallocator) {

@@ -8,6 +8,16 @@
 #include <cassert>
 
 // ----------------------------------------- //
+// Special Functions
+// ----------------------------------------- //
+
+AxrPlatform::AxrPlatform() = default;
+
+AxrPlatform::~AxrPlatform() {
+    shutDown();
+}
+
+// ----------------------------------------- //
 // Public Functions
 // ----------------------------------------- //
 
@@ -62,6 +72,10 @@ bool AxrPlatform::processEvents() {
 
     return true;
 }
+
+// ----------------------------------------- //
+// Private Functions
+// ----------------------------------------- //
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to create window. "
 AxrResult AxrPlatform::createWindow(const char (&title)[AXR_MAX_WINDOW_TITLE_SIZE],
