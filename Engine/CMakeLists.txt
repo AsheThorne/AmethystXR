@@ -60,6 +60,11 @@ set(AXR_SOURCE_FILES
     # ---- Renderer ----
     ${AXR_SRC_DIR}/renderer/renderer.h
     ${AXR_SRC_DIR}/renderer/renderer.cpp
+    ${AXR_SRC_DIR}/renderer/types.h
+    ${AXR_SRC_DIR}/renderer/utils.h
+    # ---- Renderer - Vulkan ----
+    ${AXR_SRC_DIR}/renderer/vulkan/vulkanRenderer.h
+    ${AXR_SRC_DIR}/renderer/vulkan/vulkanRenderer.cpp
 )
 
 # ---------------------------------------------
@@ -76,6 +81,12 @@ set_target_properties(AXR_Engine PROPERTIES
 target_link_libraries(AXR_Engine PRIVATE
     SDL3::SDL3
 )
+
+if(Vulkan_FOUND)
+    target_link_libraries(AXR_Engine PRIVATE
+        Vulkan::Vulkan
+    )
+endif()
 
 # ---------------------------------------------
 # AXR_Engine Include Directories
@@ -114,6 +125,12 @@ elseif(LINUX)
     target_compile_definitions(AXR_Engine PRIVATE
         AXR_PLATFORM_LINUX
     )
+endif()
+
+if(Vulkan_FOUND)
+    add_compile_definitions(AXR_VULKAN_SUPPORTED)
+    # This definition is for OpenXR
+    add_compile_definitions(XR_USE_GRAPHICS_API_VULKAN)
 endif()
 
 # ---------------------------------------------

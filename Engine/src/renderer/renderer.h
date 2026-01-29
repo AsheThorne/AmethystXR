@@ -4,6 +4,7 @@
 // Headers
 // ----------------------------------------- //
 #include "axr/common/enums.h"
+#include "types.h"
 
 /// Axr Renderer singleton
 class AxrRenderer {
@@ -72,5 +73,5 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
-    bool m_IsSetup = false;
+    AxrRendererContext m_Context;
 };

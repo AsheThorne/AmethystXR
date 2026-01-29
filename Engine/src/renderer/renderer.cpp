@@ -3,8 +3,8 @@
 // ----------------------------------------- //
 #include "renderer.h"
 #include "axr/logging.h"
-
-#include <cassert>
+#include "utils.h"
+#include "vulkan/vulkanRenderer.h"
 
 // ----------------------------------------- //
 // Special Functions
@@ -25,15 +25,27 @@ AxrRenderer& AxrRenderer::get() {
     return singleton;
 }
 
-#define AXR_FUNCTION_FAILED_STRING "Failed to set up axr renderer. "
 AxrResult AxrRenderer::setup(const Config& config) {
-    assert(!m_IsSetup);
+    auto vulkan = [](AxrVulkanRenderer::Context& context) -> AxrResult {
+        return AxrVulkanRenderer::setup(context,
+                                        AxrVulkanRenderer::Config{
+                                            // TODO...
+                                            .ApplicationName = "",
+                                            .ApplicationVersion = 0,
+                                        });
+    };
 
-    m_IsSetup = true;
-    return AXR_SUCCESS;
+    return axrRendererContextExecute(m_Context, vulkan);
 }
-#undef AXR_FUNCTION_FAILED_STRING
 
 void AxrRenderer::shutDown() {
-    m_IsSetup = false;
+    auto vulkan = [](AxrVulkanRenderer::Context& context) -> void {
+        AxrVulkanRenderer::shutDown(context);
+    };
+
+    axrRendererContextExecute(m_Context, vulkan);
 }
+
+// ----------------------------------------- //
+// Private Functions
+// ----------------------------------------- //

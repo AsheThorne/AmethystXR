@@ -5,6 +5,43 @@ cmake_minimum_required(VERSION 3.25.0)
 project(AmethystXR VERSION 0.1.0)
 
 # ---------------------------------------------
+# Add External Libraries
+# ---------------------------------------------
+find_package(Vulkan COMPONENTS
+    glslc
+)
+
+# ---------------------------------------------
+# Define Functions
+# ---------------------------------------------
+
+# Generate vulkan shaders
+function(generate_vulkan_shaders shaders_directory target)
+    if(Vulkan_FOUND)
+        file(GLOB_RECURSE SHADERS
+            "${shaders_directory}/*.vert"
+            "${shaders_directory}/*.frag"
+            "${shaders_directory}/*.comp"
+            "${shaders_directory}/*.geom"
+            "${shaders_directory}/*.tesc"
+            "${shaders_directory}/*.tese"
+            "${shaders_directory}/*.mesh"
+            "${shaders_directory}/*.task"
+            "${shaders_directory}/*.rgen"
+            "${shaders_directory}/*.rchit"
+            "${shaders_directory}/*.rmiss"
+        )
+
+        foreach(shader ${SHADERS})
+            get_filename_component(SHADER_NAME ${shader} NAME)
+            add_custom_command(TARGET ${target} POST_BUILD COMMAND
+                Vulkan::glslc ${shader} -o ${shader}.spv
+            )
+        endforeach()
+    endif()
+endfunction()
+
+# ---------------------------------------------
 # Set Global Variables/Properties
 # ---------------------------------------------
 set(OUTPUT_DIRECTORY $<CONFIG>)
