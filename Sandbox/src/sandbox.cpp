@@ -9,7 +9,48 @@
 // ----------------------------------------- //
 
 int start() {
-    const AxrEngineConfig axrEngineConfig{
+#ifndef AXR_VULKAN_SUPPORTED
+    constexpr AxrVulkanRendererConfig vulkanConfig{};
+#else
+    constexpr AxrVulkanRendererConfig vulkanConfig{
+        .ApiLayers =
+            {
+#ifndef NDEBUG
+                AxrVulkanApiLayer{
+                    .CoreValidation = AxrVulkanApiLayerCoreValidation{},
+                    .Type = AXR_VULKAN_API_LAYER_TYPE_CORE_VALIDATION,
+                },
+#endif
+            },
+        .Extensions =
+            {
+#ifndef NDEBUG
+                AxrVulkanExtension{
+                    .DebugUtils =
+                        AxrVulkanExtensionDebugUtils{
+                            .SeverityFlags = AXR_VULKAN_EXTENSION_DEBUG_UTILS_SEVERITY_WARNING_BIT |
+                                             AXR_VULKAN_EXTENSION_DEBUG_UTILS_SEVERITY_ERROR_BIT,
+                            .TypeFlags = AXR_VULKAN_EXTENSION_DEBUG_UTILS_TYPE_GENERAL_BIT |
+                                         AXR_VULKAN_EXTENSION_DEBUG_UTILS_TYPE_VALIDATION_BIT |
+                                         AXR_VULKAN_EXTENSION_DEBUG_UTILS_TYPE_PERFORMANCE_BIT |
+                                         AXR_VULKAN_EXTENSION_DEBUG_UTILS_TYPE_DEVICE_ADDRESS_BINDING_BIT},
+                    .Type = AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS,
+                    .Level = AXR_VULKAN_EXTENSION_LEVEL_INSTANCE,
+                    .IsRequired = false,
+                },
+#endif
+            },
+#ifndef NDEBUG
+        .ApiLayerCount = 1,
+        .ExtensionCount = 1,
+#else
+        .ApiLayerCount = 0,
+        .ExtensionCount = 0,
+#endif
+    };
+#endif
+
+    constexpr AxrEngineConfig axrEngineConfig{
         .ApplicationConfig =
             AxrApplicationConfig{
                 .ApplicationVersion = AXR_MAKE_VERSION(0, 1, 0),
@@ -24,6 +65,7 @@ int start() {
             },
         .RendererConfig =
             AxrRendererConfig{
+                .VulkanConfig = vulkanConfig,
                 .ApiType = AXR_RENDERER_API_TYPE_VULKAN,
             },
     };

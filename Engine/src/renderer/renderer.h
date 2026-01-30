@@ -5,6 +5,7 @@
 // ----------------------------------------- //
 #include "axr/common/defines.h"
 #include "axr/common/enums.h"
+#include "axr/lifecycle.h"
 #include "vulkan/vulkanRenderer.h"
 
 #include <cstdint>
@@ -56,7 +57,7 @@ public:
 
     /// AxrRenderer Config
     struct Config {
-        AxrRendererApiTypeEnum ApiType{};
+        const AxrRendererConfig* RendererConfig{};
         uint32_t ApplicationVersion{};
         char ApplicationName[AXR_MAX_APPLICATION_NAME_SIZE]{};
     };
@@ -80,9 +81,9 @@ public:
     static AxrRenderer& get();
 
     /// Set up the renderer
-    /// @param rendererConfig Renderer config
+    /// @param config Renderer config
     /// @return AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult setup(const Config& rendererConfig);
+    [[nodiscard]] AxrResult setup(const Config& config);
     /// Shut down the renderer
     void shutDown();
 
@@ -90,6 +91,6 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
-    Context m_Context;
-    bool m_IsSetup;
+    Context m_Context{};
+    bool m_IsSetup = false;
 };

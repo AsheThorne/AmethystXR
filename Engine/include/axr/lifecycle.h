@@ -5,6 +5,7 @@
 // ----------------------------------------- //
 #include "axr/common/defines.h"
 #include "axr/common/enums.h"
+#include "axr/vulkanApi.h"
 
 #include <cstdint>
 
@@ -28,6 +29,9 @@ struct AxrWindowConfig {
 
 /// Renderer config
 struct AxrRendererConfig {
+    union {
+        AxrVulkanRendererConfig VulkanConfig;
+    };
     AxrRendererApiTypeEnum ApiType;
 };
 

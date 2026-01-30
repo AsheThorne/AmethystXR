@@ -5,6 +5,7 @@
 // ----------------------------------------- //
 #include "axr/common/defines.h"
 #include "axr/common/enums.h"
+#include "axr/vulkanApi.h"
 
 #include <cstdint>
 
@@ -31,9 +32,9 @@ public:
 #else
     /// Vulkan renderer setup Config
     struct Config {
+        const AxrVulkanRendererConfig* VulkanConfig{};
         uint32_t ApplicationVersion{};
         char ApplicationName[AXR_MAX_APPLICATION_NAME_SIZE]{};
-        // TODO (Ashe): Api layers and extensions. Probably need to use the AxrAllocator.
     };
 #endif
 

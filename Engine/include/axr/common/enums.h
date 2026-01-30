@@ -23,6 +23,8 @@ enum AxrResult {
     AXR_ERROR_NULLPTR = -5,
     /// Error, Ran out of memory
     AXR_ERROR_OUT_OF_MEMORY = -6,
+    /// Error, Feature isn't supported
+    AXR_ERROR_NOT_SUPPORTED = -7,
 };
 
 /// Axr renderer api type

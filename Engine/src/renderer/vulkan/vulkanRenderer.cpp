@@ -15,9 +15,15 @@
 #define AXR_FUNCTION_FAILED_STRING "Failed to set up axr vulkan renderer. "
 AxrResult AxrVulkanRenderer::setup(Context& context, const Config& config) {
 #ifndef AXR_VULKAN_SUPPORTED
-    axrLogError(AXR_FUNCTION_FAILED_STRING "Vulkan isn't supported.")
+    axrLogError(AXR_FUNCTION_FAILED_STRING "Vulkan isn't supported.");
+    return AXR_ERROR_NOT_SUPPORTED;
 #else
     assert(!context.IsSetup);
+
+    if (config.VulkanConfig == nullptr) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "`config.VulkanConfig` is null.");
+        return AXR_ERROR_NULLPTR;
+    }
 
     context.IsSetup = true;
     return AXR_SUCCESS;
@@ -28,7 +34,7 @@ AxrResult AxrVulkanRenderer::setup(Context& context, const Config& config) {
 #define AXR_FUNCTION_FAILED_STRING "Failed to shut down axr vulkan renderer. "
 void AxrVulkanRenderer::shutDown(Context& context) {
 #ifndef AXR_VULKAN_SUPPORTED
-    axrLogError(AXR_FUNCTION_FAILED_STRING "Vulkan isn't supported.")
+    axrLogError(AXR_FUNCTION_FAILED_STRING "Vulkan isn't supported.");
 #else
     context.IsSetup = false;
 #endif

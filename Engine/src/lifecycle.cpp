@@ -47,7 +47,7 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
     }
 
     AxrRenderer::Config axrRendererConfig{
-        .ApiType = config->RendererConfig.ApiType,
+        .RendererConfig = &config->RendererConfig,
         .ApplicationVersion = config->ApplicationConfig.ApplicationVersion,
         .ApplicationName = "",
     };
