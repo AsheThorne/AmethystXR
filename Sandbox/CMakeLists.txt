@@ -35,8 +35,8 @@ elseif(LINUX)
     add_executable(Sandbox ${AXR_SANDBOX_FILES})
 endif()
 
-set_target_properties(Sandbox PROPERTIES 
-    LINKER_LANGUAGE CXX 
+set_target_properties(Sandbox PROPERTIES
+    LINKER_LANGUAGE CXX
     CXX_STANDARD 20
 )
 
@@ -45,8 +45,8 @@ set_target_properties(Sandbox PROPERTIES
 # ---------------------------------------------
 
 if(WIN32 AND MINGW)
-    target_link_options(Sandbox PRIVATE 
-        "-Wl,--subsystem,console" 
+    target_link_options(Sandbox PRIVATE
+        "-Wl,--subsystem,console"
         -municode
     )
 endif()
@@ -64,9 +64,15 @@ endif()
 # ---------------------------------------------
 # Link libraries to Sandbox 
 # ---------------------------------------------
-target_link_libraries(Sandbox 
+target_link_libraries(Sandbox
     PUBLIC AXR_Engine
 )
+
+if(Vulkan_FOUND)
+    target_link_libraries(Sandbox PRIVATE
+        Vulkan::Vulkan
+    )
+endif()
 
 # ---------------------------------------------
 # Set Sandbox compile definitions
@@ -77,13 +83,17 @@ target_compile_definitions(Sandbox PRIVATE
 
 if(WIN32)
     target_compile_definitions(Sandbox PRIVATE
-        AXR_PLATFORM_WIN32 
-        NOMINMAX 
-        UNICODE 
+        AXR_PLATFORM_WIN32
+        NOMINMAX
+        UNICODE
         _UNICODE
     )
 elseif(LINUX)
     target_compile_definitions(Sandbox PRIVATE
         AXR_PLATFORM_LINUX
     )
+endif()
+
+if(Vulkan_FOUND)
+    add_compile_definitions(AXR_VULKAN_SUPPORTED)
 endif()
