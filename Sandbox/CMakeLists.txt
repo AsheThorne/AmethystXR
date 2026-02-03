@@ -52,7 +52,7 @@ if(WIN32 AND MINGW)
 endif()
 
 # ---------------------------------------------
-# Set AXR_Engine compile options
+# Set Sandbox compile options
 # ---------------------------------------------
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(Sandbox PRIVATE

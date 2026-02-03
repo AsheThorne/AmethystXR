@@ -65,6 +65,8 @@ set(AXR_SOURCE_FILES
     # ---- Renderer - Vulkan ----
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanRenderer.h
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanRenderer.cpp
+    # ---- Common ----
+    ${AXR_SRC_DIR}/common/array.h
 )
 
 # ---------------------------------------------
@@ -128,9 +130,11 @@ elseif(LINUX)
 endif()
 
 if(Vulkan_FOUND)
-    add_compile_definitions(AXR_VULKAN_SUPPORTED)
-    # This definition is for OpenXR
-    add_compile_definitions(XR_USE_GRAPHICS_API_VULKAN)
+    target_compile_definitions(AXR_Engine PRIVATE
+        AXR_VULKAN_SUPPORTED
+        # This definition is for OpenXR
+        XR_USE_GRAPHICS_API_VULKAN
+    )
 endif()
 
 # ---------------------------------------------
@@ -152,6 +156,8 @@ set(AXR_TEST_FILES
     ${AXR_TEST_DIR}/memory/doubleStackAllocatorTests.cpp
     ${AXR_TEST_DIR}/memory/poolAllocatorTests.cpp
     ${AXR_TEST_DIR}/memory/utilsTests.cpp
+    # ---- Common ----
+    ${AXR_TEST_DIR}/common/array.cpp
 )
 
 # ---------------------------------------------
