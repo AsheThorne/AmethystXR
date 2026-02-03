@@ -67,6 +67,7 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanRenderer.cpp
     # ---- Common ----
     ${AXR_SRC_DIR}/common/array.h
+    ${AXR_SRC_DIR}/common/extensionArray.h
 )
 
 # ---------------------------------------------
@@ -158,6 +159,7 @@ set(AXR_TEST_FILES
     ${AXR_TEST_DIR}/memory/utilsTests.cpp
     # ---- Common ----
     ${AXR_TEST_DIR}/common/array.cpp
+    ${AXR_TEST_DIR}/common/extensionArray.cpp
 )
 
 # ---------------------------------------------
@@ -176,14 +178,36 @@ target_link_libraries(AXR_Test PRIVATE
     SDL3::SDL3
 )
 
+if(Vulkan_FOUND)
+    target_link_libraries(AXR_Engine PRIVATE
+        Vulkan::Vulkan
+    )
+endif()
+
 set_target_properties(AXR_Test PROPERTIES
     LINKER_LANGUAGE CXX
     CXX_STANDARD 20
 )
 
+# ---------------------------------------------
+# AXR_Test Include Directories
+# ---------------------------------------------
+
 target_include_directories(AXR_Test PUBLIC
     ${AXR_SRC_DIR}
 )
+
+# ---------------------------------------------
+# Set AXR_Test compile definitions
+# ---------------------------------------------
+
+if(Vulkan_FOUND)
+    target_compile_definitions(AXR_Engine PRIVATE
+        AXR_VULKAN_SUPPORTED
+        # This definition is for OpenXR
+        XR_USE_GRAPHICS_API_VULKAN
+    )
+endif()
 
 # ---------------------------------------------
 # Add Tests

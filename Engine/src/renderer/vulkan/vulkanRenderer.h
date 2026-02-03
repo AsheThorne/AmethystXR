@@ -3,12 +3,22 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
+#include "../../common/extensionArray.h"
 #include "axr/common/defines.h"
 #include "axr/common/enums.h"
 #include "axr/vulkanApi.h"
 
-#include <cstdint>
+#ifndef AXR_VULKAN_SUPPORTED
+/// Empty Axr Vulkan renderer static class. This class only holds static functions.
+class AxrVulkanRenderer {
+public:
+    /// Empty Vulkan renderer context
+    struct Context {};
 
+    /// Empty Vulkan renderer setup Config
+    struct Config {};
+};
+#else
 /// Axr Vulkan renderer static class. This class only holds static functions.
 class AxrVulkanRenderer {
 public:
@@ -16,27 +26,19 @@ public:
     // Public Structs
     // ----------------------------------------- //
 
-#ifndef AXR_VULKAN_SUPPORTED
-    /// Empty Vulkan renderer context
-    struct Context {};
-#else
     /// Vulkan renderer context
     struct Context {
-        bool IsSetup;
+        AxrExtensionArray<AxrVulkanApiLayer, AxrVulkanApiLayerMaxCount> ApiLayers{};
+        AxrExtensionArray<AxrVulkanExtension, AxrVulkanExtensionMaxCount> Extensions{};
+        bool IsSetup = false;
     };
-#endif
 
-#ifndef AXR_VULKAN_SUPPORTED
-    /// Empty Vulkan renderer setup Config
-    struct Config {};
-#else
     /// Vulkan renderer setup Config
     struct Config {
         const AxrVulkanRendererConfig* VulkanConfig{};
         uint32_t ApplicationVersion{};
         char ApplicationName[AXR_MAX_APPLICATION_NAME_SIZE]{};
     };
-#endif
 
     // ----------------------------------------- //
     // Special Functions
@@ -81,10 +83,20 @@ public:
     static void shutDown(Context& context);
 
 private:
-#ifdef AXR_VULKAN_SUPPORTED
     // ----------------------------------------- //
     // Private Functions
     // ----------------------------------------- //
-#endif
+
+    /// Populate ApiLayers within `context` with the given api layers
+    /// @param context Vulkan context
+    /// @param apiLayerCount Number of api layers in the given array
+    /// @param apiLayers Api layers array
+    static void populateApiLayers(Context& context, uint32_t apiLayerCount, const AxrVulkanApiLayer apiLayers[]);
+    /// Populate Extensions within `context` with the given extensions
+    /// @param context Vulkan context
+    /// @param extensionCount Number of extensions in the given array
+    /// @param extensions Extensions array
+    static void populateExtensions(Context& context, uint32_t extensionCount, const AxrVulkanExtension extensions[]);
 };
+#endif
 

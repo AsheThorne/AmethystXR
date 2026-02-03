@@ -25,7 +25,7 @@
 // An empty AxrVulkanRenderer::Context struct is declared if AXR_VULKAN_SUPPORTED isn't defined
 /// Check that the given function is invocable with the vulkan renderer context
 template<typename Func_T, typename... Args>
-concept InvocableWithVulkanContext = std::invocable<Func_T, AxrVulkanRenderer::Context&, Args...>;
+concept AxrInvocableWithVulkanContext = std::invocable<Func_T, AxrVulkanRenderer::Context&, Args...>;
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to call renderer context function. "
 /// Generic function to call different callbacks depending on the rendering api type
@@ -35,7 +35,7 @@ concept InvocableWithVulkanContext = std::invocable<Func_T, AxrVulkanRenderer::C
 /// @param vulkanCallback Vulkan callback function
 /// @param args Callback function arguments
 template<typename VulkanCallback_T, typename... Args>
-    requires InvocableWithVulkanContext<VulkanCallback_T, Args...>
+    requires AxrInvocableWithVulkanContext<VulkanCallback_T, Args...>
 decltype(auto) axrRendererContextExecute(AxrRenderer::Context& context,
                                          VulkanCallback_T&& vulkanCallback,
                                          Args&&... args) {

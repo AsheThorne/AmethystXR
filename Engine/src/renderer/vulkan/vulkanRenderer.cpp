@@ -1,3 +1,5 @@
+#ifdef AXR_VULKAN_SUPPORTED
+
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
@@ -14,10 +16,6 @@
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to set up axr vulkan renderer. "
 AxrResult AxrVulkanRenderer::setup(Context& context, const Config& config) {
-#ifndef AXR_VULKAN_SUPPORTED
-    axrLogError(AXR_FUNCTION_FAILED_STRING "Vulkan isn't supported.");
-    return AXR_ERROR_NOT_SUPPORTED;
-#else
     assert(!context.IsSetup);
 
     if (config.VulkanConfig == nullptr) {
@@ -25,27 +23,40 @@ AxrResult AxrVulkanRenderer::setup(Context& context, const Config& config) {
         return AXR_ERROR_NULLPTR;
     }
 
+    populateApiLayers(context, config.VulkanConfig->ApiLayerCount, config.VulkanConfig->ApiLayers);
+    populateExtensions(context, config.VulkanConfig->ExtensionCount, config.VulkanConfig->Extensions);
+
     context.IsSetup = true;
     return AXR_SUCCESS;
-#endif
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
-#define AXR_FUNCTION_FAILED_STRING "Failed to shut down axr vulkan renderer. "
 void AxrVulkanRenderer::shutDown(Context& context) {
-#ifndef AXR_VULKAN_SUPPORTED
-    axrLogError(AXR_FUNCTION_FAILED_STRING "Vulkan isn't supported.");
-#else
+    context.ApiLayers.clear();
+    context.Extensions.clear();
     context.IsSetup = false;
-#endif
 }
-#undef AXR_FUNCTION_FAILED_STRING
 
-#ifdef AXR_VULKAN_SUPPORTED
 // ----------------------------------------- //
-// Private Function Definitions
+// Private Functions
 // ----------------------------------------- //
 // Public functions need to check AXR_VULKAN_SUPPORTED but private ones don't.
 // Private functions aren't expected to be called outside of public vulkan functions that have already been checked.
+
+void AxrVulkanRenderer::populateApiLayers(Context& context,
+                                          const uint32_t apiLayerCount,
+                                          const AxrVulkanApiLayer apiLayers[]) {
+    for (uint32_t i = 0; i < apiLayerCount; ++i) {
+        context.ApiLayers.pushBack(apiLayers[i]);
+    }
+}
+
+void AxrVulkanRenderer::populateExtensions(Context& context,
+                                           const uint32_t extensionCount,
+                                           const AxrVulkanExtension extensions[]) {
+    for (uint32_t i = 0; i < extensionCount; ++i) {
+        context.Extensions.pushBack(extensions[i]);
+    }
+}
 
 #endif

@@ -43,6 +43,9 @@ AxrResult AxrRenderer::setup(const Config& config) {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Vulkan isn't supported.");
         return AXR_ERROR_NOT_SUPPORTED;
 #else
+        // Initialize default variables since it's inside a 'union'
+        context = AxrVulkanRenderer::Context{};
+
         AxrVulkanRenderer::Config vulkanConfig{
             .VulkanConfig = &config.RendererConfig->VulkanConfig,
             .ApplicationVersion = config.ApplicationVersion,
@@ -68,7 +71,9 @@ AxrResult AxrRenderer::setup(const Config& config) {
 
 void AxrRenderer::shutDown() {
     auto vulkan = [](AxrVulkanRenderer::Context& context) -> void {
+#ifdef AXR_VULKAN_SUPPORTED
         AxrVulkanRenderer::shutDown(context);
+#endif
     };
 
     axrRendererContextExecute(m_Context, vulkan);

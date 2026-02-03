@@ -6,6 +6,8 @@
 #include "axr/logging.h"
 
 /// Axr Array
+/// @tparam Type Item type
+/// @tparam Cap Array capacity
 template<typename Type, size_t Cap>
 class AxrArray {
 public:
