@@ -12,6 +12,12 @@ template<typename Type, size_t Cap>
 class AxrArray {
 public:
     // ----------------------------------------- //
+    // Types
+    // ----------------------------------------- //
+    typedef Type* Iterator;
+    typedef const Type* ConstIterator;
+
+    // ----------------------------------------- //
     // Public Variables
     // ----------------------------------------- //
     Type Data[Cap]{};
@@ -41,6 +47,30 @@ public:
     // ----------------------------------------- //
     // Public Functions
     // ----------------------------------------- //
+
+    /// The beginning of the array
+    /// @return An iterator to the beginning of the array
+    Iterator begin() {
+        return &Data[0];
+    }
+
+    /// The beginning of the array
+    /// @return A const iterator to the beginning of the array
+    ConstIterator begin() const {
+        return &Data[0];
+    }
+
+    /// The end of the array
+    /// @return An iterator to the end of the array
+    Iterator end() {
+        return &Data[Size];
+    }
+
+    /// The end of the array
+    /// @return A const iterator to the end of the array
+    ConstIterator end() const {
+        return &Data[Size];
+    }
 
     /// Get the aray size
     /// @return The array size
