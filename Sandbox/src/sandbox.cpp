@@ -35,7 +35,6 @@ int start() {
                                          AXR_VULKAN_EXTENSION_DEBUG_UTILS_TYPE_PERFORMANCE_BIT |
                                          AXR_VULKAN_EXTENSION_DEBUG_UTILS_TYPE_DEVICE_ADDRESS_BINDING_BIT},
                     .Type = AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS,
-                    .Level = AXR_VULKAN_EXTENSION_LEVEL_INSTANCE,
                     .IsRequired = false,
                 },
 #endif

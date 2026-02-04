@@ -3,8 +3,10 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
+#include "../common/extensionArray.h"
 #include "axr/common/defines.h"
 #include "axr/common/enums.h"
+#include "axr/lifecycle.h"
 
 #include <SDL3/SDL.h>
 
@@ -55,10 +57,8 @@ public:
 
     /// AxrPlatform Config
     struct Config {
-        uint32_t WindowWidth;
-        uint32_t WindowHeight;
-        char WindowTitle[AXR_MAX_WINDOW_TITLE_SIZE];
-        bool WindowEnabled;
+        const AxrWindowConfig* WindowConfig;
+        AxrRendererApiTypeEnum RendererApiType;
     };
 
     // ----------------------------------------- //
@@ -83,6 +83,12 @@ public:
     /// @return False if the window closed
     [[nodiscard]] bool processEvents();
 
+#ifdef AXR_VULKAN_SUPPORTED
+    /// Get the required vulkan platform extensions
+    /// @return Required vulkan platform extensions
+    [[nodiscard]] static AxrExtensionArray<AxrVulkanExtension, AxrVulkanExtensionMaxCount> getRequiredVulkanExtensions();
+#endif
+
 private:
     // ----------------------------------------- //
     // Private Variables
@@ -96,12 +102,22 @@ private:
     // ----------------------------------------- //
 
     /// Create the desktop window
+    /// @param title Window title
+    /// @param width Window width
+    /// @param height Window height
+    /// @param rendererApiType Renderer Api type
     /// @return AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult createWindow(const char (&title)[AXR_MAX_WINDOW_TITLE_SIZE],
                                          uint32_t width,
-                                         uint32_t height);
+                                         uint32_t height,
+                                         AxrRendererApiTypeEnum rendererApiType);
     /// Destroy the desktop window
     void destroyWindow();
+
+    /// Get the SDL window flags to use
+    /// @param rendererApiType Renderer api type
+    /// @return SDL window flags
+    [[nodiscard]] static SDL_WindowFlags getSDLWindowFlags(AxrRendererApiTypeEnum rendererApiType);
 
     /// Handle the given window event
     /// @param event Window event to handle

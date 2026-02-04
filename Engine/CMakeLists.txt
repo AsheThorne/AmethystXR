@@ -136,6 +136,12 @@ if(Vulkan_FOUND)
         # This definition is for OpenXR
         XR_USE_GRAPHICS_API_VULKAN
     )
+
+    if(WIN32)
+        target_compile_definitions(AXR_Engine PRIVATE
+            VK_USE_PLATFORM_WIN32_KHR
+        )
+    endif()
 endif()
 
 # ---------------------------------------------

@@ -3,9 +3,13 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
+#include "axr/logging.h"
+
 #ifdef AXR_VULKAN_SUPPORTED
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.h>
 #endif
+
+#define AXR_VULKAN_CORE_VALIDATION_LAYER_NAME "VK_LAYER_KHRONOS_validation"
 
 #ifdef AXR_VULKAN_SUPPORTED
 // ---------------------------------------------------------------------------------- //
@@ -44,6 +48,36 @@ struct AxrVulkanApiLayer {
     AxrVulkanApiLayerTypeEnum Type;
 };
 
+/// Axr vulkan api layer properties
+struct AxrVulkanApiLayerProperties {
+    char Name[VK_MAX_EXTENSION_NAME_SIZE];
+};
+
+// ----------------------------------------- //
+// Properties
+// ----------------------------------------- //
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to get vulkan api layer properties. "
+/// Get the properties for the given vulkan api layer type
+/// @param apiLayerType Api layer type
+/// @return Vulkan api layer properties
+inline AxrVulkanApiLayerProperties AxrVulkanApiLayerGetProperties(const AxrVulkanApiLayerTypeEnum apiLayerType) {
+    switch (apiLayerType) {
+        case AXR_VULKAN_API_LAYER_TYPE_CORE_VALIDATION: {
+            return AxrVulkanApiLayerProperties{
+                .Name = AXR_VULKAN_CORE_VALIDATION_LAYER_NAME,
+            };
+        }
+        case AXR_VULKAN_API_LAYER_TYPE_END:
+        case AXR_VULKAN_API_LAYER_TYPE_UNDEFINED:
+        default: {
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Unknown vulkan api layer type.");
+            return AxrVulkanApiLayerProperties{};
+        }
+    }
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
 // ---------------------------------------------------------------------------------- //
 //                                     Extensions                                     //
 // ---------------------------------------------------------------------------------- //
@@ -55,13 +89,9 @@ struct AxrVulkanApiLayer {
 /// Vulkan Extension Type Enum
 enum AxrVulkanExtensionTypeEnum {
     AXR_VULKAN_EXTENSION_TYPE_UNDEFINED = 0,
-    /// Level: AXR_VULKAN_EXTENSION_LEVEL_INSTANCE
     AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS,
-    /// Level: AXR_VULKAN_EXTENSION_LEVEL_DEVICE
     AXR_VULKAN_EXTENSION_TYPE_SWAPCHAIN,
-    /// Level: AXR_VULKAN_EXTENSION_LEVEL_INSTANCE
     AXR_VULKAN_EXTENSION_TYPE_SURFACE,
-    /// Level: AXR_VULKAN_EXTENSION_LEVEL_INSTANCE
     // TODO: We probably need the linux one too
     AXR_VULKAN_EXTENSION_TYPE_WIN32_SURFACE,
     /// This value is used to mark the end of the enum.
@@ -135,10 +165,97 @@ struct AxrVulkanExtension {
         AxrVulkanExtensionWin32Surface Win32Surface;
     };
     AxrVulkanExtensionTypeEnum Type;
-    AxrVulkanExtensionLevelEnum Level;
     bool IsRequired;
 };
+
+/// Axr vulkan extension properties
+struct AxrVulkanExtensionProperties {
+    char Name[VK_MAX_EXTENSION_NAME_SIZE];
+    AxrVulkanExtensionLevelEnum Level;
+};
+
+// ----------------------------------------- //
+// Properties
+// ----------------------------------------- //
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to get vulkan extension properties. "
+/// Get the properties for the given vulkan extension type
+/// @param extensionType Extension type
+/// @return Vulkan extension properties
+inline AxrVulkanExtensionProperties AxrVulkanExtensionGetProperties(const AxrVulkanExtensionTypeEnum extensionType) {
+    switch (extensionType) {
+        case AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS: {
+            return AxrVulkanExtensionProperties{
+                .Name = VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+                .Level = AXR_VULKAN_EXTENSION_LEVEL_INSTANCE,
+            };
+        }
+        case AXR_VULKAN_EXTENSION_TYPE_SWAPCHAIN: {
+            return AxrVulkanExtensionProperties{
+                .Name = VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+                .Level = AXR_VULKAN_EXTENSION_LEVEL_DEVICE,
+            };
+        }
+        case AXR_VULKAN_EXTENSION_TYPE_SURFACE: {
+            return AxrVulkanExtensionProperties{
+                .Name = VK_KHR_SURFACE_EXTENSION_NAME,
+                .Level = AXR_VULKAN_EXTENSION_LEVEL_INSTANCE,
+            };
+        }
+        case AXR_VULKAN_EXTENSION_TYPE_WIN32_SURFACE: {
+#ifdef VK_USE_PLATFORM_WIN32_KHR
+            return AxrVulkanExtensionProperties{
+                .Name = VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+                .Level = AXR_VULKAN_EXTENSION_LEVEL_INSTANCE,
+            };
+#else
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Win32 surface extension not supported.");
+            return AxrVulkanExtensionProperties{};
 #endif
+        }
+        case AXR_VULKAN_EXTENSION_TYPE_END:
+        case AXR_VULKAN_EXTENSION_TYPE_UNDEFINED:
+        default: {
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Unknown vulkan extension type.");
+            return AxrVulkanExtensionProperties{};
+        }
+    }
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to get vulkan extension type. "
+/// Get the vulkan extension type for the given vulkan extension name
+/// @param extensionName Extension name
+/// @return Vulkan extension type
+inline AxrVulkanExtensionTypeEnum AxrVulkanExtensionGetType(const char extensionName[VK_MAX_EXTENSION_NAME_SIZE]) {
+    if (strcmp(extensionName, VK_EXT_DEBUG_UTILS_EXTENSION_NAME) == 0) {
+        return AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS;
+    }
+
+    if (strcmp(extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0) {
+        return AXR_VULKAN_EXTENSION_TYPE_SWAPCHAIN;
+    }
+
+    if (strcmp(extensionName, VK_KHR_SURFACE_EXTENSION_NAME) == 0) {
+        return AXR_VULKAN_EXTENSION_TYPE_SURFACE;
+    }
+
+#ifdef VK_USE_PLATFORM_WIN32_KHR
+    if (strcmp(extensionName, VK_KHR_WIN32_SURFACE_EXTENSION_NAME) == 0) {
+        return AXR_VULKAN_EXTENSION_TYPE_WIN32_SURFACE;
+    }
+#endif
+
+    axrLogError(AXR_FUNCTION_FAILED_STRING "Unknown vulkan extension name.");
+    return AXR_VULKAN_EXTENSION_TYPE_UNDEFINED;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+#endif
+
+// ---------------------------------------------------------------------------------- //
+//                                       Config                                       //
+// ---------------------------------------------------------------------------------- //
 
 #ifndef AXR_VULKAN_SUPPORTED
 /// Vulkan renderer config

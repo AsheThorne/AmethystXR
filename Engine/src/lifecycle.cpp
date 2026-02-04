@@ -32,14 +32,10 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
         return AXR_ERROR_FALLTHROUGH;
     }
 
-    AxrPlatform::Config axrPlatformConfig{
-        .WindowWidth = config->WindowConfig.Width,
-        .WindowHeight = config->WindowConfig.Height,
-        .WindowTitle = "",
-        .WindowEnabled = config->WindowConfig.Enabled,
+    const AxrPlatform::Config axrPlatformConfig{
+        .WindowConfig = &config->WindowConfig,
+        .RendererApiType = config->RendererConfig.ApiType,
     };
-
-    std::strncpy(axrPlatformConfig.WindowTitle, config->WindowConfig.Title, AXR_MAX_WINDOW_TITLE_SIZE);
 
     if (AXR_FAILED(AxrPlatform::get().setup(axrPlatformConfig))) {
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrPlatform.setup() failed.");

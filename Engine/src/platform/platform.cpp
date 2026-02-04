@@ -7,6 +7,8 @@
 
 #include <cassert>
 
+#include <SDL3/SDL_vulkan.h>
+
 // ----------------------------------------- //
 // Special Functions
 // ----------------------------------------- //
@@ -29,15 +31,24 @@ AxrPlatform& AxrPlatform::get() {
 #define AXR_FUNCTION_FAILED_STRING "Failed to set up axr platform. "
 AxrResult AxrPlatform::setup(const Config& config) {
     assert(!m_IsSetup);
+
+    if (config.WindowConfig == nullptr) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "`config.WindowConfig` is null.");
+        return AXR_ERROR_NULLPTR;
+    }
+
     AxrResult axrResult = AXR_SUCCESS;
 
-    if (!SDL_Init(SDL_INIT_EVENTS)) {
+    if (!SDL_Init(SDL_INIT_EVENTS | SDL_INIT_VIDEO)) {
         axrLogError(AXR_FUNCTION_FAILED_STRING "SDL init failed.");
         return AXR_ERROR_UNKNOWN;
     }
 
-    if (config.WindowEnabled) {
-        axrResult = createWindow(config.WindowTitle, config.WindowWidth, config.WindowHeight);
+    if (config.WindowConfig->Enabled) {
+        axrResult = createWindow(config.WindowConfig->Title,
+                                 config.WindowConfig->Width,
+                                 config.WindowConfig->Height,
+                                 config.RendererApiType);
         if (AXR_FAILED(axrResult)) {
             return AXR_ERROR_FALLTHROUGH;
         }
@@ -73,6 +84,24 @@ bool AxrPlatform::processEvents() {
     return true;
 }
 
+#ifdef AXR_VULKAN_SUPPORTED
+AxrExtensionArray<AxrVulkanExtension, AxrVulkanExtensionMaxCount> AxrPlatform::getRequiredVulkanExtensions() {
+    AxrExtensionArray<AxrVulkanExtension, AxrVulkanExtensionMaxCount> extensionsArray;
+
+    uint32_t count;
+    char const* const* extensions = SDL_Vulkan_GetInstanceExtensions(&count);
+
+    for (uint32_t i = 0; i < count; ++i) {
+        extensionsArray.pushBack(AxrVulkanExtension{
+            .Type = AxrVulkanExtensionGetType(extensions[i]),
+            .IsRequired = true,
+        });
+    }
+
+    return extensionsArray;
+}
+#endif
+
 // ----------------------------------------- //
 // Private Functions
 // ----------------------------------------- //
@@ -80,10 +109,12 @@ bool AxrPlatform::processEvents() {
 #define AXR_FUNCTION_FAILED_STRING "Failed to create window. "
 AxrResult AxrPlatform::createWindow(const char (&title)[AXR_MAX_WINDOW_TITLE_SIZE],
                                     const uint32_t width,
-                                    const uint32_t height) {
+                                    const uint32_t height,
+                                    const AxrRendererApiTypeEnum rendererApiType) {
     assert(!m_IsSetup);
 
-    m_SDLWindow = SDL_CreateWindow("Test", 800, 600, 0);
+    m_SDLWindow =
+        SDL_CreateWindow(title, static_cast<int>(width), static_cast<int>(height), getSDLWindowFlags(rendererApiType));
     if (!m_SDLWindow) {
         axrLogError(AXR_FUNCTION_FAILED_STRING "SDL create window failed: {}.", SDL_GetError());
         return AXR_ERROR_UNKNOWN;
@@ -101,6 +132,25 @@ void AxrPlatform::destroyWindow() {
     }
 
     m_IsWindowOpen = false;
+}
+
+SDL_WindowFlags AxrPlatform::getSDLWindowFlags(const AxrRendererApiTypeEnum rendererApiType) {
+    SDL_WindowFlags windowFlags = 0;
+
+    switch (rendererApiType) {
+        case AXR_RENDERER_API_TYPE_VULKAN: {
+#ifdef AXR_VULKAN_SUPPORTED
+            windowFlags |= SDL_WINDOW_VULKAN;
+#endif
+            break;
+        }
+        case AXR_RENDERER_API_TYPE_UNDEFINED:
+        default: {
+            break;
+        }
+    }
+
+    return windowFlags;
 }
 
 void AxrPlatform::handleWindowEvent(const SDL_WindowEvent& event) {

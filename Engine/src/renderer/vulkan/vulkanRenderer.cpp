@@ -8,6 +8,8 @@
 
 #include <cassert>
 
+#include "../../platform/platform.h"
+
 // ----------------------------------------- //
 // Public Functions
 // ----------------------------------------- //
@@ -56,6 +58,15 @@ void AxrVulkanRenderer::populateExtensions(Context& context,
                                            const AxrVulkanExtension extensions[]) {
     for (uint32_t i = 0; i < extensionCount; ++i) {
         context.Extensions.pushBack(extensions[i]);
+    }
+
+    const AxrExtensionArray<AxrVulkanExtension, AxrVulkanExtensionMaxCount> requiredPlatformExtensions =
+        AxrPlatform::getRequiredVulkanExtensions();
+
+    for (const AxrVulkanExtension& extension : requiredPlatformExtensions) {
+        if (!context.Extensions.exists(extension.Type)) {
+            context.Extensions.pushBack(extension);
+        }
     }
 }
 
