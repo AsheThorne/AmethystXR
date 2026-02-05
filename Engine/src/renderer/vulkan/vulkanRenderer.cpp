@@ -25,8 +25,8 @@ AxrResult AxrVulkanRenderer::setup(Context& context, const Config& config) {
         return AXR_ERROR_NULLPTR;
     }
 
-    populateApiLayers(context, config.VulkanConfig->ApiLayerCount, config.VulkanConfig->ApiLayers);
-    populateExtensions(context, config.VulkanConfig->ExtensionCount, config.VulkanConfig->Extensions);
+    populateApiLayers(config.VulkanConfig->ApiLayerCount, config.VulkanConfig->ApiLayers, context.ApiLayers);
+    populateExtensions(config.VulkanConfig->ExtensionCount, config.VulkanConfig->Extensions, context.Extensions);
 
     context.IsSetup = true;
     return AXR_SUCCESS;
@@ -45,27 +45,29 @@ void AxrVulkanRenderer::shutDown(Context& context) {
 // Public functions need to check AXR_VULKAN_SUPPORTED but private ones don't.
 // Private functions aren't expected to be called outside of public vulkan functions that have already been checked.
 
-void AxrVulkanRenderer::populateApiLayers(Context& context,
-                                          const uint32_t apiLayerCount,
-                                          const AxrVulkanApiLayer apiLayers[]) {
+void AxrVulkanRenderer::populateApiLayers(
+    const uint32_t apiLayerCount,
+    const AxrVulkanApiLayer apiLayers[],
+    AxrExtensionArray<AxrVulkanApiLayer, AxrVulkanApiLayerMaxCount>& dstApiLayers) {
     for (uint32_t i = 0; i < apiLayerCount; ++i) {
-        context.ApiLayers.pushBack(apiLayers[i]);
+        dstApiLayers.pushBack(apiLayers[i]);
     }
 }
 
-void AxrVulkanRenderer::populateExtensions(Context& context,
-                                           const uint32_t extensionCount,
-                                           const AxrVulkanExtension extensions[]) {
+void AxrVulkanRenderer::populateExtensions(
+    const uint32_t extensionCount,
+    const AxrVulkanExtension extensions[],
+    AxrExtensionArray<AxrVulkanExtension, AxrVulkanExtensionMaxCount>& dstExtensions) {
     for (uint32_t i = 0; i < extensionCount; ++i) {
-        context.Extensions.pushBack(extensions[i]);
+        dstExtensions.pushBack(extensions[i]);
     }
 
     const AxrExtensionArray<AxrVulkanExtension, AxrVulkanExtensionMaxCount> requiredPlatformExtensions =
         AxrPlatform::getRequiredVulkanExtensions();
 
     for (const AxrVulkanExtension& extension : requiredPlatformExtensions) {
-        if (!context.Extensions.exists(extension.Type)) {
-            context.Extensions.pushBack(extension);
+        if (!dstExtensions.exists(extension.Type)) {
+            dstExtensions.pushBack(extension);
         }
     }
 }

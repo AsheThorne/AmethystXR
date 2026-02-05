@@ -88,15 +88,19 @@ private:
     // ----------------------------------------- //
 
     /// Populate ApiLayers within `context` with the given api layers
-    /// @param context Vulkan context
     /// @param apiLayerCount Number of api layers in the given array
     /// @param apiLayers Api layers array
-    static void populateApiLayers(Context& context, uint32_t apiLayerCount, const AxrVulkanApiLayer apiLayers[]);
+    /// @param dstApiLayers Output extension array to populate
+    static void populateApiLayers(uint32_t apiLayerCount,
+                                  const AxrVulkanApiLayer apiLayers[],
+                                  AxrExtensionArray<AxrVulkanApiLayer, AxrVulkanApiLayerMaxCount>& dstApiLayers);
     /// Populate Extensions within `context` with the given extensions
-    /// @param context Vulkan context
     /// @param extensionCount Number of extensions in the given array
     /// @param extensions Extensions array
-    static void populateExtensions(Context& context, uint32_t extensionCount, const AxrVulkanExtension extensions[]);
+    /// @param dstExtensions Output extension array to populate
+    static void populateExtensions(uint32_t extensionCount,
+                                   const AxrVulkanExtension extensions[],
+                                   AxrExtensionArray<AxrVulkanExtension, AxrVulkanExtensionMaxCount>& dstExtensions);
 };
 #endif
 
