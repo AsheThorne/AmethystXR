@@ -9,7 +9,7 @@
 #include <cstdint>
 
 /// Base generic sub allocator to inherit from
-class AxrSubAllocator {
+class AxrSubAllocatorBase {
 public:
     // ----------------------------------------- //
     // Special Functions
@@ -18,33 +18,33 @@ public:
     // ---- Constructors ----
 
     /// Default constructor
-    AxrSubAllocator();
+    AxrSubAllocatorBase();
     /// Constructor
     /// @param memory A pointer to the block of memory this allocator has access to
     /// @param size The number of bytes the given block of memory has
     /// @param deallocator A function pointer to use when we're done with the given memory block and wish to deallocate
     /// it
-    AxrSubAllocator(void* memory, size_t size, const AxrDeallocateBlock& deallocator);
+    AxrSubAllocatorBase(void* memory, size_t size, const AxrDeallocateBlock& deallocator);
     /// Copy Constructor
-    /// @param src Source a to copy from
-    AxrSubAllocator(const AxrSubAllocator& src) = delete;
+    /// @param src Source AxrSubAllocatorBase to copy from
+    AxrSubAllocatorBase(const AxrSubAllocatorBase& src) = delete;
     /// Move Constructor
-    /// @param src Source a to move from
-    AxrSubAllocator(AxrSubAllocator&& src) noexcept;
+    /// @param src Source AxrSubAllocatorBase to move from
+    AxrSubAllocatorBase(AxrSubAllocatorBase&& src) noexcept;
 
     // ---- Destructor ----
 
     /// Destructor
-    ~AxrSubAllocator();
+    ~AxrSubAllocatorBase();
 
     // ---- Operator Overloads ----
 
     /// Copy Assignment Operator
-    /// @param src Source a to copy from
-    AxrSubAllocator& operator=(const AxrSubAllocator& src) = delete;
+    /// @param src Source AxrSubAllocatorBase to copy from
+    AxrSubAllocatorBase& operator=(const AxrSubAllocatorBase& src) = delete;
     /// Move Assignment Operator
-    /// @param src Source a to move from
-    AxrSubAllocator& operator=(AxrSubAllocator&& src) noexcept;
+    /// @param src Source AxrSubAllocatorBase to move from
+    AxrSubAllocatorBase& operator=(AxrSubAllocatorBase&& src) noexcept;
 
     // ----------------------------------------- //
     // Public Functions
@@ -53,7 +53,6 @@ public:
     /// Get the allocator's capacity
     /// @return The allocator's capacity
     [[nodiscard]] size_t capacity() const;
-
 
 protected:
     // ----------------------------------------- //

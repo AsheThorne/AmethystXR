@@ -5,14 +5,14 @@
 // ----------------------------------------- //
 #include "axr/common/defines.h"
 #include "axr/common/enums.h"
-#include "subAllocator.h"
+#include "subAllocatorBase.h"
 #include "types.h"
 #include "utils.h"
 
 #include <cstdint>
 
 /// Stack allocator
-class AxrStackAllocator : public AxrSubAllocator {
+class AxrStackAllocator : public AxrSubAllocatorBase {
 public:
     // ----------------------------------------- //
     // Types

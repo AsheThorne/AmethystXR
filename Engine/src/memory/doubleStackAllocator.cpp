@@ -15,11 +15,11 @@ AxrDoubleStackAllocator::AxrDoubleStackAllocator() = default;
 AxrDoubleStackAllocator::AxrDoubleStackAllocator(void* memory,
                                                  const size_t size,
                                                  const AxrDeallocateBlock& deallocator) :
-    AxrSubAllocator(memory, size, deallocator) {
+    AxrSubAllocatorBase(memory, size, deallocator) {
 }
 
 AxrDoubleStackAllocator::AxrDoubleStackAllocator(AxrDoubleStackAllocator&& src) noexcept :
-    AxrSubAllocator(std::move(src)) {
+    AxrSubAllocatorBase(std::move(src)) {
     m_SizeLower = src.m_SizeLower;
     m_SizeUpper = src.m_SizeUpper;
 
@@ -35,7 +35,7 @@ AxrDoubleStackAllocator& AxrDoubleStackAllocator::operator=(AxrDoubleStackAlloca
     if (this != &src) {
         cleanup();
 
-        AxrSubAllocator::operator=(std::move(src));
+        AxrSubAllocatorBase::operator=(std::move(src));
 
         m_SizeLower = src.m_SizeLower;
         m_SizeUpper = src.m_SizeUpper;
@@ -172,7 +172,7 @@ uint32_t AxrDoubleStackAllocator::getMarkerSize() {
 // ----------------------------------------- //
 
 void AxrDoubleStackAllocator::cleanup() {
-    AxrSubAllocator::cleanup();
+    AxrSubAllocatorBase::cleanup();
 
     m_SizeLower = {};
     m_SizeUpper = {};

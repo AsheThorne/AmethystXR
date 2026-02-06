@@ -5,7 +5,7 @@
 // ----------------------------------------- //
 #include "axr/common/enums.h"
 #include "axr/logging.h"
-#include "subAllocator.h"
+#include "subAllocatorBase.h"
 #include "types.h"
 #include "utils.h"
 
@@ -26,7 +26,7 @@ class AxrPoolAllocator;
 /// @tparam IsAligned Weather to align addresses optimally (Requires more memory but is better for performance)
 template<typename Type, bool IsAligned>
     requires((IsAligned ? sizeof(Type) + alignof(Type) : sizeof(Type)) >= sizeof(void*))
-class AxrPoolAllocator<Type, IsAligned> : public AxrSubAllocator {
+class AxrPoolAllocator<Type, IsAligned> : public AxrSubAllocatorBase {
 public:
     // ----------------------------------------- //
     // Special Functions
@@ -40,7 +40,7 @@ public:
     /// @param deallocator A function pointer to use when we're done with the given memory block and wish to deallocate
     /// it
     AxrPoolAllocator(void* memory, const size_t size, const AxrDeallocateBlock& deallocator) :
-        AxrSubAllocator(memory, size, deallocator) {
+        AxrSubAllocatorBase(memory, size, deallocator) {
         assert(size % getChunkSize() == 0);
 
         m_ChunkCapacity = size / getChunkSize();
@@ -56,7 +56,7 @@ public:
     /// Move Constructor
     /// @param src Source AxrPoolAllocator to move from
     AxrPoolAllocator(AxrPoolAllocator&& src) noexcept :
-        AxrSubAllocator(std::move(src)) {
+        AxrSubAllocatorBase(std::move(src)) {
         m_FreeChunksHead = src.m_FreeChunksHead;
         m_ChunkCapacity = src.m_ChunkCapacity;
         m_UsedChunkCount = src.m_UsedChunkCount;
@@ -85,7 +85,7 @@ public:
         if (this != &src) {
             cleanup();
 
-            AxrSubAllocator::operator=(std::move(src));
+            AxrSubAllocatorBase::operator=(std::move(src));
 
             m_FreeChunksHead = src.m_FreeChunksHead;
             m_ChunkCapacity = src.m_ChunkCapacity;
@@ -192,7 +192,7 @@ protected:
 
     /// Clean up this class
     void cleanup() {
-        AxrSubAllocator::cleanup();
+        AxrSubAllocatorBase::cleanup();
 
         m_FreeChunksHead = {};
         m_ChunkCapacity = {};
@@ -266,7 +266,7 @@ struct AxrPoolAllocatorChunkIndexTraits<T> {
 /// @tparam IsAligned Weather to align addresses optimally (Requires more memory but is better for performance)
 template<typename Type, bool IsAligned>
     requires((IsAligned ? sizeof(Type) + alignof(Type) : sizeof(Type)) < sizeof(void*))
-class AxrPoolAllocator<Type, IsAligned> : public AxrSubAllocator {
+class AxrPoolAllocator<Type, IsAligned> : public AxrSubAllocatorBase {
 public:
     // ----------------------------------------- //
     // Types
@@ -287,7 +287,7 @@ public:
     /// @param deallocator A function pointer to use when we're done with the given memory block and wish to deallocate
     /// it
     AxrPoolAllocator(void* memory, const size_t size, const AxrDeallocateBlock& deallocator) :
-        AxrSubAllocator(memory, size, deallocator) {
+        AxrSubAllocatorBase(memory, size, deallocator) {
         assert(size % getChunkSize() == 0);
 
         m_ChunkCapacity = size / getChunkSize();
@@ -305,7 +305,7 @@ public:
     /// Move Constructor
     /// @param src Source AxrPoolAllocator to move from
     AxrPoolAllocator(AxrPoolAllocator&& src) noexcept :
-        AxrSubAllocator(std::move(src)) {
+        AxrSubAllocatorBase(std::move(src)) {
         m_FreeChunksHeadIndex = src.m_FreeChunksHeadIndex;
         m_ChunkCapacity = src.m_ChunkCapacity;
         m_UsedChunkCount = src.m_UsedChunkCount;
@@ -334,7 +334,7 @@ public:
         if (this != &src) {
             cleanup();
 
-            AxrSubAllocator::operator=(std::move(src));
+            AxrSubAllocatorBase::operator=(std::move(src));
 
             m_FreeChunksHeadIndex = src.m_FreeChunksHeadIndex;
             m_ChunkCapacity = src.m_ChunkCapacity;
@@ -432,7 +432,7 @@ private:
 
     /// Clean up this class
     void cleanup() {
-        AxrSubAllocator::cleanup();
+        AxrSubAllocatorBase::cleanup();
 
         m_FreeChunksHeadIndex = {};
         m_ChunkCapacity = {};

@@ -5,14 +5,14 @@
 // ----------------------------------------- //
 #include "axr/common/defines.h"
 #include "axr/common/enums.h"
-#include "subAllocator.h"
+#include "subAllocatorBase.h"
 #include "types.h"
 #include "utils.h"
 
 #include <cstdint>
 
 /// Double-Ended Stack allocator
-class AxrDoubleStackAllocator : public AxrSubAllocator {
+class AxrDoubleStackAllocator : public AxrSubAllocatorBase {
 public:
     // ----------------------------------------- //
     // Types

@@ -1,22 +1,22 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
-#include "subAllocator.h"
 #include "axr/logging.h"
+#include "subAllocatorBase.h"
 
 // ----------------------------------------- //
 // Special Functions
 // ----------------------------------------- //
 
-AxrSubAllocator::AxrSubAllocator() = default;
+AxrSubAllocatorBase::AxrSubAllocatorBase() = default;
 
-AxrSubAllocator::AxrSubAllocator(void* memory, const size_t size, const AxrDeallocateBlock& deallocator) {
+AxrSubAllocatorBase::AxrSubAllocatorBase(void* memory, const size_t size, const AxrDeallocateBlock& deallocator) {
     m_MainMemoryDeallocator = deallocator;
     m_Memory = static_cast<uint8_t*>(memory);
     m_Capacity = size;
 }
 
-AxrSubAllocator::AxrSubAllocator(AxrSubAllocator&& src) noexcept {
+AxrSubAllocatorBase::AxrSubAllocatorBase(AxrSubAllocatorBase&& src) noexcept {
     m_MainMemoryDeallocator = src.m_MainMemoryDeallocator;
     m_Memory = src.m_Memory;
     m_Capacity = src.m_Capacity;
@@ -26,11 +26,11 @@ AxrSubAllocator::AxrSubAllocator(AxrSubAllocator&& src) noexcept {
     src.m_Capacity = {};
 }
 
-AxrSubAllocator::~AxrSubAllocator() {
+AxrSubAllocatorBase::~AxrSubAllocatorBase() {
     cleanup();
 }
 
-AxrSubAllocator& AxrSubAllocator::operator=(AxrSubAllocator&& src) noexcept {
+AxrSubAllocatorBase& AxrSubAllocatorBase::operator=(AxrSubAllocatorBase&& src) noexcept {
     if (this != &src) {
         cleanup();
 
@@ -49,7 +49,7 @@ AxrSubAllocator& AxrSubAllocator::operator=(AxrSubAllocator&& src) noexcept {
 // Public Functions
 // ----------------------------------------- //
 
-size_t AxrSubAllocator::capacity() const {
+size_t AxrSubAllocatorBase::capacity() const {
     return m_Capacity;
 }
 
@@ -57,12 +57,12 @@ size_t AxrSubAllocator::capacity() const {
 // Protected Functions
 // ----------------------------------------- //
 
-void AxrSubAllocator::cleanup() {
+void AxrSubAllocatorBase::cleanup() {
     if (m_Memory != nullptr) {
         if (m_MainMemoryDeallocator) {
             m_MainMemoryDeallocator(reinterpret_cast<void*&>(m_Memory));
         } else {
-            axrLogWarning("Memory leak detected inside AxrSubAllocator. Failed to deallocate a block of memory. No "
+            axrLogWarning("Memory leak detected inside AxrSubAllocatorBase. Failed to deallocate a block of memory. No "
                           "deallocator available.");
         }
     }

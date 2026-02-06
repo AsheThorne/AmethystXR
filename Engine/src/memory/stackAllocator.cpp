@@ -11,13 +11,13 @@
 // ----------------------------------------- //
 
 AxrStackAllocator::AxrStackAllocator(void* memory, const size_t size, const AxrDeallocateBlock& deallocator) :
-    AxrSubAllocator(memory, size, deallocator) {
+    AxrSubAllocatorBase(memory, size, deallocator) {
 }
 
 AxrStackAllocator::AxrStackAllocator() = default;
 
 AxrStackAllocator::AxrStackAllocator(AxrStackAllocator&& src) noexcept :
-    AxrSubAllocator(std::move(src)) {
+    AxrSubAllocatorBase(std::move(src)) {
     m_Size = src.m_Size;
 
     src.m_Size = {};
@@ -31,7 +31,7 @@ AxrStackAllocator& AxrStackAllocator::operator=(AxrStackAllocator&& src) noexcep
     if (this != &src) {
         cleanup();
 
-        AxrSubAllocator::operator=(std::move(src));
+        AxrSubAllocatorBase::operator=(std::move(src));
 
         m_Size = src.m_Size;
 
@@ -102,7 +102,7 @@ uint32_t AxrStackAllocator::getMarkerSize() {
 // ----------------------------------------- //
 
 void AxrStackAllocator::cleanup() {
-    AxrSubAllocator::cleanup();
+    AxrSubAllocatorBase::cleanup();
 
     m_Size = {};
 }
