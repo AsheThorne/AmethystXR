@@ -5,6 +5,7 @@
 // ----------------------------------------- //
 #include "axr/common/enums.h"
 #include "axr/logging.h"
+#include "subAllocator.h"
 #include "types.h"
 #include "utils.h"
 
@@ -25,7 +26,7 @@ class AxrPoolAllocator;
 /// @tparam IsAligned Weather to align addresses optimally (Requires more memory but is better for performance)
 template<typename Type, bool IsAligned>
     requires((IsAligned ? sizeof(Type) + alignof(Type) : sizeof(Type)) >= sizeof(void*))
-class AxrPoolAllocator<Type, IsAligned> {
+class AxrPoolAllocator<Type, IsAligned> : public AxrSubAllocator {
 public:
     // ----------------------------------------- //
     // Special Functions
@@ -36,14 +37,12 @@ public:
     /// Constructor
     /// @param memory A pointer to the block of memory this allocator has access to
     /// @param size The number of bytes the given block of memory has
-    /// @param deallocate A function pointer to use when we're done with the given memory block and wish to deallocate
+    /// @param deallocator A function pointer to use when we're done with the given memory block and wish to deallocate
     /// it
-    AxrPoolAllocator(void* memory, const size_t size, const AxrDeallocate& deallocate) {
+    AxrPoolAllocator(void* memory, const size_t size, const AxrDeallocateBlock& deallocator) :
+        AxrSubAllocator(memory, size, deallocator) {
         assert(size % getChunkSize() == 0);
 
-        m_MainMemoryDeallocator = deallocate;
-        m_Memory = static_cast<Type*>(memory);
-        m_MemoryCapacity = size;
         m_ChunkCapacity = size / getChunkSize();
         m_FreeChunksHead = reinterpret_cast<Chunk*>(m_Memory);
 
@@ -56,18 +55,13 @@ public:
 
     /// Move Constructor
     /// @param src Source AxrPoolAllocator to move from
-    AxrPoolAllocator(AxrPoolAllocator&& src) noexcept {
-        m_MainMemoryDeallocator = src.m_MainMemoryDeallocator;
+    AxrPoolAllocator(AxrPoolAllocator&& src) noexcept :
+        AxrSubAllocator(std::move(src)) {
         m_FreeChunksHead = src.m_FreeChunksHead;
-        m_Memory = src.m_Memory;
-        m_MemoryCapacity = src.m_MemoryCapacity;
         m_ChunkCapacity = src.m_ChunkCapacity;
         m_UsedChunkCount = src.m_UsedChunkCount;
 
-        src.m_MainMemoryDeallocator = {};
         src.m_FreeChunksHead = {};
-        src.m_Memory = {};
-        src.m_MemoryCapacity = {};
         src.m_ChunkCapacity = {};
         src.m_UsedChunkCount = {};
     }
@@ -91,17 +85,13 @@ public:
         if (this != &src) {
             cleanup();
 
-            m_MainMemoryDeallocator = src.m_MainMemoryDeallocator;
+            AxrSubAllocator::operator=(std::move(src));
+
             m_FreeChunksHead = src.m_FreeChunksHead;
-            m_Memory = src.m_Memory;
-            m_MemoryCapacity = src.m_MemoryCapacity;
             m_ChunkCapacity = src.m_ChunkCapacity;
             m_UsedChunkCount = src.m_UsedChunkCount;
 
-            src.m_MainMemoryDeallocator = {};
             src.m_FreeChunksHead = {};
-            src.m_Memory = {};
-            src.m_MemoryCapacity = {};
             src.m_ChunkCapacity = {};
             src.m_UsedChunkCount = {};
         }
@@ -161,12 +151,6 @@ public:
         chainAllChunks();
     }
 
-    /// Get the allocator's capacity
-    /// @return The allocator's capacity
-    [[nodiscard]] size_t memoryCapacity() const {
-        return m_MemoryCapacity;
-    }
-
     /// Get the max number of chunks this allocator can hold
     /// @return The max number of chunks this allocator can hold
     [[nodiscard]] size_t chunkCapacity() const {
@@ -185,9 +169,9 @@ public:
         return m_UsedChunkCount == 0;
     }
 
-private:
+protected:
     // ----------------------------------------- //
-    // Private Structs
+    // Protected Structs
     // ----------------------------------------- //
 
     /// A chunk of free memory with a pointer to the next free chunk
@@ -196,35 +180,23 @@ private:
     };
 
     // ----------------------------------------- //
-    // Private Variables
+    // Protected Variables
     // ----------------------------------------- //
-    AxrDeallocate m_MainMemoryDeallocator{};
     Chunk* m_FreeChunksHead{};
-    Type* m_Memory{};
-    size_t m_MemoryCapacity{};
     size_t m_ChunkCapacity{};
     size_t m_UsedChunkCount{};
 
     // ----------------------------------------- //
-    // Private Functions
+    // Protected Functions
     // ----------------------------------------- //
 
     /// Clean up this class
     void cleanup() {
-        if (m_Memory != nullptr) {
-            if (m_MainMemoryDeallocator) {
-                m_MainMemoryDeallocator(reinterpret_cast<void*&>(m_Memory));
-            } else {
-                axrLogWarning(
-                    "Memory leak detected inside AxrPoolAllocator. Failed to deallocate a block of memory. No "
-                    "deallocator available.");
-            }
-        }
+        AxrSubAllocator::cleanup();
+
         m_FreeChunksHead = {};
-        m_MemoryCapacity = {};
         m_ChunkCapacity = {};
         m_UsedChunkCount = {};
-        m_MainMemoryDeallocator.reset();
     }
 
     /// Chain together all chunks, marking them all as free to use
@@ -294,7 +266,7 @@ struct AxrPoolAllocatorChunkIndexTraits<T> {
 /// @tparam IsAligned Weather to align addresses optimally (Requires more memory but is better for performance)
 template<typename Type, bool IsAligned>
     requires((IsAligned ? sizeof(Type) + alignof(Type) : sizeof(Type)) < sizeof(void*))
-class AxrPoolAllocator<Type, IsAligned> {
+class AxrPoolAllocator<Type, IsAligned> : public AxrSubAllocator {
 public:
     // ----------------------------------------- //
     // Types
@@ -312,14 +284,12 @@ public:
     /// Constructor
     /// @param memory A pointer to the block of memory this allocator has access to
     /// @param size The number of bytes the given block of memory has
-    /// @param deallocate A function pointer to use when we're done with the given memory block and wish to deallocate
+    /// @param deallocator A function pointer to use when we're done with the given memory block and wish to deallocate
     /// it
-    AxrPoolAllocator(void* memory, const size_t size, const AxrDeallocate& deallocate) {
+    AxrPoolAllocator(void* memory, const size_t size, const AxrDeallocateBlock& deallocator) :
+        AxrSubAllocator(memory, size, deallocator) {
         assert(size % getChunkSize() == 0);
 
-        m_MainMemoryDeallocator = deallocate;
-        m_Memory = static_cast<Type*>(memory);
-        m_MemoryCapacity = size;
         m_ChunkCapacity = size / getChunkSize();
         m_FreeChunksHeadIndex = 0;
 
@@ -334,18 +304,13 @@ public:
 
     /// Move Constructor
     /// @param src Source AxrPoolAllocator to move from
-    AxrPoolAllocator(AxrPoolAllocator&& src) noexcept {
-        m_MainMemoryDeallocator = src.m_MainMemoryDeallocator;
+    AxrPoolAllocator(AxrPoolAllocator&& src) noexcept :
+        AxrSubAllocator(std::move(src)) {
         m_FreeChunksHeadIndex = src.m_FreeChunksHeadIndex;
-        m_Memory = src.m_Memory;
-        m_MemoryCapacity = src.m_MemoryCapacity;
         m_ChunkCapacity = src.m_ChunkCapacity;
         m_UsedChunkCount = src.m_UsedChunkCount;
 
-        src.m_MainMemoryDeallocator = {};
         src.m_FreeChunksHeadIndex = {};
-        src.m_Memory = {};
-        src.m_MemoryCapacity = {};
         src.m_ChunkCapacity = {};
         src.m_UsedChunkCount = {};
     }
@@ -369,17 +334,13 @@ public:
         if (this != &src) {
             cleanup();
 
-            m_MainMemoryDeallocator = src.m_MainMemoryDeallocator;
+            AxrSubAllocator::operator=(std::move(src));
+
             m_FreeChunksHeadIndex = src.m_FreeChunksHeadIndex;
-            m_Memory = src.m_Memory;
-            m_MemoryCapacity = src.m_MemoryCapacity;
             m_ChunkCapacity = src.m_ChunkCapacity;
             m_UsedChunkCount = src.m_UsedChunkCount;
 
-            src.m_MainMemoryDeallocator = {};
             src.m_FreeChunksHeadIndex = {};
-            src.m_Memory = {};
-            src.m_MemoryCapacity = {};
             src.m_ChunkCapacity = {};
             src.m_UsedChunkCount = {};
         }
@@ -439,12 +400,6 @@ public:
         chainAllChunks();
     }
 
-    /// Get the allocator's capacity
-    /// @return The allocator's capacity
-    [[nodiscard]] size_t memoryCapacity() const {
-        return m_MemoryCapacity;
-    }
-
     /// Get the max number of chunks this allocator can hold
     /// @return The max number of chunks this allocator can hold
     [[nodiscard]] size_t chunkCapacity() const {
@@ -467,9 +422,6 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
-    AxrDeallocate m_MainMemoryDeallocator{};
-    uint8_t* m_Memory{};
-    size_t m_MemoryCapacity{};
     size_t m_ChunkCapacity{};
     size_t m_UsedChunkCount{};
     ChunkIndexTraits::Type m_FreeChunksHeadIndex{};
@@ -480,20 +432,11 @@ private:
 
     /// Clean up this class
     void cleanup() {
-        if (m_Memory != nullptr) {
-            if (m_MainMemoryDeallocator) {
-                m_MainMemoryDeallocator(reinterpret_cast<void*&>(m_Memory));
-            } else {
-                axrLogWarning(
-                    "Memory leak detected inside AxrPoolAllocator. Failed to deallocate a block of memory. No "
-                    "deallocator available.");
-            }
-        }
+        AxrSubAllocator::cleanup();
+
         m_FreeChunksHeadIndex = {};
-        m_MemoryCapacity = {};
         m_ChunkCapacity = {};
         m_UsedChunkCount = {};
-        m_MainMemoryDeallocator.reset();
     }
 
     /// Chain together all chunks, marking them all as free to use

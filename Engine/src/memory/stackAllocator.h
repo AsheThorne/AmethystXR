@@ -5,13 +5,14 @@
 // ----------------------------------------- //
 #include "axr/common/defines.h"
 #include "axr/common/enums.h"
+#include "subAllocator.h"
 #include "types.h"
 #include "utils.h"
 
 #include <cstdint>
 
 /// Stack allocator
-class AxrStackAllocator {
+class AxrStackAllocator : public AxrSubAllocator {
 public:
     // ----------------------------------------- //
     // Types
@@ -26,12 +27,13 @@ public:
 
     // ---- Constructors ----
 
+    AxrStackAllocator();
     /// Constructor
     /// @param memory A pointer to the block of memory this allocator has access to
     /// @param size The number of bytes the given block of memory has
-    /// @param deallocate A function pointer to use when we're done with the given memory block and wish to deallocate
+    /// @param deallocator A function pointer to use when we're done with the given memory block and wish to deallocate
     /// it
-    AxrStackAllocator(void* memory, size_t size, const AxrDeallocate& deallocate);
+    AxrStackAllocator(void* memory, size_t size, const AxrDeallocateBlock& deallocator);
     /// Copy Constructor
     /// @param src Source AxrStackAllocator to copy from
     AxrStackAllocator(const AxrStackAllocator& src) = delete;
@@ -102,19 +104,21 @@ public:
     /// Clear the stack
     void clear();
 
-    /// Get the size of the marker
-    /// @return The size of the marker
-    [[nodiscard]] static uint32_t getMarkerSize();
-
-    /// Get the allocator's capacity
-    /// @return The allocator's capacity
-    [[nodiscard]] size_t capacity() const;
     /// Get the size of the allocated memory
     /// @return The size of the allocated memory
     [[nodiscard]] size_t size() const;
     /// Get the empty state of the allocator
     /// @return True if the allocator is empty
     [[nodiscard]] bool empty() const;
+    /// Get the size of the marker
+    /// @return The size of the marker
+    [[nodiscard]] static uint32_t getMarkerSize();
+
+protected:
+    // ----------------------------------------- //
+    // Protected Variables
+    // ----------------------------------------- //
+    size_t m_Size{};
 
 private:
     // ----------------------------------------- //
@@ -129,14 +133,6 @@ private:
         size_t Size{};
         MarkerID ID{};
     };
-
-    // ----------------------------------------- //
-    // Private Variables
-    // ----------------------------------------- //
-    AxrDeallocate m_MainMemoryDeallocator{};
-    uint8_t* m_Memory{};
-    size_t m_Capacity{};
-    size_t m_Size{};
 
     // ----------------------------------------- //
     // Private Functions

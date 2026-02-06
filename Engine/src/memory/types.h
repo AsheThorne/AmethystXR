@@ -13,8 +13,5 @@
 // Types
 // ----------------------------------------- //
 
-/// Axr allocate memory function
-using AxrAllocate = AxrCallback<AxrResult(size_t size, void*& memory)>;
-
-/// Axr deallocate memory function
-using AxrDeallocate = AxrCallback<void(void*& memory)>;
+/// Axr deallocate memory block function
+using AxrDeallocateBlock = AxrCallback<void(void*& memory)>;

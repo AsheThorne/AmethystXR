@@ -5,13 +5,14 @@
 // ----------------------------------------- //
 #include "axr/common/defines.h"
 #include "axr/common/enums.h"
+#include "subAllocator.h"
 #include "types.h"
 #include "utils.h"
 
 #include <cstdint>
 
 /// Double-Ended Stack allocator
-class AxrDoubleStackAllocator {
+class AxrDoubleStackAllocator : public AxrSubAllocator {
 public:
     // ----------------------------------------- //
     // Types
@@ -26,12 +27,14 @@ public:
 
     // ---- Constructors ----
 
+    /// Default constructor
+    AxrDoubleStackAllocator();
     /// Constructor
     /// @param memory A pointer to the block of memory this allocator has access to
     /// @param size The number of bytes the given block of memory has
-    /// @param deallocate A function pointer to use when we're done with the given memory block and wish to deallocate
+    /// @param deallocator A function pointer to use when we're done with the given memory block and wish to deallocate
     /// it
-    AxrDoubleStackAllocator(void* memory, size_t size, const AxrDeallocate& deallocate);
+    AxrDoubleStackAllocator(void* memory, size_t size, const AxrDeallocateBlock& deallocator);
     /// Copy Constructor
     /// @param src Source AxrDoubleStackAllocator to copy from
     AxrDoubleStackAllocator(const AxrDoubleStackAllocator& src) = delete;
@@ -163,9 +166,6 @@ public:
     /// @return The size of the marker
     [[nodiscard]] static uint32_t getMarkerSize();
 
-    /// Get the allocator's capacity
-    /// @return The allocator's capacity
-    [[nodiscard]] size_t capacity() const;
     /// Get the size of the allocated memory
     /// @return The size of the allocated memory
     [[nodiscard]] size_t size() const;
@@ -203,9 +203,6 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
-    AxrDeallocate m_MainMemoryDeallocator{};
-    uint8_t* m_Memory{};
-    size_t m_Capacity{};
     size_t m_SizeLower{};
     size_t m_SizeUpper{};
 

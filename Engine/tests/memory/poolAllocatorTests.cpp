@@ -44,7 +44,7 @@ static void deallocatorCallback_Test() {
             *wasDeallocated = true;
         };
 
-        AxrDeallocate callback;
+        AxrDeallocateBlock callback;
         callback.connect<deallocateCallback>(&wasDeallocated);
 
         constexpr size_t chunkCount = 10;
@@ -57,7 +57,7 @@ static void deallocatorCallback_Test() {
 template<typename DataType, bool IsAligned>
     requires std::equality_comparable<DataType>
 static void allocateOne_Test() {
-    AxrDeallocate callback;
+    AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
     constexpr size_t chunkCount = 10;
@@ -76,7 +76,7 @@ static void allocateOne_Test() {
 template<typename DataType, bool IsAligned, size_t DataSize>
     requires std::equality_comparable<DataType>
 static void allocateAll_Test(const DataType* exampleTestDatas) {
-    AxrDeallocate callback;
+    AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
     const size_t allocatorSize = DataSize * (sizeof(DataType) + (IsAligned ? alignof(DataType) : 0));
@@ -104,7 +104,7 @@ static void allocateAll_Test(const DataType* exampleTestDatas) {
 
 template<typename DataType, bool IsAligned>
 static void allocateTooMuch_Test() {
-    AxrDeallocate callback;
+    AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
     constexpr size_t chunkCount = 10;
@@ -128,7 +128,7 @@ static void allocateTooMuch_Test() {
 
 template<typename DataType, bool IsAligned>
 static void allocateAllDeallocateTwoAllocateTwo_Test() {
-    AxrDeallocate callback;
+    AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
     constexpr size_t chunkCount = 10;

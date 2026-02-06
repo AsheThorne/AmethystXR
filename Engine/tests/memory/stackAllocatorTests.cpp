@@ -54,7 +54,7 @@ TEST(StackAllocator, DeallocatorCallback) {
             *wasDeallocated = true;
         };
 
-        AxrDeallocate callback;
+        AxrDeallocateBlock callback;
         callback.connect<deallocateCallback>(&wasDeallocated);
 
         constexpr size_t allocatorSize = 128;
@@ -65,7 +65,7 @@ TEST(StackAllocator, DeallocatorCallback) {
 }
 
 TEST(StackAllocator, AllocateOne_Unaligned) {
-    AxrDeallocate callback;
+    AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
     const size_t allocatorSize = sizeof(TestData_Small) + AxrStackAllocator::getMarkerSize();
@@ -83,7 +83,7 @@ TEST(StackAllocator, AllocateOne_Unaligned) {
 }
 
 TEST(StackAllocator, AllocateOne_Aligned) {
-    AxrDeallocate callback;
+    AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
     const size_t allocatorSize = sizeof(TestData_Small) + alignof(TestData_Small) + AxrStackAllocator::getMarkerSize();
@@ -101,7 +101,7 @@ TEST(StackAllocator, AllocateOne_Aligned) {
 }
 
 TEST(StackAllocator, AllocateTwo_Unaligned) {
-    AxrDeallocate callback;
+    AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
     const size_t testData1MemSize = sizeof(TestData_Small) + AxrStackAllocator::getMarkerSize();
@@ -139,7 +139,7 @@ TEST(StackAllocator, AllocateTwo_Unaligned) {
 }
 
 TEST(StackAllocator, AllocateTwo_Aligned) {
-    AxrDeallocate callback;
+    AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
     const size_t testData1MemSize =
@@ -179,7 +179,7 @@ TEST(StackAllocator, AllocateTwo_Aligned) {
 }
 
 TEST(StackAllocator, AllocateTooMuch_Unaligned) {
-    AxrDeallocate callback;
+    AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
     const size_t allocatorSize = sizeof(TestData_Small) + AxrStackAllocator::getMarkerSize();
@@ -198,7 +198,7 @@ TEST(StackAllocator, AllocateTooMuch_Unaligned) {
 }
 
 TEST(StackAllocator, AllocateTooMuch_Aligned) {
-    AxrDeallocate callback;
+    AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
     const size_t allocatorSize = sizeof(TestData_Small) + alignof(TestData_Small) + AxrStackAllocator::getMarkerSize();
@@ -217,7 +217,7 @@ TEST(StackAllocator, AllocateTooMuch_Aligned) {
 }
 
 TEST(StackAllocator, AllocateTwoDeallocateOne_Unaligned) {
-    AxrDeallocate callback;
+    AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
     const size_t testData1MemSize = sizeof(TestData_Small) + AxrStackAllocator::getMarkerSize();
@@ -244,7 +244,7 @@ TEST(StackAllocator, AllocateTwoDeallocateOne_Unaligned) {
 }
 
 TEST(StackAllocator, AllocateTwoDeallocateOne_Aligned) {
-    AxrDeallocate callback;
+    AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
     const size_t testData1MemSize =
@@ -273,7 +273,7 @@ TEST(StackAllocator, AllocateTwoDeallocateOne_Aligned) {
 }
 
 TEST(StackAllocator, AllocateTwoDeallocateMarker1_Unaligned) {
-    AxrDeallocate callback;
+    AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
     const size_t testData1MemSize = sizeof(TestData_Small) + AxrStackAllocator::getMarkerSize();
@@ -300,7 +300,7 @@ TEST(StackAllocator, AllocateTwoDeallocateMarker1_Unaligned) {
 }
 
 TEST(StackAllocator, AllocateTwoDeallocateMarker1_Aligned) {
-    AxrDeallocate callback;
+    AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
     const size_t testData1MemSize =

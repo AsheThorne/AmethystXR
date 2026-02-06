@@ -10,22 +10,17 @@
 // Special Functions
 // ----------------------------------------- //
 
-AxrStackAllocator::AxrStackAllocator(void* memory, const size_t size, const AxrDeallocate& deallocate) {
-    m_Memory = static_cast<uint8_t*>(memory);
-    m_Capacity = size;
-    m_MainMemoryDeallocator = deallocate;
+AxrStackAllocator::AxrStackAllocator(void* memory, const size_t size, const AxrDeallocateBlock& deallocator) :
+    AxrSubAllocator(memory, size, deallocator) {
 }
 
-AxrStackAllocator::AxrStackAllocator(AxrStackAllocator&& src) noexcept {
-    m_Memory = src.m_Memory;
-    m_Capacity = src.m_Capacity;
-    m_Size = src.m_Size;
-    m_MainMemoryDeallocator = src.m_MainMemoryDeallocator;
+AxrStackAllocator::AxrStackAllocator() = default;
 
-    src.m_Memory = {};
-    src.m_Capacity = {};
+AxrStackAllocator::AxrStackAllocator(AxrStackAllocator&& src) noexcept :
+    AxrSubAllocator(std::move(src)) {
+    m_Size = src.m_Size;
+
     src.m_Size = {};
-    src.m_MainMemoryDeallocator = {};
 }
 
 AxrStackAllocator::~AxrStackAllocator() {
@@ -36,15 +31,11 @@ AxrStackAllocator& AxrStackAllocator::operator=(AxrStackAllocator&& src) noexcep
     if (this != &src) {
         cleanup();
 
-        m_Memory = src.m_Memory;
-        m_Capacity = src.m_Capacity;
-        m_Size = src.m_Size;
-        m_MainMemoryDeallocator = src.m_MainMemoryDeallocator;
+        AxrSubAllocator::operator=(std::move(src));
 
-        src.m_Memory = {};
-        src.m_Capacity = {};
+        m_Size = src.m_Size;
+
         src.m_Size = {};
-        src.m_MainMemoryDeallocator = {};
     }
     return *this;
 }
@@ -94,13 +85,10 @@ void AxrStackAllocator::clear() {
     // Don't zero out memory
 }
 
-size_t AxrStackAllocator::capacity() const {
-    return m_Capacity;
-}
-
 size_t AxrStackAllocator::size() const {
     return m_Size;
 }
+
 bool AxrStackAllocator::empty() const {
     return m_Size == 0;
 }
@@ -114,17 +102,9 @@ uint32_t AxrStackAllocator::getMarkerSize() {
 // ----------------------------------------- //
 
 void AxrStackAllocator::cleanup() {
-    if (m_Memory != nullptr) {
-        if (m_MainMemoryDeallocator) {
-            m_MainMemoryDeallocator(reinterpret_cast<void*&>(m_Memory));
-        } else {
-            axrLogWarning("Memory leak detected inside AxrStackAllocator. Failed to deallocate a block of memory. No "
-                          "deallocator available.");
-        }
-    }
-    m_Capacity = {};
+    AxrSubAllocator::cleanup();
+
     m_Size = {};
-    m_MainMemoryDeallocator.reset();
 }
 
 inline uint8_t* AxrStackAllocator::begin() const {
@@ -153,6 +133,7 @@ inline void AxrStackAllocator::setCurrentMarker(const Marker& marker) const {
     Marker& currentMarker = *reinterpret_cast<Marker*>(end() - sizeof(Marker));
     currentMarker = marker;
 }
+
 inline void AxrStackAllocator::pop() {
     const Marker currentMarker = getCurrentMarker();
     if (currentMarker.ID == 0) {

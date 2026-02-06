@@ -43,6 +43,8 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/memory/types.h
     ${AXR_SRC_DIR}/memory/allocator.h
     ${AXR_SRC_DIR}/memory/allocator.cpp
+    ${AXR_SRC_DIR}/memory/subAllocator.h
+    ${AXR_SRC_DIR}/memory/subAllocator.cpp
     ${AXR_SRC_DIR}/memory/stackAllocator.h
     ${AXR_SRC_DIR}/memory/stackAllocator.cpp
     ${AXR_SRC_DIR}/memory/doubleStackAllocator.h
