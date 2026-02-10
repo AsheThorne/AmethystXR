@@ -39,6 +39,7 @@ set(AXR_PUBLIC_HEADER_FILES
 set(AXR_SOURCE_FILES
     # ---- Root ----
     ${AXR_SRC_DIR}/lifecycle.cpp
+    ${AXR_SRC_DIR}/utils.h
     # ---- Memory ----
     ${AXR_SRC_DIR}/memory/types.h
     ${AXR_SRC_DIR}/memory/allocator.h
