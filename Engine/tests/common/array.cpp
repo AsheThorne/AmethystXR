@@ -12,11 +12,9 @@ TEST(AxrArray, Initialization) {
 
     constexpr uint32_t capacity = 16;
     constexpr AxrArray<TestData, capacity> array;
-    ASSERT_TRUE(array.Capacity == capacity);
-    ASSERT_TRUE(array.Capacity == array.capacity());
-    ASSERT_TRUE(array.Size == 0);
+    ASSERT_TRUE(array.capacity() == capacity);
+    ASSERT_TRUE(array.size() == 0);
     ASSERT_TRUE(array.empty());
-    ASSERT_TRUE(array.Size == array.size());
 }
 
 TEST(AxrArray, PushBackOne) {
@@ -32,7 +30,7 @@ TEST(AxrArray, PushBackOne) {
 
     array.pushBack(testData);
 
-    ASSERT_TRUE(array.Size == 1);
+    ASSERT_TRUE(array.size() == 1);
     ASSERT_TRUE(array[0].value == testData.value);
 }
 
@@ -44,7 +42,7 @@ TEST(AxrArray, PushBackCharArray) {
     constexpr char data[8] = "Test";
     array.pushBack(data);
 
-    ASSERT_TRUE(array.Size == 1);
+    ASSERT_TRUE(array.size() == 1);
     ASSERT_TRUE(strncmp(array[0], data, 8) == 0);
 }
 
@@ -55,7 +53,7 @@ TEST(AxrArray, PushBackConstCharPtr) {
 
     array.pushBack("Test");
 
-    ASSERT_TRUE(array.Size == 1);
+    ASSERT_TRUE(array.size() == 1);
     ASSERT_TRUE(strcmp(array[0], "Test") == 0);
 }
 
@@ -91,7 +89,7 @@ TEST(AxrArray, PushBackAll) {
         array.pushBack(i);
     }
 
-    ASSERT_TRUE(array.Size == capacity);
+    ASSERT_TRUE(array.size() == capacity);
 
     for (uint32_t i = 0; i < capacity; ++i) {
         ASSERT_TRUE(array[i].value == testData[i].value);
@@ -130,12 +128,12 @@ TEST(AxrArray, PushBackTooMany) {
         array.pushBack(i);
     }
 
-    const size_t size = array.Size;
+    const size_t size = array.size();
     ASSERT_TRUE(size == capacity);
 
     array.pushBack(TestData{.value = 99});
 
-    ASSERT_TRUE(array.Size == size);
+    ASSERT_TRUE(array.size() == size);
     ASSERT_TRUE(array[capacity - 1].value == testData[capacity - 1].value);
 }
 
@@ -152,7 +150,7 @@ TEST(AxrArray, PopBack_1) {
 
     array.pushBack(testData);
 
-    ASSERT_TRUE(array.Size == 1);
+    ASSERT_TRUE(array.size() == 1);
 
     array.popBack();
 
@@ -174,11 +172,11 @@ TEST(AxrArray, PopBack_2) {
     array.pushBack(testData);
     array.pushBack(testData);
 
-    ASSERT_TRUE(array.Size == 3);
+    ASSERT_TRUE(array.size() == 3);
 
     array.popBack();
 
-    ASSERT_TRUE(array.Size == 2);
+    ASSERT_TRUE(array.size() == 2);
 }
 
 TEST(AxrArray, Clear) {
@@ -213,7 +211,7 @@ TEST(AxrArray, Clear) {
         array.pushBack(i);
     }
 
-    ASSERT_TRUE(array.Size == capacity);
+    ASSERT_TRUE(array.size() == capacity);
 
     array.clear();
 
@@ -252,7 +250,7 @@ TEST(AxrArray, GetAt_InBounds) {
         array.pushBack(i);
     }
 
-    ASSERT_TRUE(array.Size == capacity);
+    ASSERT_TRUE(array.size() == capacity);
 
     const TestData* dataAt = array.at(5);
     if (dataAt == nullptr) {
@@ -295,7 +293,7 @@ TEST(AxrArray, GetAt_OutBounds) {
         array.pushBack(i);
     }
 
-    ASSERT_TRUE(array.Size == capacity);
+    ASSERT_TRUE(array.size() == capacity);
 
     ASSERT_TRUE(array.at(16) == nullptr);
 }

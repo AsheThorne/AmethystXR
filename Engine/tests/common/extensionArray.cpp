@@ -39,7 +39,7 @@ TEST(AxrExtensionArray, PushBackOne) {
     constexpr uint32_t capacity = 2;
     AxrExtensionArray<TestData, capacity> array;
 
-    ASSERT_TRUE(array.Size == 0);
+    ASSERT_TRUE(array.empty());
 
     array.pushBack(TestData{
         .Extension1 =
@@ -49,7 +49,7 @@ TEST(AxrExtensionArray, PushBackOne) {
         .Type = TEST_DATA_TYPE_EXTENSION1,
     });
 
-    ASSERT_TRUE(array.Size == 1);
+    ASSERT_TRUE(array.size() == 1);
     ASSERT_TRUE(array[0].Extension1.value == 10);
 }
 
@@ -57,7 +57,7 @@ TEST(AxrExtensionArray, PushBackDuplicate) {
     constexpr uint32_t capacity = 2;
     AxrExtensionArray<TestData, capacity> array;
 
-    ASSERT_TRUE(array.Size == 0);
+    ASSERT_TRUE(array.empty());
 
     array.pushBack(TestData{
         .Extension1 =
@@ -75,7 +75,7 @@ TEST(AxrExtensionArray, PushBackDuplicate) {
         .Type = TEST_DATA_TYPE_EXTENSION1,
     });
 
-    ASSERT_TRUE(array.Size == 1);
+    ASSERT_TRUE(array.size() == 1);
     ASSERT_TRUE(array[0].Extension1.value == 34);
 }
 
