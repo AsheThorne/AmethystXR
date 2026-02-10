@@ -32,8 +32,7 @@ int start() {
                                              AXR_VULKAN_EXTENSION_DEBUG_UTILS_SEVERITY_ERROR_BIT,
                             .TypeFlags = AXR_VULKAN_EXTENSION_DEBUG_UTILS_TYPE_GENERAL_BIT |
                                          AXR_VULKAN_EXTENSION_DEBUG_UTILS_TYPE_VALIDATION_BIT |
-                                         AXR_VULKAN_EXTENSION_DEBUG_UTILS_TYPE_PERFORMANCE_BIT |
-                                         AXR_VULKAN_EXTENSION_DEBUG_UTILS_TYPE_DEVICE_ADDRESS_BINDING_BIT},
+                                         AXR_VULKAN_EXTENSION_DEBUG_UTILS_TYPE_PERFORMANCE_BIT},
                     .Type = AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS,
                     .IsRequired = false,
                 },
