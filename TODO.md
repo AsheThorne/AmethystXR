@@ -1,2 +1,2 @@
 # TODO
-- [ ] Make sure all allocators are thread safe. Also add tests for them using threads.
+- [ ] Try using stackAllocator as the base to doubleStackAllocator. Save repeating lots of code
