@@ -71,6 +71,7 @@ set(AXR_SOURCE_FILES
     # ---- Common ----
     ${AXR_SRC_DIR}/common/array.h
     ${AXR_SRC_DIR}/common/extensionArray.h
+    ${AXR_SRC_DIR}/common/vector_stack.h
 )
 
 # ---------------------------------------------
@@ -173,6 +174,7 @@ set(AXR_TEST_FILES
     # ---- Common ----
     ${AXR_TEST_DIR}/common/array.cpp
     ${AXR_TEST_DIR}/common/extensionArray.cpp
+    ${AXR_TEST_DIR}/common/vector_stack.cpp
 )
 
 # ---------------------------------------------

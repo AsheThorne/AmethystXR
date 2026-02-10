@@ -132,7 +132,7 @@ inline void AxrStackAllocator::setCurrentMarker(const Marker& marker) const {
 
 inline void AxrStackAllocator::pop() {
     const Marker currentMarker = getCurrentMarker();
-    if (currentMarker.ID == 0) {
+    if (currentMarker.ID == 0) [[unlikely]] {
         return;
     }
 

@@ -230,7 +230,7 @@ void AxrDoubleStackAllocator::setCurrentMarkerUpper(const Marker& marker) const 
 
 inline void AxrDoubleStackAllocator::popLower() {
     const Marker currentMarker = getCurrentMarkerLower();
-    if (currentMarker.ID == 0) {
+    if (currentMarker.ID == 0) [[unlikely]] {
         return;
     }
 
@@ -241,7 +241,7 @@ inline void AxrDoubleStackAllocator::popLower() {
 
 void AxrDoubleStackAllocator::popUpper() {
     const Marker currentMarker = getCurrentMarkerUpper();
-    if (currentMarker.ID == 0) {
+    if (currentMarker.ID == 0) [[unlikely]] {
         return;
     }
 
