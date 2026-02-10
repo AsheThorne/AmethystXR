@@ -72,16 +72,34 @@ public:
         return &Data[Size];
     }
 
-    /// Get the aray size
+    /// Get the array size
     /// @return The array size
     [[nodiscard]] size_t size() const {
         return Size;
     }
 
-    /// Get the aray capacity
+    /// Get the array capacity
     /// @return The array capacity
     [[nodiscard]] size_t capacity() const {
         return Capacity;
+    }
+
+    /// Check if the array is empty
+    /// @return True if the array is empty
+    [[nodiscard]] bool empty() const {
+        return Size == 0;
+    }
+
+    /// Get a pointer to the data of this array
+    /// @return A pointer to the data
+    [[nodiscard]] Type* data() {
+        return &Data[0];
+    }
+
+    /// Get a pointer to the data of this array
+    /// @return A pointer to the data
+    [[nodiscard]] const Type* data() const {
+        return &Data[0];
     }
 
     /// Get the item at the given index with bounds checking
@@ -104,6 +122,52 @@ public:
         return &Data[index];
     }
 
+    /// Find an iterator to the first instance of the given value
+    /// @param data Item to search for
+    /// @return An iterator to the first instance of the given value. Or end() if it wasn't found
+    [[nodiscard]] Iterator findFirst(const Type& data) {
+        for (Iterator it = begin(), e = end(); it != e; ++it) {
+            if constexpr (m_IsTypeCharArray) {
+                if (strncmp(*it, data, getArrayLength()) == 0) {
+                    return it;
+                }
+            } else if constexpr (m_IsTypeConstCharPtr) {
+                if (strcmp(*it, data) == 0) {
+                    return it;
+                }
+            } else {
+                if (*it == data) {
+                    return it;
+                }
+            }
+        }
+
+        return end();
+    }
+
+    /// Find an iterator to the first instance of the given value
+    /// @param data Item to search for
+    /// @return An iterator to the first instance of the given value. Or end() if it wasn't found
+    [[nodiscard]] ConstIterator findFirst(const Type& data) const {
+        for (ConstIterator it = begin(), e = end(); it != e; ++it) {
+            if constexpr (m_IsTypeCharArray) {
+                if (strncmp(*it, data, getArrayLength()) == 0) {
+                    return it;
+                }
+            } else if constexpr (m_IsTypeConstCharPtr) {
+                if (strcmp(*it, data) == 0) {
+                    return it;
+                }
+            } else {
+                if (*it == data) {
+                    return it;
+                }
+            }
+        }
+
+        return end();
+    }
+
     /// Add a new item to the end of the array
     /// @param data New item to add
     void pushBack(const Type& data) {
@@ -112,7 +176,11 @@ public:
             return;
         }
 
-        Data[Size] = data;
+        if constexpr (m_IsTypeCharArray) {
+            strncpy(Data[Size], data, getArrayLength());
+        } else {
+            Data[Size] = data;
+        }
         Size++;
     }
 
@@ -130,5 +198,26 @@ public:
     void clear() {
         // Don't clear the data, just overwrite it when new data gets added
         Size = 0;
+    }
+
+protected:
+    // ----------------------------------------- //
+    // Protected Variables
+    // ----------------------------------------- //
+    static constexpr bool const& m_IsTypeCharArray =
+        std::is_array_v<Type> && std::is_same_v<std::remove_extent_t<Type>, char>;
+    static constexpr bool const& m_IsTypeConstCharPtr = std::is_same_v<std::remove_extent_t<Type>, const char*>;
+
+    // ----------------------------------------- //
+    // Protected Functions
+    // ----------------------------------------- //
+
+    /// If this type is an array, get the number of elements it holds
+    /// @return The number of elements the `Type` array holds. Or 0 if it's not an array.
+    [[nodiscard]] constexpr size_t getArrayLength() const {
+        if constexpr (std::is_array_v<Type>) {
+            return sizeof(Type) / sizeof(std::remove_extent_t<Type>);
+        }
+        return 0;
     }
 };

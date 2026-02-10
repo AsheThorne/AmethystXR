@@ -15,6 +15,7 @@ TEST(AxrArray, Initialization) {
     ASSERT_TRUE(array.Capacity == capacity);
     ASSERT_TRUE(array.Capacity == array.capacity());
     ASSERT_TRUE(array.Size == 0);
+    ASSERT_TRUE(array.empty());
     ASSERT_TRUE(array.Size == array.size());
 }
 
@@ -27,12 +28,35 @@ TEST(AxrArray, PushBackOne) {
 
     constexpr uint32_t capacity = 16;
     AxrArray<TestData, capacity> array;
-    ASSERT_TRUE(array.Size == 0);
+    ASSERT_TRUE(array.empty());
 
     array.pushBack(testData);
 
     ASSERT_TRUE(array.Size == 1);
     ASSERT_TRUE(array[0].value == testData.value);
+}
+
+TEST(AxrArray, PushBackCharArray) {
+    constexpr uint32_t capacity = 16;
+    AxrArray<char[8], capacity> array;
+    ASSERT_TRUE(array.empty());
+
+    constexpr char data[8] = "Test";
+    array.pushBack(data);
+
+    ASSERT_TRUE(array.Size == 1);
+    ASSERT_TRUE(strncmp(array[0], data, 8) == 0);
+}
+
+TEST(AxrArray, PushBackConstCharPtr) {
+    constexpr uint32_t capacity = 16;
+    AxrArray<const char*, capacity> array;
+    ASSERT_TRUE(array.empty());
+
+    array.pushBack("Test");
+
+    ASSERT_TRUE(array.Size == 1);
+    ASSERT_TRUE(strcmp(array[0], "Test") == 0);
 }
 
 TEST(AxrArray, PushBackAll) {
@@ -61,7 +85,7 @@ TEST(AxrArray, PushBackAll) {
 
     constexpr uint32_t capacity = 16;
     AxrArray<TestData, capacity> array;
-    ASSERT_TRUE(array.Size == 0);
+    ASSERT_TRUE(array.empty());
 
     for (const TestData& i : testData) {
         array.pushBack(i);
@@ -100,7 +124,7 @@ TEST(AxrArray, PushBackTooMany) {
 
     constexpr uint32_t capacity = 16;
     AxrArray<TestData, capacity> array;
-    ASSERT_TRUE(array.Size == 0);
+    ASSERT_TRUE(array.empty());
 
     for (const TestData& i : testData) {
         array.pushBack(i);
@@ -124,7 +148,7 @@ TEST(AxrArray, PopBack_1) {
 
     constexpr uint32_t capacity = 16;
     AxrArray<TestData, capacity> array;
-    ASSERT_TRUE(array.Size == 0);
+    ASSERT_TRUE(array.empty());
 
     array.pushBack(testData);
 
@@ -132,7 +156,7 @@ TEST(AxrArray, PopBack_1) {
 
     array.popBack();
 
-    ASSERT_TRUE(array.Size == 0);
+    ASSERT_TRUE(array.empty());
 }
 
 TEST(AxrArray, PopBack_2) {
@@ -144,7 +168,7 @@ TEST(AxrArray, PopBack_2) {
 
     constexpr uint32_t capacity = 16;
     AxrArray<TestData, capacity> array;
-    ASSERT_TRUE(array.Size == 0);
+    ASSERT_TRUE(array.empty());
 
     array.pushBack(testData);
     array.pushBack(testData);
@@ -183,7 +207,7 @@ TEST(AxrArray, Clear) {
 
     constexpr uint32_t capacity = 16;
     AxrArray<TestData, capacity> array;
-    ASSERT_TRUE(array.Size == 0);
+    ASSERT_TRUE(array.empty());
 
     for (const TestData& i : testData) {
         array.pushBack(i);
@@ -193,7 +217,7 @@ TEST(AxrArray, Clear) {
 
     array.clear();
 
-    ASSERT_TRUE(array.Size == 0);
+    ASSERT_TRUE(array.empty());
 }
 
 TEST(AxrArray, GetAt_InBounds) {
@@ -222,7 +246,7 @@ TEST(AxrArray, GetAt_InBounds) {
 
     constexpr uint32_t capacity = 16;
     AxrArray<TestData, capacity> array;
-    ASSERT_TRUE(array.Size == 0);
+    ASSERT_TRUE(array.empty());
 
     for (const TestData& i : testData) {
         array.pushBack(i);
@@ -265,7 +289,7 @@ TEST(AxrArray, GetAt_OutBounds) {
 
     constexpr uint32_t capacity = 16;
     AxrArray<TestData, capacity> array;
-    ASSERT_TRUE(array.Size == 0);
+    ASSERT_TRUE(array.empty());
 
     for (const TestData& i : testData) {
         array.pushBack(i);
@@ -274,4 +298,60 @@ TEST(AxrArray, GetAt_OutBounds) {
     ASSERT_TRUE(array.Size == capacity);
 
     ASSERT_TRUE(array.at(16) == nullptr);
+}
+
+TEST(AxrArray, FindFirst_Exists) {
+    struct TestData {
+        uint32_t value;
+
+        bool operator==(const TestData& other) const {
+            return value == other.value;
+        }
+    };
+
+    constexpr uint32_t capacity = 16;
+    AxrArray<TestData, capacity> array;
+
+    constexpr TestData testData{
+        .value = 10,
+    };
+    array.pushBack(TestData{
+        .value = 1,
+    });
+    array.pushBack(testData);
+    array.pushBack(TestData{
+        .value = 2,
+    });
+
+    const auto iterator = array.findFirst(testData);
+    ASSERT_TRUE(iterator != array.end());
+    if (iterator != array.end()) {
+        ASSERT_TRUE(iterator->value == testData.value);
+    }
+}
+
+TEST(AxrArray, FindFirst_DoesntExist) {
+    struct TestData {
+        uint32_t value;
+
+        bool operator==(const TestData& other) const {
+            return value == other.value;
+        }
+    };
+
+    constexpr uint32_t capacity = 16;
+    AxrArray<TestData, capacity> array;
+
+    array.pushBack(TestData{
+        .value = 1,
+    });
+    array.pushBack(TestData{
+        .value = 15,
+    });
+    array.pushBack(TestData{
+        .value = 2,
+    });
+
+    const auto iterator = array.findFirst(TestData{.value = 10});
+    ASSERT_TRUE(iterator == array.end());
 }
