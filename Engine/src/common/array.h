@@ -161,11 +161,12 @@ public:
         return end();
     }
 
+#define AXR_FUNCTION_FAILED_STRING "Failed to push back data in AxrArray. "
     /// Add a new item to the end of the array
     /// @param data New item to add
     void pushBack(const Type& data) {
         if (m_Size == m_Capacity) [[unlikely]] {
-            axrLogError("Failed to push back array. Array is full.");
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Array is full.");
             return;
         }
 
@@ -176,6 +177,7 @@ public:
         }
         m_Size++;
     }
+#undef AXR_FUNCTION_FAILED_STRING
 
     /// Remove the last item in the array
     void popBack() {
