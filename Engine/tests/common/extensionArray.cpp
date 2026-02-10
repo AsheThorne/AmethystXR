@@ -79,7 +79,7 @@ TEST(AxrExtensionArray, PushBackDuplicate) {
     ASSERT_TRUE(array[0].Extension1.value == 34);
 }
 
-TEST(AxrExtensionArray, FindIndex_Exists) {
+TEST(AxrExtensionArray, Find_Exists) {
     constexpr uint32_t capacity = 2;
     AxrExtensionArray<TestData, capacity> array;
 
@@ -99,14 +99,14 @@ TEST(AxrExtensionArray, FindIndex_Exists) {
         .Type = TEST_DATA_TYPE_EXTENSION2,
     });
 
-    const size_t index = array.findIndex(TEST_DATA_TYPE_EXTENSION1);
-    ASSERT_TRUE(index != array.capacity());
-    if (index != array.capacity()) {
-        ASSERT_TRUE(array[index].Extension1.value == 10);
+    const auto iterator = array.find(TEST_DATA_TYPE_EXTENSION1);
+    ASSERT_TRUE(iterator != array.end());
+    if (iterator != array.end()) {
+        ASSERT_TRUE(iterator->Extension1.value == 10);
     }
 }
 
-TEST(AxrExtensionArray, FindIndex_DoesntExist) {
+TEST(AxrExtensionArray, Find_DoesntExist) {
     constexpr uint32_t capacity = 2;
     AxrExtensionArray<TestData, capacity> array;
 
@@ -118,8 +118,8 @@ TEST(AxrExtensionArray, FindIndex_DoesntExist) {
         .Type = TEST_DATA_TYPE_EXTENSION2,
     });
 
-    const size_t index = array.findIndex(TEST_DATA_TYPE_EXTENSION1);
-    ASSERT_TRUE(index == array.capacity());
+    const auto iterator = array.find(TEST_DATA_TYPE_EXTENSION1);
+    ASSERT_TRUE(iterator == array.end());
 }
 
 TEST(AxrExtensionArray, Exists_True) {

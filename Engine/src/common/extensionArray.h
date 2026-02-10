@@ -32,35 +32,54 @@ public:
     /// overwritten.
     /// @param extension New extension to add
     void pushBack(const Extension& extension) {
-        const size_t existingIndex = findIndex(extension.Type);
-        if (existingIndex != AxrArray<Extension, Cap>::Capacity) {
+        typename AxrArray<Extension, Cap>::Iterator iterator = find(extension.Type);
+        if (iterator != AxrArray<Extension, Cap>::end()) {
             axrLogWarning("Extension already exists. Overwriting existing entry with given data.");
 
-            AxrArray<Extension, Cap>::Data[existingIndex] = extension;
+            *iterator = extension;
             return;
         }
 
         AxrArray<Extension, Cap>::pushBack(extension);
     }
 
-    /// Find the index for the given extension type
+    /// Find an iterator to the first instance of the extension with the given type
     /// @param type Extension type
-    /// @return The index of the found type or `Capacity` if it wasn't found;
-    [[nodiscard]] size_t findIndex(const ExtensionType type) const {
-        for (size_t i = 0; i < AxrArray<Extension, Cap>::Size; ++i) {
-            if (AxrArray<Extension, Cap>::Data[i].Type == type) {
-                return i;
+    /// @return An iterator to the first instance of the extension with the given type. Or end() if it wasn't found
+    [[nodiscard]] AxrArray<Extension, Cap>::Iterator find(const ExtensionType type) {
+        for (typename AxrArray<Extension, Cap>::Iterator it = AxrArray<Extension, Cap>::begin(),
+                                                         e = AxrArray<Extension, Cap>::end();
+             it != e;
+             ++it) {
+            if (it->Type == type) {
+                return it;
             }
         }
 
-        return AxrArray<Extension, Cap>::Capacity;
+        return AxrArray<Extension, Cap>::end();
+    }
+
+    /// Find an iterator to the first instance of the extension with the given type
+    /// @param type Extension type
+    /// @return An iterator to the first instance of the extension with the given type. Or end() if it wasn't found
+    [[nodiscard]] AxrArray<Extension, Cap>::ConstIterator find(const ExtensionType type) const {
+        for (typename AxrArray<Extension, Cap>::ConstIterator it = AxrArray<Extension, Cap>::begin(),
+                                                              e = AxrArray<Extension, Cap>::end();
+             it != e;
+             ++it) {
+            if (it->Type == type) {
+                return it;
+            }
+        }
+
+        return AxrArray<Extension, Cap>::end();
     }
 
     /// Check if the given extension type exists
     /// @param type Extension type
     /// @return True if the given extension type exists
     [[nodiscard]] bool exists(const ExtensionType type) const {
-        const size_t index = findIndex(type);
-        return index != AxrArray<Extension, Cap>::Capacity;
+        typename AxrArray<Extension, Cap>::ConstIterator iterator = find(type);
+        return iterator != AxrArray<Extension, Cap>::end();
     }
 };
