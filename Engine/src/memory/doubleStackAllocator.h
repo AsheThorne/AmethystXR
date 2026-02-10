@@ -168,7 +168,9 @@ public:
 
     /// Get the size of the marker
     /// @return The size of the marker
-    [[nodiscard]] static uint32_t getMarkerSize();
+    [[nodiscard]] static constexpr uint32_t getMarkerSize() {
+        return sizeof(Marker);
+    }
 
     /// Get the size of the allocated memory
     /// @return The size of the allocated memory

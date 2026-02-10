@@ -163,10 +163,6 @@ bool AxrDoubleStackAllocator::emptyUpper() const {
     return m_SizeUpper == 0;
 }
 
-uint32_t AxrDoubleStackAllocator::getMarkerSize() {
-    return sizeof(Marker);
-}
-
 // ----------------------------------------- //
 // Private Functions
 // ----------------------------------------- //

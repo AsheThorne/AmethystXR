@@ -68,7 +68,7 @@ TEST(StackAllocator, AllocateOne_Unaligned) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = sizeof(TestData_Small) + AxrStackAllocator::getMarkerSize();
+    constexpr size_t allocatorSize = sizeof(TestData_Small) + AxrStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
@@ -86,7 +86,7 @@ TEST(StackAllocator, AllocateOne_Aligned) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = sizeof(TestData_Small) + alignof(TestData_Small) + AxrStackAllocator::getMarkerSize();
+    constexpr size_t allocatorSize = sizeof(TestData_Small) + alignof(TestData_Small) + AxrStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
@@ -104,9 +104,9 @@ TEST(StackAllocator, AllocateTwo_Unaligned) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t testData1MemSize = sizeof(TestData_Small) + AxrStackAllocator::getMarkerSize();
-    const size_t testData2MemSize = sizeof(TestData_Large) + AxrStackAllocator::getMarkerSize();
-    const size_t allocatorSize = testData1MemSize + testData2MemSize;
+    constexpr size_t testData1MemSize = sizeof(TestData_Small) + AxrStackAllocator::getMarkerSize();
+    constexpr size_t testData2MemSize = sizeof(TestData_Large) + AxrStackAllocator::getMarkerSize();
+    constexpr size_t allocatorSize = testData1MemSize + testData2MemSize;
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
@@ -142,11 +142,11 @@ TEST(StackAllocator, AllocateTwo_Aligned) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t testData1MemSize =
+    constexpr size_t testData1MemSize =
         sizeof(TestData_Small) + alignof(TestData_Small) + AxrStackAllocator::getMarkerSize();
-    const size_t testData2MemSize =
+    constexpr size_t testData2MemSize =
         sizeof(TestData_Large) + alignof(TestData_Large) + AxrStackAllocator::getMarkerSize();
-    const size_t allocatorSize = testData1MemSize + testData2MemSize;
+    constexpr size_t allocatorSize = testData1MemSize + testData2MemSize;
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
@@ -182,7 +182,7 @@ TEST(StackAllocator, AllocateTooMuch_Unaligned) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = sizeof(TestData_Small) + AxrStackAllocator::getMarkerSize();
+    constexpr size_t allocatorSize = sizeof(TestData_Small) + AxrStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
@@ -201,7 +201,7 @@ TEST(StackAllocator, AllocateTooMuch_Aligned) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = sizeof(TestData_Small) + alignof(TestData_Small) + AxrStackAllocator::getMarkerSize();
+    constexpr size_t allocatorSize = sizeof(TestData_Small) + alignof(TestData_Small) + AxrStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
@@ -220,9 +220,9 @@ TEST(StackAllocator, AllocateTwoDeallocateOne_Unaligned) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t testData1MemSize = sizeof(TestData_Small) + AxrStackAllocator::getMarkerSize();
-    const size_t testData2MemSize = sizeof(TestData_Large) + AxrStackAllocator::getMarkerSize();
-    const size_t allocatorSize = testData1MemSize + testData2MemSize;
+    constexpr size_t testData1MemSize = sizeof(TestData_Small) + AxrStackAllocator::getMarkerSize();
+    constexpr size_t testData2MemSize = sizeof(TestData_Large) + AxrStackAllocator::getMarkerSize();
+    constexpr size_t allocatorSize = testData1MemSize + testData2MemSize;
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
@@ -247,11 +247,11 @@ TEST(StackAllocator, AllocateTwoDeallocateOne_Aligned) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t testData1MemSize =
+    constexpr size_t testData1MemSize =
         sizeof(TestData_Small) + alignof(TestData_Small) + AxrStackAllocator::getMarkerSize();
-    const size_t testData2MemSize =
+    constexpr size_t testData2MemSize =
         sizeof(TestData_Large) + alignof(TestData_Large) + AxrStackAllocator::getMarkerSize();
-    const size_t allocatorSize = testData1MemSize + testData2MemSize;
+    constexpr size_t allocatorSize = testData1MemSize + testData2MemSize;
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
@@ -276,9 +276,9 @@ TEST(StackAllocator, AllocateTwoDeallocateMarker1_Unaligned) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t testData1MemSize = sizeof(TestData_Small) + AxrStackAllocator::getMarkerSize();
-    const size_t testData2MemSize = sizeof(TestData_Large) + AxrStackAllocator::getMarkerSize();
-    const size_t allocatorSize = testData1MemSize + testData2MemSize;
+    constexpr size_t testData1MemSize = sizeof(TestData_Small) + AxrStackAllocator::getMarkerSize();
+    constexpr size_t testData2MemSize = sizeof(TestData_Large) + AxrStackAllocator::getMarkerSize();
+    constexpr size_t allocatorSize = testData1MemSize + testData2MemSize;
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
@@ -303,11 +303,11 @@ TEST(StackAllocator, AllocateTwoDeallocateMarker1_Aligned) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t testData1MemSize =
+    constexpr size_t testData1MemSize =
         sizeof(TestData_Small) + alignof(TestData_Small) + AxrStackAllocator::getMarkerSize();
-    const size_t testData2MemSize =
+    constexpr size_t testData2MemSize =
         sizeof(TestData_Large) + alignof(TestData_Large) + AxrStackAllocator::getMarkerSize();
-    const size_t allocatorSize = testData1MemSize + testData2MemSize;
+    constexpr size_t allocatorSize = testData1MemSize + testData2MemSize;
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 

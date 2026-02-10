@@ -93,10 +93,6 @@ bool AxrStackAllocator::empty() const {
     return m_Size == 0;
 }
 
-uint32_t AxrStackAllocator::getMarkerSize() {
-    return sizeof(Marker);
-}
-
 // ----------------------------------------- //
 // Private Functions
 // ----------------------------------------- //

@@ -267,7 +267,7 @@ TEST(DoubleStackAllocator, AllocateOneLowerOneUpper) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = (sizeof(TestData_Small) + AxrDoubleStackAllocator::getMarkerSize()) * 2;
+    constexpr size_t allocatorSize = (sizeof(TestData_Small) + AxrDoubleStackAllocator::getMarkerSize()) * 2;
     void* memory = malloc(allocatorSize);
     AxrDoubleStackAllocator allocator(memory, allocatorSize, callback);
 

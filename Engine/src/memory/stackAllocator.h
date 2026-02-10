@@ -115,7 +115,9 @@ public:
     [[nodiscard]] bool empty() const;
     /// Get the size of the marker
     /// @return The size of the marker
-    [[nodiscard]] static uint32_t getMarkerSize();
+    [[nodiscard]] static constexpr uint32_t getMarkerSize() {
+        return sizeof(Marker);
+    }
 
 protected:
     // ----------------------------------------- //
