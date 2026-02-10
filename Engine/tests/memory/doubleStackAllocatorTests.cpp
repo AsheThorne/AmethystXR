@@ -49,17 +49,17 @@ static AxrResult allocate(const bool upperEnd,
                           AxrDoubleStackAllocator::MarkerID& markerID) {
     if (upperEnd) {
         if (isAligned) {
-            return allocator.allocateUpperAligned(memory, markerID);
+            return allocator.allocateUpperAligned(1, memory, markerID);
         }
 
-        return allocator.allocateUpper(memory, markerID);
+        return allocator.allocateUpper(1, memory, markerID);
     }
 
     if (isAligned) {
-        return allocator.allocateLowerAligned(memory, markerID);
+        return allocator.allocateLowerAligned(1, memory, markerID);
     }
 
-    return allocator.allocateLower(memory, markerID);
+    return allocator.allocateLower(1, memory, markerID);
 }
 
 static void deallocate(const bool upperEnd,
@@ -275,11 +275,11 @@ TEST(DoubleStackAllocator, AllocateOneLowerOneUpper) {
     TestData_Small* outTestDataUpper = nullptr;
     AxrDoubleStackAllocator::MarkerID markerIDLower{};
     AxrDoubleStackAllocator::MarkerID markerIDUpper{};
-    AxrResult axrResult = allocator.allocateLower(outTestDataLower, markerIDLower);
+    AxrResult axrResult = allocator.allocateLower(1, outTestDataLower, markerIDLower);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
     ASSERT_TRUE(outTestDataLower != nullptr);
 
-    axrResult = allocator.allocateUpper(outTestDataUpper, markerIDUpper);
+    axrResult = allocator.allocateUpper(1, outTestDataUpper, markerIDUpper);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
     ASSERT_TRUE(outTestDataUpper != nullptr);
 

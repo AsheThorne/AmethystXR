@@ -44,8 +44,8 @@ AxrStackAllocator& AxrStackAllocator::operator=(AxrStackAllocator&& src) noexcep
 // Public Functions
 // ----------------------------------------- //
 
-#define AXR_FUNCTION_FAILED_STRING "Failed to allocate memory for AxrStackAllocator. "
-AxrResult AxrStackAllocator::allocate(const size_t size, void*& memory, MarkerID& markerID) {
+#define AXR_FUNCTION_FAILED_STRING "Failed to allocate memory block for AxrStackAllocator. "
+AxrResult AxrStackAllocator::allocateBlock(const size_t size, void*& memory, MarkerID& markerID) {
     // Make sure there's enough space for both the requested memory size and for its marker.
     const size_t blockSize = size + sizeof(Marker);
     if (blockSize > m_Capacity - m_Size) [[unlikely]] {

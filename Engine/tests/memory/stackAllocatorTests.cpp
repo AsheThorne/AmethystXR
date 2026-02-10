@@ -74,7 +74,7 @@ TEST(StackAllocator, AllocateOne_Unaligned) {
 
     TestData_Small* outTestData = nullptr;
     AxrStackAllocator::MarkerID markerID{};
-    const AxrResult axrResult = allocator.allocate(outTestData, markerID);
+    const AxrResult axrResult = allocator.allocate(1, outTestData, markerID);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
     ASSERT_TRUE(outTestData != nullptr);
 
@@ -92,7 +92,7 @@ TEST(StackAllocator, AllocateOne_Aligned) {
 
     TestData_Small* outTestData = nullptr;
     AxrStackAllocator::MarkerID markerID{};
-    const AxrResult axrResult = allocator.allocateAligned(outTestData, markerID);
+    const AxrResult axrResult = allocator.allocateAligned(1, outTestData, markerID);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
     ASSERT_TRUE(outTestData != nullptr);
 
@@ -114,10 +114,10 @@ TEST(StackAllocator, AllocateTwo_Unaligned) {
     TestData_Large* outTestData2 = nullptr;
     AxrStackAllocator::MarkerID testData1MarkerID{};
     AxrStackAllocator::MarkerID testData2MarkerID{};
-    AxrResult axrResult = allocator.allocate(outTestData1, testData1MarkerID);
+    AxrResult axrResult = allocator.allocate(1, outTestData1, testData1MarkerID);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
-    axrResult = allocator.allocate(outTestData2, testData2MarkerID);
+    axrResult = allocator.allocate(1, outTestData2, testData2MarkerID);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
     ASSERT_TRUE(reinterpret_cast<uintptr_t>(outTestData1) != reinterpret_cast<uintptr_t>(outTestData2));
@@ -154,10 +154,10 @@ TEST(StackAllocator, AllocateTwo_Aligned) {
     TestData_Large* outTestData2 = nullptr;
     AxrStackAllocator::MarkerID testData1MarkerID{};
     AxrStackAllocator::MarkerID testData2MarkerID{};
-    AxrResult axrResult = allocator.allocateAligned(outTestData1, testData1MarkerID);
+    AxrResult axrResult = allocator.allocateAligned(1, outTestData1, testData1MarkerID);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
-    axrResult = allocator.allocateAligned(outTestData2, testData2MarkerID);
+    axrResult = allocator.allocateAligned(1, outTestData2, testData2MarkerID);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
     ASSERT_TRUE(reinterpret_cast<uintptr_t>(outTestData1) != reinterpret_cast<uintptr_t>(outTestData2));
@@ -188,12 +188,12 @@ TEST(StackAllocator, AllocateTooMuch_Unaligned) {
 
     TestData_Small* outTestData1 = nullptr;
     AxrStackAllocator::MarkerID testData1MarkerID{};
-    AxrResult axrResult = allocator.allocate(outTestData1, testData1MarkerID);
+    AxrResult axrResult = allocator.allocate(1, outTestData1, testData1MarkerID);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
     TestData_Small* outTestData2 = nullptr;
     AxrStackAllocator::MarkerID testData2MarkerID{};
-    axrResult = allocator.allocate(outTestData2, testData2MarkerID);
+    axrResult = allocator.allocate(1, outTestData2, testData2MarkerID);
     ASSERT_TRUE(axrResult == AXR_ERROR_OUT_OF_MEMORY);
 }
 
@@ -207,12 +207,12 @@ TEST(StackAllocator, AllocateTooMuch_Aligned) {
 
     TestData_Small* outTestData1 = nullptr;
     AxrStackAllocator::MarkerID testData1MarkerID{};
-    AxrResult axrResult = allocator.allocateAligned(outTestData1, testData1MarkerID);
+    AxrResult axrResult = allocator.allocateAligned(1, outTestData1, testData1MarkerID);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
     TestData_Small* outTestData2 = nullptr;
     AxrStackAllocator::MarkerID testData2MarkerID{};
-    axrResult = allocator.allocateAligned(outTestData2, testData2MarkerID);
+    axrResult = allocator.allocateAligned(1, outTestData2, testData2MarkerID);
     ASSERT_TRUE(axrResult == AXR_ERROR_OUT_OF_MEMORY);
 }
 
@@ -230,10 +230,10 @@ TEST(StackAllocator, AllocateTwoDeallocateOne_Unaligned) {
     TestData_Large* outTestData2 = nullptr;
     AxrStackAllocator::MarkerID testData1MarkerID{};
     AxrStackAllocator::MarkerID testData2MarkerID{};
-    AxrResult axrResult = allocator.allocate(outTestData1, testData1MarkerID);
+    AxrResult axrResult = allocator.allocate(1, outTestData1, testData1MarkerID);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
-    axrResult = allocator.allocate(outTestData2, testData2MarkerID);
+    axrResult = allocator.allocate(1, outTestData2, testData2MarkerID);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
     // Check allocator is full first.
@@ -259,10 +259,10 @@ TEST(StackAllocator, AllocateTwoDeallocateOne_Aligned) {
     TestData_Large* outTestData2 = nullptr;
     AxrStackAllocator::MarkerID testData1MarkerID{};
     AxrStackAllocator::MarkerID testData2MarkerID{};
-    AxrResult axrResult = allocator.allocateAligned(outTestData1, testData1MarkerID);
+    AxrResult axrResult = allocator.allocateAligned(1, outTestData1, testData1MarkerID);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
-    axrResult = allocator.allocateAligned(outTestData2, testData2MarkerID);
+    axrResult = allocator.allocateAligned(1, outTestData2, testData2MarkerID);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
     // Check allocator is full first.
@@ -286,10 +286,10 @@ TEST(StackAllocator, AllocateTwoDeallocateMarker1_Unaligned) {
     TestData_Large* outTestData2 = nullptr;
     AxrStackAllocator::MarkerID testData1MarkerID{};
     AxrStackAllocator::MarkerID testData2MarkerID{};
-    AxrResult axrResult = allocator.allocate(outTestData1, testData1MarkerID);
+    AxrResult axrResult = allocator.allocate(1, outTestData1, testData1MarkerID);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
-    axrResult = allocator.allocate(outTestData2, testData2MarkerID);
+    axrResult = allocator.allocate(1, outTestData2, testData2MarkerID);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
     // Check allocator is full.
@@ -315,10 +315,10 @@ TEST(StackAllocator, AllocateTwoDeallocateMarker1_Aligned) {
     TestData_Large* outTestData2 = nullptr;
     AxrStackAllocator::MarkerID testData1MarkerID{};
     AxrStackAllocator::MarkerID testData2MarkerID{};
-    AxrResult axrResult = allocator.allocateAligned(outTestData1, testData1MarkerID);
+    AxrResult axrResult = allocator.allocateAligned(1, outTestData1, testData1MarkerID);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
-    axrResult = allocator.allocateAligned(outTestData2, testData2MarkerID);
+    axrResult = allocator.allocateAligned(1, outTestData2, testData2MarkerID);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
     // Check allocator is full.
