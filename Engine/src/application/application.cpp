@@ -2,11 +2,10 @@
 // Headers
 // ----------------------------------------- //
 #include "application.h"
+#include "../platform/platform.h"
 #include "axr/logging.h"
 
 #include <cassert>
-
-#include "../platform/platform.h"
 
 // ----------------------------------------- //
 // External Function Definitions

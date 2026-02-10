@@ -92,8 +92,8 @@ enum AxrVulkanExtensionTypeEnum {
     AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS,
     AXR_VULKAN_EXTENSION_TYPE_SWAPCHAIN,
     AXR_VULKAN_EXTENSION_TYPE_SURFACE,
-    // TODO: We probably need the linux one too
     AXR_VULKAN_EXTENSION_TYPE_WIN32_SURFACE,
+    AXR_VULKAN_EXTENSION_TYPE_WAYLAND_SURFACE,
     /// This value is used to mark the end of the enum.
     /// It's useful for knowing the max number of extension types.
     AXR_VULKAN_EXTENSION_TYPE_END
@@ -156,6 +156,11 @@ struct AxrVulkanExtensionWin32Surface {
     // Empty on purpose. No data is needed for this extension
 };
 
+/// Vulkan Extension Wayland Surface
+struct AxrVulkanExtensionWaylandSurface {
+    // Empty on purpose. No data is needed for this extension
+};
+
 /// Vulkan api layer
 struct AxrVulkanExtension {
     union {
@@ -163,6 +168,7 @@ struct AxrVulkanExtension {
         AxrVulkanExtensionSwapchain Swapchain;
         AxrVulkanExtensionSurface Surface;
         AxrVulkanExtensionWin32Surface Win32Surface;
+        AxrVulkanExtensionWaylandSurface WaylandSurface;
     };
     AxrVulkanExtensionTypeEnum Type;
     bool IsRequired;
@@ -213,6 +219,17 @@ inline AxrVulkanExtensionProperties AxrVulkanExtensionGetProperties(const AxrVul
             return AxrVulkanExtensionProperties{};
 #endif
         }
+        case AXR_VULKAN_EXTENSION_TYPE_WAYLAND_SURFACE: {
+#ifdef VK_USE_PLATFORM_WAYLAND_KHR
+            return AxrVulkanExtensionProperties{
+                .Name = VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME,
+                .Level = AXR_VULKAN_EXTENSION_LEVEL_INSTANCE,
+            };
+#else
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Wayland surface extension not supported.");
+            return AxrVulkanExtensionProperties{};
+#endif
+        }
         case AXR_VULKAN_EXTENSION_TYPE_END:
         case AXR_VULKAN_EXTENSION_TYPE_UNDEFINED:
         default: {
@@ -223,10 +240,9 @@ inline AxrVulkanExtensionProperties AxrVulkanExtensionGetProperties(const AxrVul
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
-#define AXR_FUNCTION_FAILED_STRING "Failed to get vulkan extension type. "
 /// Get the vulkan extension type for the given vulkan extension name
 /// @param extensionName Extension name
-/// @return Vulkan extension type
+/// @return Vulkan extension type. Or AXR_VULKAN_EXTENSION_TYPE_UNDEFINED if the type wasn't found
 inline AxrVulkanExtensionTypeEnum AxrVulkanExtensionGetType(const char extensionName[VK_MAX_EXTENSION_NAME_SIZE]) {
     if (strcmp(extensionName, VK_EXT_DEBUG_UTILS_EXTENSION_NAME) == 0) {
         return AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS;
@@ -246,10 +262,14 @@ inline AxrVulkanExtensionTypeEnum AxrVulkanExtensionGetType(const char extension
     }
 #endif
 
-    axrLogError(AXR_FUNCTION_FAILED_STRING "Unknown vulkan extension name.");
+#ifdef VK_USE_PLATFORM_WAYLAND_KHR
+    if (strcmp(extensionName, VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME) == 0) {
+        return AXR_VULKAN_EXTENSION_TYPE_WAYLAND_SURFACE;
+    }
+#endif
+
     return AXR_VULKAN_EXTENSION_TYPE_UNDEFINED;
 }
-#undef AXR_FUNCTION_FAILED_STRING
 
 #endif
 

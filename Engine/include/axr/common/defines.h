@@ -6,7 +6,7 @@
 #if defined(AXR_PLATFORM_WIN32)
 #    define AXR_API_EXPORT __declspec(dllexport)
 #    define AXR_API_IMPORT __declspec(dllimport)
-#elif defined(AXR_PLATFORM_LINUX)
+#elif defined(AXR_PLATFORM_WAYLAND)
 #    define AXR_API_EXPORT __attribute__((visibility("default")))
 #    define AXR_API_IMPORT
 #else

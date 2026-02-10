@@ -52,12 +52,6 @@ set(DEPS_BUILD_DIRECTORY "${CMAKE_BINARY_DIR}/cmake-deps-build")
 set(SPDLOG_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/spdlog)
 set(SDL_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/SDL)
 
-if(WIN32)
-    set(AXR_PLATFORM win32)
-elseif(LINUX)
-    set(AXR_PLATFORM linux)
-endif()
-
 # ---------------------------------------------
 # Setup Build Configurations
 # ---------------------------------------------
@@ -95,6 +89,16 @@ add_subdirectory(
 # Include thirdparty libraries
 # ---------------------------------------------
 add_subdirectory(thirdparty/SDL EXCLUDE_FROM_ALL)
+
+# ---------------------------------------------
+# Set platform
+# ---------------------------------------------
+
+if(WIN32)
+    set(AXR_PLATFORM win32)
+elseif(SDL_WAYLAND)
+    set(AXR_PLATFORM wayland)
+endif()
 
 # ---------------------------------------------
 # Include AmethystXR Engine

@@ -126,9 +126,9 @@ if(WIN32)
         UNICODE
         _UNICODE
     )
-elseif(LINUX)
+elseif(SDL_WAYLAND)
     target_compile_definitions(AXR_Engine PRIVATE
-        AXR_PLATFORM_LINUX
+        AXR_PLATFORM_WAYLAND
     )
 endif()
 
@@ -142,6 +142,10 @@ if(Vulkan_FOUND)
     if(WIN32)
         target_compile_definitions(AXR_Engine PRIVATE
             VK_USE_PLATFORM_WIN32_KHR
+        )
+    elseif(SDL_WAYLAND)
+        target_compile_definitions(AXR_Engine PRIVATE
+            VK_USE_PLATFORM_WAYLAND_KHR
         )
     endif()
 endif()
@@ -176,7 +180,7 @@ set(AXR_TEST_FILES
 
 if(WIN32)
     add_executable(AXR_Test WIN32 ${AXR_TEST_FILES} ${AXR_FILES})
-elseif(LINUX)
+else()
     add_executable(AXR_Test ${AXR_TEST_FILES} ${AXR_FILES})
 endif()
 

@@ -31,7 +31,7 @@ list(APPEND AXR_SANDBOX_FILES ${AXR_SANDBOX_CPP_FILES})
 
 if(WIN32)
     add_executable(Sandbox WIN32 ${AXR_SANDBOX_FILES})
-elseif(LINUX)
+else()
     add_executable(Sandbox ${AXR_SANDBOX_FILES})
 endif()
 
@@ -88,9 +88,9 @@ if(WIN32)
         UNICODE
         _UNICODE
     )
-elseif(LINUX)
+elseif(SDL_WAYLAND)
     target_compile_definitions(Sandbox PRIVATE
-        AXR_PLATFORM_LINUX
+        AXR_PLATFORM_WAYLAND
     )
 endif()
 
