@@ -25,6 +25,10 @@ enum AxrResult {
     AXR_ERROR_OUT_OF_MEMORY = -6,
     /// Error, Feature isn't supported
     AXR_ERROR_NOT_SUPPORTED = -7,
+    /// Error, Validation failed
+    AXR_ERROR_VALIDATION_FAILED = -8,
+    /// Error, Encountered an error with vulkan
+    AXR_ERROR_VULKAN_ERROR = -9,
 };
 
 /// Axr renderer api type

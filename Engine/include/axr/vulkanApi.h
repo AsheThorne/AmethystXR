@@ -50,7 +50,7 @@ struct AxrVulkanApiLayer {
 
 /// Axr vulkan api layer properties
 struct AxrVulkanApiLayerProperties {
-    char Name[VK_MAX_EXTENSION_NAME_SIZE];
+    const char* Name;
 };
 
 // ----------------------------------------- //
@@ -77,6 +77,17 @@ inline AxrVulkanApiLayerProperties AxrVulkanApiLayerGetProperties(const AxrVulka
     }
 }
 #undef AXR_FUNCTION_FAILED_STRING
+
+/// Get the vulkan api layer type for the given vulkan api layer name
+/// @param apiLayerName Api layer name
+/// @return Vulkan api layer type. Or AXR_VULKAN_API_LAYER_TYPE_UNDEFINED if the type wasn't found
+inline AxrVulkanApiLayerTypeEnum AxrVulkanApiLayerGetType(const char apiLayerName[VK_MAX_EXTENSION_NAME_SIZE]) {
+    if (strcmp(apiLayerName, AXR_VULKAN_CORE_VALIDATION_LAYER_NAME) == 0) {
+        return AXR_VULKAN_API_LAYER_TYPE_CORE_VALIDATION;
+    }
+
+    return AXR_VULKAN_API_LAYER_TYPE_UNDEFINED;
+}
 
 // ---------------------------------------------------------------------------------- //
 //                                     Extensions                                     //
@@ -178,7 +189,7 @@ struct AxrVulkanExtension {
 
 /// Axr vulkan extension properties
 struct AxrVulkanExtensionProperties {
-    char Name[VK_MAX_EXTENSION_NAME_SIZE];
+    const char* Name;
     AxrVulkanExtensionLevelEnum Level;
 };
 
