@@ -1,6 +1,11 @@
 #pragma once
 
 // ----------------------------------------- //
+// Headers
+// ----------------------------------------- //
+#include "axr/common/defines.h"
+
+// ----------------------------------------- //
 // Enums
 // ----------------------------------------- //
 
@@ -34,3 +39,14 @@ enum AxrRendererApiTypeEnum {
     AXR_RENDERER_API_TYPE_UNDEFINED = 0,
     AXR_RENDERER_API_TYPE_VULKAN = 1,
 };
+
+// ----------------------------------------- //
+// Functions
+// ----------------------------------------- //
+
+extern "C" {
+    /// Get the string of the given axrResult
+    /// @param axrResult AxrResult to use
+    /// @return Given axrResult as a string
+    AXR_API const char* axrResultToString(AxrResult axrResult);
+}

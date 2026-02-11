@@ -78,8 +78,7 @@ int start() {
         }
         if (AXR_FAILED(axrResult)) {
             axrLogError("Unknown error occurred during application frame start. Received result: {}",
-                        // TODO: Get enum string
-                        static_cast<uint32_t>(axrResult));
+                        axrResultToString(axrResult));
             break;
         }
     }
