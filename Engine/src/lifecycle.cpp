@@ -22,7 +22,12 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
         return AXR_ERROR_NULLPTR;
     }
 
-    if (AXR_FAILED(AxrAllocator::get().setup(AxrAllocator::Config{}))) {
+    constexpr AxrAllocator::Config axrAllocatorConfig{
+        /// 1 Mebibyte
+        .FrameAllocatorSize = 1'048'576,
+    };
+
+    if (AXR_FAILED(AxrAllocator::get().setup(axrAllocatorConfig))) {
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrAllocator.setup() failed.");
         return AXR_ERROR_FALLTHROUGH;
     }

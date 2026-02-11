@@ -4,6 +4,7 @@
 // Headers
 // ----------------------------------------- //
 #include "axr/common/enums.h"
+#include "stackAllocator.h"
 
 /// Axr Main Allocator singleton
 class AxrAllocator {
@@ -51,7 +52,15 @@ public:
     // ----------------------------------------- //
 
     /// AxrAllocator Config
-    struct Config {};
+    struct Config {
+        /// Size in bytes
+        size_t FrameAllocatorSize;
+    };
+
+    // ----------------------------------------- //
+    // Public Variables
+    // ----------------------------------------- //
+    AxrStackAllocator FrameAllocator{};
 
     // ----------------------------------------- //
     // Public Functions
@@ -72,5 +81,15 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
+    uint8_t* m_Memory{};
+    size_t m_MemorySize{};
     bool m_IsSetup = false;
+
+    // ----------------------------------------- //
+    // Private Functions
+    // ----------------------------------------- //
+
+    /// Callback function for when the frame allocator gets deallocated
+    /// @param memory Frame allocator memory block to deallocate
+    void deallocateFrameAllocatorCallback(void*& memory);
 };
