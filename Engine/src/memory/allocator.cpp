@@ -2,6 +2,7 @@
 // Headers
 // ----------------------------------------- //
 #include "allocator.h"
+#include "axr/logging.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -51,6 +52,20 @@ void AxrAllocator::shutDown() {
 
     m_IsSetup = false;
 }
+
+void AxrAllocator::logFrameAllocatorUsage(const char* message) const {
+    const size_t size = FrameAllocator.size();
+    const size_t capacity = FrameAllocator.capacity();
+    axrLogInfo("{}: Frame Allocator memory usage. {:.2f}% Used. {} Bytes used out of {}.",
+               message,
+               static_cast<float>(size) / static_cast<float>(capacity) * 100,
+               size,
+               capacity);
+}
+
+// ----------------------------------------- //
+// Private Functions
+// ----------------------------------------- //
 
 void AxrAllocator::deallocateFrameAllocatorCallback(void*& memory) {
     // NEVER EVER modify anything about the FrameAllocator within this function. We don't want to risk retriggering this

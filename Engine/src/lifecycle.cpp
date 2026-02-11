@@ -37,6 +37,8 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
         return AXR_ERROR_FALLTHROUGH;
     }
 
+    AxrAllocator::get().logFrameAllocatorUsage("Server Setup");
+
     const AxrPlatform::Config axrPlatformConfig{
         .WindowConfig = &config->WindowConfig,
         .RendererApiType = config->RendererConfig.ApiType,
@@ -46,6 +48,8 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrPlatform.setup() failed.");
         return AXR_ERROR_FALLTHROUGH;
     }
+
+    AxrAllocator::get().logFrameAllocatorUsage("Platform Setup");
 
     AxrRenderer::Config axrRendererConfig{
         .RendererConfig = &config->RendererConfig,
@@ -62,10 +66,14 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
         return AXR_ERROR_FALLTHROUGH;
     }
 
+    AxrAllocator::get().logFrameAllocatorUsage("Renderer Setup");
+
     if (AXR_FAILED(AxrApplication::get().setup(AxrApplication::Config{}))) {
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrApplication.setup() failed.");
         return AXR_ERROR_FALLTHROUGH;
     }
+
+    AxrAllocator::get().logFrameAllocatorUsage("Application Setup");
 
     return AXR_SUCCESS;
 }

@@ -77,6 +77,10 @@ public:
     /// Shut down the allocator
     void shutDown();
 
+    /// Log the frame allocator's usage
+    /// @param message Message to prefix log message with
+    void logFrameAllocatorUsage(const char* message) const;
+
 private:
     // ----------------------------------------- //
     // Private Variables
