@@ -17,16 +17,14 @@ enum AxrResult {
     AXR_ERROR_DUPLICATE = -2,
     /// Error, failed to find the object
     AXR_ERROR_NOT_FOUND = -3,
-    /// Error, encountered a nullptr
-    AXR_ERROR_NULLPTR = -4,
     /// Error, Ran out of memory
-    AXR_ERROR_OUT_OF_MEMORY = -5,
+    AXR_ERROR_OUT_OF_MEMORY = -4,
     /// Error, Feature isn't supported
-    AXR_ERROR_NOT_SUPPORTED = -6,
+    AXR_ERROR_NOT_SUPPORTED = -5,
     /// Error, Validation failed
-    AXR_ERROR_VALIDATION_FAILED = -7,
+    AXR_ERROR_VALIDATION_FAILED = -6,
     /// Error, Encountered an error with vulkan
-    AXR_ERROR_VULKAN_ERROR = -8,
+    AXR_ERROR_VULKAN_ERROR = -7,
 };
 
 /// Axr renderer api type

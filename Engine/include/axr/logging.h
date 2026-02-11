@@ -298,7 +298,7 @@ inline AxrResult axrLoggerCreate(const std::string& loggerName) {
 #define AXR_FUNCTION_FAILED_STRING "Failed to set default logger. "
 inline AxrResult axrLoggerSetDefault(const std::string& loggerName) {
     const std::shared_ptr<spdlog::logger> logger = spdlog::get(loggerName);
-    if (logger == nullptr) {
+    if (logger == nullptr) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Logger named \"{}\" could not be found.", loggerName.c_str());
         return AXR_ERROR_NOT_FOUND;
     }

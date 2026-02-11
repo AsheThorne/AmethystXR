@@ -32,9 +32,9 @@ AxrPlatform& AxrPlatform::get() {
 AxrResult AxrPlatform::setup(const Config& config) {
     assert(!m_IsSetup);
 
-    if (config.WindowConfig == nullptr) {
+    if (config.WindowConfig == nullptr) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "`config.WindowConfig` is null.");
-        return AXR_ERROR_NULLPTR;
+        return AXR_ERROR_VALIDATION_FAILED;
     }
 
     AxrResult axrResult = AXR_SUCCESS;

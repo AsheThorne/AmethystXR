@@ -29,9 +29,9 @@ AxrRenderer& AxrRenderer::get() {
 AxrResult AxrRenderer::setup(const Config& config) {
     assert(!m_IsSetup);
 
-    if (config.RendererConfig == nullptr) {
+    if (config.RendererConfig == nullptr) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "`rendererConfig.RendererConfig` is null.");
-        return AXR_ERROR_NULLPTR;
+        return AXR_ERROR_VALIDATION_FAILED;
     }
 
     m_Context = Context{

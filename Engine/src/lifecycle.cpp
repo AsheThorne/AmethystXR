@@ -19,7 +19,7 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
 
     if (config == nullptr) {
         axrLogError(AXR_FUNCTION_FAILED_STRING "`config` is null.");
-        return AXR_ERROR_NULLPTR;
+        return AXR_ERROR_VALIDATION_FAILED;
     }
 
     AxrResult axrResult = AXR_SUCCESS;

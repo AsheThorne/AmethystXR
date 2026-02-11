@@ -328,7 +328,7 @@ protected:
 
         if (m_StackAllocator == nullptr) [[unlikely]] {
             axrLogError(AXR_FUNCTION_FAILED_STRING "`stackAllocator` is null.");
-            return AXR_ERROR_NULLPTR;
+            return AXR_ERROR_VALIDATION_FAILED;
         }
 
         const AxrResult axrResult = m_StackAllocator->allocateAligned(m_Capacity, m_Data, m_AllocatorMarkerID);

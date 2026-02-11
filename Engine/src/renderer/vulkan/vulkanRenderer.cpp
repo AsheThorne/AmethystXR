@@ -19,9 +19,9 @@
 AxrResult AxrVulkanRenderer::setup(Context& context, const Config& config) {
     assert(!context.IsSetup);
 
-    if (config.VulkanConfig == nullptr) {
+    if (config.VulkanConfig == nullptr) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "`config.VulkanConfig` is null.");
-        return AXR_ERROR_NULLPTR;
+        return AXR_ERROR_VALIDATION_FAILED;
     }
 
     AxrResult axrResult = AXR_SUCCESS;
