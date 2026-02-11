@@ -100,6 +100,16 @@ public:
     /// @param nextStruct Next structure to append to the `next` chain
     static void appendNextPtrChain(VkBaseOutStructure* source, VkBaseOutStructure* nextStruct);
 
+    /// Log al of the given api layer names and extension names
+    /// @param message Message to prefix the log message with
+    /// @param apiLayerNames Api layer names to log. Or nullptr to not log any
+    /// @param extensionNames Extension names to log. Or nullptr to not log any
+    static void logExtensionNames(const char* message,
+                                  const ApiLayerNamesArray_T* apiLayerNames,
+                                  const ExtensionNamesArray_T* extensionNames);
+
+    // ---- Debug Utils ----
+
     /// Debug utils messages callback function
     /// @param messageSeverity The severity of the message
     /// @param messageType The type of the message
@@ -111,12 +121,9 @@ public:
                                                   const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
                                                   void* pUserData);
 
-    /// Log al of the given api layer names and extension names
-    /// @param message Message to prefix the log message with
-    /// @param apiLayerNames Api layer names to log. Or nullptr to not log any
-    /// @param extensionNames Extension names to log. Or nullptr to not log any
-    static void logExtensionNames(const char* message,
-                                  const ApiLayerNamesArray_T* apiLayerNames,
-                                  const ExtensionNamesArray_T* extensionNames);
+    /// Create the VkDebugUtilsMessengerCreateInfoEXT
+    /// @param extensions Extensions to use
+    /// @return The VkDebugUtilsMessengerCreateInfoEXT
+    static VkDebugUtilsMessengerCreateInfoEXT createDebugUtilsMessengerCreateInfo(const ExtensionsArray_T& extensions);
 };
 #endif

@@ -72,6 +72,7 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanUtils.h
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanExtensions.h
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanExtensions.cpp
+    ${AXR_SRC_DIR}/renderer/vulkan/vulkanExtensionFunctions.cpp
     # ---- Common ----
     ${AXR_SRC_DIR}/common/enums.cpp
     ${AXR_SRC_DIR}/common/array.h

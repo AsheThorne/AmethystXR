@@ -36,6 +36,7 @@ public:
         AxrVulkanExtensions::ApiLayersArray_T ApiLayers{};
         AxrVulkanExtensions::ExtensionsArray_T Extensions{};
         VkInstance Instance = VK_NULL_HANDLE;
+        VkDebugUtilsMessengerEXT DebugUtilsMessenger = VK_NULL_HANDLE;
         bool IsSetup = false;
     };
 
@@ -116,6 +117,21 @@ private:
     /// @param instanceCreateInfo Input/Output instance create info to append the chain to
     [[nodiscard]] static AxrResult createInstanceChain(const AxrVulkanExtensions::ExtensionsArray_T& extensions,
                                                        VkInstanceCreateInfo& instanceCreateInfo);
+
+    // ---- Debug Utils ----
+
+    /// Create the debug utils messenger
+    /// @param instance VkInstance to ise
+    /// @param extensions Extensions to use
+    /// @param debugUtilsMessenger Output created debug utils messenger
+    /// @return AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult createDebugUtilsMessenger(const VkInstance& instance,
+                                                             const AxrVulkanExtensions::ExtensionsArray_T& extensions,
+                                                             VkDebugUtilsMessengerEXT& debugUtilsMessenger);
+    /// Destroy the debug utils messenger
+    /// @param instance VkInstance to use
+    /// @param debugUtilsMessenger Debug utils messenger to destroy
+    static void destroyDebugUtilsMessenger(const VkInstance& instance, VkDebugUtilsMessengerEXT& debugUtilsMessenger);
 };
 #endif
 

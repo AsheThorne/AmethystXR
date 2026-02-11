@@ -44,6 +44,13 @@ AxrResult AxrVulkanRenderer::setup(Context& context, const Config& config) {
         return axrResult;
     }
 
+    axrResult = createDebugUtilsMessenger(context.Instance, context.Extensions, context.DebugUtilsMessenger);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        shutDown(context);
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create debug utils.");
+        return axrResult;
+    }
+
     context.IsSetup = true;
     return AXR_SUCCESS;
 }
@@ -53,6 +60,7 @@ void AxrVulkanRenderer::shutDown(Context& context) {
     context.ApiLayers.clear();
     context.Extensions.clear();
     destroyInstance(context.Instance);
+    destroyDebugUtilsMessenger(context.Instance, context.DebugUtilsMessenger);
     context.IsSetup = false;
 }
 
@@ -71,7 +79,7 @@ AxrResult AxrVulkanRenderer::createInstance(const char applicationName[AXR_MAX_A
     // ----------------------------------------- //
 
     if (instance != VK_NULL_HANDLE) {
-        axrLogWarning("Instance already exists.");
+        axrLogWarning(AXR_FUNCTION_FAILED_STRING "Instance already exists.");
         return AXR_SUCCESS;
     }
 
@@ -150,15 +158,7 @@ AxrResult AxrVulkanRenderer::createInstanceChain(const AxrVulkanExtensions::Exte
             return axrResult;
         }
 
-        *debugUtilsCreateInfo = VkDebugUtilsMessengerCreateInfoEXT{
-            .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-            .pNext = nullptr,
-            .flags = 0,
-            .messageSeverity = iterator->DebugUtils.SeverityFlags,
-            .messageType = iterator->DebugUtils.TypeFlags,
-            .pfnUserCallback = AxrVulkanExtensions::debugUtilsCallback,
-            .pUserData = nullptr,
-        };
+        *debugUtilsCreateInfo = AxrVulkanExtensions::createDebugUtilsMessengerCreateInfo(extensions);
 
         AxrVulkanExtensions::appendNextPtrChain(reinterpret_cast<VkBaseOutStructure*>(&instanceCreateInfo),
                                                 reinterpret_cast<VkBaseOutStructure*>(debugUtilsCreateInfo));
@@ -167,5 +167,40 @@ AxrResult AxrVulkanRenderer::createInstanceChain(const AxrVulkanExtensions::Exte
     return AXR_SUCCESS;
 }
 #undef AXR_FUNCTION_FAILED_STRING
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to create debug utils messenger. "
+AxrResult AxrVulkanRenderer::createDebugUtilsMessenger(const VkInstance& instance,
+                                                       const AxrVulkanExtensions::ExtensionsArray_T& extensions,
+                                                       VkDebugUtilsMessengerEXT& debugUtilsMessenger) {
+    if (!extensions.exists(AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS)) {
+        // Don't create the debug utils messenger
+        return AXR_SUCCESS;
+    }
+
+    if (debugUtilsMessenger != VK_NULL_HANDLE) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Debug utils messenger already exists");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    const VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo =
+        AxrVulkanExtensions::createDebugUtilsMessengerCreateInfo(extensions);
+    const VkResult vkResult =
+        vkCreateDebugUtilsMessengerEXT(instance, &debugUtilsMessengerCreateInfo, nullptr, &debugUtilsMessenger);
+    axrLogVkResult(vkResult, "vkCreateDebugUtilsMessengerEXT");
+    if (VK_FAILED(vkResult))
+        return AXR_ERROR_VULKAN_ERROR;
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+void AxrVulkanRenderer::destroyDebugUtilsMessenger(const VkInstance& instance,
+                                                   VkDebugUtilsMessengerEXT& debugUtilsMessenger) {
+    if (debugUtilsMessenger == VK_NULL_HANDLE)
+        return;
+
+    vkDestroyDebugUtilsMessengerEXT(instance, debugUtilsMessenger, nullptr);
+    debugUtilsMessenger = VK_NULL_HANDLE;
+}
 
 #endif

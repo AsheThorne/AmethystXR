@@ -193,6 +193,7 @@ AxrVulkanExtensions::ExtensionNamesArray_T AxrVulkanExtensions::getInstanceExten
 
     return extensionNames;
 }
+
 void AxrVulkanExtensions::appendNextPtrChain(VkBaseOutStructure* source, VkBaseOutStructure* nextStruct) {
     VkBaseOutStructure*& currentNextStruct = source->pNext;
     while (currentNextStruct != nullptr) {
@@ -201,6 +202,71 @@ void AxrVulkanExtensions::appendNextPtrChain(VkBaseOutStructure* source, VkBaseO
 
     currentNextStruct = nextStruct;
 }
+
+void AxrVulkanExtensions::logExtensionNames(const char* message,
+                                            const ApiLayerNamesArray_T* apiLayerNames,
+                                            const ExtensionNamesArray_T* extensionNames) {
+    const auto stringSeperator = ", ";
+    // ReSharper disable once CppTooWideScope
+    const auto lineSeperator = "\n";
+    constexpr size_t stringSeperatorLength = 2;
+    constexpr size_t lineSeperatorLength = 1;
+
+    // ReSharper disable once CppTooWideScope
+    const auto apiLayersMessage = "Api Layers: ";
+    constexpr size_t apiLayersMessageLength = 12;
+
+    constexpr size_t apiLayersStringMaxLength =
+        apiLayersMessageLength + (VK_MAX_EXTENSION_NAME_SIZE + stringSeperatorLength) * AxrVulkanApiLayerMaxCount +
+        lineSeperatorLength;
+    char apiLayersString[apiLayersStringMaxLength];
+    if (apiLayerNames != nullptr) {
+        strcpy(apiLayersString, apiLayersMessage);
+
+        size_t currentStringIndex = strlen(apiLayersMessage);
+        for (size_t i = 0; i < apiLayerNames->size(); ++i) {
+            strncpy(apiLayersString + currentStringIndex, (*apiLayerNames)[i], VK_MAX_EXTENSION_NAME_SIZE);
+            currentStringIndex += strlen((*apiLayerNames)[i]);
+
+            // If this isn't the last string to append
+            if (i + 1 < apiLayerNames->size()) {
+                strcpy(apiLayersString + currentStringIndex, stringSeperator);
+                currentStringIndex += strlen(stringSeperator);
+            } else {
+                // If it is the last string, add the line separator
+                strcpy(apiLayersString + currentStringIndex, lineSeperator);
+                currentStringIndex += strlen(lineSeperator);
+            }
+        }
+    }
+
+    // ReSharper disable once CppTooWideScope
+    const auto extensionsMessage = "Extensions: ";
+    constexpr size_t extensionsMessageLength = 12;
+
+    // + 2 for the comma and space seperator characters -> ", ".
+    constexpr size_t extensionsStringMaxLength =
+        extensionsMessageLength + (VK_MAX_EXTENSION_NAME_SIZE + stringSeperatorLength) * AxrVulkanExtensionMaxCount;
+    char extensionsString[extensionsStringMaxLength];
+    if (extensionNames != nullptr) {
+        strcpy(extensionsString, extensionsMessage);
+
+        size_t currentStringIndex = strlen(extensionsMessage);
+        for (size_t i = 0; i < extensionNames->size(); ++i) {
+            strncpy(extensionsString + currentStringIndex, (*extensionNames)[i], VK_MAX_EXTENSION_NAME_SIZE);
+            currentStringIndex += strlen((*extensionNames)[i]);
+
+            // If this isn't the last string to append
+            if (i + 1 < extensionNames->size()) {
+                strcpy(extensionsString + currentStringIndex, stringSeperator);
+                currentStringIndex += strlen(stringSeperator);
+            }
+        }
+    }
+
+    axrLogInfo("{}\n{}{}", message, apiLayersString, extensionsString);
+}
+
 VkBool32 AxrVulkanExtensions::debugUtilsCallback(const VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                                                  const VkDebugUtilsMessageTypeFlagsEXT messageType,
                                                  const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
@@ -267,68 +333,22 @@ VkBool32 AxrVulkanExtensions::debugUtilsCallback(const VkDebugUtilsMessageSeveri
     return VK_FALSE;
 }
 
-void AxrVulkanExtensions::logExtensionNames(const char* message,
-                                            const ApiLayerNamesArray_T* apiLayerNames,
-                                            const ExtensionNamesArray_T* extensionNames) {
-    const auto stringSeperator = ", ";
-    // ReSharper disable once CppTooWideScope
-    const auto lineSeperator = "\n";
-    constexpr size_t stringSeperatorLength = 2;
-    constexpr size_t lineSeperatorLength = 1;
-
-    // ReSharper disable once CppTooWideScope
-    const auto apiLayersMessage = "Api Layers: ";
-    constexpr size_t apiLayersMessageLength = 12;
-
-    constexpr size_t apiLayersStringMaxLength =
-        apiLayersMessageLength + (VK_MAX_EXTENSION_NAME_SIZE + stringSeperatorLength) * AxrVulkanApiLayerMaxCount +
-        lineSeperatorLength;
-    char apiLayersString[apiLayersStringMaxLength];
-    if (apiLayerNames != nullptr) {
-        strcpy(apiLayersString, apiLayersMessage);
-
-        size_t currentStringIndex = strlen(apiLayersMessage);
-        for (size_t i = 0; i < apiLayerNames->size(); ++i) {
-            strncpy(apiLayersString + currentStringIndex, (*apiLayerNames)[i], VK_MAX_EXTENSION_NAME_SIZE);
-            currentStringIndex += strlen((*apiLayerNames)[i]);
-
-            // If this isn't the last string to append
-            if (i + 1 < apiLayerNames->size()) {
-                strcpy(apiLayersString + currentStringIndex, stringSeperator);
-                currentStringIndex += strlen(stringSeperator);
-            } else {
-                // If it is the last string, add the line separator
-                strcpy(apiLayersString + currentStringIndex, lineSeperator);
-                currentStringIndex += strlen(lineSeperator);
-            }
-        }
+VkDebugUtilsMessengerCreateInfoEXT AxrVulkanExtensions::createDebugUtilsMessengerCreateInfo(
+    const ExtensionsArray_T& extensions) {
+    if (const ExtensionsArray_T::ConstIterator iterator = extensions.find(AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS);
+        iterator != extensions.end()) {
+        return VkDebugUtilsMessengerCreateInfoEXT{
+            .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+            .pNext = nullptr,
+            .flags = 0,
+            .messageSeverity = iterator->DebugUtils.SeverityFlags,
+            .messageType = iterator->DebugUtils.TypeFlags,
+            .pfnUserCallback = debugUtilsCallback,
+            .pUserData = nullptr,
+        };
     }
 
-    // ReSharper disable once CppTooWideScope
-    const auto extensionsMessage = "Extensions: ";
-    constexpr size_t extensionsMessageLength = 12;
-
-    // + 2 for the comma and space seperator characters -> ", ".
-    constexpr size_t extensionsStringMaxLength =
-        extensionsMessageLength + (VK_MAX_EXTENSION_NAME_SIZE + stringSeperatorLength) * AxrVulkanExtensionMaxCount;
-    char extensionsString[extensionsStringMaxLength];
-    if (extensionNames != nullptr) {
-        strcpy(extensionsString, extensionsMessage);
-
-        size_t currentStringIndex = strlen(extensionsMessage);
-        for (size_t i = 0; i < extensionNames->size(); ++i) {
-            strncpy(extensionsString + currentStringIndex, (*extensionNames)[i], VK_MAX_EXTENSION_NAME_SIZE);
-            currentStringIndex += strlen((*extensionNames)[i]);
-
-            // If this isn't the last string to append
-            if (i + 1 < extensionNames->size()) {
-                strcpy(extensionsString + currentStringIndex, stringSeperator);
-                currentStringIndex += strlen(stringSeperator);
-            }
-        }
-    }
-
-    axrLogInfo("{}\n{}{}", message, apiLayersString, extensionsString);
+    return VkDebugUtilsMessengerCreateInfoEXT{};
 }
 
 #endif
