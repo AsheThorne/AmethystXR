@@ -38,10 +38,10 @@ AxrResult AxrVulkanRenderer::setup(Context& context, const Config& config) {
                                context.ApiLayers,
                                context.Extensions,
                                context.Instance);
-    if (AXR_FAILED(axrResult)) {
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
         shutDown(context);
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create instance");
-        return AXR_ERROR_FALLTHROUGH;
+        return axrResult;
     }
 
     context.IsSetup = true;
@@ -107,9 +107,9 @@ AxrResult AxrVulkanRenderer::createInstance(const char applicationName[AXR_MAX_A
     };
 
     axrResult = createInstanceChain(extensions, instanceCreateInfo);
-    if (AXR_FAILED(axrResult)) {
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create instance chain.");
-        return AXR_ERROR_FALLTHROUGH;
+        return axrResult;
     }
 
     // TODO: Create vulkan instance through OpenXR if that is set up
@@ -145,9 +145,9 @@ AxrResult AxrVulkanRenderer::createInstanceChain(const AxrVulkanExtensions::Exte
         // We aren't deallocating this memory manually so we can ignore the markerID
         AxrStackAllocator::MarkerID markerID;
         axrResult = AxrAllocator::get().FrameAllocator.allocateAligned(1, debugUtilsCreateInfo, markerID);
-        if (AXR_FAILED(axrResult)) {
+        if (AXR_FAILED(axrResult)) [[unlikely]] {
             axrLogError("Failed to allocate memory for VkDebugUtilsMessengerCreateInfoEXT.");
-            return AXR_ERROR_FALLTHROUGH;
+            return axrResult;
         }
 
         *debugUtilsCreateInfo = VkDebugUtilsMessengerCreateInfoEXT{

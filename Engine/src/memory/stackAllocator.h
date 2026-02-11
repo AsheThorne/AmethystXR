@@ -90,11 +90,8 @@ public:
     [[nodiscard]] AxrResult allocateAligned(const size_t size, Type*& memory, MarkerID& markerID) {
         const AxrResult axrResult =
             allocateBlock((sizeof(Type) * size) + alignof(Type), reinterpret_cast<void*&>(memory), markerID);
-        if (AXR_FAILED(axrResult)) {
-            if (axrResult == AXR_ERROR_OUT_OF_MEMORY) {
-                return AXR_ERROR_OUT_OF_MEMORY;
-            }
-            return AXR_ERROR_FALLTHROUGH;
+        if (AXR_FAILED(axrResult)) [[unlikely]] {
+            return axrResult;
         }
 
         memory = axrAlignMemory(memory);

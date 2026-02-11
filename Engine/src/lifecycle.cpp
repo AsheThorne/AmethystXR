@@ -22,19 +22,23 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
         return AXR_ERROR_NULLPTR;
     }
 
+    AxrResult axrResult = AXR_SUCCESS;
+
     constexpr AxrAllocator::Config axrAllocatorConfig{
         /// 1 Mebibyte
         .FrameAllocatorSize = 1'048'576,
     };
 
-    if (AXR_FAILED(AxrAllocator::get().setup(axrAllocatorConfig))) {
+    axrResult = AxrAllocator::get().setup(axrAllocatorConfig);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrAllocator.setup() failed.");
-        return AXR_ERROR_FALLTHROUGH;
+        return axrResult;
     }
 
-    if (AXR_FAILED(AxrServer::get().setup(AxrServer::Config{}))) {
+    axrResult = AxrServer::get().setup(AxrServer::Config{});
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrServer.setup() failed.");
-        return AXR_ERROR_FALLTHROUGH;
+        return axrResult;
     }
 
     AxrAllocator::get().logFrameAllocatorUsage("Server Setup");
@@ -44,9 +48,10 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
         .RendererApiType = config->RendererConfig.ApiType,
     };
 
-    if (AXR_FAILED(AxrPlatform::get().setup(axrPlatformConfig))) {
+    axrResult = AxrPlatform::get().setup(axrPlatformConfig);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrPlatform.setup() failed.");
-        return AXR_ERROR_FALLTHROUGH;
+        return axrResult;
     }
 
     AxrAllocator::get().logFrameAllocatorUsage("Platform Setup");
@@ -61,16 +66,18 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
                  config->ApplicationConfig.ApplicationName,
                  AXR_MAX_APPLICATION_NAME_SIZE);
 
-    if (AXR_FAILED(AxrRenderer::get().setup(axrRendererConfig))) {
+    axrResult = AxrRenderer::get().setup(axrRendererConfig);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrRenderer.setup() failed.");
-        return AXR_ERROR_FALLTHROUGH;
+        return axrResult;
     }
 
     AxrAllocator::get().logFrameAllocatorUsage("Renderer Setup");
 
-    if (AXR_FAILED(AxrApplication::get().setup(AxrApplication::Config{}))) {
+    axrResult = AxrApplication::get().setup(AxrApplication::Config{});
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrApplication.setup() failed.");
-        return AXR_ERROR_FALLTHROUGH;
+        return axrResult;
     }
 
     AxrAllocator::get().logFrameAllocatorUsage("Application Setup");

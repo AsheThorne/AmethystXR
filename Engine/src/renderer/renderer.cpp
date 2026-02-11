@@ -59,8 +59,8 @@ AxrResult AxrRenderer::setup(const Config& config) {
     };
 
     const AxrResult axrResult = axrRendererContextExecute(m_Context, vulkan, config);
-    if (AXR_FAILED(axrResult)) {
-        return AXR_ERROR_FALLTHROUGH;
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        return axrResult;
     }
 
     m_IsSetup = true;

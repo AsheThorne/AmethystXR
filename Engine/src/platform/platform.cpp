@@ -49,8 +49,8 @@ AxrResult AxrPlatform::setup(const Config& config) {
                                  config.WindowConfig->Width,
                                  config.WindowConfig->Height,
                                  config.RendererApiType);
-        if (AXR_FAILED(axrResult)) {
-            return AXR_ERROR_FALLTHROUGH;
+        if (AXR_FAILED(axrResult)) [[unlikely]] {
+            return axrResult;
         }
     }
 

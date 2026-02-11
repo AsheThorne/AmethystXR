@@ -66,7 +66,7 @@ decltype(auto) axrRendererContextExecute(AxrRenderer::Context& context,
                 return;
             } else {
                 if constexpr (std::is_same_v<Return_T, AxrResult>) {
-                    return AXR_ERROR_FALLTHROUGH;
+                    return AXR_ERROR_UNKNOWN;
                 } else {
                     return Return_T{};
                 }

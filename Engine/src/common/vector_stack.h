@@ -334,7 +334,7 @@ protected:
         const AxrResult axrResult = m_StackAllocator->allocateAligned(m_Capacity, m_Data, m_AllocatorMarkerID);
         if (AXR_FAILED(axrResult)) [[unlikely]] {
             axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to allocate memory.");
-            return AXR_ERROR_FALLTHROUGH;
+            return axrResult;
         }
 
         return AXR_SUCCESS;
