@@ -66,6 +66,7 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/renderer/renderer.cpp
     ${AXR_SRC_DIR}/renderer/utils.h
     # ---- Renderer - Vulkan ----
+    ${AXR_SRC_DIR}/renderer/vulkan/vulkanApi.cpp
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanRenderer.h
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanRenderer.cpp
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanUtils.h

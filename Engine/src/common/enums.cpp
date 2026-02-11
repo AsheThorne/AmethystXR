@@ -37,7 +37,7 @@ const char* axrResultToString(const AxrResult axrResult) {
             return "AXR_ERROR_VULKAN_ERROR";
         }
         default: {
-            return "Unknown AxrResult enum value";
+            return "Unknown AxrResult";
         }
     }
 }

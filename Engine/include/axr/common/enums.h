@@ -41,7 +41,7 @@ enum AxrRendererApiTypeEnum {
 };
 
 // ----------------------------------------- //
-// Functions
+// External Functions
 // ----------------------------------------- //
 
 extern "C" {

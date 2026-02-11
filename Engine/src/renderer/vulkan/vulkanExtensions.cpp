@@ -156,8 +156,7 @@ AxrVulkanExtensions::ExtensionsArray_T AxrVulkanExtensions::filterSupportedInsta
             supportedExtensions.pushBack(extension);
         } else if (extension.IsRequired) {
             axrLogError(AXR_FUNCTION_FAILED_STRING "Extension type: {} is required but isn't supported.",
-                        // TODO: Get enum string
-                        static_cast<uint32_t>(extension.Type));
+                        axrVulkanExtensionTypeEnumToString(extension.Type));
             return {};
         }
     }

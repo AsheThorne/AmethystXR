@@ -89,6 +89,17 @@ inline AxrVulkanApiLayerTypeEnum AxrVulkanApiLayerGetType(const char apiLayerNam
     return AXR_VULKAN_API_LAYER_TYPE_UNDEFINED;
 }
 
+// ----------------------------------------- //
+// External Functions
+// ----------------------------------------- //
+
+extern "C" {
+    /// Get the string of the given AxrVulkanApiLayerTypeEnum
+    /// @param apiLayerType AxrVulkanApiLayerTypeEnum to use
+    /// @return Given AxrVulkanApiLayerTypeEnum as a string
+    AXR_API const char* axrVulkanApiLayerTypeEnumToString(AxrVulkanApiLayerTypeEnum apiLayerType);
+}
+
 // ---------------------------------------------------------------------------------- //
 //                                     Extensions                                     //
 // ---------------------------------------------------------------------------------- //
@@ -285,6 +296,17 @@ inline AxrVulkanExtensionTypeEnum AxrVulkanExtensionGetType(const char extension
 }
 
 #endif
+
+// ----------------------------------------- //
+// External Functions
+// ----------------------------------------- //
+
+extern "C" {
+    /// Get the string of the given AxrVulkanExtensionTypeEnum
+    /// @param extensionType AxrVulkanExtensionTypeEnum to use
+    /// @return Given AxrVulkanExtensionTypeEnum as a string
+    AXR_API const char* axrVulkanExtensionTypeEnumToString(AxrVulkanExtensionTypeEnum extensionType);
+}
 
 // ---------------------------------------------------------------------------------- //
 //                                       Config                                       //
