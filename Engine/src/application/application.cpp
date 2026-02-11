@@ -2,6 +2,7 @@
 // Headers
 // ----------------------------------------- //
 #include "application.h"
+#include "../memory/allocator.h"
 #include "../platform/platform.h"
 #include "axr/logging.h"
 
@@ -15,8 +16,8 @@ bool axrApplicationIsRunning() {
     return AxrApplication::get().isRunning();
 }
 
-bool axrApplicationProcessEvents() {
-    return AxrApplication::get().processEvents();
+AxrResult axrApplicationStartNewFrame() {
+    return AxrApplication::get().startNewFrame();
 }
 
 // ----------------------------------------- //
@@ -55,8 +56,38 @@ bool AxrApplication::isRunning() const {
     return AxrPlatform::get().isWindowOpen();
 }
 
-bool AxrApplication::processEvents() const {
+#define AXR_FUNCTION_FAILED_STRING "Failed to start new frame. "
+AxrResult AxrApplication::startNewFrame() const {
+    // Clear the frame allocator at the start of each frame
+    AxrAllocator::get().FrameAllocator.clear();
+
+    const AxrResult axrResult = processEvents();
+    if (axrResult == AXR_APPLICATION_CLOSED) {
+        return axrResult;
+    }
+    if (AXR_FAILED(axrResult)) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "ProcessEvents() failed.");
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+// ----------------------------------------- //
+// Private Functions
+// ----------------------------------------- //
+
+AxrResult AxrApplication::processEvents() const {
     // TODO (Ashe): When we integrate OpenXR, only return false if both OpenXR session and window is closed.
-    //  If the user wants to exit if only one exists, then they can manually do that
-    return AxrPlatform::get().processEvents();
+    //  If the user wants to exit if only one exists, then they can manually do that.
+    //  Changed my mind. don't have them manually exit if only one closes. Do it automatically. and maybe have a config
+    //  option to change this behaviour
+
+    // If the platform window closed
+    if (!AxrPlatform::get().processEvents()) {
+        return AXR_APPLICATION_CLOSED;
+    }
+
+    return AXR_SUCCESS;
 }

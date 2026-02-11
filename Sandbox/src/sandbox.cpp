@@ -72,7 +72,14 @@ int start() {
     axrLoggerSetup("Sandbox");
 
     while (axrApplicationIsRunning()) {
-        if (!axrApplicationProcessEvents()) {
+        const AxrResult axrResult = axrApplicationStartNewFrame();
+        if (axrResult == AXR_APPLICATION_CLOSED) {
+            break;
+        }
+        if (AXR_FAILED(axrResult)) {
+            axrLogError("Unknown error occurred during application frame start. Received result: {}",
+                        // TODO: Get enum string
+                        static_cast<uint32_t>(axrResult));
             break;
         }
     }

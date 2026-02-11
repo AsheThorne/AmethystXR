@@ -72,13 +72,23 @@ public:
     /// Check if the application is running
     /// @return True if the application is running
     [[nodiscard]] bool isRunning() const;
-    /// Process all application events
-    /// @return False if the application closed and the game loop should exit
-    [[nodiscard]] bool processEvents() const;
+    /// Start a new frame.
+    /// @return AXR_SUCCESS if the function succeeded.
+    /// AXR_APPLICATION_CLOSED if the main loop should exit and program should close.
+    [[nodiscard]] AxrResult startNewFrame() const;
 
 private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
     bool m_IsSetup = false;
+
+    // ----------------------------------------- //
+    // Private Functions
+    // ----------------------------------------- //
+
+    /// Process all application events
+    /// @return AXR_SUCCESS if the function succeeded.
+    /// AXR_APPLICATION_CLOSED if the main loop should exit and program should close.
+    [[nodiscard]] AxrResult processEvents() const;
 };

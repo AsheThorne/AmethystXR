@@ -9,6 +9,8 @@ enum AxrResult {
     // ---- Succeeded ----
     /// The function succeeded as expected
     AXR_SUCCESS = 0,
+    /// The application has closed. The program should exit
+    AXR_APPLICATION_CLOSED = 1,
 
     // ---- Failed ----
     /// Error, an unknown error occurred
