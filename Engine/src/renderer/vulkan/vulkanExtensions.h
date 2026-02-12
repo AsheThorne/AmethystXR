@@ -75,16 +75,29 @@ public:
     /// @param extensionNames Output supported extension names
     /// @return AXR_SUCCESS if the function succeeded
     [[nodiscard]] static AxrResult getSupportedInstanceExtensions(AxrVector_Stack<const char*>& extensionNames);
+    /// Get the supported device extension names
+    /// @param physicalDevice Physical device to get extensions for
+    /// @param extensionNames Output supported extension names
+    /// @return AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult getSupportedDeviceExtensions(const VkPhysicalDevice& physicalDevice,
+                                                                AxrVector_Stack<const char*>& extensionNames);
 
     /// Filter supported api layers from the given array
     /// @param srcApiLayers Api layers to filter
-    /// @return An array containing only supported api layers
+    /// @return An array containing only supported api layers. Or the original array if there was an error
     [[nodiscard]] static ApiLayersArray_T filterSupportedApiLayers(const ApiLayersArray_T& srcApiLayers);
     /// Filter supported instance extensions from the given array.
     /// Device extensions are ignored and are always passed through to the output array.
     /// @param srcExtensions Extensions to filter
-    /// @return An array containing only supported extensions
+    /// @return An array containing only supported extensions. Or the original array if there was an error
     [[nodiscard]] static ExtensionsArray_T filterSupportedInstanceExtensions(const ExtensionsArray_T& srcExtensions);
+    /// Filter supported device extensions from the given array.
+    /// Device extensions are ignored and are always passed through to the output array.
+    /// @param physicalDevice Physical device to use
+    /// @param srcExtensions Extensions to filter
+    /// @return An array containing only supported extensions. Or the original array if there was an error
+    [[nodiscard]] static ExtensionsArray_T filterSupportedDeviceExtensions(const VkPhysicalDevice& physicalDevice,
+                                                                           const ExtensionsArray_T& srcExtensions);
 
     /// Get all api layer names from the given api layers. Strings are null terminated
     /// @param apiLayers Api layers
@@ -94,6 +107,10 @@ public:
     /// @param extensions Extensions
     /// @return Instance extension names
     [[nodiscard]] static ExtensionNamesArray_T getInstanceExtensionNames(const ExtensionsArray_T& extensions);
+    /// Get all device extension names from the given extensions. Strings are null terminated
+    /// @param extensions Extensions
+    /// @return Device extension names
+    [[nodiscard]] static ExtensionNamesArray_T getDeviceExtensionNames(const ExtensionsArray_T& extensions);
 
     /// Append the `Next` pointer chain for the given `source` with the given `nextObject`.
     /// @param source Source object to append the `next` chain of

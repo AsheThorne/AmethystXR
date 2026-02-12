@@ -41,6 +41,14 @@ void AxrVulkanExtensions::populateExtensions(const uint32_t extensionCount,
         }
     }
 
+    if (!requestedExtensions.exists(AXR_VULKAN_EXTENSION_TYPE_SWAPCHAIN)) {
+        requestedExtensions.pushBack(AxrVulkanExtension{
+            .Swapchain = {},
+            .Type = AXR_VULKAN_EXTENSION_TYPE_SWAPCHAIN,
+            .IsRequired = true,
+        });
+    }
+
     dstExtensions = filterSupportedInstanceExtensions(requestedExtensions);
 }
 
@@ -60,6 +68,7 @@ AxrResult AxrVulkanExtensions::getSupportedApiLayers(AxrVector_Stack<const char*
     // Don't deallocate automatically because we're creating the `apiLayerNames` vector after this with the same stack
     // allocator
     AxrVector_Stack<VkLayerProperties> layerProperties(apiLayerCount, &AxrAllocator::get().FrameAllocator, false);
+    layerProperties.prefillData();
     vkResult = vkEnumerateInstanceLayerProperties(&apiLayerCount, layerProperties.data());
     axrLogVkResult(vkResult, "vkEnumerateInstanceLayerProperties");
     if (VK_FAILED(vkResult))
@@ -75,7 +84,7 @@ AxrResult AxrVulkanExtensions::getSupportedApiLayers(AxrVector_Stack<const char*
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
-#define AXR_FUNCTION_FAILED_STRING "Failed to get supported extensions. "
+#define AXR_FUNCTION_FAILED_STRING "Failed to get supported instance extensions. "
 AxrResult AxrVulkanExtensions::getSupportedInstanceExtensions(AxrVector_Stack<const char*>& extensionNames) {
     if (!extensionNames.empty()) {
         axrLogError(AXR_FUNCTION_FAILED_STRING "`extensionNames` is not empty.");
@@ -93,8 +102,45 @@ AxrResult AxrVulkanExtensions::getSupportedInstanceExtensions(AxrVector_Stack<co
     AxrVector_Stack<VkExtensionProperties> extensionProperties(extensionCount,
                                                                &AxrAllocator::get().FrameAllocator,
                                                                false);
+    extensionProperties.prefillData();
     vkResult = vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensionProperties.data());
     axrLogVkResult(vkResult, "vkEnumerateInstanceExtensionProperties");
+    if (VK_FAILED(vkResult))
+        return AXR_ERROR_VULKAN_ERROR;
+
+    extensionNames = AxrVector_Stack<const char*>(extensionCount, &AxrAllocator::get().FrameAllocator, false);
+
+    for (uint32_t i = 0; i < extensionCount; ++i) {
+        extensionNames.pushBack(extensionProperties[i].extensionName);
+    }
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to get supported device extensions. "
+AxrResult AxrVulkanExtensions::getSupportedDeviceExtensions(const VkPhysicalDevice& physicalDevice,
+                                                            AxrVector_Stack<const char*>& extensionNames) {
+    if (!extensionNames.empty()) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "`extensionNames` is not empty.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    uint32_t extensionCount = 0;
+    VkResult vkResult = vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, nullptr);
+    axrLogVkResult(vkResult, "vkEnumerateDeviceExtensionProperties");
+    if (VK_FAILED(vkResult))
+        return AXR_ERROR_VULKAN_ERROR;
+
+    // Don't deallocate automatically because we're creating the `extensionNames` vector after this with the same stack
+    // allocator
+    AxrVector_Stack<VkExtensionProperties> extensionProperties(extensionCount,
+                                                               &AxrAllocator::get().FrameAllocator,
+                                                               false);
+    extensionProperties.prefillData();
+    vkResult =
+        vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, extensionProperties.data());
+    axrLogVkResult(vkResult, "vkEnumerateDeviceExtensionProperties");
     if (VK_FAILED(vkResult))
         return AXR_ERROR_VULKAN_ERROR;
 
@@ -115,7 +161,7 @@ AxrVulkanExtensions::ApiLayersArray_T AxrVulkanExtensions::filterSupportedApiLay
     const AxrResult axrResult = getSupportedApiLayers(supportedApiLayerNames);
     if (AXR_FAILED(axrResult)) {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to get supported api layers.");
-        return {};
+        return srcApiLayers;
     }
 
     ApiLayersArray_T supportedApiLayers;
@@ -139,7 +185,7 @@ AxrVulkanExtensions::ExtensionsArray_T AxrVulkanExtensions::filterSupportedInsta
     const AxrResult axrResult = getSupportedInstanceExtensions(supportedExtensionNames);
     if (AXR_FAILED(axrResult)) {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to get supported instance extensions.");
-        return {};
+        return srcExtensions;
     }
 
     ExtensionsArray_T supportedExtensions;
@@ -157,7 +203,41 @@ AxrVulkanExtensions::ExtensionsArray_T AxrVulkanExtensions::filterSupportedInsta
         } else if (extension.IsRequired) {
             axrLogError(AXR_FUNCTION_FAILED_STRING "Extension type: {} is required but isn't supported.",
                         axrVulkanExtensionTypeEnumToString(extension.Type));
-            return {};
+            return srcExtensions;
+        }
+    }
+
+    return supportedExtensions;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to filter supported device extensions. "
+AxrVulkanExtensions::ExtensionsArray_T AxrVulkanExtensions::filterSupportedDeviceExtensions(
+    const VkPhysicalDevice& physicalDevice,
+    const ExtensionsArray_T& srcExtensions) {
+    AxrVector_Stack<const char*> supportedExtensionNames;
+    const AxrResult axrResult = getSupportedDeviceExtensions(physicalDevice, supportedExtensionNames);
+    if (AXR_FAILED(axrResult)) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to get supported device extensions.");
+        return srcExtensions;
+    }
+
+    ExtensionsArray_T supportedExtensions;
+    for (const AxrVulkanExtension& extension : srcExtensions) {
+        AxrVulkanExtensionProperties properties = AxrVulkanExtensionGetProperties(extension.Type);
+        // Ignore filtering out anything that isn't a device extensions
+        if (properties.Level != AXR_VULKAN_EXTENSION_LEVEL_DEVICE) {
+            supportedExtensions.pushBack(extension);
+            continue;
+        }
+
+        const auto iterator = supportedExtensionNames.findFirst(properties.Name);
+        if (iterator != supportedExtensionNames.end()) {
+            supportedExtensions.pushBack(extension);
+        } else if (extension.IsRequired) {
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Extension type: {} is required but isn't supported.",
+                        axrVulkanExtensionTypeEnumToString(extension.Type));
+            return srcExtensions;
         }
     }
 
@@ -185,6 +265,23 @@ AxrVulkanExtensions::ExtensionNamesArray_T AxrVulkanExtensions::getInstanceExten
         const AxrVulkanExtensionProperties properties = AxrVulkanExtensionGetProperties(extension.Type);
 
         if (properties.Level != AXR_VULKAN_EXTENSION_LEVEL_INSTANCE) {
+            continue;
+        }
+
+        extensionNames.pushBack(properties.Name);
+    }
+
+    return extensionNames;
+}
+
+AxrVulkanExtensions::ExtensionNamesArray_T AxrVulkanExtensions::getDeviceExtensionNames(
+    const ExtensionsArray_T& extensions) {
+    ExtensionNamesArray_T extensionNames;
+
+    for (const AxrVulkanExtension& extension : extensions) {
+        const AxrVulkanExtensionProperties properties = AxrVulkanExtensionGetProperties(extension.Type);
+
+        if (properties.Level != AXR_VULKAN_EXTENSION_LEVEL_DEVICE) {
             continue;
         }
 

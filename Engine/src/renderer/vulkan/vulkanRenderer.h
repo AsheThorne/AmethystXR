@@ -7,6 +7,7 @@
 #include "axr/common/enums.h"
 #include "axr/vulkanApi.h"
 #include "vulkanExtensions.h"
+#include "vulkanQueueFamilies.h"
 
 #ifndef AXR_VULKAN_SUPPORTED
 /// Empty Axr Vulkan renderer static class. This class only holds static functions.
@@ -35,8 +36,10 @@ public:
     struct Context {
         AxrVulkanExtensions::ApiLayersArray_T ApiLayers{};
         AxrVulkanExtensions::ExtensionsArray_T Extensions{};
+        AxrVulkanQueueFamilies QueueFamilies{};
         VkInstance Instance = VK_NULL_HANDLE;
         VkDebugUtilsMessengerEXT DebugUtilsMessenger = VK_NULL_HANDLE;
+        VkPhysicalDevice PhysicalDevice = VK_NULL_HANDLE;
         bool IsSetup = false;
     };
 
@@ -132,6 +135,73 @@ private:
     /// @param instance VkInstance to use
     /// @param debugUtilsMessenger Debug utils messenger to destroy
     static void destroyDebugUtilsMessenger(const VkInstance& instance, VkDebugUtilsMessengerEXT& debugUtilsMessenger);
+
+    // ---- Physical Device ----
+
+    /// Set up the physical device
+    /// @param instance Instance to use
+    /// @param extensions Input/Output Extensions to use. Filter out extensions that aren't supported by the physical
+    /// device
+    /// @param queueFamilies Output queue families
+    /// @param physicalDevice Output physical device
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult setupPhysicalDevice(const VkInstance& instance,
+                                                       AxrVulkanExtensions::ExtensionsArray_T& extensions,
+                                                       AxrVulkanQueueFamilies& queueFamilies,
+                                                       VkPhysicalDevice& physicalDevice);
+    /// Reset the physical device
+    /// @param queueFamilies Queue families to reset
+    /// @param physicalDevice Physical device to reset
+    static void resetPhysicalDevice(AxrVulkanQueueFamilies& queueFamilies, VkPhysicalDevice& physicalDevice);
+
+    /// Decide on which physical device we'd like to use.
+    /// If OpenXR is being used though, we need to use the one it selects for us
+    /// @param instance Instance to use
+    /// @param extensions Extensions to check
+    /// @param physicalDevice Output physical device we should use
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult pickPhysicalDevice(const VkInstance& instance,
+                                                      const AxrVulkanExtensions::ExtensionsArray_T& extensions,
+                                                      VkPhysicalDevice& physicalDevice);
+    /// Score the given physical device. The higher the number, the better.
+    /// 0 Means it is not suitable to use.
+    /// @param instance Instance to use
+    /// @param physicalDevice Physical device to score
+    /// @param extensions Extensions to check
+    /// @returns The physical device score
+    [[nodiscard]] static uint32_t scorePhysicalDeviceSuitability(
+        const VkInstance& instance,
+        const VkPhysicalDevice& physicalDevice,
+        const AxrVulkanExtensions::ExtensionsArray_T& extensions);
+    /// Score the given physical device on its available queue families.
+    /// @param instance Instance to use
+    /// @param physicalDevice Physical device to score
+    /// @returns 0 -> Not suitable at all.
+    /// @returns 1 -> Meets the minimum requirements.
+    /// @returns More than 1, has extra desired features.
+    [[nodiscard]] static uint32_t scorePhysicalDeviceQueueFamilies(const VkInstance& instance,
+                                                                   const VkPhysicalDevice& physicalDevice);
+    /// Score the given physical device on its available extensions.
+    /// @param physicalDevice Physical device to score
+    /// @param extensions Extensions to check
+    /// @returns 0 -> Not suitable at all.
+    /// @returns 1 -> Meets the minimum requirements.
+    /// @returns More than 1, supports more than just the required extensions.
+    [[nodiscard]] static uint32_t scorePhysicalDeviceExtensions(
+        const VkPhysicalDevice& physicalDevice,
+        const AxrVulkanExtensions::ExtensionsArray_T& extensions);
+    /// Score the given physical device on its available features.
+    /// @param physicalDevice Physical device to score
+    /// @returns 0 -> Not suitable at all.
+    /// @returns 1 -> Meets the minimum requirements.
+    /// @returns More than 1, has extra desired features.
+    [[nodiscard]] static uint32_t scorePhysicalDeviceFeatures(const VkPhysicalDevice& physicalDevice);
+    /// Score the given physical device on its available properties.
+    /// @param physicalDevice Physical device to score
+    /// @returns 0 -> Not suitable at all.
+    /// @returns 1 -> Meets the minimum requirements.
+    /// @returns More than 1, has extra desired features.
+    [[nodiscard]] static uint32_t scorePhysicalDeviceProperties(const VkPhysicalDevice& physicalDevice);
 };
 #endif
 
