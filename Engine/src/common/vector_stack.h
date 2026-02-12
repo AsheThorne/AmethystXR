@@ -271,6 +271,19 @@ public:
     }
 #undef AXR_FUNCTION_FAILED_STRING
 
+    /// Prefill the entire vector with the default value
+    void prefillData() {
+        prefillData({});
+    }
+
+    /// Prefill the entire vector with the given value
+    /// @param data Data to prefill vector with
+    void prefillData(const Type& data) {
+        for (size_t i = 0; i < m_Capacity; ++i) {
+            pushBack(data);
+        }
+    }
+
     /// Remove the last item in the vector
     void popBack() {
         if (m_Size == 0) [[unlikely]] {
