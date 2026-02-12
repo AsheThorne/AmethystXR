@@ -87,6 +87,14 @@ public:
     /// Get the required vulkan platform extensions
     /// @return Required vulkan platform extensions
     [[nodiscard]] static AxrExtensionArray<AxrVulkanExtension, AxrVulkanExtensionMaxCount> getRequiredVulkanExtensions();
+    /// Check if the given queue family index supported presentation on the current platform
+    /// @param instance VkInstance to use
+    /// @param physicalDevice VkPhysicalDevice to use
+    /// @param queueFamilyIndex Queue family index to check
+    /// @return True if the given queue family index supports presentation
+    [[nodiscard]] static bool getVulkanPresentationSupport(const VkInstance& instance,
+                                                           const VkPhysicalDevice& physicalDevice,
+                                                           uint32_t queueFamilyIndex);
 #endif
 
 private:

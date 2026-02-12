@@ -100,6 +100,12 @@ AxrExtensionArray<AxrVulkanExtension, AxrVulkanExtensionMaxCount> AxrPlatform::g
 
     return extensionsArray;
 }
+
+bool AxrPlatform::getVulkanPresentationSupport(const VkInstance& instance,
+                                               const VkPhysicalDevice& physicalDevice,
+                                               const uint32_t queueFamilyIndex) {
+    return SDL_Vulkan_GetPresentationSupport(instance, physicalDevice, queueFamilyIndex);
+}
 #endif
 
 // ----------------------------------------- //
