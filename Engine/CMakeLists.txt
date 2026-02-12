@@ -73,6 +73,8 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanExtensions.h
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanExtensions.cpp
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanExtensionFunctions.cpp
+    ${AXR_SRC_DIR}/renderer/vulkan/vulkanQueueFamilies.h
+    ${AXR_SRC_DIR}/renderer/vulkan/vulkanQueueFamilies.cpp
     # ---- Common ----
     ${AXR_SRC_DIR}/common/enums.cpp
     ${AXR_SRC_DIR}/common/array.h
