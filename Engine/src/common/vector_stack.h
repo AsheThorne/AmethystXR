@@ -282,6 +282,21 @@ public:
         }
     }
 
+#define AXR_FUNCTION_FAILED_STRING "Failed to append data in AxrVector_Stack. "
+    /// Append the vector with the given items
+    /// @param list Items to append
+    void append(const std::initializer_list<Type>& list) {
+        if (m_Size + list.size() > m_Capacity) {
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Not enough space for the whole list.");
+            return;
+        }
+
+        for (const Type& item : list) {
+            pushBack(item);
+        }
+    }
+#undef AXR_FUNCTION_FAILED_STRING
+
     /// Remove the last item in the vector
     void popBack() {
         if (m_Size == 0) [[unlikely]] {
