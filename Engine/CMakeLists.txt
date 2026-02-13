@@ -180,9 +180,9 @@ set(AXR_TEST_FILES
     ${AXR_TEST_DIR}/memory/poolAllocatorTests.cpp
     ${AXR_TEST_DIR}/memory/utilsTests.cpp
     # ---- Common ----
-    ${AXR_TEST_DIR}/common/array.cpp
-    ${AXR_TEST_DIR}/common/extensionArray.cpp
-    ${AXR_TEST_DIR}/common/vector_stack.cpp
+    ${AXR_TEST_DIR}/common/arrayTests.cpp
+    ${AXR_TEST_DIR}/common/extensionArrayTests.cpp
+    ${AXR_TEST_DIR}/common/vector_stackTests.cpp
 )
 
 # ---------------------------------------------
