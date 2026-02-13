@@ -153,6 +153,18 @@ public:
     /// MarkerIDs are NOT UNIQUE between upper and lower bounds so don't mix lower and upper markers.
     /// @param markerID Memory marker ID
     void deallocateUpper(MarkerID markerID);
+    /// Deallocate the memory for the given marker ID. ONLY if it's the most recent marker on the stack. Preventing
+    /// extra data from being deleted. On the lower end.
+    /// MarkerIDs are NOT UNIQUE between upper and lower bounds so don't mix lower and upper markers.
+    /// @param markerID Memory marker ID
+    /// @return True if the data was deallocated successfully
+    [[nodiscard]] bool deallocateIfLastLower(MarkerID markerID);
+    /// Deallocate the memory for the given marker ID. ONLY if it's the most recent marker on the stack. Preventing
+    /// extra data from being deleted. On the upper end.
+    /// MarkerIDs are NOT UNIQUE between upper and lower bounds so don't mix lower and upper markers.
+    /// @param markerID Memory marker ID
+    /// @return True if the data was deallocated successfully
+    [[nodiscard]] bool deallocateIfLastUpper(MarkerID markerID);
     /// Clear the stack
     void clear();
     /// Clear the stack on the lower end

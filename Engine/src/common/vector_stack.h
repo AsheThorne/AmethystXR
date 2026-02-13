@@ -32,17 +32,15 @@ public:
     /// Constructor
     /// @param capacity The max number of objects that this vector can hold
     /// @param stackAllocator The stack allocator to use
-    /// @param deallocateMemory Set to true if this vector should deallocate memory automatically when it's done with
-    /// it. Set to false if this vector shouldn't deallocate anything and just trust that something else will clean it
-    /// up.
-    /// This option is given because something might be allocated after this vector is on the same stack, and not
-    /// deallocated. Deallocating this vector will also deallocate everything that was allocated after it. Which could
-    /// cause unintended behavior. This might also be used to return data from a function. In which case we want the
-    /// data to remain outside the function scope.
-    AxrVector_Stack(const size_t capacity, AxrStackAllocator* stackAllocator, const bool deallocateMemory) {
+    /// @param autoDeallocate Set to false if this vector should not deallocate any memory and just trust that something
+    /// else will clean it up later.
+    /// If true, this vector will deallocate automatically if it can do so safely. If this wasn't the last thing
+    /// allocated to the stack allocator, then it won't deallocate to prevent accidentally deallocating something it
+    /// shouldn't that was added to the stack allocator after.
+    AxrVector_Stack(const size_t capacity, AxrStackAllocator* stackAllocator, const bool autoDeallocate = true) {
         m_StackAllocator = stackAllocator;
         m_Capacity = capacity;
-        m_DeallocateMemory = deallocateMemory;
+        m_AutoDeallocateMemory = autoDeallocate;
 
         if (AXR_FAILED(allocateData())) [[unlikely]] {
             axrLogError(AXR_FUNCTION_FAILED_STRING "`allocateData()` failed.");
@@ -63,14 +61,14 @@ public:
         m_Capacity = src.m_Capacity;
         m_Size = src.m_Size;
         m_AllocatorMarkerID = src.m_AllocatorMarkerID;
-        m_DeallocateMemory = src.m_DeallocateMemory;
+        m_AutoDeallocateMemory = src.m_AutoDeallocateMemory;
 
         src.m_StackAllocator = {};
         src.m_Data = {};
         src.m_Capacity = {};
         src.m_Size = {};
         src.m_AllocatorMarkerID = {};
-        src.m_DeallocateMemory = {};
+        src.m_AutoDeallocateMemory = {};
     }
 
     // ---- Destructor ----
@@ -97,14 +95,14 @@ public:
             m_Capacity = src.m_Capacity;
             m_Size = src.m_Size;
             m_AllocatorMarkerID = src.m_AllocatorMarkerID;
-            m_DeallocateMemory = src.m_DeallocateMemory;
+            m_AutoDeallocateMemory = src.m_AutoDeallocateMemory;
 
             src.m_StackAllocator = {};
             src.m_Data = {};
             src.m_Capacity = {};
             src.m_Size = {};
             src.m_AllocatorMarkerID = {};
-            src.m_DeallocateMemory = {};
+            src.m_AutoDeallocateMemory = {};
         }
         return *this;
     }
@@ -309,7 +307,7 @@ protected:
     size_t m_Capacity{};
     size_t m_Size{};
     AxrStackAllocator::MarkerID m_AllocatorMarkerID{};
-    bool m_DeallocateMemory{};
+    bool m_AutoDeallocateMemory{};
     static constexpr bool const& m_IsTypeCharArray =
         std::is_array_v<Type> && std::is_same_v<std::remove_extent_t<Type>, char>;
     static constexpr bool const& m_IsTypeConstCharPtr = std::is_same_v<std::remove_extent_t<Type>, const char*>;
@@ -327,7 +325,7 @@ protected:
         m_Capacity = {};
         m_Size = {};
         m_AllocatorMarkerID = {};
-        m_DeallocateMemory = {};
+        m_AutoDeallocateMemory = {};
     }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to initialize AxrVector_Stack data. "
@@ -357,7 +355,7 @@ protected:
 #define AXR_FUNCTION_FAILED_STRING "Failed to deallcoate AxrVector_Stack data. "
     /// Deallocate the data block.
     void deallocateData() {
-        if (!m_DeallocateMemory) {
+        if (!m_AutoDeallocateMemory) {
             return;
         }
 
@@ -370,8 +368,9 @@ protected:
             return;
         }
 
-        m_StackAllocator->deallocate(m_AllocatorMarkerID);
-        m_Data = nullptr;
+        if (m_StackAllocator->deallocateIfLast(m_AllocatorMarkerID)) {
+            m_Data = nullptr;
+        }
     }
 #undef AXR_FUNCTION_FAILED_STRING
 

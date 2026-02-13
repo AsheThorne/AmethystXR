@@ -101,6 +101,11 @@ public:
     /// Deallocate the memory for the given marker ID. Including all memory allocated after the given marker.
     /// @param markerID Memory marker ID
     void deallocate(MarkerID markerID);
+    /// Deallocate the memory for the given marker ID. ONLY if it's the most recent marker on the stack. Preventing
+    /// extra data from being deleted.
+    /// @param markerID Memory marker ID
+    /// @return True if the data was deallocated successfully
+    [[nodiscard]] bool deallocateIfLast(MarkerID markerID);
     /// Clear the stack
     void clear();
 

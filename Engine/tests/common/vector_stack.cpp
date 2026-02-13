@@ -32,7 +32,7 @@ TEST(AxrVector_Stack, Initialization) {
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
-    const AxrVector_Stack<TestData> vector(capacity, &allocator, true);
+    const AxrVector_Stack<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.capacity() == capacity);
     ASSERT_TRUE(vector.size() == 0);
     ASSERT_TRUE(vector.empty());
@@ -54,7 +54,7 @@ TEST(AxrVector_Stack, PushBackOne) {
 
     constexpr TestData testData{.value = 43};
 
-    AxrVector_Stack<TestData> vector(capacity, &allocator, true);
+    AxrVector_Stack<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
 
     vector.pushBack(testData);
@@ -75,7 +75,7 @@ TEST(AxrVector_Stack, PushBackCharArray) {
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
-    AxrVector_Stack<TestData> vector(capacity, &allocator, true);
+    AxrVector_Stack<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
 
     constexpr TestData data = "Test";
@@ -97,7 +97,7 @@ TEST(AxrVector_Stack, PushBackConstCharPtr) {
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
-    AxrVector_Stack<TestData> vector(capacity, &allocator, true);
+    AxrVector_Stack<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
 
     vector.pushBack("Test");
@@ -140,7 +140,7 @@ TEST(AxrVector_Stack, PushBackAll) {
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
-    AxrVector_Stack<TestData> vector(capacity, &allocator, true);
+    AxrVector_Stack<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
 
     for (const TestData& i : testData) {
@@ -188,7 +188,7 @@ TEST(AxrVector_Stack, PushBackTooMany) {
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
-    AxrVector_Stack<TestData> vector(capacity, &allocator, true);
+    AxrVector_Stack<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
 
     for (const TestData& i : testData) {
@@ -220,7 +220,7 @@ TEST(AxrVector_Stack, AutoDeallocation_Enabled) {
     ASSERT_TRUE(allocator.empty());
 
     {
-        AxrVector_Stack<TestData> vector(capacity, &allocator, true);
+        AxrVector_Stack<TestData> vector(capacity, &allocator);
         ASSERT_TRUE(!allocator.empty());
     }
 
@@ -253,6 +253,37 @@ TEST(AxrVector_Stack, AutoDeallocation_Disabled) {
     ASSERT_TRUE(allocator.size() == allocatorSizeAfterAllocation);
 }
 
+TEST(AxrVector_Stack, AutoDeallocation_Enabled_ButIsntLast) {
+    struct TestData {
+        uint32_t value;
+    };
+    constexpr uint32_t capacity = 16;
+
+    AxrDeallocateBlock callback;
+    callback.connect<deallocateCallback>();
+
+    constexpr size_t allocatorSize =
+        ((sizeof(TestData) * capacity) + alignof(TestData) + AxrStackAllocator::getMarkerSize()) * 2;
+    void* memory = malloc(allocatorSize);
+    AxrStackAllocator allocator(memory, allocatorSize, callback);
+    ASSERT_TRUE(allocator.empty());
+
+    size_t allocatorSizeAfterAllocation{};
+    {
+        AxrVector_Stack<TestData> vector(capacity, &allocator);
+        ASSERT_TRUE(!allocator.empty());
+
+        AxrVector_Stack<TestData> vector2(capacity, &allocator, false);
+        ASSERT_TRUE(!allocator.empty());
+
+        allocatorSizeAfterAllocation = allocator.size();
+    }
+
+    // Deallocation should fail entirely since `vector2` is set to not deallocate. so when `vector` tries to deallocate,
+    // it's not the latest thing on the stack.
+    ASSERT_TRUE(allocator.size() == allocatorSizeAfterAllocation);
+}
+
 TEST(AxrVector_Stack, PopBack_1) {
     struct TestData {
         uint32_t value;
@@ -269,7 +300,7 @@ TEST(AxrVector_Stack, PopBack_1) {
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
-    AxrVector_Stack<TestData> vector(capacity, &allocator, true);
+    AxrVector_Stack<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
 
     vector.pushBack(testData);
@@ -297,7 +328,7 @@ TEST(AxrVector_Stack, PopBack_2) {
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
-    AxrVector_Stack<TestData> vector(capacity, &allocator, true);
+    AxrVector_Stack<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
 
     vector.pushBack(testData);
@@ -345,7 +376,7 @@ TEST(AxrVector_Stack, Clear) {
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
-    AxrVector_Stack<TestData> vector(capacity, &allocator, true);
+    AxrVector_Stack<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
 
     for (const TestData& i : testData) {
@@ -393,7 +424,7 @@ TEST(AxrVector_Stack, GetAt_InBounds) {
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
-    AxrVector_Stack<TestData> vector(capacity, &allocator, true);
+    AxrVector_Stack<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
 
     for (const TestData& i : testData) {
@@ -445,7 +476,7 @@ TEST(AxrVector_Stack, GetAt_OutBounds) {
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
-    AxrVector_Stack<TestData> vector(capacity, &allocator, true);
+    AxrVector_Stack<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
 
     for (const TestData& i : testData) {
@@ -476,7 +507,7 @@ TEST(AxrVector_Stack, FindFirst_Exists) {
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
-    AxrVector_Stack<TestData> vector(capacity, &allocator, true);
+    AxrVector_Stack<TestData> vector(capacity, &allocator);
 
     constexpr TestData testData{
         .value = 10,
@@ -515,7 +546,7 @@ TEST(AxrVector_Stack, FindFirst_DoesntExist) {
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
-    AxrVector_Stack<TestData> vector(capacity, &allocator, true);
+    AxrVector_Stack<TestData> vector(capacity, &allocator);
 
     vector.pushBack(TestData{
         .value = 1,

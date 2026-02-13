@@ -86,7 +86,8 @@ TEST(StackAllocator, AllocateOne_Aligned) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    constexpr size_t allocatorSize = sizeof(TestData_Small) + alignof(TestData_Small) + AxrStackAllocator::getMarkerSize();
+    constexpr size_t allocatorSize =
+        sizeof(TestData_Small) + alignof(TestData_Small) + AxrStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
@@ -201,7 +202,8 @@ TEST(StackAllocator, AllocateTooMuch_Aligned) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    constexpr size_t allocatorSize = sizeof(TestData_Small) + alignof(TestData_Small) + AxrStackAllocator::getMarkerSize();
+    constexpr size_t allocatorSize =
+        sizeof(TestData_Small) + alignof(TestData_Small) + AxrStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
     AxrStackAllocator allocator(memory, allocatorSize, callback);
 
@@ -326,4 +328,65 @@ TEST(StackAllocator, AllocateTwoDeallocateMarker1_Aligned) {
     allocator.deallocate(testData1MarkerID);
     // Check that deallocating data item 1 marker, also deallocates data item 2
     ASSERT_TRUE(allocator.empty());
+}
+
+TEST(StackAllocator, DeallocateIfLast_Success) {
+    AxrDeallocateBlock callback;
+    callback.connect<deallocateCallback>();
+
+    constexpr size_t testData1MemSize =
+        sizeof(TestData_Small) + alignof(TestData_Small) + AxrStackAllocator::getMarkerSize();
+    constexpr size_t testData2MemSize =
+        sizeof(TestData_Large) + alignof(TestData_Large) + AxrStackAllocator::getMarkerSize();
+    constexpr size_t allocatorSize = testData1MemSize + testData2MemSize;
+    void* memory = malloc(allocatorSize);
+    AxrStackAllocator allocator(memory, allocatorSize, callback);
+
+    TestData_Small* outTestData1 = nullptr;
+    TestData_Large* outTestData2 = nullptr;
+    AxrStackAllocator::MarkerID testData1MarkerID{};
+    AxrStackAllocator::MarkerID testData2MarkerID{};
+    AxrResult axrResult = allocator.allocateAligned(1, outTestData1, testData1MarkerID);
+    ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
+
+    axrResult = allocator.allocateAligned(1, outTestData2, testData2MarkerID);
+    ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
+    // Check allocator is full first.
+    ASSERT_TRUE(allocator.size() == allocatorSize);
+
+    ASSERT_TRUE(allocator.deallocateIfLast(testData2MarkerID));
+    // Check that the allocator now only holds data item 1
+    ASSERT_TRUE(allocator.size() == testData1MemSize);
+
+    ASSERT_TRUE(allocator.deallocateIfLast(testData1MarkerID));
+    ASSERT_TRUE(allocator.empty());
+}
+
+TEST(StackAllocator, DeallocateIfLast_Failure) {
+    AxrDeallocateBlock callback;
+    callback.connect<deallocateCallback>();
+
+    constexpr size_t testData1MemSize =
+        sizeof(TestData_Small) + alignof(TestData_Small) + AxrStackAllocator::getMarkerSize();
+    constexpr size_t testData2MemSize =
+        sizeof(TestData_Large) + alignof(TestData_Large) + AxrStackAllocator::getMarkerSize();
+    constexpr size_t allocatorSize = testData1MemSize + testData2MemSize;
+    void* memory = malloc(allocatorSize);
+    AxrStackAllocator allocator(memory, allocatorSize, callback);
+
+    TestData_Small* outTestData1 = nullptr;
+    TestData_Large* outTestData2 = nullptr;
+    AxrStackAllocator::MarkerID testData1MarkerID{};
+    AxrStackAllocator::MarkerID testData2MarkerID{};
+    AxrResult axrResult = allocator.allocateAligned(1, outTestData1, testData1MarkerID);
+    ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
+
+    axrResult = allocator.allocateAligned(1, outTestData2, testData2MarkerID);
+    ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
+    // Check allocator is full first.
+    ASSERT_TRUE(allocator.size() == allocatorSize);
+
+    ASSERT_FALSE(allocator.deallocateIfLast(testData1MarkerID));
+    // Check that the allocator still holds everything
+    ASSERT_TRUE(allocator.size() == allocatorSize);
 }

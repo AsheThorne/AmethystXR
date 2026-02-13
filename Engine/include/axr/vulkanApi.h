@@ -295,8 +295,6 @@ inline AxrVulkanExtensionTypeEnum AxrVulkanExtensionGetType(const char extension
     return AXR_VULKAN_EXTENSION_TYPE_UNDEFINED;
 }
 
-#endif
-
 // ----------------------------------------- //
 // External Functions
 // ----------------------------------------- //
@@ -307,6 +305,7 @@ extern "C" {
     /// @return Given AxrVulkanExtensionTypeEnum as a string
     AXR_API const char* axrVulkanExtensionTypeEnumToString(AxrVulkanExtensionTypeEnum extensionType);
 }
+#endif
 
 // ---------------------------------------------------------------------------------- //
 //                                       Config                                       //

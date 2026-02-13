@@ -74,7 +74,7 @@ AxrResult AxrVulkanExtensions::getSupportedApiLayers(AxrVector_Stack<const char*
     if (VK_FAILED(vkResult))
         return AXR_ERROR_VULKAN_ERROR;
 
-    apiLayerNames = AxrVector_Stack<const char*>(apiLayerCount, &AxrAllocator::get().FrameAllocator, false);
+    apiLayerNames = AxrVector_Stack<const char*>(apiLayerCount, &AxrAllocator::get().FrameAllocator);
 
     for (uint32_t i = 0; i < apiLayerCount; ++i) {
         apiLayerNames.pushBack(layerProperties[i].layerName);
@@ -108,7 +108,7 @@ AxrResult AxrVulkanExtensions::getSupportedInstanceExtensions(AxrVector_Stack<co
     if (VK_FAILED(vkResult))
         return AXR_ERROR_VULKAN_ERROR;
 
-    extensionNames = AxrVector_Stack<const char*>(extensionCount, &AxrAllocator::get().FrameAllocator, false);
+    extensionNames = AxrVector_Stack<const char*>(extensionCount, &AxrAllocator::get().FrameAllocator);
 
     for (uint32_t i = 0; i < extensionCount; ++i) {
         extensionNames.pushBack(extensionProperties[i].extensionName);
@@ -144,7 +144,7 @@ AxrResult AxrVulkanExtensions::getSupportedDeviceExtensions(const VkPhysicalDevi
     if (VK_FAILED(vkResult))
         return AXR_ERROR_VULKAN_ERROR;
 
-    extensionNames = AxrVector_Stack<const char*>(extensionCount, &AxrAllocator::get().FrameAllocator, false);
+    extensionNames = AxrVector_Stack<const char*>(extensionCount, &AxrAllocator::get().FrameAllocator);
 
     for (uint32_t i = 0; i < extensionCount; ++i) {
         extensionNames.pushBack(extensionProperties[i].extensionName);

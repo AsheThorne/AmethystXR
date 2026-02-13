@@ -33,8 +33,7 @@ AxrResult AxrVulkanQueueFamilies::setQueueFamilyIndices(const VkInstance& instan
     vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, &queueFamilyPropertiesCount, nullptr);
 
     AxrVector_Stack<VkQueueFamilyProperties2> queueFamilyProperties(queueFamilyPropertiesCount,
-                                                                    &AxrAllocator::get().FrameAllocator,
-                                                                    true);
+                                                                    &AxrAllocator::get().FrameAllocator);
     queueFamilyProperties.prefillData(VkQueueFamilyProperties2{
         .sType = VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2,
     });

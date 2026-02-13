@@ -124,6 +124,22 @@ void AxrDoubleStackAllocator::deallocateUpper(const MarkerID markerID) {
     }
 }
 
+bool AxrDoubleStackAllocator::deallocateIfLastLower(const MarkerID markerID) {
+    if (getCurrentMarkerLower().ID == markerID) {
+        deallocateLower(markerID);
+        return true;
+    }
+    return false;
+}
+
+bool AxrDoubleStackAllocator::deallocateIfLastUpper(const MarkerID markerID) {
+    if (getCurrentMarkerUpper().ID == markerID) {
+        deallocateUpper(markerID);
+        return true;
+    }
+    return false;
+}
+
 void AxrDoubleStackAllocator::clear() {
     clearLower();
     clearUpper();

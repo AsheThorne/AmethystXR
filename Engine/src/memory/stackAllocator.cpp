@@ -80,6 +80,14 @@ void AxrStackAllocator::deallocate(const MarkerID markerID) {
     }
 }
 
+bool AxrStackAllocator::deallocateIfLast(const MarkerID markerID) {
+    if (getCurrentMarker().ID == markerID) {
+        deallocate(markerID);
+        return true;
+    }
+    return false;
+}
+
 void AxrStackAllocator::clear() {
     m_Size = 0;
     // Don't zero out memory

@@ -272,9 +272,7 @@ AxrResult AxrVulkanRenderer::pickPhysicalDevice(const VkInstance& instance,
     if (VK_FAILED(vkResult)) [[unlikely]]
         return AXR_ERROR_VULKAN_ERROR;
 
-    // Disable Auto-Deallocation because there can be allocations within functions below here. And we don't want to
-    // accidentally deallocate stuff automatically
-    AxrVector_Stack<VkPhysicalDevice> physicalDevices(physicalDevicesCount, &AxrAllocator::get().FrameAllocator, false);
+    AxrVector_Stack<VkPhysicalDevice> physicalDevices(physicalDevicesCount, &AxrAllocator::get().FrameAllocator);
     physicalDevices.prefillData();
     vkResult = vkEnumeratePhysicalDevices(instance, &physicalDevicesCount, physicalDevices.data());
     axrLogVkResult(vkResult, "vkEnumeratePhysicalDevices");

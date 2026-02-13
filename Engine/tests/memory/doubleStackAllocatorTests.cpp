@@ -72,6 +72,16 @@ static void deallocate(const bool upperEnd,
     }
 }
 
+static bool deallocateIfLast(const bool upperEnd,
+                             AxrDoubleStackAllocator& allocator,
+                             const AxrDoubleStackAllocator::MarkerID markerID) {
+    if (upperEnd) {
+        return allocator.deallocateIfLastUpper(markerID);
+    } else {
+        return allocator.deallocateIfLastLower(markerID);
+    }
+}
+
 static void allocateOne_Test(const bool upperEnd, const bool isAligned) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
@@ -224,6 +234,73 @@ static void allocateTwoDeallocateMarker1_Test(const bool upperEnd, const bool is
     ASSERT_TRUE(allocator.empty());
 }
 
+static void DeallocateIfLast_Success_Test(const bool upperEnd, const bool isAligned) {
+    AxrDeallocateBlock callback;
+    callback.connect<deallocateCallback>();
+
+    size_t testData1MemSize = sizeof(TestData_Small) + AxrDoubleStackAllocator::getMarkerSize();
+    size_t testData2MemSize = sizeof(TestData_Large) + AxrDoubleStackAllocator::getMarkerSize();
+    if (isAligned) {
+        testData1MemSize += alignof(TestData_Small);
+        testData2MemSize += alignof(TestData_Large);
+    }
+
+    const size_t allocatorSize = testData1MemSize + testData2MemSize;
+    void* memory = malloc(allocatorSize);
+    AxrDoubleStackAllocator allocator(memory, allocatorSize, callback);
+
+    TestData_Small* outTestData1 = nullptr;
+    TestData_Large* outTestData2 = nullptr;
+    AxrDoubleStackAllocator::MarkerID testData1MarkerID{};
+    AxrDoubleStackAllocator::MarkerID testData2MarkerID{};
+    AxrResult axrResult = allocate(upperEnd, isAligned, allocator, outTestData1, testData1MarkerID);
+    ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
+
+    axrResult = allocate(upperEnd, isAligned, allocator, outTestData2, testData2MarkerID);
+    ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
+    // Check allocator is full.
+    ASSERT_TRUE(allocator.size() == allocatorSize);
+
+    ASSERT_TRUE(deallocateIfLast(upperEnd, allocator, testData2MarkerID));
+    // Check that the allocator now only holds data item 1
+    ASSERT_TRUE(allocator.size() == testData1MemSize);
+
+    ASSERT_TRUE(deallocateIfLast(upperEnd, allocator, testData1MarkerID));
+    ASSERT_TRUE(allocator.empty());
+}
+
+static void DeallocateIfLast_Failure_Test(const bool upperEnd, const bool isAligned) {
+    AxrDeallocateBlock callback;
+    callback.connect<deallocateCallback>();
+
+    size_t testData1MemSize = sizeof(TestData_Small) + AxrDoubleStackAllocator::getMarkerSize();
+    size_t testData2MemSize = sizeof(TestData_Large) + AxrDoubleStackAllocator::getMarkerSize();
+    if (isAligned) {
+        testData1MemSize += alignof(TestData_Small);
+        testData2MemSize += alignof(TestData_Large);
+    }
+
+    const size_t allocatorSize = testData1MemSize + testData2MemSize;
+    void* memory = malloc(allocatorSize);
+    AxrDoubleStackAllocator allocator(memory, allocatorSize, callback);
+
+    TestData_Small* outTestData1 = nullptr;
+    TestData_Large* outTestData2 = nullptr;
+    AxrDoubleStackAllocator::MarkerID testData1MarkerID{};
+    AxrDoubleStackAllocator::MarkerID testData2MarkerID{};
+    AxrResult axrResult = allocate(upperEnd, isAligned, allocator, outTestData1, testData1MarkerID);
+    ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
+
+    axrResult = allocate(upperEnd, isAligned, allocator, outTestData2, testData2MarkerID);
+    ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
+    // Check allocator is full first.
+    ASSERT_TRUE(allocator.size() == allocatorSize);
+
+    ASSERT_FALSE(deallocateIfLast(upperEnd, allocator, testData1MarkerID));
+    // Check that the allocator still holds everything
+    ASSERT_TRUE(allocator.size() == allocatorSize);
+}
+
 // ----------------------------------------- //
 // Tests
 // ----------------------------------------- //
@@ -361,4 +438,36 @@ TEST(DoubleStackAllocator, AllocateTwoDeallocateMarker1Upper_Unaligned) {
 
 TEST(DoubleStackAllocator, AllocateTwoDeallocateMarker1Upper_Aligned) {
     allocateTwoDeallocateMarker1_Test(true, true);
+}
+
+TEST(DoubleStackAllocator, DeallocateIfLast_Success_Lower_Aligned) {
+    DeallocateIfLast_Success_Test(false, true);
+}
+
+TEST(DoubleStackAllocator, DeallocateIfLast_Success_Lower_Unaligned) {
+    DeallocateIfLast_Success_Test(false, false);
+}
+
+TEST(DoubleStackAllocator, DeallocateIfLast_Success_Upper_Aligned) {
+    DeallocateIfLast_Success_Test(true, true);
+}
+
+TEST(DoubleStackAllocator, DeallocateIfLast_Success_Upper_Unaligned) {
+    DeallocateIfLast_Success_Test(true, false);
+}
+
+TEST(DoubleStackAllocator, DeallocateIfLast_Failure_Lower_Aligned) {
+    DeallocateIfLast_Failure_Test(false, true);
+}
+
+TEST(DoubleStackAllocator, DeallocateIfLast_Failure_Lower_Unaligned) {
+    DeallocateIfLast_Failure_Test(false, false);
+}
+
+TEST(DoubleStackAllocator, DeallocateIfLast_Failure_Upper_Aligned) {
+    DeallocateIfLast_Failure_Test(true, true);
+}
+
+TEST(DoubleStackAllocator, DeallocateIfLast_Failure_Upper_Unaligned) {
+    DeallocateIfLast_Failure_Test(true, false);
 }
