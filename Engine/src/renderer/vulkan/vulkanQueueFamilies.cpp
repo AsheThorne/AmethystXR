@@ -149,6 +149,47 @@ bool AxrVulkanQueueFamilies::hasDedicatedTransferQueue() const {
     return GraphicsQueueFamilyIndex != TransferQueueFamilyIndex;
 }
 
+#define AXR_FUNCTION_FAILED_STRING "Failed to get all queue family indices. "
+AxrVector_Stack<uint32_t> AxrVulkanQueueFamilies::getAllQueueFamilyIndices() const {
+    if (!GraphicsQueueFamilyIndex.has_value() || !TransferQueueFamilyIndex.has_value() ||
+        !PresentationQueueFamilyIndex.has_value()) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Queue family indices are not valid.");
+        return {};
+    }
+
+    AxrVector_Stack<uint32_t> queueFamilyIndices(NumberOfQueueFamilies, &AxrAllocator::get().FrameAllocator);
+    queueFamilyIndices.append({
+        GraphicsQueueFamilyIndex.value(),
+        PresentationQueueFamilyIndex.value(),
+        TransferQueueFamilyIndex.value(),
+    });
+
+    return queueFamilyIndices;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to get unique queue family indices. "
+AxrVector_Stack<uint32_t> AxrVulkanQueueFamilies::getUniqueQueueFamilyIndices() const {
+    if (!areIndicesValid()) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Queue family indices are not valid.");
+        return {};
+    }
+
+    AxrVector_Stack<uint32_t> uniqueQueueFamilyIndices(NumberOfQueueFamilies, &AxrAllocator::get().FrameAllocator);
+
+    for (uint32_t queueFamilyIndex : getAllQueueFamilyIndices()) {
+        if (uniqueQueueFamilyIndices.findFirst(queueFamilyIndex) != uniqueQueueFamilyIndices.end()) {
+            // If queue family index already exists...
+            continue;
+        }
+
+        uniqueQueueFamilyIndices.pushBack(queueFamilyIndex);
+    }
+
+    return uniqueQueueFamilyIndices;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
 // ----------------------------------------- //
 // Private Functions
 // ----------------------------------------- //

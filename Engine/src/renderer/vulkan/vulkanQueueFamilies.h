@@ -4,6 +4,7 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
+#include "../../common/vector_stack.h"
 #include "axr/common/enums.h"
 
 #include <vulkan/vulkan_core.h>
@@ -22,6 +23,7 @@ public:
     std::optional<uint32_t> GraphicsQueueFamilyIndex;
     std::optional<uint32_t> PresentationQueueFamilyIndex;
     std::optional<uint32_t> TransferQueueFamilyIndex;
+    static constexpr uint32_t const& NumberOfQueueFamilies = 3;
 
     // ----------------------------------------- //
     // Public Functions
@@ -58,13 +60,12 @@ public:
     /// @returns True if there is a dedicated transfer queue
     [[nodiscard]] bool hasDedicatedTransferQueue() const;
 
-    // TODO...
-    // /// Get a collection of all queue family indices
-    // /// @returns A collection of all queue family indices
-    // [[nodiscard]] std::vector<uint32_t> getAllQueueFamilyIndices() const;
-    // /// Get a collection of all unique queue family indices
-    // /// @returns A collection of all unique queue family indices
-    // [[nodiscard]] std::unordered_set<uint32_t> getUniqueQueueFamilyIndices() const;
+    /// Get a collection of all queue family indices
+    /// @returns A collection of all queue family indices
+    [[nodiscard]] AxrVector_Stack<uint32_t> getAllQueueFamilyIndices() const;
+    /// Get a collection of all unique queue family indices
+    /// @returns A collection of all unique queue family indices
+    [[nodiscard]] AxrVector_Stack<uint32_t> getUniqueQueueFamilyIndices() const;
 
 private:
     // ----------------------------------------- //
