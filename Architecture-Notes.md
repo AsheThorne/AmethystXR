@@ -287,9 +287,6 @@ A module must NEVER access anything above or next to themselves in the following
     - [[nodiscard]]
     - [[likely]]/[[unlikely]]
 - Use [`concepts`](https://en.cppreference.com/w/cpp/language/constraints.html) to limit template usage
-- If you allocate an AxrVector_Stack with auto-deallocation disabled, and there's a non-zero chance for the function it'
-  s in to be called again before the data is manually deallocated. You should cache the result to prevent duplicates
-  existing if possible.
 
 ## Specific Notes
 

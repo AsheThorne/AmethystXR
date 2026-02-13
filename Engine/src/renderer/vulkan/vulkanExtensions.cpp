@@ -65,16 +65,19 @@ AxrResult AxrVulkanExtensions::getSupportedApiLayers(AxrVector_Stack<const char*
     if (VK_FAILED(vkResult))
         return AXR_ERROR_VULKAN_ERROR;
 
-    // Don't deallocate automatically because we're creating the `apiLayerNames` vector after this with the same stack
-    // allocator
-    AxrVector_Stack<VkLayerProperties> layerProperties(apiLayerCount, &AxrAllocator::get().FrameAllocator, false);
+    // Don't set `apiLayerNames` just yet. Only set it once we're sure this function will succeed.
+    // We still initialize the vector now though so that 'layerProperties' will be the last thing on the stack and
+    // will auto deallocate.
+    auto tempApiLayerNames = AxrVector_Stack<const char*>(apiLayerCount, &AxrAllocator::get().FrameAllocator);
+
+    AxrVector_Stack<VkLayerProperties> layerProperties(apiLayerCount, &AxrAllocator::get().FrameAllocator);
     layerProperties.prefillData();
     vkResult = vkEnumerateInstanceLayerProperties(&apiLayerCount, layerProperties.data());
     axrLogVkResult(vkResult, "vkEnumerateInstanceLayerProperties");
     if (VK_FAILED(vkResult))
         return AXR_ERROR_VULKAN_ERROR;
 
-    apiLayerNames = AxrVector_Stack<const char*>(apiLayerCount, &AxrAllocator::get().FrameAllocator);
+    apiLayerNames = std::move(tempApiLayerNames);
 
     for (uint32_t i = 0; i < apiLayerCount; ++i) {
         apiLayerNames.pushBack(layerProperties[i].layerName);
@@ -97,18 +100,19 @@ AxrResult AxrVulkanExtensions::getSupportedInstanceExtensions(AxrVector_Stack<co
     if (VK_FAILED(vkResult))
         return AXR_ERROR_VULKAN_ERROR;
 
-    // Don't deallocate automatically because we're creating the `extensionNames` vector after this with the same stack
-    // allocator
-    AxrVector_Stack<VkExtensionProperties> extensionProperties(extensionCount,
-                                                               &AxrAllocator::get().FrameAllocator,
-                                                               false);
+    // Don't set `extensionNames` just yet. Only set it once we're sure this function will succeed.
+    // We still initialize the vector now though so that 'extensionProperties' will be the last thing on the stack and
+    // will auto deallocate.
+    auto tempExtensionNames = AxrVector_Stack<const char*>(extensionCount, &AxrAllocator::get().FrameAllocator);
+
+    AxrVector_Stack<VkExtensionProperties> extensionProperties(extensionCount, &AxrAllocator::get().FrameAllocator);
     extensionProperties.prefillData();
     vkResult = vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensionProperties.data());
     axrLogVkResult(vkResult, "vkEnumerateInstanceExtensionProperties");
     if (VK_FAILED(vkResult))
         return AXR_ERROR_VULKAN_ERROR;
 
-    extensionNames = AxrVector_Stack<const char*>(extensionCount, &AxrAllocator::get().FrameAllocator);
+    extensionNames = std::move(tempExtensionNames);
 
     for (uint32_t i = 0; i < extensionCount; ++i) {
         extensionNames.pushBack(extensionProperties[i].extensionName);
@@ -132,11 +136,12 @@ AxrResult AxrVulkanExtensions::getSupportedDeviceExtensions(const VkPhysicalDevi
     if (VK_FAILED(vkResult))
         return AXR_ERROR_VULKAN_ERROR;
 
-    // Don't deallocate automatically because we're creating the `extensionNames` vector after this with the same stack
-    // allocator
-    AxrVector_Stack<VkExtensionProperties> extensionProperties(extensionCount,
-                                                               &AxrAllocator::get().FrameAllocator,
-                                                               false);
+    // Don't set `extensionNames` just yet. Only set it once we're sure this function will succeed.
+    // We still initialize the vector now though so that 'extensionProperties' will be the last thing on the stack and
+    // will auto deallocate.
+    auto tempExtensionNames = AxrVector_Stack<const char*>(extensionCount, &AxrAllocator::get().FrameAllocator);
+
+    AxrVector_Stack<VkExtensionProperties> extensionProperties(extensionCount, &AxrAllocator::get().FrameAllocator);
     extensionProperties.prefillData();
     vkResult =
         vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, extensionProperties.data());
@@ -144,7 +149,7 @@ AxrResult AxrVulkanExtensions::getSupportedDeviceExtensions(const VkPhysicalDevi
     if (VK_FAILED(vkResult))
         return AXR_ERROR_VULKAN_ERROR;
 
-    extensionNames = AxrVector_Stack<const char*>(extensionCount, &AxrAllocator::get().FrameAllocator);
+    extensionNames = std::move(tempExtensionNames);
 
     for (uint32_t i = 0; i < extensionCount; ++i) {
         extensionNames.pushBack(extensionProperties[i].extensionName);
