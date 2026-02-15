@@ -21,7 +21,7 @@ void AxrVulkanQueueFamilies::reset() {
 #define AXR_FUNCTION_FAILED_STRING "Failed to set queue family indices. "
 AxrResult AxrVulkanQueueFamilies::setQueueFamilyIndices(const VkInstance& instance,
                                                         const VkPhysicalDevice& physicalDevice) {
-    if (physicalDevice == VK_NULL_HANDLE) {
+    if (physicalDevice == VK_NULL_HANDLE) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Physical device is null.");
         return AXR_ERROR_VALIDATION_FAILED;
     }
@@ -75,7 +75,7 @@ AxrResult AxrVulkanQueueFamilies::setQueueFamilyIndices(const VkInstance& instan
     }
 
     // Failed to find all queue families
-    if (!areIndicesValid()) {
+    if (!areIndicesValid()) [[unlikely]] {
         // Reset the queue families
         cleanup();
         return AXR_ERROR_NOT_FOUND;
@@ -96,17 +96,18 @@ void AxrVulkanQueueFamilies::resetQueueFamilyIndices() {
 #define AXR_FUNCTION_FAILED_STRING "Failed to set queue family queues. "
 AxrResult AxrVulkanQueueFamilies::setQueueFamilyQueues(const VkDevice& device) {
     if (!GraphicsQueueFamilyIndex.has_value() || !TransferQueueFamilyIndex.has_value() ||
-        !PresentationQueueFamilyIndex.has_value()) {
+        !PresentationQueueFamilyIndex.has_value()) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Queue family indices are not valid.");
         return AXR_ERROR_VALIDATION_FAILED;
     }
 
-    if (GraphicsQueue != VK_NULL_HANDLE || PresentationQueue != VK_NULL_HANDLE || TransferQueue != VK_NULL_HANDLE) {
+    if (GraphicsQueue != VK_NULL_HANDLE || PresentationQueue != VK_NULL_HANDLE || TransferQueue != VK_NULL_HANDLE)
+        [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Queue family queues already exist.");
         return AXR_ERROR_VALIDATION_FAILED;
     }
 
-    if (device == VK_NULL_HANDLE) {
+    if (device == VK_NULL_HANDLE) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Device is null.");
         return AXR_ERROR_VALIDATION_FAILED;
     }
@@ -152,7 +153,7 @@ bool AxrVulkanQueueFamilies::hasDedicatedTransferQueue() const {
 #define AXR_FUNCTION_FAILED_STRING "Failed to get all queue family indices. "
 AxrVector_Stack<uint32_t> AxrVulkanQueueFamilies::getAllQueueFamilyIndices() const {
     if (!GraphicsQueueFamilyIndex.has_value() || !TransferQueueFamilyIndex.has_value() ||
-        !PresentationQueueFamilyIndex.has_value()) {
+        !PresentationQueueFamilyIndex.has_value()) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Queue family indices are not valid.");
         return {};
     }
@@ -170,7 +171,7 @@ AxrVector_Stack<uint32_t> AxrVulkanQueueFamilies::getAllQueueFamilyIndices() con
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to get unique queue family indices. "
 AxrVector_Stack<uint32_t> AxrVulkanQueueFamilies::getUniqueQueueFamilyIndices() const {
-    if (!areIndicesValid()) {
+    if (!areIndicesValid()) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Queue family indices are not valid.");
         return {};
     }

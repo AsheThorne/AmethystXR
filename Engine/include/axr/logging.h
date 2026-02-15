@@ -8,7 +8,6 @@
 //
 // ----------------------------------------- //
 
-
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
@@ -414,6 +413,11 @@ void axrLog(const AxrLogLevelEnum level, const AxrLogMessageWithLocation& messag
 #else
     spdlog::log(axrToSpdlogLevel(level), fmt::runtime(message.Message), std::forward<Args>(args)...);
 #endif
+}
+
+template<typename... Args>
+void axrLogWithoutLocation(const AxrLogLevelEnum level, const std::string& message, Args... args) {
+    spdlog::log(axrToSpdlogLevel(level), fmt::runtime(message), std::forward<Args>(args)...);
 }
 
 template<typename... Args>

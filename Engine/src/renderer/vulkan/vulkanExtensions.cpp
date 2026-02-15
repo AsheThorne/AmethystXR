@@ -421,7 +421,11 @@ VkBool32 AxrVulkanExtensions::debugUtilsCallback(const VkDebugUtilsMessageSeveri
         }
     }
 
-    axrLog(logLevel, "[Vulkan | {0} | {1}] : {2}", messageTypeString, messageSeverityString, pCallbackData->pMessage);
+    axrLogWithoutLocation(logLevel,
+                          "[Vulkan | {0} | {1}] : {2}",
+                          messageTypeString,
+                          messageSeverityString,
+                          pCallbackData->pMessage);
 
     return VK_FALSE;
 }
