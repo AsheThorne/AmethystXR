@@ -73,12 +73,24 @@ AxrResult AxrVulkanRenderer::setup(Context& context, const Config& config) {
         return axrResult;
     }
 
+    axrResult = createCommandPools(context.Device,
+                                   context.QueueFamilies,
+                                   context.GraphicsCommandPool,
+                                   context.TransferCommandPool);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        shutDown(context);
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to set up logical device.");
+        return axrResult;
+    }
+
     context.IsSetup = true;
     return AXR_SUCCESS;
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
 void AxrVulkanRenderer::shutDown(Context& context) {
+    destroyCommandPools(context.Device, context.GraphicsCommandPool, context.TransferCommandPool);
+    destroyLogicalDevice(context.QueueFamilies, context.Device);
     resetPhysicalDevice(context.QueueFamilies, context.PhysicalDevice);
     destroyDebugUtilsMessenger(context.Instance, context.DebugUtilsMessenger);
     destroyInstance(context.Instance);
@@ -213,7 +225,7 @@ AxrResult AxrVulkanRenderer::createDebugUtilsMessenger(const VkInstance& instanc
     const VkResult vkResult =
         vkCreateDebugUtilsMessengerEXT(instance, &debugUtilsMessengerCreateInfo, nullptr, &debugUtilsMessenger);
     axrLogVkResult(vkResult, "vkCreateDebugUtilsMessengerEXT");
-    if (VK_FAILED(vkResult))
+    if (VK_FAILED(vkResult)) [[unlikely]]
         return AXR_ERROR_VULKAN_ERROR;
 
     return AXR_SUCCESS;
@@ -655,5 +667,100 @@ AxrResult AxrVulkanRenderer::getDeviceFeaturesToUse(const VkPhysicalDevice& phys
     return AXR_SUCCESS;
 }
 #undef AXR_FUNCTION_FAILED_STRING
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to create command pools. "
+AxrResult AxrVulkanRenderer::createCommandPools(const VkDevice& device,
+                                                const AxrVulkanQueueFamilies& queueFamilies,
+                                                VkCommandPool& graphicsCommandPool,
+                                                VkCommandPool& transferCommandPool) {
+    if (graphicsCommandPool != VK_NULL_HANDLE) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Graphics command pool already exists.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    if (transferCommandPool != VK_NULL_HANDLE) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Transfer command pool already exists.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    if (!queueFamilies.GraphicsQueueFamilyIndex.has_value()) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Graphics queue family index does not exist.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    if (!queueFamilies.TransferQueueFamilyIndex.has_value()) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Transfer queue family index does not exist.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = createCommandPool(device,
+                                  queueFamilies.GraphicsQueueFamilyIndex.value(),
+                                  VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+                                  graphicsCommandPool);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        destroyCommandPools(device, graphicsCommandPool, transferCommandPool);
+        return axrResult;
+    }
+
+    axrResult = createCommandPool(device,
+                                  queueFamilies.TransferQueueFamilyIndex.value(),
+                                  VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,
+                                  transferCommandPool);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        destroyCommandPools(device, graphicsCommandPool, transferCommandPool);
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+void AxrVulkanRenderer::destroyCommandPools(const VkDevice& device,
+                                            VkCommandPool& graphicsCommandPool,
+                                            VkCommandPool& transferCommandPool) {
+    destroyCommandPool(device, graphicsCommandPool);
+    destroyCommandPool(device, transferCommandPool);
+}
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to create command pool. "
+AxrResult AxrVulkanRenderer::createCommandPool(const VkDevice& device,
+                                               const uint32_t queueFamilyIndex,
+                                               const VkCommandPoolCreateFlags commandPoolFlags,
+                                               VkCommandPool& commandPool) {
+    if (commandPool != VK_NULL_HANDLE) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Command pool already exists.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    if (device == VK_NULL_HANDLE) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Device is null.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    const VkCommandPoolCreateInfo commandPoolCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = commandPoolFlags,
+        .queueFamilyIndex = queueFamilyIndex,
+    };
+
+    const VkResult vkResult = vkCreateCommandPool(device, &commandPoolCreateInfo, nullptr, &commandPool);
+    axrLogVkResult(vkResult, "vkCreateCommandPool");
+    if (VK_FAILED(vkResult)) [[unlikely]]
+        return AXR_ERROR_VULKAN_ERROR;
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+void AxrVulkanRenderer::destroyCommandPool(const VkDevice& device, VkCommandPool& commandPool) {
+    if (commandPool == VK_NULL_HANDLE)
+        return;
+
+    vkDestroyCommandPool(device, commandPool, nullptr);
+    commandPool = VK_NULL_HANDLE;
+}
 
 #endif

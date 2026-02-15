@@ -41,6 +41,8 @@ public:
         VkDebugUtilsMessengerEXT DebugUtilsMessenger = VK_NULL_HANDLE;
         VkPhysicalDevice PhysicalDevice = VK_NULL_HANDLE;
         VkDevice Device = VK_NULL_HANDLE;
+        VkCommandPool GraphicsCommandPool = VK_NULL_HANDLE;
+        VkCommandPool TransferCommandPool = VK_NULL_HANDLE;
         VkPhysicalDeviceMultiviewFeatures EnabledDeviceMultiviewFeatures{};
         VkPhysicalDeviceFeatures EnabledDeviceFeatures{};
         bool IsSetup = false;
@@ -251,6 +253,40 @@ private:
     [[nodiscard]] static AxrResult getDeviceFeaturesToUse(const VkPhysicalDevice& physicalDevice,
                                                           VkPhysicalDeviceFeatures& enabledFeatures,
                                                           VkPhysicalDeviceMultiviewFeatures& enabledMultiviewFeatures);
+
+    // ---- Command Pools ----
+
+    /// Create all command pools
+    /// @param device Device to use
+    /// @param queueFamilies Queue families to use
+    /// @param graphicsCommandPool Output graphics command pool
+    /// @param transferCommandPool Output transfer command pool
+    [[nodiscard]] static AxrResult createCommandPools(const VkDevice& device,
+                                                      const AxrVulkanQueueFamilies& queueFamilies,
+                                                      VkCommandPool& graphicsCommandPool,
+                                                      VkCommandPool& transferCommandPool);
+    /// Destroy all command pools
+    /// @param device Device to use
+    /// @param graphicsCommandPool Output graphics command pool
+    /// @param transferCommandPool Output transfer command pool
+    static void destroyCommandPools(const VkDevice& device,
+                                    VkCommandPool& graphicsCommandPool,
+                                    VkCommandPool& transferCommandPool);
+
+    /// Create a command pool
+    /// @param device Device to use
+    /// @param queueFamilyIndex Queue family index to use
+    /// @param commandPoolFlags Command pool flags
+    /// @param commandPool Output created command pool
+    /// @return AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult createCommandPool(const VkDevice& device,
+                                                     uint32_t queueFamilyIndex,
+                                                     VkCommandPoolCreateFlags commandPoolFlags,
+                                                     VkCommandPool& commandPool);
+    /// Destroy a command pool
+    /// @param device Device to use
+    /// @param commandPool Command pool to destroy
+    static void destroyCommandPool(const VkDevice& device, VkCommandPool& commandPool);
 };
 #endif
 
