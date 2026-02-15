@@ -61,6 +61,18 @@ AxrResult AxrVulkanRenderer::setup(Context& context, const Config& config) {
         return axrResult;
     }
 
+    axrResult = createLogicalDevice(context.Extensions,
+                                    context.PhysicalDevice,
+                                    context.QueueFamilies,
+                                    context.Device,
+                                    context.EnabledDeviceFeatures,
+                                    context.EnabledDeviceMultiviewFeatures);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        shutDown(context);
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to set up logical device.");
+        return axrResult;
+    }
+
     context.IsSetup = true;
     return AXR_SUCCESS;
 }
@@ -76,6 +88,15 @@ void AxrVulkanRenderer::shutDown(Context& context) {
     context.IsSetup = false;
 }
 
+void AxrVulkanRenderer::appendNextPtrChain(VkBaseOutStructure* source, VkBaseOutStructure* nextStruct) {
+    VkBaseOutStructure*& currentNextStruct = source->pNext;
+    while (currentNextStruct != nullptr) {
+        currentNextStruct = currentNextStruct->pNext;
+    }
+
+    currentNextStruct = nextStruct;
+}
+
 // ----------------------------------------- //
 // Private Functions
 // ----------------------------------------- //
@@ -86,18 +107,11 @@ AxrResult AxrVulkanRenderer::createInstance(const char applicationName[AXR_MAX_A
                                             const AxrVulkanExtensions::ApiLayersArray_T& apiLayers,
                                             const AxrVulkanExtensions::ExtensionsArray_T& extensions,
                                             VkInstance& instance) {
-    // ----------------------------------------- //
-    // Validation
-    // ----------------------------------------- //
-
     if (instance != VK_NULL_HANDLE) [[unlikely]] {
         axrLogWarning(AXR_FUNCTION_FAILED_STRING "Instance already exists.");
         return AXR_SUCCESS;
     }
 
-    // ----------------------------------------- //
-    // Process
-    // ----------------------------------------- //
     AxrResult axrResult = AXR_SUCCESS;
 
     const VkApplicationInfo appInfo = {
@@ -166,14 +180,14 @@ AxrResult AxrVulkanRenderer::createInstanceChain(const AxrVulkanExtensions::Exte
         AxrStackAllocator::MarkerID markerID;
         axrResult = AxrAllocator::get().FrameAllocator.allocateAligned(1, debugUtilsCreateInfo, markerID);
         if (AXR_FAILED(axrResult)) [[unlikely]] {
-            axrLogError("Failed to allocate memory for VkDebugUtilsMessengerCreateInfoEXT.");
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to allocate memory for VkDebugUtilsMessengerCreateInfoEXT.");
             return axrResult;
         }
 
         *debugUtilsCreateInfo = AxrVulkanExtensions::createDebugUtilsMessengerCreateInfo(extensions);
 
-        AxrVulkanExtensions::appendNextPtrChain(reinterpret_cast<VkBaseOutStructure*>(&instanceCreateInfo),
-                                                reinterpret_cast<VkBaseOutStructure*>(debugUtilsCreateInfo));
+        appendNextPtrChain(reinterpret_cast<VkBaseOutStructure*>(&instanceCreateInfo),
+                           reinterpret_cast<VkBaseOutStructure*>(debugUtilsCreateInfo));
     }
 
     return AXR_SUCCESS;
@@ -234,7 +248,7 @@ AxrResult AxrVulkanRenderer::setupPhysicalDevice(const VkInstance& instance,
     }
 
     axrResult = queueFamilies.setQueueFamilyIndices(instance, physicalDevice);
-    if (AXR_FAILED(axrResult)) {
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to set queue family indices.");
         return axrResult;
     }
@@ -338,7 +352,7 @@ uint32_t AxrVulkanRenderer::scorePhysicalDeviceQueueFamilies(const VkInstance& i
     AxrVulkanQueueFamilies queueFamilies;
     const AxrResult axrResult = queueFamilies.setQueueFamilyIndices(instance, physicalDevice);
 
-    if (AXR_FAILED(axrResult)) {
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
         // Failed to find required queue families
         return 0;
     }
@@ -380,7 +394,7 @@ uint32_t AxrVulkanRenderer::scorePhysicalDeviceExtensions(const VkPhysicalDevice
 
     AxrVector_Stack<const char*> supportedExtensions;
     const AxrResult axrResult = AxrVulkanExtensions::getSupportedDeviceExtensions(physicalDevice, supportedExtensions);
-    if (AXR_FAILED(axrResult)) {
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to get supported device extensions.");
         return 0;
     }
@@ -414,20 +428,31 @@ uint32_t AxrVulkanRenderer::scorePhysicalDeviceFeatures(const VkPhysicalDevice& 
         return 0;
     }
 
-    uint32_t score = 0;
     VkPhysicalDeviceFeatures2 features{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
     };
     vkGetPhysicalDeviceFeatures2(physicalDevice, &features);
 
-    if (features.features.samplerAnisotropy) {
-        score += 5;
-    }
-    if (features.features.sampleRateShading) {
-        score += 5;
+    float score = 0;
+    constexpr size_t deviceFeaturesSize = sizeof(VkPhysicalDeviceFeatures);
+    constexpr size_t numberOfDeviceFeature = deviceFeaturesSize / sizeof(VkBool32);
+    constexpr uint32_t maxScore = 50;
+    constexpr float extensionWeightedScore = static_cast<float>(maxScore) / static_cast<float>(numberOfDeviceFeature);
+
+    // For each device feature, check if it's supported.
+    // The more features that are supported, the closer the score is to 'maxScore'
+    const VkBool32* currentFeature = reinterpret_cast<VkBool32*>(&features.features);
+    for (size_t i = 0; i < numberOfDeviceFeature; ++i) {
+        if (*currentFeature) {
+            score += extensionWeightedScore;
+        }
+
+        currentFeature++;
     }
 
-    return score;
+    // Even if no features are supported, the device should still at least be usable, just not desirable.
+    // So we need to return at least 1 to signal that we meet the minimum requirements at least.
+    return std::max(static_cast<uint32_t>(1), static_cast<uint32_t>(score));
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
@@ -451,6 +476,183 @@ uint32_t AxrVulkanRenderer::scorePhysicalDeviceProperties(const VkPhysicalDevice
     }
 
     return score;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to create logical device. "
+AxrResult AxrVulkanRenderer::createLogicalDevice(const AxrVulkanExtensions::ExtensionsArray_T& extensions,
+                                                 const VkPhysicalDevice& physicalDevice,
+                                                 AxrVulkanQueueFamilies& queueFamilies,
+                                                 VkDevice& device,
+                                                 VkPhysicalDeviceFeatures& enabledFeatures,
+                                                 VkPhysicalDeviceMultiviewFeatures& enabledMultiviewFeatures) {
+    if (device != VK_NULL_HANDLE) [[unlikely]] {
+        axrLogWarning(AXR_FUNCTION_FAILED_STRING "Device already exists.");
+        return AXR_SUCCESS;
+    }
+
+    if (physicalDevice == VK_NULL_HANDLE) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Physical device is null.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    if (!queueFamilies.areIndicesValid()) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Queue family indices are not valid.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    const AxrVector_Stack<uint32_t> uniqueQueueFamilyIndices = queueFamilies.getUniqueQueueFamilyIndices();
+    AxrVector_Stack<VkDeviceQueueCreateInfo> queueCreateInfos(uniqueQueueFamilyIndices.size(),
+                                                              &AxrAllocator::get().FrameAllocator);
+
+    constexpr float queuePriority = 1.0f;
+    for (const uint32_t queueFamilyIndex : uniqueQueueFamilyIndices) {
+        queueCreateInfos.pushBack(VkDeviceQueueCreateInfo{
+            .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = {},
+            .queueFamilyIndex = queueFamilyIndex,
+            .queueCount = 1,
+            .pQueuePriorities = &queuePriority,
+        });
+    }
+
+    const AxrVulkanExtensions::ExtensionNamesArray_T extensionNames =
+        AxrVulkanExtensions::getDeviceExtensionNames(extensions);
+
+    VkDeviceCreateInfo deviceCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = {},
+        .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
+        .pQueueCreateInfos = queueCreateInfos.data(),
+        .enabledLayerCount = 0,
+        .ppEnabledLayerNames = nullptr,
+        .enabledExtensionCount = static_cast<uint32_t>(extensionNames.size()),
+        .ppEnabledExtensionNames = extensionNames.data(),
+        .pEnabledFeatures = nullptr,
+    };
+
+    axrResult =
+        createDeviceChain(physicalDevice, extensions, deviceCreateInfo, enabledFeatures, enabledMultiviewFeatures);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create device chain.");
+        return axrResult;
+    }
+
+    // TODO: Create vulkan device through OpenXR if that is set up
+    const VkResult vkResult = vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device);
+    axrLogVkResult(vkResult, "vkCreateDevice");
+    if (VK_FAILED(vkResult)) [[unlikely]]
+        return AXR_ERROR_VULKAN_ERROR;
+
+    AxrVulkanExtensions::logExtensionNames("Created vulkan device with:", nullptr, &extensionNames);
+
+    axrResult = queueFamilies.setQueueFamilyQueues(device);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        destroyLogicalDevice(queueFamilies, device);
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to set queue family queues.");
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+void AxrVulkanRenderer::destroyLogicalDevice(AxrVulkanQueueFamilies& queueFamilies, VkDevice& device) {
+    queueFamilies.resetQueueFamilyQueues();
+
+    if (device != VK_NULL_HANDLE) {
+        vkDestroyDevice(device, nullptr);
+        device = VK_NULL_HANDLE;
+    }
+}
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to create device chain. "
+AxrResult AxrVulkanRenderer::createDeviceChain(const VkPhysicalDevice& physicalDevice,
+                                               const AxrVulkanExtensions::ExtensionsArray_T& extensions,
+                                               VkDeviceCreateInfo& deviceCreateInfo,
+                                               VkPhysicalDeviceFeatures& enabledFeatures,
+                                               VkPhysicalDeviceMultiviewFeatures& enabledMultiviewFeatures) {
+    AxrResult axrResult = AXR_SUCCESS;
+
+    // ---- Device Features ----
+
+    VkPhysicalDeviceFeatures2* deviceFeatures{};
+
+    // We aren't deallocating this memory manually so we can ignore the markerID
+    AxrStackAllocator::MarkerID markerID;
+    axrResult = AxrAllocator::get().FrameAllocator.allocateAligned(1, deviceFeatures, markerID);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to allocate memory for VkPhysicalDeviceFeatures2.");
+        return axrResult;
+    }
+
+    axrResult = getDeviceFeaturesToUse(physicalDevice, enabledFeatures, enabledMultiviewFeatures);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to get device features to use.");
+        return axrResult;
+    }
+
+    *deviceFeatures = VkPhysicalDeviceFeatures2{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+        .pNext = nullptr,
+        .features = enabledFeatures,
+    };
+
+    appendNextPtrChain(reinterpret_cast<VkBaseOutStructure*>(&deviceCreateInfo),
+                       reinterpret_cast<VkBaseOutStructure*>(deviceFeatures));
+
+    appendNextPtrChain(reinterpret_cast<VkBaseOutStructure*>(&deviceCreateInfo),
+                       reinterpret_cast<VkBaseOutStructure*>(&enabledMultiviewFeatures));
+
+    // ---- Extensions ----
+
+    // No extensions exist to be added to the chain yet.
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to get device features to use. "
+AxrResult AxrVulkanRenderer::getDeviceFeaturesToUse(const VkPhysicalDevice& physicalDevice,
+                                                    VkPhysicalDeviceFeatures& enabledFeatures,
+                                                    VkPhysicalDeviceMultiviewFeatures& enabledMultiviewFeatures) {
+    if (physicalDevice == VK_NULL_HANDLE) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Physical device is null.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    VkPhysicalDeviceMultiviewFeaturesKHR supportedMultiviewFeatures = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES,
+    };
+    VkPhysicalDeviceFeatures2 supportedFeatures{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+    };
+
+    appendNextPtrChain(reinterpret_cast<VkBaseOutStructure*>(&supportedFeatures),
+                       reinterpret_cast<VkBaseOutStructure*>(&supportedMultiviewFeatures));
+    vkGetPhysicalDeviceFeatures2(physicalDevice, &supportedFeatures);
+
+    enabledFeatures = VkPhysicalDeviceFeatures{};
+    // For any feature we want to make use of, set it to the corresponding 'supportedFeatures' value.
+    // This prevents us from enabling a feature that isn't supported.
+    enabledFeatures.sampleRateShading = supportedFeatures.features.sampleRateShading;
+    enabledFeatures.samplerAnisotropy = supportedFeatures.features.samplerAnisotropy;
+
+    // For any feature we want to make use of, set it to the corresponding 'supportedMultiviewFeatures' value.
+    // This prevents us from enabling a feature that isn't supported.
+    enabledMultiviewFeatures = VkPhysicalDeviceMultiviewFeatures{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES,
+        .pNext = nullptr,
+        .multiview = supportedMultiviewFeatures.multiview,
+        .multiviewGeometryShader = false,
+        .multiviewTessellationShader = false,
+    };
+
+    return AXR_SUCCESS;
 }
 #undef AXR_FUNCTION_FAILED_STRING
 

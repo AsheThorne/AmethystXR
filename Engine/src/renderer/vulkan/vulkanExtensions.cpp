@@ -296,15 +296,6 @@ AxrVulkanExtensions::ExtensionNamesArray_T AxrVulkanExtensions::getDeviceExtensi
     return extensionNames;
 }
 
-void AxrVulkanExtensions::appendNextPtrChain(VkBaseOutStructure* source, VkBaseOutStructure* nextStruct) {
-    VkBaseOutStructure*& currentNextStruct = source->pNext;
-    while (currentNextStruct != nullptr) {
-        currentNextStruct = currentNextStruct->pNext;
-    }
-
-    currentNextStruct = nextStruct;
-}
-
 void AxrVulkanExtensions::logExtensionNames(const char* message,
                                             const ApiLayerNamesArray_T* apiLayerNames,
                                             const ExtensionNamesArray_T* extensionNames) {
@@ -321,7 +312,7 @@ void AxrVulkanExtensions::logExtensionNames(const char* message,
     constexpr size_t apiLayersStringMaxLength =
         apiLayersMessageLength + (VK_MAX_EXTENSION_NAME_SIZE + stringSeperatorLength) * AxrVulkanApiLayerMaxCount +
         lineSeperatorLength;
-    char apiLayersString[apiLayersStringMaxLength];
+    char apiLayersString[apiLayersStringMaxLength]{};
     if (apiLayerNames != nullptr) {
         strcpy(apiLayersString, apiLayersMessage);
 
@@ -349,7 +340,7 @@ void AxrVulkanExtensions::logExtensionNames(const char* message,
     // + 2 for the comma and space seperator characters -> ", ".
     constexpr size_t extensionsStringMaxLength =
         extensionsMessageLength + (VK_MAX_EXTENSION_NAME_SIZE + stringSeperatorLength) * AxrVulkanExtensionMaxCount;
-    char extensionsString[extensionsStringMaxLength];
+    char extensionsString[extensionsStringMaxLength]{};
     if (extensionNames != nullptr) {
         strcpy(extensionsString, extensionsMessage);
 

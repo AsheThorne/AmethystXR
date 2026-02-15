@@ -112,11 +112,6 @@ public:
     /// @return Device extension names
     [[nodiscard]] static ExtensionNamesArray_T getDeviceExtensionNames(const ExtensionsArray_T& extensions);
 
-    /// Append the `Next` pointer chain for the given `source` with the given `nextObject`.
-    /// @param source Source object to append the `next` chain of
-    /// @param nextStruct Next structure to append to the `next` chain
-    static void appendNextPtrChain(VkBaseOutStructure* source, VkBaseOutStructure* nextStruct);
-
     /// Log al of the given api layer names and extension names
     /// @param message Message to prefix the log message with
     /// @param apiLayerNames Api layer names to log. Or nullptr to not log any

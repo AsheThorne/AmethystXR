@@ -40,6 +40,9 @@ public:
         VkInstance Instance = VK_NULL_HANDLE;
         VkDebugUtilsMessengerEXT DebugUtilsMessenger = VK_NULL_HANDLE;
         VkPhysicalDevice PhysicalDevice = VK_NULL_HANDLE;
+        VkDevice Device = VK_NULL_HANDLE;
+        VkPhysicalDeviceMultiviewFeatures EnabledDeviceMultiviewFeatures{};
+        VkPhysicalDeviceFeatures EnabledDeviceFeatures{};
         bool IsSetup = false;
     };
 
@@ -96,6 +99,11 @@ private:
     // ----------------------------------------- //
     // Private Functions
     // ----------------------------------------- //
+
+    /// Append the `Next` pointer chain for the given `source` with the given `nextObject`.
+    /// @param source Source object to append the `next` chain of
+    /// @param nextStruct Next structure to append to the `next` chain
+    static void appendNextPtrChain(VkBaseOutStructure* source, VkBaseOutStructure* nextStruct);
 
     // ---- Instance ----
 
@@ -202,6 +210,47 @@ private:
     /// @returns 1 -> Meets the minimum requirements.
     /// @returns More than 1, has extra desired features.
     [[nodiscard]] static uint32_t scorePhysicalDeviceProperties(const VkPhysicalDevice& physicalDevice);
+
+    // ---- Logical Device ----
+
+    /// Create the logical device
+    /// @param extensions Extensions to use
+    /// @param physicalDevice Physical device to use
+    /// @param queueFamilies Input/Output Queue families to use. Sets VkQueues
+    /// @param device Output logical device
+    /// @param enabledFeatures Output device features that have been enabled
+    /// @param enabledMultiviewFeatures Output device multiview features that have been enabled
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult createLogicalDevice(const AxrVulkanExtensions::ExtensionsArray_T& extensions,
+                                                       const VkPhysicalDevice& physicalDevice,
+                                                       AxrVulkanQueueFamilies& queueFamilies,
+                                                       VkDevice& device,
+                                                       VkPhysicalDeviceFeatures& enabledFeatures,
+                                                       VkPhysicalDeviceMultiviewFeatures& enabledMultiviewFeatures);
+    /// Destroy the logical device
+    /// @param queueFamilies Queue families to reset queues
+    /// @param device Logical device to destroy
+    static void destroyLogicalDevice(AxrVulkanQueueFamilies& queueFamilies, VkDevice& device);
+
+    /// Create the device chain for the given extensions
+    /// @param physicalDevice Physical device to use
+    /// @param extensions Extensions to use
+    /// @param deviceCreateInfo Input/Output device create info to append the chain to
+    /// @param enabledFeatures Output device features that have been enabled
+    /// @param enabledMultiviewFeatures Output device multiview features that have been enabled
+    [[nodiscard]] static AxrResult createDeviceChain(const VkPhysicalDevice& physicalDevice,
+                                                     const AxrVulkanExtensions::ExtensionsArray_T& extensions,
+                                                     VkDeviceCreateInfo& deviceCreateInfo,
+                                                     VkPhysicalDeviceFeatures& enabledFeatures,
+                                                     VkPhysicalDeviceMultiviewFeatures& enabledMultiviewFeatures);
+
+    /// Get device features to use
+    /// @param physicalDevice Physical device to use
+    /// @param enabledFeatures Output enabled features to use
+    /// @param enabledMultiviewFeatures Output enabled multiview features to use
+    [[nodiscard]] static AxrResult getDeviceFeaturesToUse(const VkPhysicalDevice& physicalDevice,
+                                                          VkPhysicalDeviceFeatures& enabledFeatures,
+                                                          VkPhysicalDeviceMultiviewFeatures& enabledMultiviewFeatures);
 };
 #endif
 
