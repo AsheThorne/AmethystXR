@@ -106,6 +106,35 @@ bool AxrPlatform::getVulkanPresentationSupport(const VkInstance& instance,
                                                const uint32_t queueFamilyIndex) {
     return SDL_Vulkan_GetPresentationSupport(instance, physicalDevice, queueFamilyIndex);
 }
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to create vulkan surface. "
+AxrResult AxrPlatform::createVulkanSurface(const VkInstance& instance, VkSurfaceKHR& surface) const {
+    if (surface != VK_NULL_HANDLE) [[unlikely]] {
+        axrLogWarning(AXR_FUNCTION_FAILED_STRING "Surface already exists.");
+        return AXR_SUCCESS;
+    }
+
+    if (instance == VK_NULL_HANDLE) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Instance is null.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    if (!SDL_Vulkan_CreateSurface(m_SDLWindow, instance, nullptr, &surface)) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "SDL_Vulkan_CreateSurface failed.");
+        return AXR_ERROR_SDL_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+void AxrPlatform::destroyVulkanSurface(const VkInstance& instance, VkSurfaceKHR& surface) const {
+    if (surface == VK_NULL_HANDLE)
+        return;
+
+    SDL_Vulkan_DestroySurface(instance, surface, nullptr);
+    surface = VK_NULL_HANDLE;
+}
 #endif
 
 // ----------------------------------------- //

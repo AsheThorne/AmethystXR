@@ -62,10 +62,10 @@ AxrResult AxrApplication::startNewFrame() const {
     AxrAllocator::get().FrameAllocator.clear();
 
     const AxrResult axrResult = processEvents();
-    if (axrResult == AXR_APPLICATION_CLOSED) {
+    if (axrResult == AXR_APPLICATION_CLOSED) [[unlikely]] {
         return axrResult;
     }
-    if (AXR_FAILED(axrResult)) {
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "ProcessEvents() failed.");
         return axrResult;
     }

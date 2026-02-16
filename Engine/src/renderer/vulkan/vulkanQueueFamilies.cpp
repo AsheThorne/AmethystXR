@@ -158,12 +158,13 @@ AxrVector_Stack<uint32_t> AxrVulkanQueueFamilies::getAllQueueFamilyIndices() con
         return {};
     }
 
-    AxrVector_Stack<uint32_t> queueFamilyIndices(NumberOfQueueFamilies, &AxrAllocator::get().FrameAllocator);
-    queueFamilyIndices.append({
-        GraphicsQueueFamilyIndex.value(),
-        PresentationQueueFamilyIndex.value(),
-        TransferQueueFamilyIndex.value(),
-    });
+    AxrVector_Stack queueFamilyIndices(
+        {
+            GraphicsQueueFamilyIndex.value(),
+            PresentationQueueFamilyIndex.value(),
+            TransferQueueFamilyIndex.value(),
+        },
+        &AxrAllocator::get().FrameAllocator);
 
     return queueFamilyIndices;
 }

@@ -9,6 +9,8 @@
 // ----------------------------------------- //
 
 int start() {
+    axrLoggerSetup("Sandbox");
+
 #ifndef AXR_VULKAN_SUPPORTED
     constexpr AxrVulkanRendererConfig vulkanConfig{};
 #else
@@ -69,15 +71,13 @@ int start() {
     };
     axrSetup(&axrEngineConfig);
 
-    axrLoggerSetup("Sandbox");
-
     while (axrApplicationIsRunning()) {
         const AxrResult axrResult = axrApplicationStartNewFrame();
-        if (axrResult == AXR_APPLICATION_CLOSED) {
+        if (axrResult == AXR_APPLICATION_CLOSED) [[unlikely]] {
             break;
         }
-        if (AXR_FAILED(axrResult)) {
-            axrLogError("Unknown error occurred during application frame start. Received result: {}",
+        if (AXR_FAILED(axrResult)) [[unlikely]] {
+            axrLogError("Unknown error occurred during application start new frame. Received result: {}",
                         axrResultToString(axrResult));
             break;
         }

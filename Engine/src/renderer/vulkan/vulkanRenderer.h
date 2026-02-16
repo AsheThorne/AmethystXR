@@ -6,6 +6,7 @@
 #include "axr/common/defines.h"
 #include "axr/common/enums.h"
 #include "axr/vulkanApi.h"
+#include "vulkanEnvironment.h"
 #include "vulkanExtensions.h"
 #include "vulkanQueueFamilies.h"
 
@@ -34,6 +35,7 @@ public:
 
     /// Vulkan renderer context
     struct Context {
+        AxrVulkanEnvironment::DesktopContext DesktopEnvironmentContext{};
         AxrVulkanExtensions::ApiLayersArray_T ApiLayers{};
         AxrVulkanExtensions::ExtensionsArray_T Extensions{};
         AxrVulkanQueueFamilies QueueFamilies{};

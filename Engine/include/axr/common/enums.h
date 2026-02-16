@@ -32,6 +32,8 @@ enum AxrResult {
     AXR_ERROR_VALIDATION_FAILED = -6,
     /// Error, Encountered an error with vulkan
     AXR_ERROR_VULKAN_ERROR = -7,
+    /// Error, Encountered an error with SDL
+    AXR_ERROR_SDL_ERROR = -8,
 };
 
 /// Axr renderer api type

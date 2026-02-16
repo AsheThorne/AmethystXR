@@ -95,6 +95,15 @@ public:
     [[nodiscard]] static bool getVulkanPresentationSupport(const VkInstance& instance,
                                                            const VkPhysicalDevice& physicalDevice,
                                                            uint32_t queueFamilyIndex);
+    /// Create a vulkan surface for this platform
+    /// @param instance VkInstance to use
+    /// @param surface VkSurfaceKHR to use
+    /// @return AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult createVulkanSurface(const VkInstance& instance, VkSurfaceKHR& surface) const;
+    /// Destroy the given surface
+    /// @param instance VkInstance to use
+    /// @param surface VkSurfaceKHR to destroy
+    void destroyVulkanSurface(const VkInstance& instance, VkSurfaceKHR& surface) const;
 #endif
 
 private:

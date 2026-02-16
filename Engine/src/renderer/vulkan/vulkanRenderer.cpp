@@ -79,7 +79,38 @@ AxrResult AxrVulkanRenderer::setup(Context& context, const Config& config) {
                                    context.TransferCommandPool);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
         shutDown(context);
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to set up logical device.");
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to set up command pools.");
+        return axrResult;
+    }
+
+    axrResult = AxrVulkanEnvironment::setupDesktopContext(
+        AxrVulkanEnvironment::SetupConfig{
+            .Instance = context.Instance,
+            .PhysicalDevice = context.PhysicalDevice,
+            .Device = context.Device,
+            .GraphicsCommandPool = context.GraphicsCommandPool,
+            .QueueFamilies = context.QueueFamilies,
+            .SwapchainColorFormatOptions = AxrVector_Stack(
+                {
+                    VK_FORMAT_R8G8B8A8_SRGB,
+                    VK_FORMAT_B8G8R8A8_SRGB,
+                    VK_FORMAT_R8G8B8A8_UNORM,
+                    VK_FORMAT_B8G8R8A8_SNORM,
+                },
+                &AxrAllocator::get().FrameAllocator),
+            .SwapchainDepthFormatOptions = AxrVector_Stack(
+                {
+                    VK_FORMAT_D32_SFLOAT_S8_UINT,
+                    VK_FORMAT_D24_UNORM_S8_UINT,
+                    VK_FORMAT_D32_SFLOAT,
+                    VK_FORMAT_D16_UNORM,
+                },
+                &AxrAllocator::get().FrameAllocator),
+        },
+        context.DesktopEnvironmentContext);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        shutDown(context);
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to set up desktop context.");
         return axrResult;
     }
 
@@ -89,6 +120,7 @@ AxrResult AxrVulkanRenderer::setup(Context& context, const Config& config) {
 #undef AXR_FUNCTION_FAILED_STRING
 
 void AxrVulkanRenderer::shutDown(Context& context) {
+    AxrVulkanEnvironment::destroyDesktopContext(context.DesktopEnvironmentContext);
     destroyCommandPools(context.Device, context.GraphicsCommandPool, context.TransferCommandPool);
     destroyLogicalDevice(context.QueueFamilies, context.Device);
     resetPhysicalDevice(context.QueueFamilies, context.PhysicalDevice);

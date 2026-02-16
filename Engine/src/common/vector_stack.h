@@ -49,6 +49,31 @@ public:
     }
 #undef AXR_FUNCTION_FAILED_STRING
 
+#define AXR_FUNCTION_FAILED_STRING "Failed to initialize AxrVector_Stack. "
+    /// Constructor
+    /// @param list The list of items to set for this vector
+    /// @param stackAllocator The stack allocator to use
+    /// @param autoDeallocate Set to false if this vector should not deallocate any memory and just trust that something
+    /// else will clean it up later.
+    /// If true, this vector will deallocate automatically if it can do so safely. If this wasn't the last thing
+    /// allocated to the stack allocator, then it won't deallocate to prevent accidentally deallocating something it
+    /// shouldn't that was added to the stack allocator after.
+    AxrVector_Stack(const std::initializer_list<Type>& list,
+                    AxrStackAllocator* stackAllocator,
+                    const bool autoDeallocate = true) {
+        m_StackAllocator = stackAllocator;
+        m_Capacity = list.size();
+        m_AutoDeallocateMemory = autoDeallocate;
+
+        if (AXR_FAILED(allocateData())) [[unlikely]] {
+            axrLogError(AXR_FUNCTION_FAILED_STRING "`allocateData()` failed.");
+            return;
+        }
+
+        append(list);
+    }
+#undef AXR_FUNCTION_FAILED_STRING
+
     /// Copy Constructor
     /// @param src Source AxrVector_Stack to copy from
     AxrVector_Stack(const AxrVector_Stack& src) = delete;
