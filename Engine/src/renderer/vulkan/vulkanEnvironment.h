@@ -102,6 +102,11 @@ private:
         VkFormat& colorFormat,
         VkColorSpaceKHR& colorSpace,
         VkFormat& depthFormat);
+    /// Reset the given color space and the color and depth swapchain formats
+    /// @param colorFormat Color format to reset
+    /// @param colorSpace Color space to reset
+    /// @param depthFormat Depth format to reset
+    static void resetDesktopSwapchainFormats(VkFormat& colorFormat, VkColorSpaceKHR& colorSpace, VkFormat& depthFormat);
 
     /// Get the supported formats for the given surface
     /// @param surface Surface to use

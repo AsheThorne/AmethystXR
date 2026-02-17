@@ -42,6 +42,9 @@ AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, D
 #undef AXR_FUNCTION_FAILED_STRING
 
 void AxrVulkanEnvironment::destroyDesktopContext(DesktopContext& context) {
+    resetDesktopSwapchainFormats(context.SwapchainColorFormat,
+                                 context.SwapchainColorSpace,
+                                 context.SwapchainDepthFormat);
     AxrPlatform::get().destroyVulkanSurface(context.Instance, context.Surface);
 }
 
@@ -98,6 +101,14 @@ AxrResult AxrVulkanEnvironment::setDesktopSwapchainFormats(const VkSurfaceKHR& s
     return AXR_SUCCESS;
 }
 #undef AXR_FUNCTION_FAILED_STRING
+
+void AxrVulkanEnvironment::resetDesktopSwapchainFormats(VkFormat& colorFormat,
+                                                        VkColorSpaceKHR& colorSpace,
+                                                        VkFormat& depthFormat) {
+    colorFormat = VK_FORMAT_UNDEFINED;
+    colorSpace = VK_COLOR_SPACE_MAX_ENUM_KHR;
+    depthFormat = VK_FORMAT_UNDEFINED;
+}
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to get supported surface formats. "
 AxrResult AxrVulkanEnvironment::getSupportedSurfaceFormats(const VkSurfaceKHR& surface,
