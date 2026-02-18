@@ -137,6 +137,11 @@ AxrResult AxrVulkanEnvironment::getSupportedSurfaceFormats(const VkSurfaceKHR& s
         return AXR_ERROR_VALIDATION_FAILED;
     }
 
+    if (supportedFormats.allocated()) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "`supportedFormats` have already been allocated.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
     uint32_t surfaceFormatsCount;
     VkResult vkResult = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &surfaceFormatsCount, nullptr);
     axrLogVkResult(vkResult, "vkGetPhysicalDeviceSurfaceFormatsKHR");
@@ -165,6 +170,21 @@ AxrResult AxrVulkanEnvironment::setSwapchainFormats(const VkPhysicalDevice& phys
                                                     VkFormat& depthFormat) {
     if (physicalDevice == VK_NULL_HANDLE) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Physical device is null.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    if (swapchainColorFormatOptions.empty()) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "`swapchainColorFormatOptions` are empty.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    if (swapchainDepthFormatOptions.empty()) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "`swapchainDepthFormatOptions` are empty.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    if (supportedSwapchainFormats.empty()) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "`supportedSwapchainFormats` are empty.");
         return AXR_ERROR_VALIDATION_FAILED;
     }
 

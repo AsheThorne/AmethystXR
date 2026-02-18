@@ -35,3 +35,9 @@
 - In a move constructor/move assignment operator, if you aren't using `std::move()` for a variable then make sure to set
   the source variable to its default value via `{}` after it's been copied. E.g. `a = src.a; src.a = {}`.
 - If you encounter a bug that wasn't picked up by the unit tests, then write a unit test for it if it's possible.
+- When passing an AxrVector_Stack to a function, you SHOULD do a check inside the function if it's already allocated.
+  Most functions fall into either of the two camps. Either, it shouldn't be allocated before passing it into the
+  function. Or it should be allocated before passing it into the function. To do this you simply check if
+  `.allocated()`. If it's true, it has been allocated.
+    - If it should be allocated and should already have data, then just check if `.empty()`. No need to check capacity
+      too.

@@ -204,6 +204,12 @@ public:
         return m_Size == 0;
     }
 
+    /// Check if the vector has been allocated
+    /// @return True if the vector has been allocated
+    [[nodiscard]] bool allocated() const {
+        return m_Capacity != 0;
+    }
+
     /// Get the item at the given index with bounds checking
     /// @param index Vector index to access
     /// @return A pointer to the item at the given index or nullptr if index is out of range

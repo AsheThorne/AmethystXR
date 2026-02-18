@@ -54,8 +54,8 @@ void AxrVulkanExtensions::populateExtensions(const uint32_t extensionCount,
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to get supported api layers. "
 AxrResult AxrVulkanExtensions::getSupportedApiLayers(AxrVector_Stack<const char*>& apiLayerNames) {
-    if (!apiLayerNames.empty()) {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "`apiLayerNames` is not empty.");
+    if (apiLayerNames.allocated()) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "`apiLayerNames` have already been allocated.");
         return AXR_ERROR_VALIDATION_FAILED;
     }
 
@@ -89,8 +89,8 @@ AxrResult AxrVulkanExtensions::getSupportedApiLayers(AxrVector_Stack<const char*
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to get supported instance extensions. "
 AxrResult AxrVulkanExtensions::getSupportedInstanceExtensions(AxrVector_Stack<const char*>& extensionNames) {
-    if (!extensionNames.empty()) {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "`extensionNames` is not empty.");
+    if (extensionNames.allocated()) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "`extensionNames` have already been allocated.");
         return AXR_ERROR_VALIDATION_FAILED;
     }
 
@@ -125,8 +125,8 @@ AxrResult AxrVulkanExtensions::getSupportedInstanceExtensions(AxrVector_Stack<co
 #define AXR_FUNCTION_FAILED_STRING "Failed to get supported device extensions. "
 AxrResult AxrVulkanExtensions::getSupportedDeviceExtensions(const VkPhysicalDevice& physicalDevice,
                                                             AxrVector_Stack<const char*>& extensionNames) {
-    if (!extensionNames.empty()) {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "`extensionNames` is not empty.");
+    if (extensionNames.allocated()) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "`extensionNames` have already been allocated.");
         return AXR_ERROR_VALIDATION_FAILED;
     }
 
