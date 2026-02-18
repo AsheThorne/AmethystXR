@@ -14,6 +14,7 @@
 #define AXR_FUNCTION_FAILED_STRING "Failed to set up desktop context. "
 AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, DesktopContext& context) {
     context.Instance = config.Instance;
+    context.Device = config.Device;
 
     AxrResult axrResult = AXR_SUCCESS;
 
@@ -37,11 +38,23 @@ AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, D
         return axrResult;
     }
 
+    axrResult = createRenderPass(config.Device,
+                                 context.SwapchainColorFormat,
+                                 context.SwapchainDepthFormat,
+                                 context.MsaaSampleCount,
+                                 context.RenderPass);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        destroyDesktopContext(context);
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create render pass.");
+        return axrResult;
+    }
+
     return AXR_SUCCESS;
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
 void AxrVulkanEnvironment::destroyDesktopContext(DesktopContext& context) {
+    destroyRenderPass(context.Device, context.RenderPass);
     resetDesktopSwapchainFormats(context.SwapchainColorFormat,
                                  context.SwapchainColorSpace,
                                  context.SwapchainDepthFormat);
@@ -234,3 +247,143 @@ bool AxrVulkanEnvironment::areFormatFeaturesSupported(const VkFormat format,
     return false;
 }
 #undef AXR_FUNCTION_FAILED_STRING
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to create render pass. "
+AxrResult AxrVulkanEnvironment::createRenderPass(const VkDevice& device,
+                                                 const VkFormat colorFormat,
+                                                 const VkFormat depthStencilFormat,
+                                                 const VkSampleCountFlagBits msaaSampleCount,
+                                                 VkRenderPass& renderPass) {
+    if (renderPass != VK_NULL_HANDLE) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Render pass already exists.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    if (device == VK_NULL_HANDLE) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Device is null.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    const bool isMsaaEnabled = msaaSampleCount != VK_SAMPLE_COUNT_1_BIT;
+
+    const VkAttachmentDescription colorAttachment{
+        .flags = {},
+        .format = colorFormat,
+        .samples = msaaSampleCount,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    };
+
+    const VkAttachmentDescription depthStencilAttachment{
+        .flags = {},
+        .format = depthStencilFormat,
+        .samples = msaaSampleCount,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+    };
+
+    const VkAttachmentDescription colorResolveAttachment{
+        .flags = {},
+        .format = colorFormat,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    };
+
+    AxrVector_Stack<VkAttachmentDescription> attachments(3, &AxrAllocator::get().FrameAllocator);
+    attachments.append({
+        colorAttachment,
+        depthStencilAttachment,
+    });
+
+    if (isMsaaEnabled) {
+        attachments.pushBack(colorResolveAttachment);
+    }
+
+    constexpr VkAttachmentReference colorAttachmentRef{
+        .attachment = 0,
+        .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    };
+
+    constexpr VkAttachmentReference depthStencilAttachmentRef{
+        .attachment = 1,
+        .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+    };
+
+    constexpr VkAttachmentReference colorResolveAttachmentRef{
+        .attachment = 2,
+        .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+    };
+
+    VkSubpassDescription subpass{
+        .flags = {},
+        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+        .inputAttachmentCount = 0,
+        .pInputAttachments = nullptr,
+        .colorAttachmentCount = 1,
+        .pColorAttachments = &colorAttachmentRef,
+        .pResolveAttachments = nullptr,
+        .pDepthStencilAttachment = &depthStencilAttachmentRef,
+        .preserveAttachmentCount = 0,
+        .pPreserveAttachments = nullptr,
+    };
+
+    if (isMsaaEnabled) {
+        subpass.pResolveAttachments = &colorResolveAttachmentRef;
+    }
+
+    VkSubpassDependency dependency{
+        .srcSubpass = VK_SUBPASS_EXTERNAL,
+        .dstSubpass = 0,
+        .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+        .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+        .srcAccessMask = {},
+        .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+        .dependencyFlags = {},
+    };
+
+    if (isMsaaEnabled) {
+        dependency.srcAccessMask |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    }
+
+    const VkRenderPassCreateInfo renderPassCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = {},
+        .attachmentCount = static_cast<uint32_t>(attachments.size()),
+        .pAttachments = attachments.data(),
+        .subpassCount = 1,
+        .pSubpasses = &subpass,
+        .dependencyCount = 1,
+        .pDependencies = &dependency,
+    };
+
+    const VkResult vkResult = vkCreateRenderPass(device, &renderPassCreateInfo, nullptr, &renderPass);
+    axrLogVkResult(vkResult, "vkCreateRenderPass");
+    if (VK_FAILED(vkResult)) [[unlikely]] {
+        return AXR_ERROR_VULKAN_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+void AxrVulkanEnvironment::destroyRenderPass(const VkDevice& device, VkRenderPass& renderPass) {
+    if (renderPass == VK_NULL_HANDLE)
+        return;
+
+    vkDestroyRenderPass(device, renderPass, nullptr);
+    renderPass = VK_NULL_HANDLE;
+}

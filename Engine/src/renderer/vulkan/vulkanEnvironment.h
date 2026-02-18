@@ -28,10 +28,13 @@ public:
 
     struct DesktopContext {
         VkInstance Instance = VK_NULL_HANDLE;
+        VkDevice Device = VK_NULL_HANDLE;
         VkSurfaceKHR Surface = VK_NULL_HANDLE;
+        VkRenderPass RenderPass = VK_NULL_HANDLE;
         VkFormat SwapchainColorFormat = VK_FORMAT_UNDEFINED;
         VkFormat SwapchainDepthFormat = VK_FORMAT_UNDEFINED;
         VkColorSpaceKHR SwapchainColorSpace = VK_COLOR_SPACE_MAX_ENUM_KHR;
+        VkSampleCountFlagBits MsaaSampleCount = VK_SAMPLE_COUNT_1_BIT;
     };
 
     // ----------------------------------------- //
@@ -144,4 +147,23 @@ private:
                                                          VkImageTiling imageTiling,
                                                          VkFormatFeatureFlags features,
                                                          const VkPhysicalDevice& physicalDevice);
+
+    // ---- Renderpass ----
+
+    /// Create a render pass
+    /// @param device Device to use
+    /// @param colorFormat Color format to use
+    /// @param depthStencilFormat Depth stencil format to use
+    /// @param msaaSampleCount Msaa sample count
+    /// @param renderPass Output created render pass
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult createRenderPass(const VkDevice& device,
+                                                    VkFormat colorFormat,
+                                                    VkFormat depthStencilFormat,
+                                                    VkSampleCountFlagBits msaaSampleCount,
+                                                    VkRenderPass& renderPass);
+    /// Destroy the given render pass
+    /// @param device Device to use
+    /// @param renderPass Render pass to destroy
+    static void destroyRenderPass(const VkDevice& device, VkRenderPass& renderPass);
 };
