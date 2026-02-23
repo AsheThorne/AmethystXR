@@ -3,7 +3,7 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
-#include "../common/extensionArray.h"
+#include "../common/containers/extensionArray.h"
 #include "axr/common/defines.h"
 #include "axr/common/enums.h"
 #include "axr/lifecycle.h"

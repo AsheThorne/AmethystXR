@@ -4,8 +4,8 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
-#include "../../common/extensionArray.h"
-#include "../../common/vector_stack.h"
+#include "../../common/containers/extensionArray.h"
+#include "../../common/containers/vector_stack.h"
 #include "axr/vulkanApi.h"
 
 /// Vulkan Api Layers/Extensions related functions

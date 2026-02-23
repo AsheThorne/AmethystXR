@@ -4,7 +4,7 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
-#include "../../common/vector_stack.h"
+#include "../../common/containers/vector_stack.h"
 #include "axr/common/enums.h"
 
 #include <vulkan/vulkan_core.h>

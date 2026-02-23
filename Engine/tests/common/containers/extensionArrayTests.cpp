@@ -3,7 +3,7 @@
 // ----------------------------------------- //
 #include <gtest/gtest.h>
 
-#include "common/extensionArray.h"
+#include "common/containers/extensionArray.h"
 
 // ----------------------------------------- //
 // Types

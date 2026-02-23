@@ -3,7 +3,7 @@
 // ----------------------------------------- //
 #include <gtest/gtest.h>
 
-#include "common/array.h"
+#include "common/containers/array.h"
 
 TEST(AxrArray, Initialization) {
     struct TestData {

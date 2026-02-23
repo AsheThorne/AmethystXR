@@ -79,9 +79,10 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanEnvironment.cpp
     # ---- Common ----
     ${AXR_SRC_DIR}/common/enums.cpp
-    ${AXR_SRC_DIR}/common/array.h
-    ${AXR_SRC_DIR}/common/extensionArray.h
-    ${AXR_SRC_DIR}/common/vector_stack.h
+    # ---- Common - Containers ----
+    ${AXR_SRC_DIR}/common/containers/array.h
+    ${AXR_SRC_DIR}/common/containers/extensionArray.h
+    ${AXR_SRC_DIR}/common/containers/vector_stack.h
 )
 
 # ---------------------------------------------
@@ -181,10 +182,10 @@ set(AXR_TEST_FILES
     ${AXR_TEST_DIR}/memory/doubleStackAllocatorTests.cpp
     ${AXR_TEST_DIR}/memory/poolAllocatorTests.cpp
     ${AXR_TEST_DIR}/memory/utilsTests.cpp
-    # ---- Common ----
-    ${AXR_TEST_DIR}/common/arrayTests.cpp
-    ${AXR_TEST_DIR}/common/extensionArrayTests.cpp
-    ${AXR_TEST_DIR}/common/vector_stackTests.cpp
+    # ---- Common - Containers ----
+    ${AXR_TEST_DIR}/common/containers/arrayTests.cpp
+    ${AXR_TEST_DIR}/common/containers/extensionArrayTests.cpp
+    ${AXR_TEST_DIR}/common/containers/vector_stackTests.cpp
 )
 
 # ---------------------------------------------
