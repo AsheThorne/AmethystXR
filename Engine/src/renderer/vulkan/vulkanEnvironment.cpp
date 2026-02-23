@@ -1,3 +1,4 @@
+#ifdef AXR_VULKAN_SUPPORTED
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
@@ -407,3 +408,5 @@ void AxrVulkanEnvironment::destroyRenderPass(const VkDevice& device, VkRenderPas
     vkDestroyRenderPass(device, renderPass, nullptr);
     renderPass = VK_NULL_HANDLE;
 }
+
+#endif

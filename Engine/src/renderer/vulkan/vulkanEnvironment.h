@@ -1,4 +1,5 @@
 #pragma once
+#ifdef AXR_VULKAN_SUPPORTED
 
 // ----------------------------------------- //
 // Headers
@@ -167,3 +168,5 @@ private:
     /// @param renderPass Render pass to destroy
     static void destroyRenderPass(const VkDevice& device, VkRenderPass& renderPass);
 };
+
+#endif
