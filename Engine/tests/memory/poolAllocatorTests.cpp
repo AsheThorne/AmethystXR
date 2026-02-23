@@ -34,7 +34,7 @@ static void deallocateCallback(void*& memory) {
     memory = nullptr;
 };
 
-template<typename DataType, bool IsAligned>
+template<typename DataType>
 static void deallocatorCallback_Test() {
     bool wasDeallocated = false;
     {
@@ -48,21 +48,21 @@ static void deallocatorCallback_Test() {
         callback.connect<deallocateCallback>(&wasDeallocated);
 
         constexpr size_t chunkCount = 10;
-        constexpr size_t allocatorSize = (chunkCount * sizeof(DataType)) + (IsAligned ? alignof(DataType) : 0);
-        AxrPoolAllocator<DataType, IsAligned> allocator(malloc(allocatorSize), allocatorSize, callback);
+        constexpr size_t allocatorSize = (chunkCount * sizeof(DataType)) + alignof(DataType);
+        AxrPoolAllocator<DataType> allocator(malloc(allocatorSize), allocatorSize, callback);
     }
     ASSERT_TRUE(wasDeallocated);
 }
 
-template<typename DataType, bool IsAligned>
+template<typename DataType>
     requires std::equality_comparable<DataType>
 static void allocateOne_Test() {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
     constexpr size_t chunkCount = 10;
-    constexpr size_t allocatorSize = (chunkCount * sizeof(DataType)) + (IsAligned ? alignof(DataType) : 0);
-    AxrPoolAllocator<DataType, IsAligned> allocator(malloc(allocatorSize), allocatorSize, callback);
+    constexpr size_t allocatorSize = (chunkCount * sizeof(DataType)) + alignof(DataType);
+    AxrPoolAllocator<DataType> allocator(malloc(allocatorSize), allocatorSize, callback);
 
     DataType* outTestData = nullptr;
     const AxrResult axrResult = allocator.allocate(outTestData);
@@ -73,14 +73,14 @@ static void allocateOne_Test() {
     ASSERT_TRUE(*outTestData == DataType{});
 }
 
-template<typename DataType, bool IsAligned, size_t DataSize>
+template<typename DataType, size_t DataSize>
     requires std::equality_comparable<DataType>
 static void allocateAll_Test(const DataType* exampleTestDatas) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = (DataSize * sizeof(DataType)) + (IsAligned ? alignof(DataType) : 0);
-    AxrPoolAllocator<DataType, IsAligned> allocator(malloc(allocatorSize), allocatorSize, callback);
+    const size_t allocatorSize = (DataSize * sizeof(DataType)) + alignof(DataType);
+    AxrPoolAllocator<DataType> allocator(malloc(allocatorSize), allocatorSize, callback);
 
     DataType* outTestDatas[DataSize]{};
     for (int i = 0; i < DataSize; i++) {
@@ -102,14 +102,14 @@ static void allocateAll_Test(const DataType* exampleTestDatas) {
     ASSERT_TRUE(allocator.size() == allocator.chunkCapacity());
 }
 
-template<typename DataType, bool IsAligned>
+template<typename DataType>
 static void allocateTooMuch_Test() {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
     constexpr size_t chunkCount = 10;
-    constexpr size_t allocatorSize = (chunkCount * sizeof(DataType)) + (IsAligned ? alignof(DataType) : 0);
-    AxrPoolAllocator<DataType, IsAligned> allocator(malloc(allocatorSize), allocatorSize, callback);
+    constexpr size_t allocatorSize = (chunkCount * sizeof(DataType)) + alignof(DataType);
+    AxrPoolAllocator<DataType> allocator(malloc(allocatorSize), allocatorSize, callback);
 
     DataType* outTestDatas[chunkCount]{};
     for (DataType*& outTestData : outTestDatas) {
@@ -126,14 +126,14 @@ static void allocateTooMuch_Test() {
     ASSERT_TRUE(outTestData == nullptr);
 }
 
-template<typename DataType, bool IsAligned>
+template<typename DataType>
 static void allocateAllDeallocateTwoAllocateTwo_Test() {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
     constexpr size_t chunkCount = 10;
-    constexpr size_t allocatorSize = (chunkCount * sizeof(DataType)) + (IsAligned ? alignof(DataType) : 0);
-    AxrPoolAllocator<DataType, IsAligned> allocator(malloc(allocatorSize), allocatorSize, callback);
+    constexpr size_t allocatorSize = (chunkCount * sizeof(DataType)) + alignof(DataType);
+    AxrPoolAllocator<DataType> allocator(malloc(allocatorSize), allocatorSize, callback);
 
     auto allocate = [&allocator](DataType*& outTestData) -> void {
         const AxrResult axrResult = allocator.allocate(outTestData);
@@ -163,39 +163,23 @@ static void allocateAllDeallocateTwoAllocateTwo_Test() {
 // PoolAllocator Tests
 // ----------------------------------------- //
 
-TEST(PoolAllocator_TypeFitsPointer_Unaligned, DeallocatorCallback) {
-    deallocatorCallback_Test<TestData_Large, false>();
+TEST(PoolAllocator_TypeFitsPointer, DeallocatorCallback) {
+    deallocatorCallback_Test<TestData_Large>();
 }
 
-TEST(PoolAllocator_TypeSmallerThanPointer_Unaligned, DeallocatorCallback) {
-    deallocatorCallback_Test<TestData_Small, false>();
+TEST(PoolAllocator_TypeSmallerThanPointer, DeallocatorCallback) {
+    deallocatorCallback_Test<TestData_Small>();
 }
 
-TEST(PoolAllocator_TypeFitsPointer_Aligned, DeallocatorCallback) {
-    deallocatorCallback_Test<TestData_Large, true>();
+TEST(PoolAllocator_TypeFitsPointer, AllocateOne) {
+    allocateOne_Test<TestData_Large>();
 }
 
-TEST(PoolAllocator_TypeSmallerThanPointer_Aligned, DeallocatorCallback) {
-    deallocatorCallback_Test<TestData_Small, true>();
+TEST(PoolAllocator_TypeSmallerThanPointer, AllocateOne) {
+    allocateOne_Test<TestData_Small>();
 }
 
-TEST(PoolAllocator_TypeFitsPointer_Unaligned, AllocateOne) {
-    allocateOne_Test<TestData_Large, false>();
-}
-
-TEST(PoolAllocator_TypeSmallerThanPointer_Unaligned, AllocateOne) {
-    allocateOne_Test<TestData_Small, false>();
-}
-
-TEST(PoolAllocator_TypeFitsPointer_Aligned, AllocateOne) {
-    allocateOne_Test<TestData_Large, true>();
-}
-
-TEST(PoolAllocator_TypeSmallerThanPointer_Aligned, AllocateOne) {
-    allocateOne_Test<TestData_Small, true>();
-}
-
-TEST(PoolAllocator_TypeFitsPointer_Unaligned, AllocateAll) {
+TEST(PoolAllocator_TypeFitsPointer, AllocateAll) {
     constexpr size_t exampleTestDataCount = 5;
     constexpr TestData_Large exampleTestDatas[exampleTestDataCount]{
         TestData_Large{.ID = 1, .Data = {1, 2, 3, 4, 5, 6, 7}},
@@ -205,10 +189,10 @@ TEST(PoolAllocator_TypeFitsPointer_Unaligned, AllocateAll) {
         TestData_Large{.ID = 5, .Data = {9, 12, 11, 22, 22, 22, 77}},
     };
 
-    allocateAll_Test<TestData_Large, false, exampleTestDataCount>(exampleTestDatas);
+    allocateAll_Test<TestData_Large, exampleTestDataCount>(exampleTestDatas);
 }
 
-TEST(PoolAllocator_TypeSmallerThanPointer_Unaligned, AllocateAll) {
+TEST(PoolAllocator_TypeSmallerThanPointer, AllocateAll) {
     constexpr size_t exampleTestDataCount = 5;
     constexpr TestData_Small exampleTestDatas[exampleTestDataCount]{
         TestData_Small{16},
@@ -218,63 +202,21 @@ TEST(PoolAllocator_TypeSmallerThanPointer_Unaligned, AllocateAll) {
         TestData_Small{20},
     };
 
-    allocateAll_Test<TestData_Small, false, exampleTestDataCount>(exampleTestDatas);
+    allocateAll_Test<TestData_Small, exampleTestDataCount>(exampleTestDatas);
 }
 
-TEST(PoolAllocator_TypeFitsPointer_Aligned, AllocateAll) {
-    constexpr size_t exampleTestDataCount = 5;
-    constexpr TestData_Large exampleTestDatas[exampleTestDataCount]{
-        TestData_Large{.ID = 1, .Data = {1, 2, 3, 4, 5, 6, 7}},
-        TestData_Large{.ID = 2, .Data = {23, 32, 61, 12, 89, 14, 63}},
-        TestData_Large{.ID = 3, .Data = {323, 65, 344, 13, 87, 12, 34}},
-        TestData_Large{.ID = 4, .Data = {671, 12, 843, 41, 1, 26, 845}},
-        TestData_Large{.ID = 5, .Data = {9, 12, 11, 22, 22, 22, 77}},
-    };
-
-    allocateAll_Test<TestData_Large, true, exampleTestDataCount>(exampleTestDatas);
+TEST(PoolAllocator_TypeFitsPointer, AllocateTooMuch) {
+    allocateTooMuch_Test<TestData_Large>();
 }
 
-TEST(PoolAllocator_TypeSmallerThanPointer_Aligned, AllocateAll) {
-    constexpr size_t exampleTestDataCount = 5;
-    constexpr TestData_Small exampleTestDatas[exampleTestDataCount]{
-        TestData_Small{16},
-        TestData_Small{17},
-        TestData_Small{18},
-        TestData_Small{19},
-        TestData_Small{20},
-    };
-
-    allocateAll_Test<TestData_Small, true, exampleTestDataCount>(exampleTestDatas);
+TEST(PoolAllocator_TypeSmallerThanPointer, AllocateTooMuch) {
+    allocateTooMuch_Test<TestData_Small>();
 }
 
-TEST(PoolAllocator_TypeFitsPointer_Unaligned, AllocateTooMuch) {
-    allocateTooMuch_Test<TestData_Large, false>();
+TEST(PoolAllocator_TypeFitsPointer, AllocateAllDeallocateTwoAllocateTwo) {
+    allocateAllDeallocateTwoAllocateTwo_Test<TestData_Large>();
 }
 
-TEST(PoolAllocator_TypeSmallerThanPointer_Unaligned, AllocateTooMuch) {
-    allocateTooMuch_Test<TestData_Small, false>();
-}
-
-TEST(PoolAllocator_TypeFitsPointer_Aligned, AllocateTooMuch) {
-    allocateTooMuch_Test<TestData_Large, true>();
-}
-
-TEST(PoolAllocator_TypeSmallerThanPointer_Aligned, AllocateTooMuch) {
-    allocateTooMuch_Test<TestData_Small, true>();
-}
-
-TEST(PoolAllocator_TypeFitsPointer_Unaligned, AllocateAllDeallocateTwoAllocateTwo) {
-    allocateAllDeallocateTwoAllocateTwo_Test<TestData_Large, false>();
-}
-
-TEST(PoolAllocator_TypeSmallerThanPointer_Unaligned, AllocateAllDeallocateTwoAllocateTwo) {
-    allocateAllDeallocateTwoAllocateTwo_Test<TestData_Small, false>();
-}
-
-TEST(PoolAllocator_TypeFitsPointer_Aligned, AllocateAllDeallocateTwoAllocateTwo) {
-    allocateAllDeallocateTwoAllocateTwo_Test<TestData_Large, true>();
-}
-
-TEST(PoolAllocator_TypeSmallerThanPointer_Aligned, AllocateAllDeallocateTwoAllocateTwo) {
-    allocateAllDeallocateTwoAllocateTwo_Test<TestData_Small, true>();
+TEST(PoolAllocator_TypeSmallerThanPointer, AllocateAllDeallocateTwoAllocateTwo) {
+    allocateAllDeallocateTwoAllocateTwo_Test<TestData_Small>();
 }

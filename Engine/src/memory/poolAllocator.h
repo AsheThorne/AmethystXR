@@ -7,14 +7,12 @@
 #include "axr/logging.h"
 #include "subAllocatorBase.h"
 #include "types.h"
-#include "utils.h"
 
 #include <cassert>
 
 /// Pool Allocator
 /// @tparam Type The type of object this pool holds
-/// @tparam IsAligned Weather to align addresses optimally (Requires more memory but is better for performance)
-template<typename Type, bool IsAligned>
+template<typename Type>
 class AxrPoolAllocator;
 
 // ---------------------------------------------------------------------------------- //
@@ -23,10 +21,9 @@ class AxrPoolAllocator;
 
 /// Pool Allocator where T is big enough to fit a 'next' pointer
 /// @tparam Type The type of object this pool holds
-/// @tparam IsAligned Weather to align addresses optimally (Requires more memory but is better for performance)
-template<typename Type, bool IsAligned>
-    requires((IsAligned ? sizeof(Type) + alignof(Type) : sizeof(Type)) >= sizeof(void*))
-class AxrPoolAllocator<Type, IsAligned> : public AxrSubAllocatorBase {
+template<typename Type>
+    requires(sizeof(Type) + alignof(Type) >= sizeof(void*))
+class AxrPoolAllocator<Type> : public AxrSubAllocatorBase_Aligned<Type> {
 public:
     // ----------------------------------------- //
     // Special Functions
@@ -43,16 +40,11 @@ public:
     /// @param deallocator A function pointer to use when we're done with the given memory block and wish to deallocate
     /// it
     AxrPoolAllocator(void* memory, const size_t size, const AxrDeallocateBlock& deallocator) :
-        AxrSubAllocatorBase(memory, size, deallocator) {
-        assert((m_Capacity - (IsAligned ? alignof(Type) : 0)) % sizeof(Type) == 0);
+        AxrSubAllocatorBase_Aligned<Type>(memory, size, deallocator) {
+        assert(AxrSubAllocatorBase::m_Capacity % sizeof(Type) == 0);
 
-        if (IsAligned) {
-            m_Memory = static_cast<uint8_t*>(axrAlignMemory(m_Memory, alignof(Type)));
-            m_Capacity = m_Capacity - alignof(Type);
-        }
-
-        m_ChunkCapacity = m_Capacity / sizeof(Type);
-        m_FreeChunksHead = reinterpret_cast<Chunk*>(m_Memory);
+        m_ChunkCapacity = AxrSubAllocatorBase::m_Capacity / sizeof(Type);
+        m_FreeChunksHead = reinterpret_cast<Chunk*>(AxrSubAllocatorBase::m_Memory);
 
         chainAllChunks();
     }
@@ -64,7 +56,7 @@ public:
     /// Move Constructor
     /// @param src Source AxrPoolAllocator to move from
     AxrPoolAllocator(AxrPoolAllocator&& src) noexcept :
-        AxrSubAllocatorBase(std::move(src)) {
+        AxrSubAllocatorBase_Aligned<Type>(std::move(src)) {
         m_FreeChunksHead = src.m_FreeChunksHead;
         m_ChunkCapacity = src.m_ChunkCapacity;
         m_UsedChunkCount = src.m_UsedChunkCount;
@@ -93,7 +85,7 @@ public:
         if (this != &src) {
             cleanup();
 
-            AxrSubAllocatorBase::operator=(std::move(src));
+            AxrSubAllocatorBase_Aligned<Type>::operator=(std::move(src));
 
             m_FreeChunksHead = src.m_FreeChunksHead;
             m_ChunkCapacity = src.m_ChunkCapacity;
@@ -147,7 +139,7 @@ public:
     /// Clear the pool and mark all chunks as free
     void clear() {
         m_UsedChunkCount = 0;
-        m_FreeChunksHead = reinterpret_cast<Chunk*>(m_Memory);
+        m_FreeChunksHead = reinterpret_cast<Chunk*>(AxrSubAllocatorBase::m_Memory);
         chainAllChunks();
     }
 
@@ -192,11 +184,7 @@ protected:
 
     /// Clean up this class
     void cleanup() {
-        if (IsAligned) {
-            m_Memory = axrUnalignMemory(m_Memory);
-        }
-
-        AxrSubAllocatorBase::cleanup();
+        AxrSubAllocatorBase_Aligned<Type>::cleanup();
 
         m_FreeChunksHead = {};
         m_ChunkCapacity = {};
@@ -205,10 +193,10 @@ protected:
 
     /// Chain together all chunks, marking them all as free to use
     void chainAllChunks() {
-        if (m_Memory == nullptr)
+        if (AxrSubAllocatorBase::m_Memory == nullptr)
             return;
 
-        auto currentChunk = reinterpret_cast<Chunk*>(m_Memory);
+        auto currentChunk = reinterpret_cast<Chunk*>(AxrSubAllocatorBase::m_Memory);
         for (int i = 0; i < m_ChunkCapacity - 1; ++i) {
             currentChunk->Next = reinterpret_cast<Chunk*>(reinterpret_cast<uint8_t*>(currentChunk) + sizeof(Type));
             currentChunk = currentChunk->Next;
@@ -258,10 +246,9 @@ struct AxrPoolAllocatorChunkIndexTraits<T> {
 
 /// Pool Allocator where T is smaller than a pointer
 /// @tparam Type The type of object this pool holds
-/// @tparam IsAligned Weather to align addresses optimally (Requires more memory but is better for performance)
-template<typename Type, bool IsAligned>
-    requires((IsAligned ? sizeof(Type) + alignof(Type) : sizeof(Type)) < sizeof(void*))
-class AxrPoolAllocator<Type, IsAligned> : public AxrSubAllocatorBase {
+template<typename Type>
+    requires(sizeof(Type) + alignof(Type) < sizeof(void*))
+class AxrPoolAllocator<Type> : public AxrSubAllocatorBase_Aligned<Type> {
 public:
     // ----------------------------------------- //
     // Types
@@ -285,15 +272,10 @@ public:
     /// @param deallocator A function pointer to use when we're done with the given memory block and wish to deallocate
     /// it
     AxrPoolAllocator(void* memory, const size_t size, const AxrDeallocateBlock& deallocator) :
-        AxrSubAllocatorBase(memory, size, deallocator) {
-        assert((m_Capacity - (IsAligned ? alignof(Type) : 0)) % sizeof(Type) == 0);
+        AxrSubAllocatorBase_Aligned<Type>(memory, size, deallocator) {
+        assert(AxrSubAllocatorBase::m_Capacity % sizeof(Type) == 0);
 
-        if (IsAligned) {
-            m_Memory = static_cast<uint8_t*>(axrAlignMemory(m_Memory, alignof(Type)));
-            m_Capacity = m_Capacity - alignof(Type);
-        }
-
-        m_ChunkCapacity = m_Capacity / sizeof(Type);
+        m_ChunkCapacity = AxrSubAllocatorBase::m_Capacity / sizeof(Type);
         m_FreeChunksHeadIndex = 0;
 
         assert(m_ChunkCapacity <= ChunkIndexTraits::Max);
@@ -308,7 +290,7 @@ public:
     /// Move Constructor
     /// @param src Source AxrPoolAllocator to move from
     AxrPoolAllocator(AxrPoolAllocator&& src) noexcept :
-        AxrSubAllocatorBase(std::move(src)) {
+        AxrSubAllocatorBase_Aligned<Type>(std::move(src)) {
         m_FreeChunksHeadIndex = src.m_FreeChunksHeadIndex;
         m_ChunkCapacity = src.m_ChunkCapacity;
         m_UsedChunkCount = src.m_UsedChunkCount;
@@ -337,7 +319,7 @@ public:
         if (this != &src) {
             cleanup();
 
-            AxrSubAllocatorBase::operator=(std::move(src));
+            AxrSubAllocatorBase_Aligned<Type>::operator=(std::move(src));
 
             m_FreeChunksHeadIndex = src.m_FreeChunksHeadIndex;
             m_ChunkCapacity = src.m_ChunkCapacity;
@@ -379,7 +361,7 @@ public:
     /// Return the given memory back to the pool
     /// @param memory Memory to return to the pool
     void deallocate(Type*& memory) {
-        const auto index = static_cast<ChunkIndexTraits::Type>((memory - m_Memory) / sizeof(Type));
+        const auto index = static_cast<ChunkIndexTraits::Type>((memory - AxrSubAllocatorBase::m_Memory) / sizeof(Type));
 
         at(index) = m_FreeChunksHeadIndex;
         m_FreeChunksHeadIndex = index;
@@ -427,11 +409,7 @@ private:
 
     /// Clean up this class
     void cleanup() {
-        if (IsAligned) {
-            m_Memory = axrUnalignMemory(m_Memory);
-        }
-
-        AxrSubAllocatorBase::cleanup();
+        AxrSubAllocatorBase_Aligned<Type>::cleanup();
 
         m_FreeChunksHeadIndex = {};
         m_ChunkCapacity = {};
@@ -440,7 +418,7 @@ private:
 
     /// Chain together all chunks, marking them all as free to use
     void chainAllChunks() {
-        if (m_Memory == nullptr)
+        if (AxrSubAllocatorBase::m_Memory == nullptr)
             return;
 
         Type* chunk = nullptr;
@@ -467,6 +445,6 @@ private:
     /// Get the data within memory at the given index
     /// @param index Item index
     Type* ptrAt(ChunkIndexTraits::Type index) const {
-        return m_Memory + (index * sizeof(Type));
+        return AxrSubAllocatorBase::m_Memory + (index * sizeof(Type));
     }
 };
