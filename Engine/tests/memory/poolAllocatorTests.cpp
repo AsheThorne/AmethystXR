@@ -48,7 +48,7 @@ static void deallocatorCallback_Test() {
         callback.connect<deallocateCallback>(&wasDeallocated);
 
         constexpr size_t chunkCount = 10;
-        constexpr size_t allocatorSize = chunkCount * (sizeof(DataType) + (IsAligned ? alignof(DataType) : 0));
+        constexpr size_t allocatorSize = (chunkCount * sizeof(DataType)) + (IsAligned ? alignof(DataType) : 0);
         AxrPoolAllocator<DataType, IsAligned> allocator(malloc(allocatorSize), allocatorSize, callback);
     }
     ASSERT_TRUE(wasDeallocated);
@@ -61,7 +61,7 @@ static void allocateOne_Test() {
     callback.connect<deallocateCallback>();
 
     constexpr size_t chunkCount = 10;
-    constexpr size_t allocatorSize = chunkCount * (sizeof(DataType) + (IsAligned ? alignof(DataType) : 0));
+    constexpr size_t allocatorSize = (chunkCount * sizeof(DataType)) + (IsAligned ? alignof(DataType) : 0);
     AxrPoolAllocator<DataType, IsAligned> allocator(malloc(allocatorSize), allocatorSize, callback);
 
     DataType* outTestData = nullptr;
@@ -79,7 +79,7 @@ static void allocateAll_Test(const DataType* exampleTestDatas) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = DataSize * (sizeof(DataType) + (IsAligned ? alignof(DataType) : 0));
+    const size_t allocatorSize = (DataSize * sizeof(DataType)) + (IsAligned ? alignof(DataType) : 0);
     AxrPoolAllocator<DataType, IsAligned> allocator(malloc(allocatorSize), allocatorSize, callback);
 
     DataType* outTestDatas[DataSize]{};
@@ -108,7 +108,7 @@ static void allocateTooMuch_Test() {
     callback.connect<deallocateCallback>();
 
     constexpr size_t chunkCount = 10;
-    constexpr size_t allocatorSize = chunkCount * (sizeof(DataType) + (IsAligned ? alignof(DataType) : 0));
+    constexpr size_t allocatorSize = (chunkCount * sizeof(DataType)) + (IsAligned ? alignof(DataType) : 0);
     AxrPoolAllocator<DataType, IsAligned> allocator(malloc(allocatorSize), allocatorSize, callback);
 
     DataType* outTestDatas[chunkCount]{};
@@ -132,7 +132,7 @@ static void allocateAllDeallocateTwoAllocateTwo_Test() {
     callback.connect<deallocateCallback>();
 
     constexpr size_t chunkCount = 10;
-    constexpr size_t allocatorSize = chunkCount * (sizeof(DataType) + (IsAligned ? alignof(DataType) : 0));
+    constexpr size_t allocatorSize = (chunkCount * sizeof(DataType)) + (IsAligned ? alignof(DataType) : 0);
     AxrPoolAllocator<DataType, IsAligned> allocator(malloc(allocatorSize), allocatorSize, callback);
 
     auto allocate = [&allocator](DataType*& outTestData) -> void {

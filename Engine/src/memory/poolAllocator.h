@@ -34,6 +34,9 @@ public:
 
     // ---- Constructors ----
 
+    /// Default Constructor
+    AxrPoolAllocator() = default;
+
     /// Constructor
     /// @param memory A pointer to the block of memory this allocator has access to
     /// @param size The number of bytes the given block of memory has
@@ -41,9 +44,14 @@ public:
     /// it
     AxrPoolAllocator(void* memory, const size_t size, const AxrDeallocateBlock& deallocator) :
         AxrSubAllocatorBase(memory, size, deallocator) {
-        assert(size % getChunkSize() == 0);
+        assert((m_Capacity - (IsAligned ? alignof(Type) : 0)) % sizeof(Type) == 0);
 
-        m_ChunkCapacity = size / getChunkSize();
+        if (IsAligned) {
+            m_Memory = static_cast<uint8_t*>(axrAlignMemory(m_Memory, alignof(Type)));
+            m_Capacity = m_Capacity - alignof(Type);
+        }
+
+        m_ChunkCapacity = m_Capacity / sizeof(Type);
         m_FreeChunksHead = reinterpret_cast<Chunk*>(m_Memory);
 
         chainAllChunks();
@@ -116,11 +124,7 @@ public:
         Type* chunk = reinterpret_cast<Type*>(m_FreeChunksHead);
         m_FreeChunksHead = m_FreeChunksHead->Next;
         // TODO (Ashe): Make zeroing out memory optional maybe. Possibly with a flag
-        std::memset(chunk, 0, getChunkSize());
-
-        if (IsAligned) {
-            chunk = axrAlignMemory(chunk);
-        }
+        std::memset(chunk, 0, sizeof(Type));
 
         memory = chunk;
         m_UsedChunkCount++;
@@ -131,14 +135,10 @@ public:
     /// Return the given memory back to the pool
     /// @param memory Memory to return to the pool
     void deallocate(Type*& memory) {
-        Type* chunk = memory;
-        if (IsAligned) {
-            chunk = axrUnalignMemory(chunk);
-        }
-        auto chunkCasted = reinterpret_cast<Chunk*>(chunk);
+        auto chunk = reinterpret_cast<Chunk*>(memory);
 
-        chunkCasted->Next = m_FreeChunksHead;
-        m_FreeChunksHead = chunkCasted;
+        chunk->Next = m_FreeChunksHead;
+        m_FreeChunksHead = chunk;
         memory = nullptr;
 
         m_UsedChunkCount--;
@@ -192,6 +192,10 @@ protected:
 
     /// Clean up this class
     void cleanup() {
+        if (IsAligned) {
+            m_Memory = axrUnalignMemory(m_Memory);
+        }
+
         AxrSubAllocatorBase::cleanup();
 
         m_FreeChunksHead = {};
@@ -206,19 +210,10 @@ protected:
 
         auto currentChunk = reinterpret_cast<Chunk*>(m_Memory);
         for (int i = 0; i < m_ChunkCapacity - 1; ++i) {
-            currentChunk->Next = reinterpret_cast<Chunk*>(reinterpret_cast<uint8_t*>(currentChunk) + getChunkSize());
+            currentChunk->Next = reinterpret_cast<Chunk*>(reinterpret_cast<uint8_t*>(currentChunk) + sizeof(Type));
             currentChunk = currentChunk->Next;
         }
         currentChunk->Next = nullptr;
-    }
-
-    /// Get the size of a single chunk
-    /// @return The size of a single chunk
-    static size_t getChunkSize() {
-        if (IsAligned) {
-            return sizeof(Type) + alignof(Type);
-        }
-        return sizeof(Type);
     }
 };
 
@@ -281,6 +276,9 @@ public:
 
     // ---- Constructors ----
 
+    /// Default Constructor
+    AxrPoolAllocator() = default;
+
     /// Constructor
     /// @param memory A pointer to the block of memory this allocator has access to
     /// @param size The number of bytes the given block of memory has
@@ -288,9 +286,14 @@ public:
     /// it
     AxrPoolAllocator(void* memory, const size_t size, const AxrDeallocateBlock& deallocator) :
         AxrSubAllocatorBase(memory, size, deallocator) {
-        assert(size % getChunkSize() == 0);
+        assert((m_Capacity - (IsAligned ? alignof(Type) : 0)) % sizeof(Type) == 0);
 
-        m_ChunkCapacity = size / getChunkSize();
+        if (IsAligned) {
+            m_Memory = static_cast<uint8_t*>(axrAlignMemory(m_Memory, alignof(Type)));
+            m_Capacity = m_Capacity - alignof(Type);
+        }
+
+        m_ChunkCapacity = m_Capacity / sizeof(Type);
         m_FreeChunksHeadIndex = 0;
 
         assert(m_ChunkCapacity <= ChunkIndexTraits::Max);
@@ -365,11 +368,7 @@ public:
         Type* chunk = ptrAt(m_FreeChunksHeadIndex);
         m_FreeChunksHeadIndex = at(m_FreeChunksHeadIndex);
         // TODO (Ashe): Make zeroing out memory optional maybe. Possibly with a flag
-        std::memset(chunk, 0, getChunkSize());
-
-        if (IsAligned) {
-            chunk = axrAlignMemory(chunk);
-        }
+        std::memset(chunk, 0, sizeof(Type));
 
         memory = chunk;
         m_UsedChunkCount++;
@@ -380,11 +379,7 @@ public:
     /// Return the given memory back to the pool
     /// @param memory Memory to return to the pool
     void deallocate(Type*& memory) {
-        uint8_t* chunk = memory;
-        if (IsAligned) {
-            chunk = axrUnalignMemory(chunk);
-        }
-        const auto index = static_cast<ChunkIndexTraits::Type>((chunk - m_Memory) / getChunkSize());
+        const auto index = static_cast<ChunkIndexTraits::Type>((memory - m_Memory) / sizeof(Type));
 
         at(index) = m_FreeChunksHeadIndex;
         m_FreeChunksHeadIndex = index;
@@ -432,6 +427,10 @@ private:
 
     /// Clean up this class
     void cleanup() {
+        if (IsAligned) {
+            m_Memory = axrUnalignMemory(m_Memory);
+        }
+
         AxrSubAllocatorBase::cleanup();
 
         m_FreeChunksHeadIndex = {};
@@ -468,15 +467,6 @@ private:
     /// Get the data within memory at the given index
     /// @param index Item index
     Type* ptrAt(ChunkIndexTraits::Type index) const {
-        return m_Memory + (index * getChunkSize());
-    }
-
-    /// Get the size of a single chunk
-    /// @return The size of a single chunk
-    static size_t getChunkSize() {
-        if (IsAligned) {
-            return sizeof(Type) + alignof(Type);
-        }
-        return sizeof(Type);
+        return m_Memory + (index * sizeof(Type));
     }
 };
