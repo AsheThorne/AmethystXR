@@ -472,6 +472,63 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     testRedBlackTreeNodes<TestData_T>(&node18, tree.find(node18.Data));
 }
 
+TEST(AxrRedBlackTree_Pool, ForLoop_Increment) {
+    using TestData_T = uint32_t;
+    using Node_T = AxrRedBlackTree_Pool<TestData_T>::Node;
+    constexpr uint32_t capacity = 100;
+
+    AxrDeallocateBlock callback;
+    callback.connect<deallocateCallback>();
+
+    constexpr size_t allocatorSize = (sizeof(Node_T) * capacity) + alignof(Node_T);
+    void* memory = malloc(allocatorSize);
+    AxrPoolAllocator<Node_T> allocator(memory, allocatorSize, callback);
+
+    AxrRedBlackTree_Pool<TestData_T> tree(&allocator);
+    ASSERT_TRUE(tree.empty());
+
+    for (uint32_t i = 0; i < capacity; ++i) {
+        tree.insert(i + 1);
+    }
+
+    uint32_t currentValue = 1;
+    for (AxrRedBlackTree_Pool<TestData_T>::Node::Iterator begin = tree.begin(), end = tree.end(); begin != end;
+         ++begin) {
+        const AxrRedBlackTree_Pool<TestData_T>::NodeData data = *begin;
+        ASSERT_TRUE(data.Value == currentValue);
+        ASSERT_TRUE(data.Count == 1);
+        ++currentValue;
+    }
+}
+
+TEST(AxrRedBlackTree_Pool, ForLoop_Decrement) {
+    using TestData_T = uint32_t;
+    using Node_T = AxrRedBlackTree_Pool<TestData_T>::Node;
+    constexpr uint32_t capacity = 100;
+
+    AxrDeallocateBlock callback;
+    callback.connect<deallocateCallback>();
+
+    constexpr size_t allocatorSize = (sizeof(Node_T) * capacity) + alignof(Node_T);
+    void* memory = malloc(allocatorSize);
+    AxrPoolAllocator<Node_T> allocator(memory, allocatorSize, callback);
+
+    AxrRedBlackTree_Pool<TestData_T> tree(&allocator);
+    ASSERT_TRUE(tree.empty());
+
+    for (uint32_t i = 0; i < capacity; ++i) {
+        tree.insert(i + 1);
+    }
+
+    uint32_t currentValue = 100;
+    for (AxrRedBlackTree_Pool<TestData_T>::Node::Iterator end = tree.end(), begin = tree.begin(); begin != end; --end) {
+        const AxrRedBlackTree_Pool<TestData_T>::NodeData data = *end;
+        ASSERT_TRUE(data.Value == currentValue);
+        ASSERT_TRUE(data.Count == 1);
+        --currentValue;
+    }
+}
+
 TEST(AxrRedBlackTree_Pool, Insert_Duplicate) {
     using TestData_T = uint32_t;
     using Node_T = AxrRedBlackTree_Pool<TestData_T>::Node;
@@ -488,15 +545,15 @@ TEST(AxrRedBlackTree_Pool, Insert_Duplicate) {
     ASSERT_TRUE(tree.empty());
 
     // Tree should look like this:
-    //                                 63B
-    //                  /                             \
-    //                 6R                            287B
-    //          /             \                  /         \
-    //         1B             43B               80R        987R
-    //       /    \      /          \         /    \      /    \
-    //     5R    Null   12R         51R     Null  Null  Null  Null
-    //   /   \         /   \       /   \
-    // Null  Null    Null  Null  Null  Null
+    //                                   63B
+    //                   /                                  \
+    //                  6R                                 287B
+    //          /                   \                  /         \
+    //         1B                   43B               80R        987R
+    //       /    \            /          \         /    \      /    \
+    //     Null    5R         12R         51R     Null  Null  Null  Null
+    //           /   \       /   \       /   \
+    //         Null  Null  Null  Null  Null  Null
 
     Node_T node1{};
     node1.Count = 2;
@@ -635,15 +692,15 @@ TEST(AxrRedBlackTree_Pool, Insert_TooMany) {
     ASSERT_TRUE(tree.empty());
 
     // Tree should look like this:
-    //                                 63B
-    //                  /                             \
-    //                 6R                            287B
-    //          /             \                  /         \
-    //         1B             43B               80R        987R
-    //       /    \      /          \         /    \      /    \
-    //     5R    Null   12R         51R     Null  Null  Null  Null
-    //   /   \         /   \       /   \
-    // Null  Null    Null  Null  Null  Null
+    //                                   63B
+    //                   /                                  \
+    //                  6R                                 287B
+    //          /                   \                  /         \
+    //         1B                   43B               80R        987R
+    //       /    \            /          \         /    \      /    \
+    //     Null    5R         12R         51R     Null  Null  Null  Null
+    //           /   \       /   \       /   \
+    //         Null  Null  Null  Null  Null  Null
 
     Node_T node1{};
     node1.Count = 1;
@@ -1136,15 +1193,15 @@ TEST(AxrRedBlackTree_Pool, Remove_Duplicate) {
     ASSERT_TRUE(tree.empty());
 
     // Tree should look like this:
-    //                                 63B
-    //                  /                             \
-    //                 6R                            287B
-    //          /             \                  /         \
-    //         1B             43B               80R        987R
-    //       /    \      /          \         /    \      /    \
-    //     5R    Null   12R         51R     Null  Null  Null  Null
-    //   /   \         /   \       /   \
-    // Null  Null    Null  Null  Null  Null
+    //                                   63B
+    //                   /                                  \
+    //                  6R                                 287B
+    //          /                   \                  /         \
+    //         1B                   43B               80R        987R
+    //       /    \            /          \         /    \      /    \
+    //     Null    5R         12R         51R     Null  Null  Null  Null
+    //           /   \       /   \       /   \
+    //         Null  Null  Null  Null  Null  Null
 
     Node_T node1{};
     node1.Count = 2;

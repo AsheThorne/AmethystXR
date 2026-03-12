@@ -14,6 +14,11 @@ public:
     // Node
     // ----------------------------------------- //
 
+    struct NodeData {
+        const Type& Value;
+        uint32_t Count;
+    };
+
     class Node {
     public:
         // ----------------------------------------- //
@@ -58,7 +63,7 @@ public:
         /// Check if this node is on the right of the binary tree
         /// @return True if this node is on the right of the binary tree
         bool isRightNode() {
-            return !isLeftNode();
+            return Parent != nullptr && this == Parent->Right;
         }
 
         /// Get the uncle node relative to this node
@@ -94,6 +99,126 @@ public:
         bool hasRedChild() {
             return (Left != nullptr && Left->IsRed) || (Right != nullptr && Right->IsRed);
         }
+
+        // ----------------------------------------- //
+        // Node Iterator
+        // ----------------------------------------- //
+        class Iterator {
+        public:
+            // ----------------------------------------- //
+            // Special Functions
+            // ----------------------------------------- //
+
+            // ---- Constructors ----
+
+            /// Constructor
+            explicit Iterator(Node* node) :
+                m_Node(node) {
+                assert(m_Node != nullptr);
+            }
+
+            // ---- Operator Overloads ----
+
+            /// Prefix increment operator overload
+            /// @return The iterator, incremented by 1
+            Iterator& operator++() {
+                // First, we try finding the node's successor
+                if (m_Node->Right != nullptr) {
+                    Node* currentNode = m_Node->Right;
+                    while (currentNode->Left != nullptr) {
+                        currentNode = currentNode->Left;
+                    }
+                    m_Node = currentNode;
+                    return *this;
+                }
+
+                // If there's no successor, then the next node in the sequence will be the parent of the next left
+                // parent node
+                Node* currentNode = m_Node;
+                while (currentNode->isRightNode()) {
+                    currentNode = currentNode->Parent;
+                }
+                if (currentNode != nullptr) {
+                    m_Node = currentNode->Parent;
+                    return *this;
+                }
+
+                // If we get here, then we've reached the end of the tree. Don't modify the node
+                return *this;
+            }
+
+            /// Postfix increment operator overload
+            /// @return the current iterator, before incrementing it by 1
+            Iterator operator++(int) {
+                Iterator returnValue = *this;
+                operator++();
+
+                return returnValue;
+            }
+
+            /// Prefix decrement operator overload
+            /// @return The iterator, decremented by 1
+            Iterator& operator--() {
+                // First, we try finding the node's predecessor
+                if (m_Node->Left != nullptr) {
+                    Node* currentNode = m_Node->Left;
+                    while (currentNode->Right != nullptr) {
+                        currentNode = currentNode->Right;
+                    }
+                    m_Node = currentNode;
+                    return *this;
+                }
+
+                // If there's no predecessor, then the next node in the sequence will be the parent of the next right
+                // parent node
+                Node* currentNode = m_Node;
+                while (currentNode->isLeftNode()) {
+                    currentNode = currentNode->Parent;
+                }
+                if (currentNode != nullptr) {
+                    m_Node = currentNode->Parent;
+                    return *this;
+                }
+
+                // If we get here, then we've reached the end of the tree. Don't modify the node
+                return *this;
+            }
+
+            /// Postfix decrement operator overload
+            /// @return the current iterator, before decrementing it by 1
+            Iterator operator--(int) {
+                Iterator returnValue = *this;
+                operator--();
+
+                return returnValue;
+            }
+
+            /// Equality operator overload
+            /// @other Iterator to compare against
+            /// @return True if both iterators point to the same node
+            bool operator==(const Iterator& other) const {
+                return m_Node == other.m_Node;
+            }
+
+            /// Inequality operator overload
+            /// @other Iterator to compare against
+            /// @return True if both iterators point to different nodes
+            bool operator!=(const Iterator& other) const {
+                return !(*this == other);
+            }
+
+            /// Get the underlining data for this iterator
+            /// @return The underlining data for this iterator
+            NodeData operator*() const {
+                return NodeData{.Value = m_Node->Data, .Count = m_Node->Count};
+            }
+
+        private:
+            // ----------------------------------------- //
+            // Private Variables
+            // ----------------------------------------- //
+            Node* m_Node;
+        };
     };
 
     // ----------------------------------------- //
@@ -164,29 +289,6 @@ public:
     /// Find the node with the given data
     /// @param data Data to search for
     /// @return The node with the given data. Or nullptr if the data wasn't found.
-    // TODO: We don't want the node to be editable by anyone outside this class. only this class should be able to edit
-    //  the node. but for testing, we want information like the node color so we're just returning the whole thing for
-    //  now. The only thing that should be publicly editable is the data.
-    //  -
-    //  Probably have a public findNode() which returns a const Node*. Then a private findNode which isn't const. Then
-    //  the regular find() functions return an iterator
-    [[nodiscard]] Node* find(const Type& data) {
-        Node* currentNode = m_RootNode;
-
-        while (currentNode != nullptr && currentNode->Data != data) {
-            if (data < currentNode->Data) {
-                currentNode = currentNode->Left;
-            } else {
-                currentNode = currentNode->Right;
-            }
-        }
-
-        return currentNode;
-    }
-
-    /// Find the node with the given data
-    /// @param data Data to search for
-    /// @return The node with the given data. Or nullptr if the data wasn't found.
     [[nodiscard]] const Node* find(const Type& data) const {
         Node* currentNode = m_RootNode;
 
@@ -233,7 +335,7 @@ public:
         // Red black tree deletion algorithm reference:
         // https://www.geeksforgeeks.org/dsa/deletion-in-red-black-tree/
 
-        Node* node = find(data);
+        Node* node = findNode(data);
         if (node == nullptr) {
             return;
         }
@@ -288,10 +390,29 @@ public:
         m_Size = 0;
     }
 
-    // TODO: Create begin() and end() functions to enable use in foreach loops. Start from the smallest value, end at
-    //  the largest value.
-    //  But what do we do about duplicate items? Probably just include a function in the iterator to get it. like so:
-    //  iterator->getCount();
+    /// Get the beginning iterator
+    /// @return The beginning iterator
+    Node::Iterator begin() const {
+        Node* currentNode = m_RootNode;
+
+        while (currentNode->Left != nullptr) {
+            currentNode = currentNode->Left;
+        }
+
+        return typename Node::Iterator(currentNode);
+    }
+
+    /// Get the end iterator
+    /// @return The end iterator
+    Node::Iterator end() const {
+        Node* currentNode = m_RootNode;
+
+        while (currentNode->Right != nullptr) {
+            currentNode = currentNode->Right;
+        }
+
+        return typename Node::Iterator(currentNode);
+    }
 
     /// Check if this red black tree is empty
     /// @return True if this red black tree is empty
@@ -324,6 +445,23 @@ private:
         m_PoolAllocator = {};
         m_RootNode = {};
         m_Size = {};
+    }
+
+    /// Find the node with the given data
+    /// @param data Data to search for
+    /// @return The node with the given data. Or nullptr if the data wasn't found.
+    [[nodiscard]] Node* findNode(const Type& data) {
+        Node* currentNode = m_RootNode;
+
+        while (currentNode != nullptr && currentNode->Data != data) {
+            if (data < currentNode->Data) {
+                currentNode = currentNode->Left;
+            } else {
+                currentNode = currentNode->Right;
+            }
+        }
+
+        return currentNode;
     }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to perform a standard bst insertion for the red black tree. "
