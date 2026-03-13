@@ -322,6 +322,7 @@ public:
         m_RootNode->IsRed = false;
     }
 
+#define AXR_FUNCTION_FAILED_STRING "Failed to remove data from the red black tree. "
     /// Remove data from the tree
     /// @param data Data to remove
     void remove(const Type& data) {
@@ -613,15 +614,61 @@ private:
         b->IsRed = temp;
     };
 
-    /// Swap the data between node a and b
+    /// Swap the nodes within the tree between node a and b
     /// @param a First node
     /// @param b Second node
-    static void swapData(Node* a, Node* b) {
+    void swapNodes(Node* a, Node* b) {
         assert(a != nullptr && b != nullptr);
 
-        Type tempData = a->Data;
-        a->Data = b->Data;
-        b->Data = tempData;
+        Node* aParent = a->Parent;
+        Node* aLeft = a->Left;
+        Node* aRight = a->Right;
+        bool aIsRed = a->IsRed;
+
+        bool aWasLeftNode = a->isLeftNode();
+        bool bWasLeftNode = b->isLeftNode();
+
+        // Make sure we don't create an infinite loop by connecting 'a' to itself in any situation. It should point to
+        // 'b' since that's where 'a' used to be.
+        b->Parent == a ? a->Parent = b : a->Parent = b->Parent;
+        b->Left == a ? a->Left = b : a->Left = b->Left;
+        b->Right == a ? a->Right = b : a->Right = b->Right;
+        a->IsRed = b->IsRed;
+
+        // Make sure we don't create an infinite loop by connecting 'b' to itself in any situation. It should point to
+        // where
+        aParent == b ? b->Parent = a : b->Parent = aParent;
+        aLeft == b ? b->Left = a : b->Left = aLeft;
+        aRight == b ? b->Right = a : b->Right = aRight;
+        b->IsRed = aIsRed;
+
+        // Update connected nodes
+        if (a->Parent != nullptr && a->Parent != b) {
+            // We check if 'b' was the left node because that's the one we're replacing
+            bWasLeftNode ? a->Parent->Left = a : a->Parent->Right = a;
+        }
+        if (a->Left != nullptr && a->Left != b) {
+            a->Left->Parent = a;
+        }
+        if (a->Right != nullptr && a->Right != b) {
+            a->Right->Parent = a;
+        }
+        if (b->Parent != nullptr && b->Parent != a) {
+            // We check if 'a' was the left node because that's the one we're replacing
+            aWasLeftNode ? b->Parent->Left = b : b->Parent->Right = b;
+        }
+        if (b->Left != nullptr && b->Left != a) {
+            b->Left->Parent = b;
+        }
+        if (b->Right != nullptr && b->Right != a) {
+            b->Right->Parent = b;
+        }
+
+        if (m_RootNode == b) {
+            m_RootNode = a;
+        } else if (m_RootNode == a) {
+            m_RootNode = b;
+        }
     }
 
     /// Get the successor for the given node
@@ -810,12 +857,12 @@ private:
             return AXR_SUCCESS;
         }
 
-        // If we get here, nodeToDelete has 2 children.
-        // Swap data with nodeToReplace and recurse for nodeToReplace (with the data of nodeToDelete)
-        swapData(nodeToReplace, nodeToDelete);
-        // nodeToReplace will either be a leaf node or have 1 child at this point. So we will never need to recur more
-        // than once since we only recur when the node has 2 children.
-        return removeNode(nodeToReplace);
+        // If we get here, nodeToRemove has 2 children.
+
+        // Swap nodes rather than just swap data because there could be external pointers to that node, and we don't
+        // want to change the data for those external pointers unexpectedly.
+        swapNodes(nodeToReplace, nodeToDelete);
+        return removeNode(nodeToDelete);
     }
 #undef AXR_FUNCTION_FAILED_STRING
 };
