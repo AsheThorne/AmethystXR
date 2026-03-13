@@ -354,6 +354,33 @@ public:
     }
 #undef AXR_FUNCTION_FAILED_STRING
 
+#define AXR_FUNCTION_FAILED_STRING "Failed to replace data in the red black tree. "
+    /// Replace the given data with new data. Position it in the tree correctly for the new data but reuse the same
+    /// memory address as the original data.
+    /// @param originalData Original data to replace
+    /// @param newData New data to replace the original data with
+    void replace(const Type& originalData, const Type& newData) {
+        Node* node = findNode(originalData);
+        if (node == nullptr) {
+            return;
+        }
+
+        AxrResult axrResult = removeNode(node);
+        if (AXR_FAILED(axrResult)) {
+            return;
+        }
+
+        *node = Node(newData);
+
+        axrResult = insertNode(node);
+        if (AXR_FAILED(axrResult)) {
+            m_PoolAllocator->deallocate(node);
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to insert the node.");
+            return;
+        }
+    }
+#undef AXR_FUNCTION_FAILED_STRING
+
     /// Deallocate all nodes and clear the red black tree
     void clear() {
         if (m_RootNode == nullptr) {

@@ -995,6 +995,169 @@ TEST(AxrRedBlackTree_Pool, Remove_All) {
     ASSERT_TRUE(tree.empty());
 }
 
+TEST(AxrRedBlackTree_Pool, Replace) {
+    using TestData_T = uint32_t;
+    using Node_T = AxrRedBlackTree_Pool<TestData_T>::Node;
+    constexpr uint32_t capacity = 10;
+
+    AxrDeallocateBlock callback;
+    callback.connect<deallocateCallback>();
+
+    constexpr size_t allocatorSize = (sizeof(Node_T) * capacity) + alignof(Node_T);
+    void* memory = malloc(allocatorSize);
+    AxrPoolAllocator<Node_T> allocator(memory, allocatorSize, callback);
+
+    AxrRedBlackTree_Pool<TestData_T> tree(&allocator);
+    ASSERT_TRUE(tree.empty());
+
+    // Tree should look like this:
+    //                                     40B
+    //                        /                           \
+    //                      20B                           60B
+    //              /                \              /              \
+    //            10B                30B          50B              80R
+    //          /      \           /    \       /     \        /         \
+    //        Null    Null       Null   Null   Null  Null     70B        90B
+    //                                                      /   \       /    \
+    //                                                    Null  Null  Null   100R
+    //                                                                      /    \
+    //                                                                    Null  Null
+
+    Node_T node40{};
+    node40.Data = 40;
+    Node_T node20{};
+    node20.Data = 20;
+    Node_T node60{};
+    node60.Data = 60;
+    Node_T node10{};
+    node10.Data = 10;
+    Node_T node30{};
+    node30.Data = 30;
+    Node_T node50{};
+    node50.Data = 50;
+    Node_T node80{};
+    node80.Data = 80;
+    Node_T node70{};
+    node70.Data = 70;
+    Node_T node90{};
+    node90.Data = 90;
+    Node_T node100{};
+    node100.Data = 100;
+
+    const Node_T testDataInsertionOrder[capacity]{
+        node20,
+        node10,
+        node30,
+        node40,
+        node60,
+        node50,
+        node80,
+        node70,
+        node90,
+        node100,
+    };
+
+    node40.Left = &node20;
+    node40.Right = &node60;
+    node40.Parent = nullptr;
+    node40.IsRed = false;
+
+    node20.Left = &node10;
+    node20.Right = &node30;
+    node20.Parent = &node40;
+    node20.IsRed = false;
+
+    node60.Left = &node50;
+    node60.Right = &node80;
+    node60.Parent = &node40;
+    node60.IsRed = false;
+
+    node10.Left = nullptr;
+    node10.Right = nullptr;
+    node10.Parent = &node20;
+    node10.IsRed = false;
+
+    node30.Left = nullptr;
+    node30.Right = nullptr;
+    node30.Parent = &node20;
+    node30.IsRed = false;
+
+    node50.Left = nullptr;
+    node50.Right = nullptr;
+    node50.Parent = &node60;
+    node50.IsRed = false;
+
+    node80.Left = &node70;
+    node80.Right = &node90;
+    node80.Parent = &node60;
+    node80.IsRed = true;
+
+    node70.Left = nullptr;
+    node70.Right = nullptr;
+    node70.Parent = &node80;
+    node70.IsRed = false;
+
+    node90.Left = nullptr;
+    node90.Right = &node100;
+    node90.Parent = &node80;
+    node90.IsRed = false;
+
+    node100.Left = nullptr;
+    node100.Right = nullptr;
+    node100.Parent = &node90;
+    node100.IsRed = true;
+
+    for (const Node_T& node : testDataInsertionOrder) {
+        tree.insert(node.Data);
+    }
+
+    ASSERT_TRUE(tree.size() == capacity);
+    testRedBlackTreeNodes<TestData_T>(&node40, tree.find(node40.Data));
+
+    TestData_T newData = 35;
+    const Node_T* replacedNode = tree.find(node60.Data);
+    ASSERT_TRUE(replacedNode->Data == node60.Data);
+    tree.replace(node60.Data, newData);
+    ASSERT_TRUE(replacedNode->Data == newData);
+    ASSERT_TRUE(tree.size() == capacity);
+
+    // Tree should look like this:
+    //                                     40B
+    //                        /                           \
+    //                      20B                           70B
+    //              /                \              /              \
+    //            10B                30B          50B              90R
+    //          /      \           /    \       /     \        /         \
+    //        Null    Null       Null   35R   Null    Null   80B         100B
+    //                                /    \                /   \       /    \
+    //                              Null   Null           Null  Null  Null   Null
+
+    Node_T node35{};
+    node35.Data = 35;
+    node35.Left = nullptr;
+    node35.Right = nullptr;
+    node35.Parent = &node30;
+    node35.IsRed = true;
+
+    node30.Right = &node35;
+
+    node40.Right = &node70;
+    node70.Parent = &node40;
+    node70.Left = &node50;
+    node70.Right = &node90;
+    node50.Parent = &node70;
+    node90.Parent = &node70;
+    node90.Left = &node80;
+    node90.IsRed = true;
+    node80.Parent = &node90;
+    node80.Left = nullptr;
+    node80.Right = nullptr;
+    node80.IsRed = false;
+    node100.IsRed = false;
+
+    testRedBlackTreeNodes<TestData_T>(&node40, tree.find(node40.Data));
+}
+
 TEST(AxrRedBlackTree_Pool, Clear) {
     using TestData_T = uint32_t;
     using Node_T = AxrRedBlackTree_Pool<TestData_T>::Node;
