@@ -35,7 +35,6 @@ static void testRedBlackTreeNodes(const typename AxrRedBlackTree_Pool<Type>::Nod
     }
 
     ASSERT_TRUE(actualNodes->Data == testNodes->Data);
-    ASSERT_TRUE(actualNodes->Count == testNodes->Count);
     ASSERT_TRUE(actualNodes->IsRed == testNodes->IsRed);
     testRedBlackTreeNodes<Type>(testNodes->Left, actualNodes->Left);
     testRedBlackTreeNodes<Type>(testNodes->Right, actualNodes->Right);
@@ -85,7 +84,6 @@ TEST(AxrRedBlackTree_Pool, Insert_One) {
     node1.Left = nullptr;
     node1.Right = nullptr;
     node1.Parent = nullptr;
-    node1.Count = 1;
     node1.Data = 25;
     node1.IsRed = false;
 
@@ -168,7 +166,6 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     node12.Left = nullptr;
     node12.Right = nullptr;
     node12.Parent = nullptr;
-    node12.Count = 1;
     node12.Data = 12;
     node12.IsRed = false;
 
@@ -188,7 +185,6 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     node20.Left = nullptr;
     node20.Right = nullptr;
     node20.Parent = &node12;
-    node20.Count = 1;
     node20.Data = 20;
     node20.IsRed = true;
 
@@ -211,7 +207,6 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     node9.Left = nullptr;
     node9.Right = nullptr;
     node9.Parent = &node12;
-    node9.Count = 1;
     node9.Data = 9;
     node9.IsRed = true;
 
@@ -236,7 +231,6 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     node17.Left = nullptr;
     node17.Right = nullptr;
     node17.Parent = &node20;
-    node17.Count = 1;
     node17.Data = 17;
     node17.IsRed = true;
 
@@ -263,7 +257,6 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     node18.Left = &node17;
     node18.Right = &node20;
     node18.Parent = &node12;
-    node18.Count = 1;
     node18.Data = 18;
     node18.IsRed = false;
 
@@ -294,7 +287,6 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     node32.Left = nullptr;
     node32.Right = nullptr;
     node32.Parent = &node20;
-    node32.Count = 1;
     node32.Data = 32;
     node32.IsRed = true;
 
@@ -324,7 +316,6 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     node27.Left = &node20;
     node27.Right = &node32;
     node27.Parent = &node18;
-    node27.Count = 1;
     node27.Data = 27;
     node27.IsRed = false;
 
@@ -355,7 +346,6 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     node42.Left = nullptr;
     node42.Right = nullptr;
     node42.Parent = &node32;
-    node42.Count = 1;
     node42.Data = 42;
     node42.IsRed = true;
 
@@ -392,7 +382,6 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     node80.Left = nullptr;
     node80.Right = nullptr;
     node80.Parent = &node42;
-    node80.Count = 1;
     node80.Data = 80;
     node80.IsRed = true;
 
@@ -426,7 +415,6 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     node4.Left = nullptr;
     node4.Right = nullptr;
     node4.Parent = &node9;
-    node4.Count = 1;
     node4.Data = 4;
     node4.IsRed = true;
 
@@ -453,7 +441,6 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     node2.Left = nullptr;
     node2.Right = nullptr;
     node2.Parent = &node9;
-    node2.Count = 1;
     node2.Data = 2;
     node2.IsRed = true;
 
@@ -494,9 +481,8 @@ TEST(AxrRedBlackTree_Pool, ForLoop_Increment) {
     uint32_t currentValue = 1;
     for (AxrRedBlackTree_Pool<TestData_T>::Node::Iterator begin = tree.begin(), end = tree.end(); begin != end;
          ++begin) {
-        const AxrRedBlackTree_Pool<TestData_T>::NodeData data = *begin;
-        ASSERT_TRUE(data.Value == currentValue);
-        ASSERT_TRUE(data.Count == 1);
+        const TestData_T& data = *begin;
+        ASSERT_TRUE(data == currentValue);
         ++currentValue;
     }
 }
@@ -522,158 +508,10 @@ TEST(AxrRedBlackTree_Pool, ForLoop_Decrement) {
 
     uint32_t currentValue = 100;
     for (AxrRedBlackTree_Pool<TestData_T>::Node::Iterator end = tree.end(), begin = tree.begin(); begin != end; --end) {
-        const AxrRedBlackTree_Pool<TestData_T>::NodeData data = *end;
-        ASSERT_TRUE(data.Value == currentValue);
-        ASSERT_TRUE(data.Count == 1);
+        const TestData_T& data = *end;
+        ASSERT_TRUE(data == currentValue);
         --currentValue;
     }
-}
-
-TEST(AxrRedBlackTree_Pool, Insert_Duplicate) {
-    using TestData_T = uint32_t;
-    using Node_T = AxrRedBlackTree_Pool<TestData_T>::Node;
-    constexpr uint32_t capacity = 10;
-
-    AxrDeallocateBlock callback;
-    callback.connect<deallocateCallback>();
-
-    constexpr size_t allocatorSize = (sizeof(Node_T) * capacity) + alignof(Node_T);
-    void* memory = malloc(allocatorSize);
-    AxrPoolAllocator<Node_T> allocator(memory, allocatorSize, callback);
-
-    AxrRedBlackTree_Pool<TestData_T> tree(&allocator);
-    ASSERT_TRUE(tree.empty());
-
-    // Tree should look like this:
-    //                                   63B
-    //                   /                                  \
-    //                  6R                                 287B
-    //          /                   \                  /         \
-    //         1B                   43B               80R        987R
-    //       /    \            /          \         /    \      /    \
-    //     Null    5R         12R         51R     Null  Null  Null  Null
-    //           /   \       /   \       /   \
-    //         Null  Null  Null  Null  Null  Null
-
-    Node_T node1{};
-    node1.Count = 2;
-    node1.Data = 1;
-    Node_T node63{};
-    node63.Count = 1;
-    node63.Data = 63;
-    Node_T node80{};
-    node80.Count = 1;
-    node80.Data = 80;
-    Node_T node51{};
-    node51.Count = 1;
-    node51.Data = 51;
-    Node_T node287{};
-    node287.Count = 1;
-    node287.Data = 287;
-    Node_T node6{};
-    node6.Count = 1;
-    node6.Data = 6;
-    Node_T node5{};
-    node5.Count = 1;
-    node5.Data = 5;
-    Node_T node987{};
-    node987.Count = 1;
-    node987.Data = 987;
-    Node_T node12{};
-    node12.Count = 1;
-    node12.Data = 12;
-    Node_T node43{};
-    node43.Count = 1;
-    node43.Data = 43;
-
-    const Node_T testDataInsertionOrder[capacity]{
-        node1,
-        node63,
-        node80,
-        node51,
-        node287,
-        node6,
-        node5,
-        node987,
-        node12,
-        node43,
-    };
-
-    node63.Left = &node6;
-    node63.Right = &node287;
-    node63.Parent = nullptr;
-    node63.IsRed = false;
-
-    node6.Left = &node1;
-    node6.Right = &node43;
-    node6.Parent = &node63;
-    node6.IsRed = true;
-
-    node287.Left = &node80;
-    node287.Right = &node987;
-    node287.Parent = &node63;
-    node287.IsRed = false;
-
-    node1.Left = nullptr;
-    node1.Right = &node5;
-    node1.Parent = &node6;
-    node1.IsRed = false;
-
-    node43.Left = &node12;
-    node43.Right = &node51;
-    node43.Parent = &node6;
-    node43.IsRed = false;
-
-    node80.Left = nullptr;
-    node80.Right = nullptr;
-    node80.Parent = &node287;
-    node80.IsRed = true;
-
-    node987.Left = nullptr;
-    node987.Right = nullptr;
-    node987.Parent = &node287;
-    node987.IsRed = true;
-
-    node5.Left = nullptr;
-    node5.Right = nullptr;
-    node5.Parent = &node1;
-    node5.IsRed = true;
-
-    node12.Left = nullptr;
-    node12.Right = nullptr;
-    node12.Parent = &node43;
-    node12.IsRed = true;
-
-    node51.Left = nullptr;
-    node51.Right = nullptr;
-    node51.Parent = &node43;
-    node51.IsRed = true;
-
-    for (const Node_T& node : testDataInsertionOrder) {
-        for (uint32_t i = 0; i < node.Count; ++i) {
-            tree.insert(node.Data);
-        }
-    }
-
-    // It's capacity + 1 because 1 node has a count of 2 at this point.
-    size_t expectedSize = capacity + 1;
-    ASSERT_TRUE(tree.size() == expectedSize);
-    testRedBlackTreeNodes<TestData_T>(&node63, tree.find(node63.Data));
-
-    node63.Count = 2;
-    node43.Count = 2;
-    node80.Count = 4;
-
-    tree.insert(node63.Data);
-    tree.insert(node43.Data);
-
-    tree.insert(node80.Data);
-    tree.insert(node80.Data);
-    tree.insert(node80.Data);
-
-    expectedSize += 5;
-    ASSERT_TRUE(tree.size() == expectedSize);
-    testRedBlackTreeNodes<TestData_T>(&node63, tree.find(node63.Data));
 }
 
 TEST(AxrRedBlackTree_Pool, Insert_TooMany) {
@@ -703,34 +541,24 @@ TEST(AxrRedBlackTree_Pool, Insert_TooMany) {
     //         Null  Null  Null  Null  Null  Null
 
     Node_T node1{};
-    node1.Count = 1;
     node1.Data = 1;
     Node_T node63{};
-    node63.Count = 1;
     node63.Data = 63;
     Node_T node80{};
-    node80.Count = 1;
     node80.Data = 80;
     Node_T node51{};
-    node51.Count = 1;
     node51.Data = 51;
     Node_T node287{};
-    node287.Count = 1;
     node287.Data = 287;
     Node_T node6{};
-    node6.Count = 1;
     node6.Data = 6;
     Node_T node5{};
-    node5.Count = 1;
     node5.Data = 5;
     Node_T node987{};
-    node987.Count = 1;
     node987.Data = 987;
     Node_T node12{};
-    node12.Count = 1;
     node12.Data = 12;
     Node_T node43{};
-    node43.Count = 1;
     node43.Data = 43;
 
     const Node_T testDataInsertionOrder[capacity]{
@@ -868,34 +696,24 @@ TEST(AxrRedBlackTree_Pool, Remove_All) {
     //                                                                    Null  Null
 
     Node_T node40{};
-    node40.Count = 1;
     node40.Data = 40;
     Node_T node20{};
-    node20.Count = 1;
     node20.Data = 20;
     Node_T node60{};
-    node60.Count = 1;
     node60.Data = 60;
     Node_T node10{};
-    node10.Count = 1;
     node10.Data = 10;
     Node_T node30{};
-    node30.Count = 1;
     node30.Data = 30;
     Node_T node50{};
-    node50.Count = 1;
     node50.Data = 50;
     Node_T node80{};
-    node80.Count = 1;
     node80.Data = 80;
     Node_T node70{};
-    node70.Count = 1;
     node70.Data = 70;
     Node_T node90{};
-    node90.Count = 1;
     node90.Data = 90;
     Node_T node100{};
-    node100.Count = 1;
     node100.Data = 100;
 
     const Node_T testDataInsertionOrder[capacity]{
@@ -1175,153 +993,6 @@ TEST(AxrRedBlackTree_Pool, Remove_All) {
     testRedBlackTreeNodes<TestData_T>(nullptr, tree.find(node80.Data));
 
     ASSERT_TRUE(tree.empty());
-}
-
-TEST(AxrRedBlackTree_Pool, Remove_Duplicate) {
-    using TestData_T = uint32_t;
-    using Node_T = AxrRedBlackTree_Pool<TestData_T>::Node;
-    constexpr uint32_t capacity = 10;
-
-    AxrDeallocateBlock callback;
-    callback.connect<deallocateCallback>();
-
-    constexpr size_t allocatorSize = (sizeof(Node_T) * capacity) + alignof(Node_T);
-    void* memory = malloc(allocatorSize);
-    AxrPoolAllocator<Node_T> allocator(memory, allocatorSize, callback);
-
-    AxrRedBlackTree_Pool<TestData_T> tree(&allocator);
-    ASSERT_TRUE(tree.empty());
-
-    // Tree should look like this:
-    //                                   63B
-    //                   /                                  \
-    //                  6R                                 287B
-    //          /                   \                  /         \
-    //         1B                   43B               80R        987R
-    //       /    \            /          \         /    \      /    \
-    //     Null    5R         12R         51R     Null  Null  Null  Null
-    //           /   \       /   \       /   \
-    //         Null  Null  Null  Null  Null  Null
-
-    Node_T node1{};
-    node1.Count = 2;
-    node1.Data = 1;
-    Node_T node63{};
-    node63.Count = 2;
-    node63.Data = 63;
-    Node_T node80{};
-    node80.Count = 4;
-    node80.Data = 80;
-    Node_T node51{};
-    node51.Count = 1;
-    node51.Data = 51;
-    Node_T node287{};
-    node287.Count = 1;
-    node287.Data = 287;
-    Node_T node6{};
-    node6.Count = 1;
-    node6.Data = 6;
-    Node_T node5{};
-    node5.Count = 1;
-    node5.Data = 5;
-    Node_T node987{};
-    node987.Count = 1;
-    node987.Data = 987;
-    Node_T node12{};
-    node12.Count = 1;
-    node12.Data = 12;
-    Node_T node43{};
-    node43.Count = 2;
-    node43.Data = 43;
-
-    const Node_T testDataInsertionOrder[capacity]{
-        node1,
-        node63,
-        node80,
-        node51,
-        node287,
-        node6,
-        node5,
-        node987,
-        node12,
-        node43,
-    };
-
-    node63.Left = &node6;
-    node63.Right = &node287;
-    node63.Parent = nullptr;
-    node63.IsRed = false;
-
-    node6.Left = &node1;
-    node6.Right = &node43;
-    node6.Parent = &node63;
-    node6.IsRed = true;
-
-    node287.Left = &node80;
-    node287.Right = &node987;
-    node287.Parent = &node63;
-    node287.IsRed = false;
-
-    node1.Left = nullptr;
-    node1.Right = &node5;
-    node1.Parent = &node6;
-    node1.IsRed = false;
-
-    node43.Left = &node12;
-    node43.Right = &node51;
-    node43.Parent = &node6;
-    node43.IsRed = false;
-
-    node80.Left = nullptr;
-    node80.Right = nullptr;
-    node80.Parent = &node287;
-    node80.IsRed = true;
-
-    node987.Left = nullptr;
-    node987.Right = nullptr;
-    node987.Parent = &node287;
-    node987.IsRed = true;
-
-    node5.Left = nullptr;
-    node5.Right = nullptr;
-    node5.Parent = &node1;
-    node5.IsRed = true;
-
-    node12.Left = nullptr;
-    node12.Right = nullptr;
-    node12.Parent = &node43;
-    node12.IsRed = true;
-
-    node51.Left = nullptr;
-    node51.Right = nullptr;
-    node51.Parent = &node43;
-    node51.IsRed = true;
-
-    for (const Node_T& node : testDataInsertionOrder) {
-        for (uint32_t i = 0; i < node.Count; ++i) {
-            tree.insert(node.Data);
-        }
-    }
-
-    // It's capacity + 6 because node1 has a count of 2, node63 has a count of 2, node43 has a count of 2 and node80 has
-    // a count of 4 at this point.
-    size_t expectedSize = capacity + 6;
-    ASSERT_TRUE(tree.size() == expectedSize);
-    testRedBlackTreeNodes<TestData_T>(&node63, tree.find(node63.Data));
-
-    node63.Count = 1;
-    node43.Count = 1;
-    node80.Count = 2;
-
-    tree.remove(node63.Data);
-    tree.remove(node43.Data);
-
-    tree.remove(node80.Data);
-    tree.remove(node80.Data);
-
-    expectedSize -= 4;
-    ASSERT_TRUE(tree.size() == expectedSize);
-    testRedBlackTreeNodes<TestData_T>(&node63, tree.find(node63.Data));
 }
 
 TEST(AxrRedBlackTree_Pool, Clear) {

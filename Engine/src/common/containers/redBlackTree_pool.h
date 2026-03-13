@@ -14,11 +14,6 @@ public:
     // Node
     // ----------------------------------------- //
 
-    struct NodeData {
-        const Type& Value;
-        uint32_t Count;
-    };
-
     class Node {
     public:
         // ----------------------------------------- //
@@ -27,7 +22,6 @@ public:
         Node* Left{};
         Node* Right{};
         Node* Parent{};
-        uint32_t Count{};
         Type Data{};
         bool IsRed{};
 
@@ -45,7 +39,6 @@ public:
         /// @param parent Parent node
         explicit Node(const Type& data, Node* parent) :
             Parent(parent),
-            Count(1),
             Data(data),
             IsRed(true) {
         }
@@ -209,8 +202,8 @@ public:
 
             /// Get the underlining data for this iterator
             /// @return The underlining data for this iterator
-            NodeData operator*() const {
-                return NodeData{.Value = m_Node->Data, .Count = m_Node->Count};
+            const Type& operator*() const {
+                return m_Node->Data;
             }
 
         private:
@@ -340,12 +333,6 @@ public:
             return;
         }
 
-        if (node->Count > 1) {
-            --node->Count;
-            --m_Size;
-            return;
-        }
-
         const AxrResult axrResult = removeNode(node);
         if (AXR_SUCCEEDED(axrResult)) {
             --m_Size;
@@ -420,7 +407,7 @@ public:
         return m_RootNode == nullptr;
     }
 
-    /// Get the number of items in this red black tree, including duplicated items
+    /// Get the number of items in this red black tree
     /// @return The number of items in this red black tree
     [[nodiscard]] size_t size() const {
         return m_Size;
@@ -489,8 +476,8 @@ private:
         }
 
         if (*node != nullptr) {
-            ++(*node)->Count;
-            return *node;
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Data already exists.");
+            return nullptr;
         }
 
         // Create the new node
@@ -633,11 +620,8 @@ private:
         assert(a != nullptr && b != nullptr);
 
         Type tempData = a->Data;
-        uint32_t tempCount = a->Count;
         a->Data = b->Data;
-        a->Count = b->Count;
         b->Data = tempData;
-        b->Count = tempCount;
     }
 
     /// Get the successor for the given node
@@ -796,7 +780,6 @@ private:
             if (nodeToDelete == m_RootNode) {
                 // Replace the root node data
                 nodeToDelete->Data = nodeToReplace->Data;
-                nodeToDelete->Count = nodeToReplace->Count;
                 // Since we've already established that nodeToDelete only had 1 child, we can safely just set both
                 // children to null, since we know that the child can't have any children without violating red black
                 // tree properties
