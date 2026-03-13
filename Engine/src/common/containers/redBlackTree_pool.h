@@ -36,9 +36,7 @@ public:
 
         /// Constructor
         /// @param data Data to store in the node
-        /// @param parent Parent node
-        explicit Node(const Type& data, Node* parent) :
-            Parent(parent),
+        explicit Node(const Type& data) :
             Data(data),
             IsRed(true) {
         }
@@ -303,32 +301,39 @@ public:
         return find(data) != nullptr;
     }
 
+#define AXR_FUNCTION_FAILED_STRING "Failed to insert data into the red black tree. "
     /// Insert data into the tree
     /// @param data Data to insert
     void insert(const Type& data) {
-        // Red black tree insertion algorithm references:
-        // https://www.geeksforgeeks.org/dsa/insertion-in-red-black-tree/
-        // https://www.geeksforgeeks.org/dsa/c-program-red-black-tree-insertion/
-
-        Node* node = bstInsert(data);
-        if (node == nullptr) [[unlikely]] {
+        if (m_PoolAllocator == nullptr) [[unlikely]] {
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Pool allocator is null.");
             return;
         }
 
-        fixRedRedViolations(node);
-        ++m_Size;
+        Node* node{};
+        AxrResult axrResult = m_PoolAllocator->allocate(node);
+        if (AXR_FAILED(axrResult)) [[unlikely]] {
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to allocate memory.");
+            return;
+        }
 
-        // Make sure the root is always black.
-        m_RootNode->IsRed = false;
+        *node = Node(data);
+
+        axrResult = insertNode(node);
+        if (AXR_FAILED(axrResult)) {
+            m_PoolAllocator->deallocate(node);
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to insert the node.");
+            return;
+        }
+
+        ++m_Size;
     }
+#undef AXR_FUNCTION_FAILED_STRING
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to remove data from the red black tree. "
     /// Remove data from the tree
     /// @param data Data to remove
     void remove(const Type& data) {
-        // Red black tree deletion algorithm reference:
-        // https://www.geeksforgeeks.org/dsa/deletion-in-red-black-tree/
-
         Node* node = findNode(data);
         if (node == nullptr) {
             return;
@@ -462,44 +467,36 @@ private:
     }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to perform a standard bst insertion for the red black tree. "
-    /// Insert the given data into the tree, via standard binary search tree methods.
-    /// @param data Data to insert
-    /// @returns The new node that was inserted. Or nullptr if this function failed.
-    [[nodiscard]] Node* bstInsert(const Type& data) {
-        if (m_PoolAllocator == nullptr) [[unlikely]] {
-            axrLogError(AXR_FUNCTION_FAILED_STRING "Pool allocator is null.");
-            return nullptr;
-        }
+    /// Insert the given node into the tree, via standard binary search tree methods.
+    /// @param node Node to insert
+    /// @returns AXR_SUCCESS if the function succeeded.
+    /// AXR_ERROR_DUPLICATE if the given node's data already exists
+    [[nodiscard]] AxrResult bstInsert(Node* node) {
+        assert(node != nullptr);
 
-        Node** node = &m_RootNode;
+        Node** nodeLocation = &m_RootNode;
         Node* parentNode = nullptr;
 
         // Find where to insert the new data
-        while (*node != nullptr && (*node)->Data != data) {
-            if (data < (*node)->Data) {
-                parentNode = *node;
-                node = &(*node)->Left;
+        while (*nodeLocation != nullptr && (*nodeLocation)->Data != node->Data) {
+            if (node->Data < (*nodeLocation)->Data) {
+                parentNode = *nodeLocation;
+                nodeLocation = &(*nodeLocation)->Left;
             } else {
-                parentNode = *node;
-                node = &(*node)->Right;
+                parentNode = *nodeLocation;
+                nodeLocation = &(*nodeLocation)->Right;
             }
         }
 
-        if (*node != nullptr) {
+        if (*nodeLocation != nullptr) [[unlikely]] {
             axrLogError(AXR_FUNCTION_FAILED_STRING "Data already exists.");
-            return nullptr;
+            return AXR_ERROR_DUPLICATE;
         }
 
-        // Create the new node
-        const AxrResult axrResult = m_PoolAllocator->allocate(*node);
-        if (AXR_FAILED(axrResult)) [[unlikely]] {
-            axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to allocate memory.");
-            return nullptr;
-        }
+        *nodeLocation = node;
+        node->Parent = parentNode;
 
-        **node = Node(data, parentNode);
-
-        return *node;
+        return AXR_SUCCESS;
     }
 #undef AXR_FUNCTION_FAILED_STRING
 
@@ -554,6 +551,27 @@ private:
             // Repeat the loop with the parent
             node = parentNode;
         }
+    }
+
+    /// Insert the given node into the tree
+    /// @param node Node to insert
+    /// @return AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult insertNode(Node* node) {
+        // Red black tree insertion algorithm references:
+        // https://www.geeksforgeeks.org/dsa/insertion-in-red-black-tree/
+        // https://www.geeksforgeeks.org/dsa/c-program-red-black-tree-insertion/
+
+        const AxrResult axrResult = bstInsert(node);
+        if (AXR_FAILED(axrResult)) [[unlikely]] {
+            return axrResult;
+        }
+
+        fixRedRedViolations(node);
+
+        // Make sure the root is always black.
+        m_RootNode->IsRed = false;
+
+        return AXR_SUCCESS;
     }
 
     /// Rotates the given node to the right
@@ -789,6 +807,9 @@ private:
     /// @param nodeToRemove Node to remove
     /// @return AXR_SUCCESS if the function succeeded and the node can be deallocated
     [[nodiscard]] AxrResult removeNode(Node* nodeToRemove) {
+        // Red black tree deletion algorithm reference:
+        // https://www.geeksforgeeks.org/dsa/deletion-in-red-black-tree/
+
         assert(nodeToRemove != nullptr);
 
         Node* nodeToReplace = getNodeToReplace(nodeToRemove);
