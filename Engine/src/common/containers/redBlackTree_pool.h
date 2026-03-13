@@ -334,11 +334,20 @@ public:
             return;
         }
 
-        const AxrResult axrResult = removeNode(node);
-        if (AXR_SUCCEEDED(axrResult)) {
-            --m_Size;
+        if (m_PoolAllocator == nullptr) [[unlikely]] {
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Pool allocator is null.");
+            return;
         }
+
+        const AxrResult axrResult = removeNode(node);
+        if (AXR_FAILED(axrResult)) {
+            return;
+        }
+
+        --m_Size;
+        m_PoolAllocator->deallocate(node);
     }
+#undef AXR_FUNCTION_FAILED_STRING
 
     /// Deallocate all nodes and clear the red black tree
     void clear() {
@@ -776,84 +785,70 @@ private:
         }
     }
 
-#define AXR_FUNCTION_FAILED_STRING "Failed to remove a node from the red black tree. "
-    /// Delete the given node
-    /// @param nodeToDelete Node to delete
-    /// @return AXR_SUCCESS if the function succeeded
-    [[nodiscard]] AxrResult removeNode(Node* nodeToDelete) {
-        assert(nodeToDelete != nullptr);
+    /// Remove the given node from the tree without deallocating it
+    /// @param nodeToRemove Node to remove
+    /// @return AXR_SUCCESS if the function succeeded and the node can be deallocated
+    [[nodiscard]] AxrResult removeNode(Node* nodeToRemove) {
+        assert(nodeToRemove != nullptr);
 
-        if (m_PoolAllocator == nullptr) [[unlikely]] {
-            axrLogError(AXR_FUNCTION_FAILED_STRING "Pool allocator is null.");
-            return AXR_ERROR_VALIDATION_FAILED;
-        }
+        Node* nodeToReplace = getNodeToReplace(nodeToRemove);
 
-        Node* nodeToReplace = getNodeToReplace(nodeToDelete);
-
-        // When nodeToDelete and nodeToReplace are both black, a 'double black' violation has occurred
-        const bool doubleBlackViolation = ((nodeToReplace == nullptr || !nodeToReplace->IsRed) && !nodeToDelete->IsRed);
+        // When nodeToRemove and nodeToReplace are both black, a 'double black' violation has occurred
+        const bool doubleBlackViolation = ((nodeToReplace == nullptr || !nodeToReplace->IsRed) && !nodeToRemove->IsRed);
 
         if (nodeToReplace == nullptr) {
-            // If we get here, nodeToDelete must be a leaf node
-            if (nodeToDelete == m_RootNode) {
+            // If we get here, nodeToRemove must be a leaf node
+            if (nodeToRemove == m_RootNode) {
                 m_RootNode = nullptr;
             } else {
                 if (doubleBlackViolation) {
-                    // nodeToDelete is a leaf node, so we fix the double black at nodeToDelete
-                    fixDoubleBlackViolation(nodeToDelete);
+                    // nodeToRemove is a leaf node, so we fix the double black at nodeToRemove
+                    fixDoubleBlackViolation(nodeToRemove);
                 } else {
-                    // If we get here, nodeToDelete is red, and nodeToReplace is black
-                    Node* sibling = nodeToDelete->getSibling();
+                    // If we get here, nodeToRemove is red, and nodeToReplace is black
+                    Node* sibling = nodeToRemove->getSibling();
                     if (sibling != nullptr) {
                         sibling->IsRed = true;
                     }
                 }
 
-                // Delete nodeToDelete from the tree
-                if (nodeToDelete->isLeftNode()) {
-                    nodeToDelete->Parent->Left = nullptr;
+                // Remove nodeToRemove from the tree
+                if (nodeToRemove->isLeftNode()) {
+                    nodeToRemove->Parent->Left = nullptr;
                 } else {
-                    nodeToDelete->Parent->Right = nullptr;
+                    nodeToRemove->Parent->Right = nullptr;
                 }
             }
 
-            m_PoolAllocator->deallocate(nodeToDelete);
             return AXR_SUCCESS;
         }
 
-        if (nodeToDelete->Left == nullptr || nodeToDelete->Right == nullptr) {
-            // If we get here, nodeToDelete has 1 child
+        if (nodeToRemove->Left == nullptr || nodeToRemove->Right == nullptr) {
+            // If we get here, nodeToRemove has 1 child
 
-            if (nodeToDelete == m_RootNode) {
-                // Replace the root node data
-                nodeToDelete->Data = nodeToReplace->Data;
-                // Since we've already established that nodeToDelete only had 1 child, we can safely just set both
-                // children to null, since we know that the child can't have any children without violating red black
-                // tree properties
-                nodeToDelete->Left = nullptr;
-                nodeToDelete->Right = nullptr;
-
-                m_PoolAllocator->deallocate(nodeToReplace);
+            if (nodeToRemove == m_RootNode) {
+                nodeToReplace->Parent = nullptr;
+                m_RootNode = nodeToReplace;
+                m_RootNode->IsRed = false;
                 return AXR_SUCCESS;
             }
 
-            // Detach nodeToDelete from tree and move nodeToReplace up
-            if (nodeToDelete->isLeftNode()) {
-                nodeToDelete->Parent->Left = nodeToReplace;
+            // Detach nodeToRemove from tree and move nodeToReplace up
+            if (nodeToRemove->isLeftNode()) {
+                nodeToRemove->Parent->Left = nodeToReplace;
             } else {
-                nodeToDelete->Parent->Right = nodeToReplace;
+                nodeToRemove->Parent->Right = nodeToReplace;
             }
-            nodeToReplace->Parent = nodeToDelete->Parent;
+            nodeToReplace->Parent = nodeToRemove->Parent;
 
             if (doubleBlackViolation) {
                 fixDoubleBlackViolation(nodeToReplace);
             } else {
-                // If we got here, either nodeToDelete or nodeToReplace was red.
+                // If we got here, either nodeToRemove or nodeToReplace was red.
                 // So make sure nodeToReplace is black.
                 nodeToReplace->IsRed = false;
             }
 
-            m_PoolAllocator->deallocate(nodeToDelete);
             return AXR_SUCCESS;
         }
 
@@ -861,8 +856,7 @@ private:
 
         // Swap nodes rather than just swap data because there could be external pointers to that node, and we don't
         // want to change the data for those external pointers unexpectedly.
-        swapNodes(nodeToReplace, nodeToDelete);
-        return removeNode(nodeToDelete);
+        swapNodes(nodeToReplace, nodeToRemove);
+        return removeNode(nodeToRemove);
     }
-#undef AXR_FUNCTION_FAILED_STRING
 };
