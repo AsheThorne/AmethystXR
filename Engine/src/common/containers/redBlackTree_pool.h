@@ -47,13 +47,13 @@ public:
 
         /// Check if this node is on the left of the binary tree
         /// @return True if this node is on the left of the binary tree
-        bool isLeftNode() {
+        bool isLeftNode() const {
             return Parent != nullptr && this == Parent->Left;
         }
 
         /// Check if this node is on the right of the binary tree
         /// @return True if this node is on the right of the binary tree
-        bool isRightNode() {
+        bool isRightNode() const {
             return Parent != nullptr && this == Parent->Right;
         }
 
@@ -87,7 +87,7 @@ public:
 
         /// Check if this node has a red child
         /// @return True if this node has a red child
-        bool hasRedChild() {
+        bool hasRedChild() const {
             return (Left != nullptr && Left->IsRed) || (Right != nullptr && Right->IsRed);
         }
 
@@ -102,10 +102,15 @@ public:
 
             // ---- Constructors ----
 
+            /// Default Constructor
+            Iterator() = default;
+
             /// Constructor
-            explicit Iterator(Node* node) :
+            /// @param rootNode The root node of the tree
+            /// @param node The node for this iterator to point to
+            explicit Iterator(const Node* rootNode, const Node* node) :
+                m_RootNode(rootNode),
                 m_Node(node) {
-                assert(m_Node != nullptr);
             }
 
             // ---- Operator Overloads ----
@@ -113,9 +118,14 @@ public:
             /// Prefix increment operator overload
             /// @return The iterator, incremented by 1
             Iterator& operator++() {
+                // We're already at the end. cannot increment;
+                if (m_Node == nullptr) [[unlikely]] {
+                    return *this;
+                }
+
                 // First, we try finding the node's successor
                 if (m_Node->Right != nullptr) {
-                    Node* currentNode = m_Node->Right;
+                    const Node* currentNode = m_Node->Right;
                     while (currentNode->Left != nullptr) {
                         currentNode = currentNode->Left;
                     }
@@ -125,7 +135,7 @@ public:
 
                 // If there's no successor, then the next node in the sequence will be the parent of the next left
                 // parent node
-                Node* currentNode = m_Node;
+                const Node* currentNode = m_Node;
                 while (currentNode->isRightNode()) {
                     currentNode = currentNode->Parent;
                 }
@@ -150,9 +160,26 @@ public:
             /// Prefix decrement operator overload
             /// @return The iterator, decremented by 1
             Iterator& operator--() {
+                if (m_Node == nullptr) [[unlikely]] {
+                    // Find the last value in the tree
+
+                    if (m_RootNode == nullptr) [[unlikely]] {
+                        // Unable to find the last value
+                        return *this;
+                    }
+
+                    m_Node = m_RootNode;
+
+                    while (m_Node->Right != nullptr) {
+                        m_Node = m_Node->Right;
+                    }
+
+                    return *this;
+                }
+
                 // First, we try finding the node's predecessor
                 if (m_Node->Left != nullptr) {
-                    Node* currentNode = m_Node->Left;
+                    const Node* currentNode = m_Node->Left;
                     while (currentNode->Right != nullptr) {
                         currentNode = currentNode->Right;
                     }
@@ -162,7 +189,7 @@ public:
 
                 // If there's no predecessor, then the next node in the sequence will be the parent of the next right
                 // parent node
-                Node* currentNode = m_Node;
+                const Node* currentNode = m_Node;
                 while (currentNode->isLeftNode()) {
                     currentNode = currentNode->Parent;
                 }
@@ -188,7 +215,7 @@ public:
             /// @other Iterator to compare against
             /// @return True if both iterators point to the same node
             bool operator==(const Iterator& other) const {
-                return m_Node == other.m_Node;
+                return m_RootNode == other.m_RootNode && m_Node == other.m_Node;
             }
 
             /// Inequality operator overload
@@ -208,7 +235,8 @@ public:
             // ----------------------------------------- //
             // Private Variables
             // ----------------------------------------- //
-            Node* m_Node;
+            const Node* m_RootNode{};
+            const Node* m_Node{};
         };
     };
 
@@ -428,19 +456,13 @@ public:
             currentNode = currentNode->Left;
         }
 
-        return typename Node::Iterator(currentNode);
+        return typename Node::Iterator(m_RootNode, currentNode);
     }
 
     /// Get the end iterator
     /// @return The end iterator
     Node::Iterator end() const {
-        Node* currentNode = m_RootNode;
-
-        while (currentNode->Right != nullptr) {
-            currentNode = currentNode->Right;
-        }
-
-        return typename Node::Iterator(currentNode);
+        return typename Node::Iterator(m_RootNode, nullptr);
     }
 
     /// Check if this red black tree is empty

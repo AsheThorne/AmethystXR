@@ -478,13 +478,16 @@ TEST(AxrRedBlackTree_Pool, ForLoop_Increment) {
         tree.insert(i + 1);
     }
 
-    uint32_t currentValue = 1;
+    uint32_t currentValue = 0;
     for (AxrRedBlackTree_Pool<TestData_T>::Node::Iterator begin = tree.begin(), end = tree.end(); begin != end;
          ++begin) {
+        ++currentValue;
         const TestData_T& data = *begin;
         ASSERT_TRUE(data == currentValue);
-        ++currentValue;
     }
+
+    // Make sure we reached the end and checked each value
+    ASSERT_TRUE(currentValue == 100);
 }
 
 TEST(AxrRedBlackTree_Pool, ForLoop_Decrement) {
@@ -506,12 +509,17 @@ TEST(AxrRedBlackTree_Pool, ForLoop_Decrement) {
         tree.insert(i + 1);
     }
 
-    uint32_t currentValue = 100;
-    for (AxrRedBlackTree_Pool<TestData_T>::Node::Iterator end = tree.end(), begin = tree.begin(); begin != end; --end) {
-        const TestData_T& data = *end;
-        ASSERT_TRUE(data == currentValue);
+    uint32_t currentValue = capacity + 1;
+    for (AxrRedBlackTree_Pool<TestData_T>::Node::Iterator begin = tree.end(), end = tree.begin(); begin != end;
+         /* Don't decrement here. It's done inside the loop*/) {
+        --begin;
         --currentValue;
+        const TestData_T& data = *begin;
+        ASSERT_TRUE(data == currentValue);
     }
+
+    // Make sure we reached the end and checked each value
+    ASSERT_TRUE(currentValue == 1);
 }
 
 TEST(AxrRedBlackTree_Pool, Insert_TooMany) {
