@@ -85,8 +85,9 @@ set(AXR_SOURCE_FILES
     # ---- Common - Containers ----
     ${AXR_SRC_DIR}/common/containers/array.h
     ${AXR_SRC_DIR}/common/containers/extensionArray.h
-    ${AXR_SRC_DIR}/common/containers/vector_stack.h
     ${AXR_SRC_DIR}/common/containers/redBlackTree_pool.h
+    ${AXR_SRC_DIR}/common/containers/vectorBase.h
+    ${AXR_SRC_DIR}/common/containers/vector_stack.h
 )
 
 # ---------------------------------------------
