@@ -51,11 +51,17 @@ AxrDoubleStackAllocator& AxrDoubleStackAllocator::operator=(AxrDoubleStackAlloca
 // ----------------------------------------- //
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to allocate memory block on the lower end for AxrDoubleStackAllocator. "
-AxrResult AxrDoubleStackAllocator::allocateLowerBlock(const size_t size, void*& memory, MarkerID& markerID) {
+AxrResult AxrDoubleStackAllocator::allocateLowerBlock(const size_t size,
+                                                      const uint8_t alignment,
+                                                      void*& memory,
+                                                      MarkerID& markerID) {
     // Make sure there's enough space for both the requested memory size and for its marker.
-    const size_t blockSize = size + sizeof(Marker);
+    const size_t blockSize = size + alignment + sizeof(Marker);
+    const size_t dataSize = size + alignment;
     if (blockSize > m_Capacity - AxrDoubleStackAllocator::size()) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Ran out of memory for a block of size {} bytes.", size);
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Ran out of memory for a block of size {} bytes and alignment of {}.",
+                    size,
+                    alignment);
         return AXR_ERROR_OUT_OF_MEMORY;
     }
 
@@ -63,25 +69,31 @@ AxrResult AxrDoubleStackAllocator::allocateLowerBlock(const size_t size, void*& 
     // TODO (Ashe): Make zeroing out memory optional maybe. Possibly with a flag
     std::memset(endLower(), 0, blockSize);
 
-    memory = endLower();
+    memory = axrAlignMemory(endLower(), alignment);
     // Yes, we will never get an ID of 0. This is so if we get a marker ID of 0 from `getCurrentMarkerLower()`,
     // then it means there is nothing allocated.
     markerID = ++currentID;
 
     m_SizeLower += blockSize;
 
-    setCurrentMarkerLower(Marker{.Size = size, .ID = markerID});
+    setCurrentMarkerLower(Marker{.Size = dataSize, .ID = markerID});
 
     return AXR_SUCCESS;
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to allocate memory block on the upper end for AxrDoubleStackAllocator. "
-AxrResult AxrDoubleStackAllocator::allocateUpperBlock(const size_t size, void*& memory, MarkerID& markerID) {
+AxrResult AxrDoubleStackAllocator::allocateUpperBlock(const size_t size,
+                                                      const uint8_t alignment,
+                                                      void*& memory,
+                                                      MarkerID& markerID) {
     // Make sure there's enough space for both the requested memory size and for its marker.
-    const size_t blockSize = size + sizeof(Marker);
+    const size_t blockSize = size + alignment + sizeof(Marker);
+    const size_t dataSize = size + alignment;
     if (blockSize > m_Capacity - AxrDoubleStackAllocator::size()) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Ran out of memory for a block of size {} bytes.", size);
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Ran out of memory for a block of size {} bytes and alignment of {}.",
+                    size,
+                    alignment);
         return AXR_ERROR_OUT_OF_MEMORY;
     }
 
@@ -91,14 +103,14 @@ AxrResult AxrDoubleStackAllocator::allocateUpperBlock(const size_t size, void*& 
 
     // minus size, not block size. if it was block size then the marker would be at the head of this address which we
     // obviously don't want
-    memory = endUpper() - size;
+    memory = axrAlignMemory(endUpper() - dataSize, alignment);
     // Yes, we will never get an ID of 0. This is so if we get a marker ID of 0 from `getCurrentMarkerUpper()`,
     // then it means there is nothing allocated.
     markerID = ++currentID;
 
     m_SizeUpper += blockSize;
 
-    setCurrentMarkerUpper(Marker{.Size = size, .ID = markerID});
+    setCurrentMarkerUpper(Marker{.Size = dataSize, .ID = markerID});
 
     return AXR_SUCCESS;
 }
