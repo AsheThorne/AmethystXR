@@ -115,11 +115,18 @@ AxrResult AxrDynamicAllocator::allocateBlock(const size_t size,
     FreeBlockHeader* previousFreeBlock = nullptr;
     FreeBlockHeader* freeBlock = findFreeBlock(blockSize, previousFreeBlock);
 
-    // TODO: If no free block was found, but the `blockSize` is less than or equal to the total amount of memory we have
-    //  spare (mainMemoryCapacity - totalAmountOfMemoryUsed), then it means we have the space, it's just fragmented. So
-    //  instead of returning that we don't have the memory, instead, defrag as little as possible until the free block
-    //  is big enough. But also log a warning that we had to resort to doing so.
-    if (freeBlock == nullptr) [[unlikely]] {
+    if (freeBlock == nullptr && blockSize <= m_MainMemoryCapacity - m_TotalMainMemoryUsed) [[unlikely]] {
+        // If no free block was found, but the `blockSize` is less than or equal to the total amount of memory we have
+        // spare, then it means we have the space, it's just fragmented. So instead of returning that we don't have the
+        // memory, instead, defragment as little as possible until the free block is big enough.
+        while (freeBlock == nullptr) {
+            defragment();
+
+            freeBlock = findFreeBlock(blockSize, previousFreeBlock);
+        }
+
+        axrLogWarning("Forced into defragmenting while allocating a memory block of size {}.", blockSize);
+    } else if (freeBlock == nullptr) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to find a free block of memory for the requested size.");
         return AXR_ERROR_OUT_OF_MEMORY;
     }

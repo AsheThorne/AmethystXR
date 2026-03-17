@@ -605,3 +605,135 @@ TEST(DynamicAllocator, Defragmentation) {
     ASSERT_TRUE(allocator.mainMemorySize() ==
                 allocatorMainMemSize - testData1MemSize - testData3MemSize - testData5MemSize + testDataLargeMemSize);
 }
+
+/// Test allocating when there is enough memory, it's just defragmented. so we need to defragment during the allocation
+TEST(DynamicAllocator, Allocate_RequiresDefragmentation) {
+    AxrDeallocateBlock callback;
+    callback.connect<deallocateCallback>();
+
+    constexpr uint32_t maxHandleCount = 5;
+    constexpr size_t testData1MemSize =
+        sizeof(TestData_Small) + alignof(TestData_Small) + sizeof(AxrDynamicAllocator::DataHeader);
+    constexpr size_t testData2MemSize =
+        sizeof(TestData_Small) + alignof(TestData_Small) + sizeof(AxrDynamicAllocator::DataHeader);
+    constexpr size_t testData3MemSize =
+        sizeof(TestData_Small) + alignof(TestData_Small) + sizeof(AxrDynamicAllocator::DataHeader);
+    constexpr size_t testData4MemSize =
+        sizeof(TestData_Small) + alignof(TestData_Small) + sizeof(AxrDynamicAllocator::DataHeader);
+    constexpr size_t testData5MemSize =
+        sizeof(TestData_Small) + alignof(TestData_Small) + sizeof(AxrDynamicAllocator::DataHeader);
+    constexpr size_t allocatorMainMemSize =
+        testData1MemSize + testData2MemSize + testData3MemSize + testData4MemSize + testData5MemSize;
+    const size_t allocatorSize =
+        allocatorMainMemSize + AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
+    void* memory = malloc(allocatorSize);
+    AxrDynamicAllocator allocator(
+        AxrMemoryBlock{
+            .Memory = memory,
+            .Size = allocatorSize,
+            .Deallocator = callback,
+        },
+        maxHandleCount);
+
+    AxrHandle<TestData_Small> outTestData1Handle{};
+    AxrResult axrResult = allocator.allocate(1, outTestData1Handle);
+    ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
+
+    constexpr TestData_Small exampleTestData1{
+        .ID = 1,
+        .Data = {9, 1, 5, 6, 123, 867, 2},
+    };
+    *outTestData1Handle = exampleTestData1;
+
+    AxrHandle<TestData_Small> outTestData2Handle{};
+    axrResult = allocator.allocate(1, outTestData2Handle);
+    ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
+
+    constexpr TestData_Small exampleTestData2{
+        .ID = 76,
+        .Data = {7, 12, 90, 51, 23, 65, 1},
+    };
+    *outTestData2Handle = exampleTestData2;
+
+    AxrHandle<TestData_Small> outTestData3Handle{};
+    axrResult = allocator.allocate(1, outTestData3Handle);
+    ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
+
+    constexpr TestData_Small exampleTestData3{
+        .ID = 74,
+        .Data = {7, 54, 15, 97, 12, 867, 35},
+    };
+    *outTestData3Handle = exampleTestData3;
+
+    AxrHandle<TestData_Small> outTestData4Handle{};
+    axrResult = allocator.allocate(1, outTestData4Handle);
+    ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
+
+    constexpr TestData_Small exampleTestData4{
+        .ID = 9,
+        .Data = {1, 1, 6, 6, 6, 4, 8},
+    };
+    *outTestData4Handle = exampleTestData4;
+
+    AxrHandle<TestData_Small> outTestData5Handle{};
+    axrResult = allocator.allocate(1, outTestData5Handle);
+    ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
+
+    constexpr TestData_Small exampleTestData5{
+        .ID = 54,
+        .Data = {8, 3, 3, 5, 187, 12, 6},
+    };
+    *outTestData5Handle = exampleTestData5;
+
+    ASSERT_TRUE(*outTestData1Handle == exampleTestData1);
+    ASSERT_TRUE(*outTestData2Handle == exampleTestData2);
+    ASSERT_TRUE(*outTestData3Handle == exampleTestData3);
+    ASSERT_TRUE(*outTestData4Handle == exampleTestData4);
+    ASSERT_TRUE(*outTestData5Handle == exampleTestData5);
+
+    allocator.deallocate(outTestData1Handle);
+    allocator.deallocate(outTestData3Handle);
+    allocator.deallocate(outTestData5Handle);
+
+    ASSERT_TRUE(outTestData1Handle == nullptr);
+    ASSERT_TRUE(*outTestData2Handle == exampleTestData2);
+    ASSERT_TRUE(outTestData3Handle == nullptr);
+    ASSERT_TRUE(*outTestData4Handle == exampleTestData4);
+    ASSERT_TRUE(outTestData5Handle == nullptr);
+
+    ASSERT_TRUE(allocator.mainMemorySize() ==
+                allocatorMainMemSize - testData1MemSize - testData3MemSize - testData5MemSize);
+
+    // Make sure the handles got updated correctly and still point to the correct data
+    ASSERT_TRUE(outTestData1Handle == nullptr);
+    ASSERT_TRUE(*outTestData2Handle == exampleTestData2);
+    ASSERT_TRUE(outTestData3Handle == nullptr);
+    ASSERT_TRUE(*outTestData4Handle == exampleTestData4);
+    ASSERT_TRUE(outTestData5Handle == nullptr);
+
+    ASSERT_TRUE(allocator.mainMemorySize() ==
+                allocatorMainMemSize - testData1MemSize - testData3MemSize - testData5MemSize);
+
+    // To make sure slots 1, 3 and 5 combine to make one free block, we allocate a large block that wouldn't fit
+    // anywhere unless they combined
+
+    constexpr size_t testDataLargeMemSize =
+        sizeof(TestData_Large) + alignof(TestData_Large) + sizeof(AxrDynamicAllocator::DataHeader);
+
+    AxrHandle<TestData_Large> outTestDataLargeHandle{};
+    axrResult = allocator.allocate(1, outTestDataLargeHandle);
+    ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
+
+    constexpr TestData_Large exampleTestDataLarge{
+        .ID = 54,
+        .Data = {8, 1, 6, 3, 1, 3, 6, 5'673, 1, 4, 23, 6, 567, 234, 67},
+    };
+    *outTestDataLargeHandle = exampleTestDataLarge;
+
+    ASSERT_TRUE(*outTestData2Handle == exampleTestData2);
+    ASSERT_TRUE(*outTestData4Handle == exampleTestData4);
+    ASSERT_TRUE(*outTestDataLargeHandle == exampleTestDataLarge);
+
+    ASSERT_TRUE(allocator.mainMemorySize() ==
+                allocatorMainMemSize - testData1MemSize - testData3MemSize - testData5MemSize + testDataLargeMemSize);
+}
