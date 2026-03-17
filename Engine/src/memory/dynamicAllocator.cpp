@@ -102,7 +102,10 @@ AxrDynamicAllocator& AxrDynamicAllocator::operator=(AxrDynamicAllocator&& src) n
 // ----------------------------------------- //
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to allocator block for dynamic allocator. "
-AxrResult AxrDynamicAllocator::allocateBlock(const size_t size, const uint8_t alignment, AxrHandle<void>& handle) {
+AxrResult AxrDynamicAllocator::allocateBlock(const size_t size,
+                                             const uint8_t alignment,
+                                             AxrHandle<void>& handle,
+                                             const bool zeroOutMemory) {
     // This should never be null. The only time it's null is if this allocator is empty and wasn't given any data to
     // manage. In such case, we shouldn't be calling this function
     assert(m_MainMemory != nullptr);
@@ -146,8 +149,9 @@ AxrResult AxrDynamicAllocator::allocateBlock(const size_t size, const uint8_t al
 
     auto allocatedBlock = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(dataHeader) + sizeof(DataHeader));
 
-    // TODO (Ashe): Make zeroing out memory optional maybe. Possibly with a flag
-    std::memset(allocatedBlock, 0, blockSize - sizeof(DataHeader));
+    if (zeroOutMemory) {
+        std::memset(allocatedBlock, 0, blockSize - sizeof(DataHeader));
+    }
 
     allocatedBlock = axrAlignMemory(allocatedBlock, alignment);
 

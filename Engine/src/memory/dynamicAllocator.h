@@ -67,19 +67,27 @@ public:
     /// @param size Size in bytes for how much memory to allocate
     /// @param alignment Memory alignment
     /// @param handle Output allocated memory handle
+    /// @param zeroOutMemory If true, the allocated memory will be zeroed out
     /// @return AXR_SUCCESS if the function succeeded.
     /// AXR_ERROR_OUT_OF_MEMORY if there isn't enough space for the requested memory.
-    [[nodiscard]] AxrResult allocateBlock(size_t size, uint8_t alignment, AxrHandle<void>& handle);
+    [[nodiscard]] AxrResult allocateBlock(size_t size,
+                                          uint8_t alignment,
+                                          AxrHandle<void>& handle,
+                                          bool zeroOutMemory = false);
 
     /// Allocate new memory
     /// @tparam Type The memory data type
     /// @param size The number of data items of type `Type` to store in memory
     /// @param handle Output allocated memory handle
+    /// @param zeroOutMemory If true, the allocated memory will be zeroed out
     /// @return AXR_SUCCESS if the function succeeded.
     /// AXR_ERROR_OUT_OF_MEMORY if there isn't enough space for the requested memory.
     template<typename Type>
-    [[nodiscard]] AxrResult allocate(const size_t size, AxrHandle<Type>& handle) {
-        return allocateBlock(sizeof(Type) * size, alignof(Type), reinterpret_cast<AxrHandle<void>&>(handle));
+    [[nodiscard]] AxrResult allocate(const size_t size, AxrHandle<Type>& handle, const bool zeroOutMemory = false) {
+        return allocateBlock(sizeof(Type) * size,
+                             alignof(Type),
+                             reinterpret_cast<AxrHandle<void>&>(handle),
+                             zeroOutMemory);
     }
 
     /// Deallocate the given handle

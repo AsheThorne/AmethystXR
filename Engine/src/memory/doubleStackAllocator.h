@@ -61,18 +61,28 @@ public:
     /// @param alignment Memory alignment
     /// @param memory Output allocated memory
     /// @param markerID Output marker ID for this memory
+    /// @param zeroOutMemory If true, the allocated memory will be zeroed out
     /// @return AXR_SUCCESS if the function succeeded.
     /// AXR_ERROR_OUT_OF_MEMORY if there isn't enough space on the stack for the requested memory.
-    [[nodiscard]] AxrResult allocateLowerBlock(size_t size, uint8_t alignment, void*& memory, MarkerID& markerID);
+    [[nodiscard]] AxrResult allocateLowerBlock(size_t size,
+                                               uint8_t alignment,
+                                               void*& memory,
+                                               MarkerID& markerID,
+                                               bool zeroOutMemory = false);
     /// Allocate new memory block to the stack on the upper end.
     /// MarkerIDs are NOT UNIQUE between upper and lower bounds so don't mix lower and upper markers.
     /// @param size Size in bytes for how much memory to allocate
     /// @param alignment Memory alignment
     /// @param memory Output allocated memory
     /// @param markerID Output marker ID for this memory
+    /// @param zeroOutMemory If true, the allocated memory will be zeroed out
     /// @return AXR_SUCCESS if the function succeeded.
     /// AXR_ERROR_OUT_OF_MEMORY if there isn't enough space on the stack for the requested memory.
-    [[nodiscard]] AxrResult allocateUpperBlock(size_t size, uint8_t alignment, void*& memory, MarkerID& markerID);
+    [[nodiscard]] AxrResult allocateUpperBlock(size_t size,
+                                               uint8_t alignment,
+                                               void*& memory,
+                                               MarkerID& markerID,
+                                               bool zeroOutMemory = false);
 
     /// Allocate new memory to the stack on the lower end.
     /// MarkerIDs are NOT UNIQUE between upper and lower bounds so don't mix lower and upper markers.
@@ -80,11 +90,19 @@ public:
     /// @param size The number of data items of type `Type` to store in memory
     /// @param memory Output allocated memory
     /// @param markerID Output marker ID for this memory
+    /// @param zeroOutMemory If true, the allocated memory will be zeroed out
     /// @return AXR_SUCCESS if the function succeeded.
     /// AXR_ERROR_OUT_OF_MEMORY if there isn't enough space on the stack for the requested memory.
     template<typename Type>
-    [[nodiscard]] AxrResult allocateLower(const size_t size, Type*& memory, MarkerID& markerID) {
-        return allocateLowerBlock(sizeof(Type) * size, alignof(Type), reinterpret_cast<void*&>(memory), markerID);
+    [[nodiscard]] AxrResult allocateLower(const size_t size,
+                                          Type*& memory,
+                                          MarkerID& markerID,
+                                          const bool zeroOutMemory = false) {
+        return allocateLowerBlock(sizeof(Type) * size,
+                                  alignof(Type),
+                                  reinterpret_cast<void*&>(memory),
+                                  markerID,
+                                  zeroOutMemory);
     }
 
     /// Allocate new memory to the stack on the upper end.
@@ -93,11 +111,19 @@ public:
     /// @param size The number of data items of type `Type` to store in memory
     /// @param memory Output allocated memory
     /// @param markerID Output marker ID for this memory
+    /// @param zeroOutMemory If true, the allocated memory will be zeroed out
     /// @return AXR_SUCCESS if the function succeeded.
     /// AXR_ERROR_OUT_OF_MEMORY if there isn't enough space on the stack for the requested memory.
     template<typename Type>
-    [[nodiscard]] AxrResult allocateUpper(const size_t size, Type*& memory, MarkerID& markerID) {
-        return allocateUpperBlock(sizeof(Type) * size, alignof(Type), reinterpret_cast<void*&>(memory), markerID);
+    [[nodiscard]] AxrResult allocateUpper(const size_t size,
+                                          Type*& memory,
+                                          MarkerID& markerID,
+                                          const bool zeroOutMemory = false) {
+        return allocateUpperBlock(sizeof(Type) * size,
+                                  alignof(Type),
+                                  reinterpret_cast<void*&>(memory),
+                                  markerID,
+                                  zeroOutMemory);
     }
 
     /// Deallocate the memory for the given marker ID. Including all memory allocated after the given marker. On the

@@ -83,7 +83,7 @@ TEST(StackAllocator, AllocateOne) {
 
     TestData_Small* outTestData = nullptr;
     AxrStackAllocator::MarkerID markerID{};
-    const AxrResult axrResult = allocator.allocate(1, outTestData, markerID);
+    const AxrResult axrResult = allocator.allocate(1, outTestData, markerID, true);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
     ASSERT_TRUE(outTestData != nullptr);
 
@@ -111,10 +111,10 @@ TEST(StackAllocator, AllocateTwo) {
     TestData_Large* outTestData2 = nullptr;
     AxrStackAllocator::MarkerID testData1MarkerID{};
     AxrStackAllocator::MarkerID testData2MarkerID{};
-    AxrResult axrResult = allocator.allocate(1, outTestData1, testData1MarkerID);
+    AxrResult axrResult = allocator.allocate(1, outTestData1, testData1MarkerID, true);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
-    axrResult = allocator.allocate(1, outTestData2, testData2MarkerID);
+    axrResult = allocator.allocate(1, outTestData2, testData2MarkerID, true);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
     ASSERT_TRUE(reinterpret_cast<uintptr_t>(outTestData1) != reinterpret_cast<uintptr_t>(outTestData2));

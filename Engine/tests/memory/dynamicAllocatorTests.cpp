@@ -89,7 +89,7 @@ TEST(DynamicAllocator, Allocate_One) {
         maxHandleCount);
 
     AxrHandle<TestData_Small> outTestDataHandle{};
-    const AxrResult axrResult = allocator.allocate(1, outTestDataHandle);
+    const AxrResult axrResult = allocator.allocate(1, outTestDataHandle, true);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
     ASSERT_TRUE(outTestDataHandle != nullptr);
 
@@ -126,10 +126,10 @@ TEST(DynamicAllocator, Allocate_Two) {
 
     AxrHandle<TestData_Small> outTestData1Handle{};
     AxrHandle<TestData_Large> outTestData2Handle{};
-    AxrResult axrResult = allocator.allocate(1, outTestData1Handle);
+    AxrResult axrResult = allocator.allocate(1, outTestData1Handle, true);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
-    axrResult = allocator.allocate(1, outTestData2Handle);
+    axrResult = allocator.allocate(1, outTestData2Handle, true);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
     // Check that the data is empty and zeroed out

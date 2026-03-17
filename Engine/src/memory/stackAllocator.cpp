@@ -61,7 +61,8 @@ AxrStackAllocator& AxrStackAllocator::operator=(AxrStackAllocator&& src) noexcep
 AxrResult AxrStackAllocator::allocateBlock(const size_t size,
                                            const uint8_t alignment,
                                            void*& memory,
-                                           MarkerID& markerID) {
+                                           MarkerID& markerID,
+                                           const bool zeroOutMemory) {
     // Make sure there's enough space for both the requested memory size and for its marker.
     const size_t blockSize = size + alignment + sizeof(Marker);
     const size_t dataSize = size + alignment;
@@ -73,8 +74,10 @@ AxrResult AxrStackAllocator::allocateBlock(const size_t size,
     }
 
     MarkerID currentID = getCurrentMarker().ID;
-    // TODO (Ashe): Make zeroing out memory optional maybe. Possibly with a flag
-    std::memset(end(), 0, blockSize);
+
+    if (zeroOutMemory) {
+        std::memset(end(), 0, blockSize);
+    }
 
     memory = axrAlignMemory(end(), alignment);
     // Yes, we will never get an ID of 0. This is so if we get a marker ID of 0 from `getCurrentMarker()`,

@@ -114,9 +114,10 @@ public:
 #define AXR_FUNCTION_FAILED_STRING "Failed to allocate memory for AxrPoolAllocator. "
     /// Allocate new memory from the pool
     /// @param memory Output allocated memory
+    /// @param zeroOutMemory If true, the allocated memory will be zeroed out
     /// @return AXR_SUCCESS if the function succeeded.
     /// AXR_ERROR_OUT_OF_MEMORY if there isn't any free memory in the pool.
-    [[nodiscard]] AxrResult allocate(Type*& memory) {
+    [[nodiscard]] AxrResult allocate(Type*& memory, const bool zeroOutMemory = false) {
         if (m_FreeChunksHead == nullptr) {
             axrLogError(AXR_FUNCTION_FAILED_STRING "Ran out of chunks to allocate.");
             return AXR_ERROR_OUT_OF_MEMORY;
@@ -124,8 +125,10 @@ public:
 
         Type* chunk = reinterpret_cast<Type*>(m_FreeChunksHead);
         m_FreeChunksHead = m_FreeChunksHead->Next;
-        // TODO (Ashe): Make zeroing out memory optional maybe. Possibly with a flag
-        std::memset(static_cast<void*>(chunk), 0, sizeof(Type));
+
+        if (zeroOutMemory) {
+            std::memset(static_cast<void*>(chunk), 0, sizeof(Type));
+        }
 
         memory = chunk;
         ++m_UsedChunkCount;
@@ -381,9 +384,10 @@ public:
 #define AXR_FUNCTION_FAILED_STRING "Failed to allocate memory for AxrPoolAllocator. "
     /// Allocate new memory from the pool
     /// @param memory Output allocated memory
+    /// @param zeroOutMemory If true, the allocated memory will be zeroed out
     /// @return AXR_SUCCESS if the function succeeded.
     /// AXR_ERROR_OUT_OF_MEMORY if there isn't any free memory in the pool.
-    [[nodiscard]] AxrResult allocate(Type*& memory) {
+    [[nodiscard]] AxrResult allocate(Type*& memory, const bool zeroOutMemory = false) {
         if (m_FreeChunksHeadIndex == ChunkIndexTraits::Max) {
             axrLogError(AXR_FUNCTION_FAILED_STRING "Ran out of chunks to allocate.");
             return AXR_ERROR_OUT_OF_MEMORY;
@@ -391,8 +395,10 @@ public:
 
         Type* chunk = ptrAt(m_FreeChunksHeadIndex);
         m_FreeChunksHeadIndex = at(m_FreeChunksHeadIndex);
-        // TODO (Ashe): Make zeroing out memory optional maybe. Possibly with a flag
-        std::memset(static_cast<void*>(chunk), 0, sizeof(Type));
+
+        if (zeroOutMemory) {
+            std::memset(static_cast<void*>(chunk), 0, sizeof(Type));
+        }
 
         memory = chunk;
         m_UsedChunkCount++;

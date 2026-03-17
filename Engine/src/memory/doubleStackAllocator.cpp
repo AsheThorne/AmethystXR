@@ -65,7 +65,8 @@ AxrDoubleStackAllocator& AxrDoubleStackAllocator::operator=(AxrDoubleStackAlloca
 AxrResult AxrDoubleStackAllocator::allocateLowerBlock(const size_t size,
                                                       const uint8_t alignment,
                                                       void*& memory,
-                                                      MarkerID& markerID) {
+                                                      MarkerID& markerID,
+                                                      const bool zeroOutMemory) {
     // Make sure there's enough space for both the requested memory size and for its marker.
     const size_t blockSize = size + alignment + sizeof(Marker);
     const size_t dataSize = size + alignment;
@@ -77,8 +78,10 @@ AxrResult AxrDoubleStackAllocator::allocateLowerBlock(const size_t size,
     }
 
     MarkerID currentID = getCurrentMarkerLower().ID;
-    // TODO (Ashe): Make zeroing out memory optional maybe. Possibly with a flag
-    std::memset(endLower(), 0, blockSize);
+
+    if (zeroOutMemory) {
+        std::memset(endLower(), 0, blockSize);
+    }
 
     memory = axrAlignMemory(endLower(), alignment);
     // Yes, we will never get an ID of 0. This is so if we get a marker ID of 0 from `getCurrentMarkerLower()`,
@@ -102,7 +105,8 @@ AxrResult AxrDoubleStackAllocator::allocateLowerBlock(const size_t size,
 AxrResult AxrDoubleStackAllocator::allocateUpperBlock(const size_t size,
                                                       const uint8_t alignment,
                                                       void*& memory,
-                                                      MarkerID& markerID) {
+                                                      MarkerID& markerID,
+                                                      const bool zeroOutMemory) {
     // Make sure there's enough space for both the requested memory size and for its marker.
     const size_t blockSize = size + alignment + sizeof(Marker);
     const size_t dataSize = size + alignment;
@@ -114,8 +118,10 @@ AxrResult AxrDoubleStackAllocator::allocateUpperBlock(const size_t size,
     }
 
     MarkerID currentID = getCurrentMarkerUpper().ID;
-    // TODO (Ashe): Make zeroing out memory optional maybe. Possibly with a flag
-    std::memset(endUpper() - blockSize, 0, blockSize);
+
+    if (zeroOutMemory) {
+        std::memset(endUpper() - blockSize, 0, blockSize);
+    }
 
     // minus size, not block size. if it was block size then the marker would be at the head of this address which we
     // obviously don't want

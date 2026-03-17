@@ -75,7 +75,7 @@ static void allocateOne_Test() {
     });
 
     DataType* outTestData = nullptr;
-    const AxrResult axrResult = allocator.allocate(outTestData);
+    const AxrResult axrResult = allocator.allocate(outTestData, true);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
     ASSERT_TRUE(outTestData != nullptr);
 
@@ -99,7 +99,7 @@ static void allocateAll_Test(const DataType* exampleTestDatas) {
 
     DataType* outTestDatas[DataSize]{};
     for (int i = 0; i < DataSize; i++) {
-        const AxrResult axrResult = allocator.allocate(outTestDatas[i]);
+        const AxrResult axrResult = allocator.allocate(outTestDatas[i], true);
         ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
         ASSERT_TRUE(outTestDatas[i] != nullptr);
 

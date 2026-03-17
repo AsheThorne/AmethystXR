@@ -45,12 +45,13 @@ template<typename Type>
 static AxrResult allocate(const bool upperEnd,
                           AxrDoubleStackAllocator& allocator,
                           Type*& memory,
-                          AxrDoubleStackAllocator::MarkerID& markerID) {
+                          AxrDoubleStackAllocator::MarkerID& markerID,
+                          const bool zeroOutMemory) {
     if (upperEnd) {
-        return allocator.allocateUpper(1, memory, markerID);
+        return allocator.allocateUpper(1, memory, markerID, zeroOutMemory);
     }
 
-    return allocator.allocateLower(1, memory, markerID);
+    return allocator.allocateLower(1, memory, markerID, zeroOutMemory);
 }
 
 static void deallocate(const bool upperEnd,
@@ -88,7 +89,7 @@ static void allocateOne_Test(const bool upperEnd) {
 
     TestData_Small* outTestData = nullptr;
     AxrDoubleStackAllocator::MarkerID markerID{};
-    const AxrResult axrResult = allocate(upperEnd, allocator, outTestData, markerID);
+    const AxrResult axrResult = allocate(upperEnd, allocator, outTestData, markerID, true);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
     ASSERT_TRUE(outTestData != nullptr);
 
@@ -116,10 +117,10 @@ static void allocateTwo_Test(const bool upperEnd) {
     TestData_Large* outTestData2 = nullptr;
     AxrDoubleStackAllocator::MarkerID testData1MarkerID{};
     AxrDoubleStackAllocator::MarkerID testData2MarkerID{};
-    AxrResult axrResult = allocate(upperEnd, allocator, outTestData1, testData1MarkerID);
+    AxrResult axrResult = allocate(upperEnd, allocator, outTestData1, testData1MarkerID, true);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
-    axrResult = allocate(upperEnd, allocator, outTestData2, testData2MarkerID);
+    axrResult = allocate(upperEnd, allocator, outTestData2, testData2MarkerID, true);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
     ASSERT_TRUE(reinterpret_cast<uintptr_t>(outTestData1) != reinterpret_cast<uintptr_t>(outTestData2));
@@ -155,17 +156,17 @@ static void allocateTooMuch_Test(const bool upperEnd) {
 
     TestData_Small* outTestData1 = nullptr;
     AxrDoubleStackAllocator::MarkerID testData1MarkerID{};
-    AxrResult axrResult = allocate(upperEnd, allocator, outTestData1, testData1MarkerID);
+    AxrResult axrResult = allocate(upperEnd, allocator, outTestData1, testData1MarkerID, false);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
     TestData_Small* outTestData2 = nullptr;
     AxrDoubleStackAllocator::MarkerID testData2MarkerID{};
-    axrResult = allocate(upperEnd, allocator, outTestData2, testData2MarkerID);
+    axrResult = allocate(upperEnd, allocator, outTestData2, testData2MarkerID, false);
     ASSERT_TRUE(axrResult == AXR_ERROR_OUT_OF_MEMORY);
 
     TestData_Small* outTestData3 = nullptr;
     AxrDoubleStackAllocator::MarkerID testData3MarkerID{};
-    axrResult = allocate(!upperEnd, allocator, outTestData3, testData3MarkerID);
+    axrResult = allocate(!upperEnd, allocator, outTestData3, testData3MarkerID, false);
     ASSERT_TRUE(axrResult == AXR_ERROR_OUT_OF_MEMORY);
 }
 
@@ -189,10 +190,10 @@ static void allocateTwoDeallocateOne_Test(const bool upperEnd) {
     TestData_Large* outTestData2 = nullptr;
     AxrDoubleStackAllocator::MarkerID testData1MarkerID{};
     AxrDoubleStackAllocator::MarkerID testData2MarkerID{};
-    AxrResult axrResult = allocate(upperEnd, allocator, outTestData1, testData1MarkerID);
+    AxrResult axrResult = allocate(upperEnd, allocator, outTestData1, testData1MarkerID, false);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
-    axrResult = allocate(upperEnd, allocator, outTestData2, testData2MarkerID);
+    axrResult = allocate(upperEnd, allocator, outTestData2, testData2MarkerID, false);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
     // Check allocator is full first.
@@ -222,10 +223,10 @@ static void allocateTwoDeallocateMarker1_Test(const bool upperEnd) {
     TestData_Large* outTestData2 = nullptr;
     AxrDoubleStackAllocator::MarkerID testData1MarkerID{};
     AxrDoubleStackAllocator::MarkerID testData2MarkerID{};
-    AxrResult axrResult = allocate(upperEnd, allocator, outTestData1, testData1MarkerID);
+    AxrResult axrResult = allocate(upperEnd, allocator, outTestData1, testData1MarkerID, false);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
-    axrResult = allocate(upperEnd, allocator, outTestData2, testData2MarkerID);
+    axrResult = allocate(upperEnd, allocator, outTestData2, testData2MarkerID, false);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
     // Check allocator is full.
@@ -256,10 +257,10 @@ static void DeallocateIfLast_Success_Test(const bool upperEnd) {
     TestData_Large* outTestData2 = nullptr;
     AxrDoubleStackAllocator::MarkerID testData1MarkerID{};
     AxrDoubleStackAllocator::MarkerID testData2MarkerID{};
-    AxrResult axrResult = allocate(upperEnd, allocator, outTestData1, testData1MarkerID);
+    AxrResult axrResult = allocate(upperEnd, allocator, outTestData1, testData1MarkerID, false);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
-    axrResult = allocate(upperEnd, allocator, outTestData2, testData2MarkerID);
+    axrResult = allocate(upperEnd, allocator, outTestData2, testData2MarkerID, false);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
     // Check allocator is full.
     ASSERT_TRUE(allocator.size() == allocatorSize);
@@ -293,10 +294,10 @@ static void DeallocateIfLast_Failure_Test(const bool upperEnd) {
     TestData_Large* outTestData2 = nullptr;
     AxrDoubleStackAllocator::MarkerID testData1MarkerID{};
     AxrDoubleStackAllocator::MarkerID testData2MarkerID{};
-    AxrResult axrResult = allocate(upperEnd, allocator, outTestData1, testData1MarkerID);
+    AxrResult axrResult = allocate(upperEnd, allocator, outTestData1, testData1MarkerID, false);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
-    axrResult = allocate(upperEnd, allocator, outTestData2, testData2MarkerID);
+    axrResult = allocate(upperEnd, allocator, outTestData2, testData2MarkerID, false);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
     // Check allocator is full first.
     ASSERT_TRUE(allocator.size() == allocatorSize);
@@ -358,11 +359,11 @@ TEST(DoubleStackAllocator, AllocateOneLowerOneUpper) {
     TestData_Small* outTestDataUpper = nullptr;
     AxrDoubleStackAllocator::MarkerID markerIDLower{};
     AxrDoubleStackAllocator::MarkerID markerIDUpper{};
-    AxrResult axrResult = allocator.allocateLower(1, outTestDataLower, markerIDLower);
+    AxrResult axrResult = allocator.allocateLower(1, outTestDataLower, markerIDLower, true);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
     ASSERT_TRUE(outTestDataLower != nullptr);
 
-    axrResult = allocator.allocateUpper(1, outTestDataUpper, markerIDUpper);
+    axrResult = allocator.allocateUpper(1, outTestDataUpper, markerIDUpper, true);
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
     ASSERT_TRUE(outTestDataUpper != nullptr);
 
