@@ -52,6 +52,8 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/memory/doubleStackAllocator.cpp
     ${AXR_SRC_DIR}/memory/poolAllocator.h
     ${AXR_SRC_DIR}/memory/utils.h
+    ${AXR_SRC_DIR}/memory/dynamicAllocator.h
+    ${AXR_SRC_DIR}/memory/dynamicAllocator.cpp
     # ---- Platform ----
     ${AXR_SRC_DIR}/platform/platform.h
     ${AXR_SRC_DIR}/platform/platform.cpp
@@ -79,6 +81,7 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanEnvironment.cpp
     # ---- Common ----
     ${AXR_SRC_DIR}/common/enums.cpp
+    ${AXR_SRC_DIR}/common/handle.h
     # ---- Common - Containers ----
     ${AXR_SRC_DIR}/common/containers/array.h
     ${AXR_SRC_DIR}/common/containers/extensionArray.h
@@ -182,6 +185,7 @@ set(AXR_TEST_FILES
     ${AXR_TEST_DIR}/memory/stackAllocatorTests.cpp
     ${AXR_TEST_DIR}/memory/doubleStackAllocatorTests.cpp
     ${AXR_TEST_DIR}/memory/poolAllocatorTests.cpp
+    ${AXR_TEST_DIR}/memory/dynamicAllocatorTests.cpp
     ${AXR_TEST_DIR}/memory/utilsTests.cpp
     # ---- Common - Containers ----
     ${AXR_TEST_DIR}/common/containers/arrayTests.cpp

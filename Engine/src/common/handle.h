@@ -1,0 +1,259 @@
+#pragma once
+
+// ----------------------------------------- //
+// Headers
+// ----------------------------------------- //
+
+// ----------------------------------------- //
+// Forward Declarations
+// ----------------------------------------- //
+class AxrDynamicAllocator;
+
+/// A pointer handle.
+/// Used in memory allocators where the original pointer way be relocated due to factors like defragmentation.
+/// @tparam Type The pointer data type
+template<typename Type>
+class AxrHandle {
+public:
+    // ----------------------------------------- //
+    // Friends
+    // ----------------------------------------- //
+    friend AxrDynamicAllocator;
+
+    // ----------------------------------------- //
+    // Types
+    // ----------------------------------------- //
+    using Deallocator_T = AxrCallback<void(AxrHandle<Type>& handle)>;
+
+    // ----------------------------------------- //
+    // Special Functions
+    // ----------------------------------------- //
+
+    // ---- Constructors ----
+
+    /// Default Constructor
+    AxrHandle() = default;
+
+    /// Constructor
+    /// @param data The data handle
+    /// @param deallocator The function callback to deallocate the given data
+    explicit AxrHandle(Type** data, const Deallocator_T& deallocator) :
+        m_Data(data),
+        m_Deallocator(deallocator) {
+    }
+
+    /// Copy Constructor
+    /// @param src Source AxrHandle to copy from
+    AxrHandle(const AxrHandle& src) = delete;
+
+    /// Move Constructor
+    /// @param src Source AxrHandle to move from
+    AxrHandle(AxrHandle&& src) noexcept {
+        m_Data = src.m_Data;
+        m_Deallocator = src.m_Deallocator;
+
+        src.m_Data = {};
+        src.m_Deallocator = {};
+    }
+
+    // ---- Destructor ----
+
+    /// Destructor
+    ~AxrHandle() {
+        cleanup();
+    }
+
+    // ---- Operator Overloads ----
+
+    /// Copy Assignment Operator
+    /// @param src Source AxrHandle to copy from
+    AxrHandle& operator=(const AxrHandle& src) = delete;
+
+    /// Move Assignment Operator
+    /// @param src Source AxrHandle to move from
+    AxrHandle& operator=(AxrHandle&& src) noexcept {
+        if (this != &src) {
+            cleanup();
+
+            m_Data = src.m_Data;
+            m_Deallocator = src.m_Deallocator;
+
+            src.m_Data = {};
+            src.m_Deallocator = {};
+        }
+        return *this;
+    }
+
+    /// Null equality operator overload
+    /// @return True if this handle is null
+    bool operator==(nullptr_t) noexcept {
+        return m_Data == nullptr || *m_Data == nullptr;
+    }
+
+    /// Dereference operator overload
+    /// @return A reference to this handles data
+    Type& operator*() {
+        return **m_Data;
+    }
+
+    /// Dereference operator overload
+    /// @return A reference to this handles data
+    const Type& operator*() const {
+        return **m_Data;
+    }
+
+    /// Pointer operator overload
+    /// @return A pointer to this handles data
+    Type* operator->() {
+        if (m_Data == nullptr) {
+            return nullptr;
+        }
+
+        return *m_Data;
+    }
+
+    /// Pointer operator overload
+    /// @return A pointer to this handles data
+    const Type* operator->() const {
+        if (m_Data == nullptr) {
+            return nullptr;
+        }
+
+        return *m_Data;
+    }
+
+    // ----------------------------------------- //
+    // Public Functions
+    // ----------------------------------------- //
+
+private:
+    // ----------------------------------------- //
+    // Private Variables
+    // ----------------------------------------- //
+    Type** m_Data{};
+    Deallocator_T m_Deallocator{};
+
+    // ----------------------------------------- //
+    // Private Functions
+    // ----------------------------------------- //
+
+    /// Clean up this class
+    void cleanup() {
+        m_Deallocator(*this);
+
+        m_Data = nullptr;
+        m_Deallocator = {};
+    }
+};
+
+/// A `void` specialization pointer handle.
+/// Used in memory allocators where the original pointer way be relocated due to factors like defragmentation.
+template<>
+class AxrHandle<void> {
+public:
+    // ----------------------------------------- //
+    // Friends
+    // ----------------------------------------- //
+    friend AxrDynamicAllocator;
+
+    // ----------------------------------------- //
+    // Types
+    // ----------------------------------------- //
+    using Deallocator_T = AxrCallback<void(AxrHandle<void>& handle)>;
+
+    // ----------------------------------------- //
+    // Special Functions
+    // ----------------------------------------- //
+
+    // ---- Constructors ----
+
+    /// Default Constructor
+    AxrHandle() = default;
+
+    /// Constructor
+    /// @param data The data handle
+    /// @param deallocator The function callback to deallocate the given data
+    explicit AxrHandle(void** data, const Deallocator_T& deallocator) :
+        m_Data(data),
+        m_Deallocator(deallocator) {
+    }
+
+    /// Copy Constructor
+    /// @param src Source AxrHandle to copy from
+    AxrHandle(const AxrHandle& src) = delete;
+
+    /// Move Constructor
+    /// @param src Source AxrHandle to move from
+    AxrHandle(AxrHandle&& src) noexcept {
+        m_Data = src.m_Data;
+        m_Deallocator = src.m_Deallocator;
+
+        src.m_Data = {};
+        src.m_Deallocator = {};
+    }
+
+    // ---- Destructor ----
+
+    /// Destructor
+    ~AxrHandle() {
+        cleanup();
+    }
+
+    // ---- Operator Overloads ----
+
+    /// Copy Assignment Operator
+    /// @param src Source AxrHandle to copy from
+    AxrHandle& operator=(const AxrHandle& src) = delete;
+
+    /// Move Assignment Operator
+    /// @param src Source AxrHandle to move from
+    AxrHandle& operator=(AxrHandle&& src) noexcept {
+        if (this != &src) {
+            cleanup();
+
+            m_Data = src.m_Data;
+            m_Deallocator = src.m_Deallocator;
+
+            src.m_Data = {};
+            src.m_Deallocator = {};
+        }
+        return *this;
+    }
+
+    // ---- Operator Overloads ----
+
+    /// Dereference operator overload
+    /// @return A reference to this handles data
+    void operator*() = delete;
+
+    /// Dereference operator overload
+    /// @return A reference to this handles data
+    void operator*() const = delete;
+
+    /// Pointer operator overload
+    /// @return A pointer to this handles data
+    void* operator->() = delete;
+
+    /// Pointer operator overload
+    /// @return A pointer to this handles data
+    const void* operator->() const = delete;
+
+private:
+    // ----------------------------------------- //
+    // Private Variables
+    // ----------------------------------------- //
+    void** m_Data{};
+    Deallocator_T m_Deallocator{};
+
+    // ----------------------------------------- //
+    // Private Functions
+    // ----------------------------------------- //
+
+    /// Clean up this class
+    void cleanup() {
+        m_Deallocator(*this);
+
+        m_Data = nullptr;
+        m_Deallocator = {};
+    }
+};

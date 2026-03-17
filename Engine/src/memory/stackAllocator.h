@@ -27,6 +27,7 @@ public:
 
     // ---- Constructors ----
 
+    /// Default Constructor
     AxrStackAllocator();
     /// Constructor
     /// @param memory A pointer to the block of memory this allocator has access to

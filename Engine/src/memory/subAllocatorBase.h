@@ -90,9 +90,10 @@ public:
     /// it
     AxrSubAllocatorBase_Aligned(void* memory, const size_t size, const AxrDeallocateBlock& deallocator) :
         AxrSubAllocatorBase(memory, size, deallocator) {
-
         m_Memory = static_cast<uint8_t*>(axrAlignMemory(m_Memory, alignof(Type)));
         m_Capacity = m_Capacity - alignof(Type);
+
+        assert(m_Capacity != 0);
     }
 
     /// Copy Constructor
@@ -122,9 +123,9 @@ public:
     /// @param src Source AxrSubAllocatorBase_Aligned to move from
     AxrSubAllocatorBase_Aligned& operator=(AxrSubAllocatorBase_Aligned&& src) noexcept {
         if (this != &src) {
-            cleanup();
-
             AxrSubAllocatorBase::operator=(std::move(src));
+
+            cleanup();
         }
         return *this;
     }

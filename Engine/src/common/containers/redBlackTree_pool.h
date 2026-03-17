@@ -308,7 +308,7 @@ public:
     /// Find the node with the given data
     /// @param data Data to search for
     /// @return The node with the given data. Or nullptr if the data wasn't found.
-    [[nodiscard]] const Node* find(const Type& data) const {
+    [[nodiscard]] const Node* findNode(const Type& data) const {
         Node* currentNode = m_RootNode;
 
         while (currentNode != nullptr && currentNode->Data != data) {
@@ -322,27 +322,59 @@ public:
         return currentNode;
     }
 
+    /// Find the next largest value after the given value. The given value doesn't need to exist in the tree.
+    /// @param data Find the next node which is larger than this value
+    /// @return The next largest node's iterator. Or the iterator end if there is no node larger than the given value
+    [[nodiscard]] Node::Iterator findNextLargest(const Type& data) const {
+        Node* currentNode = m_RootNode;
+        Node* previousNode = nullptr;
+
+        // Keep going down the tree until we find the closest leaf node to the given value. The leaf node will be stored
+        // in the `previousNode`
+        while (currentNode != nullptr) {
+            if (data < currentNode->Data) {
+                previousNode = currentNode;
+                currentNode = currentNode->Left;
+            } else {
+                previousNode = currentNode;
+                currentNode = currentNode->Right;
+            }
+        }
+
+        typename Node::Iterator closestIterator(m_RootNode, previousNode);
+        // At this point, we've just found the leaf node that's closest to the given value. We don't know if it's
+        // actually larger than it. So all we need to do is check if the value we're searching for is larger than our
+        // iterator. If it is, the next largest node is the next largest node. If not, then we're already on the next
+        // largest node
+        if (data > *closestIterator) {
+            ++closestIterator;
+        }
+
+        return closestIterator;
+    }
+
     /// Check if the given data exists in this tree
     /// @param data Data to check
     /// @return True if the data exists
     [[nodiscard]] bool exists(const Type& data) const {
-        return find(data) != nullptr;
+        return findNode(data) != nullptr;
     }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to insert data into the red black tree. "
     /// Insert data into the tree
     /// @param data Data to insert
-    void insert(const Type& data) {
+    /// @return The inserted node. Or nullptr if we failed to insert the data
+    Node* insert(const Type& data) {
         if (m_PoolAllocator == nullptr) [[unlikely]] {
             axrLogError(AXR_FUNCTION_FAILED_STRING "Pool allocator is null.");
-            return;
+            return nullptr;
         }
 
         Node* node{};
         AxrResult axrResult = m_PoolAllocator->allocate(node);
         if (AXR_FAILED(axrResult)) [[unlikely]] {
             axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to allocate memory.");
-            return;
+            return nullptr;
         }
 
         *node = Node(data);
@@ -351,10 +383,11 @@ public:
         if (AXR_FAILED(axrResult)) {
             m_PoolAllocator->deallocate(node);
             axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to insert the node.");
-            return;
+            return nullptr;
         }
 
         ++m_Size;
+        return node;
     }
 #undef AXR_FUNCTION_FAILED_STRING
 
@@ -362,7 +395,7 @@ public:
     /// Remove data from the tree
     /// @param data Data to remove
     void remove(const Type& data) {
-        Node* node = findNode(data);
+        Node* node = findNode_internal(data);
         if (node == nullptr) {
             return;
         }
@@ -388,7 +421,7 @@ public:
     /// @param originalData Original data to replace
     /// @param newData New data to replace the original data with
     void replace(const Type& originalData, const Type& newData) {
-        Node* node = findNode(originalData);
+        Node* node = findNode_internal(originalData);
         if (node == nullptr) {
             return;
         }
@@ -501,7 +534,7 @@ private:
     /// Find the node with the given data
     /// @param data Data to search for
     /// @return The node with the given data. Or nullptr if the data wasn't found.
-    [[nodiscard]] Node* findNode(const Type& data) {
+    [[nodiscard]] Node* findNode_internal(const Type& data) {
         Node* currentNode = m_RootNode;
 
         while (currentNode != nullptr && currentNode->Data != data) {

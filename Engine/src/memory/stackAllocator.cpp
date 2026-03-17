@@ -10,11 +10,11 @@
 // Special Functions
 // ----------------------------------------- //
 
+AxrStackAllocator::AxrStackAllocator() = default;
+
 AxrStackAllocator::AxrStackAllocator(void* memory, const size_t size, const AxrDeallocateBlock& deallocator) :
     AxrSubAllocatorBase(memory, size, deallocator) {
 }
-
-AxrStackAllocator::AxrStackAllocator() = default;
 
 AxrStackAllocator::AxrStackAllocator(AxrStackAllocator&& src) noexcept :
     AxrSubAllocatorBase(std::move(src)) {

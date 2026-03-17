@@ -36,7 +36,9 @@ public:
 
     /// Constructor
     /// @param memory A pointer to the block of memory this allocator has access to
-    /// @param size The number of bytes the given block of memory has
+    /// @param size The number of bytes the given block of memory has. Must be a multiple of `Type` and
+    /// have an additional `alignof(Type)` bytes, because the buffer is aligned. `size = (numberOfItems * sizeof(Type))
+    /// + alignof(Type)`.
     /// @param deallocator A function pointer to use when we're done with the given memory block and wish to deallocate
     /// it
     AxrPoolAllocator(void* memory, const size_t size, const AxrDeallocateBlock& deallocator) :
@@ -83,9 +85,9 @@ public:
     /// @param src Source AxrPoolAllocator to move from
     AxrPoolAllocator& operator=(AxrPoolAllocator&& src) noexcept {
         if (this != &src) {
-            cleanup();
-
             AxrSubAllocatorBase_Aligned<Type>::operator=(std::move(src));
+
+            cleanup();
 
             m_FreeChunksHead = src.m_FreeChunksHead;
             m_ChunkCapacity = src.m_ChunkCapacity;
@@ -116,7 +118,7 @@ public:
         Type* chunk = reinterpret_cast<Type*>(m_FreeChunksHead);
         m_FreeChunksHead = m_FreeChunksHead->Next;
         // TODO (Ashe): Make zeroing out memory optional maybe. Possibly with a flag
-        std::memset(chunk, 0, sizeof(Type));
+        std::memset(static_cast<void*>(chunk), 0, sizeof(Type));
 
         memory = chunk;
         m_UsedChunkCount++;
@@ -127,6 +129,7 @@ public:
     /// Return the given memory back to the pool
     /// @param memory Memory to return to the pool
     void deallocate(Type*& memory) {
+        // TODO: Check that the memory we're given to delete, belongs to us here. like we do for the dynamic allocator
         auto chunk = reinterpret_cast<Chunk*>(memory);
 
         chunk->Next = m_FreeChunksHead;
@@ -156,7 +159,7 @@ public:
     }
 
     /// Get the empty state of the allocator
-    /// @return True if the allocator is empty
+    /// @return True if the allocator is empty and all chunks are free to use
     [[nodiscard]] bool empty() const {
         return m_UsedChunkCount == 0;
     }
@@ -184,20 +187,22 @@ protected:
 
     /// Clean up this class
     void cleanup() {
-        AxrSubAllocatorBase_Aligned<Type>::cleanup();
-
         m_FreeChunksHead = {};
         m_ChunkCapacity = {};
         m_UsedChunkCount = {};
+
+        AxrSubAllocatorBase_Aligned<Type>::cleanup();
     }
 
     /// Chain together all chunks, marking them all as free to use
     void chainAllChunks() {
-        if (AxrSubAllocatorBase::m_Memory == nullptr)
+        if (AxrSubAllocatorBase::m_Memory == nullptr || m_ChunkCapacity == 0)
             return;
 
         auto currentChunk = reinterpret_cast<Chunk*>(AxrSubAllocatorBase::m_Memory);
-        for (int i = 0; i < m_ChunkCapacity - 1; ++i) {
+        for (size_t i = 0; i < m_ChunkCapacity - 1; ++i) {
+            // TODO: Maybe use uintptr_t instead of uint8* type.
+            //  Check other places it should be replaced too
             currentChunk->Next = reinterpret_cast<Chunk*>(reinterpret_cast<uint8_t*>(currentChunk) + sizeof(Type));
             currentChunk = currentChunk->Next;
         }
@@ -350,7 +355,7 @@ public:
         Type* chunk = ptrAt(m_FreeChunksHeadIndex);
         m_FreeChunksHeadIndex = at(m_FreeChunksHeadIndex);
         // TODO (Ashe): Make zeroing out memory optional maybe. Possibly with a flag
-        std::memset(chunk, 0, sizeof(Type));
+        std::memset(static_cast<void*>(chunk), 0, sizeof(Type));
 
         memory = chunk;
         m_UsedChunkCount++;
