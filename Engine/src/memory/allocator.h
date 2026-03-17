@@ -4,6 +4,7 @@
 // Headers
 // ----------------------------------------- //
 #include "axr/common/enums.h"
+#include "dynamicAllocator.h"
 #include "stackAllocator.h"
 
 /// Axr Main Allocator singleton
@@ -55,12 +56,20 @@ public:
     struct Config {
         /// Size in bytes
         size_t FrameAllocatorSize;
+        /// Size in bytes
+        size_t EngineDataAllocatorMainMemorySize;
+        uint32_t EngineDataAllocatorMaxHandleCount;
     };
 
     // ----------------------------------------- //
     // Public Variables
     // ----------------------------------------- //
+
+    /// Clears all data at the beginning of each frame
     AxrStackAllocator FrameAllocator{};
+
+    /// Allocator for any and all persistent engine related data
+    AxrDynamicAllocator EngineDataAllocator{};
 
     // ----------------------------------------- //
     // Public Functions
@@ -81,6 +90,10 @@ public:
     /// @param message Message to prefix log message with
     void logFrameAllocatorUsage(const char* message) const;
 
+    /// Log the engine data allocator's usage
+    /// @param message Message to prefix log message with
+    void logEngineDataAllocatorUsage(const char* message) const;
+
 private:
     // ----------------------------------------- //
     // Private Variables
@@ -95,5 +108,8 @@ private:
 
     /// Callback function for when the frame allocator gets deallocated
     /// @param memory Frame allocator memory block to deallocate
-    void deallocateFrameAllocatorCallback(void*& memory);
+    static void deallocateFrameAllocatorCallback(void*& memory);
+    /// Callback function for when the engine data allocator gets deallocated
+    /// @param memory Engine data allocator memory block to deallocate
+    static void deallocateEngineDataAllocatorCallback(void*& memory);
 };
