@@ -103,24 +103,24 @@ public:
     /// Get the number of bytes currently in use by the main memory
     /// @return The number of bytes in use by the main memory
     [[nodiscard]] size_t mainMemorySize() const;
-    /// Get the number of bytes currently in use by the main memory
-    /// @return The number of bytes in use by the main memory
-    [[nodiscard]] size_t handlesMemorySize() const;
+    /// Get the number handles currently in use
+    /// @return The number handles currently in use
+    [[nodiscard]] size_t handleCount() const;
 
     /// Get the capacity of the main memory
     /// @return The capacity of the main memory
     [[nodiscard]] size_t mainMemoryCapacity() const;
-    /// Get the capacity of the handles memory
-    /// @return The capacity of the handles memory
-    [[nodiscard]] size_t handlesMemoryCapacity() const;
+    /// Get the max number of handles this allocator can hold
+    /// @return The max number of handles this allocator can hold
+    [[nodiscard]] size_t handlesCountCapacity() const;
 
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
     /// Get the peak usage size of the allocated main memory
     /// @return The peak usage size of the allocated main memory
     [[nodiscard]] size_t peakMainMemorySize() const;
-    /// Get the peak usage size of the allocated handles memory
-    /// @return The peak usage size of the allocated handles memory
-    [[nodiscard]] size_t peakHandlesMemorySize() const;
+    /// Get the peak number of handles being used at one moment
+    /// @return The peak number of handles being used at one moment
+    [[nodiscard]] size_t peakHandleCount() const;
 #endif
 
     /// Get the number of extra bytes this allocator requires for the given max number of handles.
@@ -163,12 +163,10 @@ private:
     void* m_MainMemory{};
     /// This head will always point to the lowest address. And each next free block is ordered from lowest to highest.
     FreeBlockHeader* m_FreeBlocksHead{};
-    size_t m_HandlesMemoryCapacity{};
     size_t m_MainMemoryCapacity{};
     size_t m_TotalMainMemoryUsed{};
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
     size_t m_PeakMainMemoryUsed{};
-    size_t m_PeakHandlesMemoryUsed{};
 #endif
 
     /// Any block must be at least the size of `FreeBlockHeader` because when this memory is freed, there needs to

@@ -98,32 +98,35 @@ void AxrAllocator::logFrameAllocatorUsage(const char* message) const {
 
 void AxrAllocator::logEngineDataAllocatorUsage(const char* message) const {
     const size_t size = EngineDataAllocator.mainMemorySize();
-    const size_t handlesMemorySize = EngineDataAllocator.handlesMemorySize();
+    const size_t handleCount = EngineDataAllocator.handleCount();
     const size_t mainMemoryCapacity = EngineDataAllocator.mainMemoryCapacity();
-    const size_t handlesMemoryCapacity = EngineDataAllocator.handlesMemoryCapacity();
+    const size_t handlesCountCapacity = EngineDataAllocator.handlesCountCapacity();
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
     const size_t peakMainMemorySize = EngineDataAllocator.peakMainMemorySize();
-    const size_t peakHandlesMemorySize = EngineDataAllocator.peakHandlesMemorySize();
+    const size_t peakHandleCount = EngineDataAllocator.peakHandleCount();
 #endif
 
     axrLogInfo("{}: Engine Data Allocator memory usage."
                " {:.2f}% Main memory used currently. {} Bytes used out of {}."
-               " {:.2f}% Handles memory used currently. {} Bytes used out of {}."
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
                " Peak main memory usage reached {:.2f}%."
-               " Peak handles memory usage reached {:.2f}%.",
+#endif
+               " {} Handles used currently out of {}."
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+               " Peak handles count usage reached {}.",
 #endif
                message,
                static_cast<float>(size) / static_cast<float>(mainMemoryCapacity) * 100,
                size,
                mainMemoryCapacity,
-               static_cast<float>(handlesMemorySize) / static_cast<float>(handlesMemoryCapacity) * 100,
-               handlesMemorySize,
-               handlesMemoryCapacity
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+               static_cast<float>(peakMainMemorySize) / static_cast<float>(mainMemoryCapacity) * 100,
+#endif
+               handleCount,
+               handlesCountCapacity
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
                ,
-               static_cast<float>(peakMainMemorySize) / static_cast<float>(mainMemoryCapacity) * 100,
-               static_cast<float>(peakHandlesMemorySize) / static_cast<float>(handlesMemoryCapacity) * 100
+               peakHandleCount
 #endif
     );
 }
