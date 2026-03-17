@@ -13,23 +13,23 @@
 
 AxrDynamicAllocator::AxrDynamicAllocator() = default;
 
-AxrDynamicAllocator::AxrDynamicAllocator(void* memory,
-                                         const size_t size,
-                                         const uint32_t maxHandleCount,
-                                         const AxrDeallocateBlock& deallocator) :
-    AxrSubAllocatorBase(memory, size, deallocator) {
+AxrDynamicAllocator::AxrDynamicAllocator(const AxrMemoryBlock& memoryBlock, const uint32_t maxHandleCount) :
+    AxrSubAllocatorBase(memoryBlock) {
     m_HandlesMemory = m_Memory;
     m_HandlesMemoryCapacity = getHandlesMemoryBlockCapacity(maxHandleCount);
-    assert(m_HandlesMemoryCapacity < size);
+    assert(m_HandlesMemoryCapacity < AxrSubAllocatorBase::m_Capacity);
 
     AxrDeallocateBlock deallocateHandlesCallback;
     deallocateHandlesCallback.connect<&AxrDynamicAllocator::deallocateHandlesAllocator>();
 
-    m_HandlesAllocator =
-        AxrPoolAllocator<HandlesTree_T::Node>(m_HandlesMemory, m_HandlesMemoryCapacity, deallocateHandlesCallback);
+    m_HandlesAllocator = AxrPoolAllocator<HandlesTree_T::Node>(AxrMemoryBlock{
+        .Memory = m_HandlesMemory,
+        .Size = m_HandlesMemoryCapacity,
+        .Deallocator = deallocateHandlesCallback,
+    });
     m_HandlesTree = HandlesTree_T(&m_HandlesAllocator);
 
-    m_MainMemoryCapacity = size - m_HandlesMemoryCapacity;
+    m_MainMemoryCapacity = AxrSubAllocatorBase::m_Capacity - m_HandlesMemoryCapacity;
     m_MainMemory = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(m_HandlesMemory) + m_HandlesMemoryCapacity);
 
     m_FreeBlocksHead = static_cast<FreeBlockHeader*>(m_MainMemory);

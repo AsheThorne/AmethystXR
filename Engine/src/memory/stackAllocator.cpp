@@ -13,8 +13,8 @@
 
 AxrStackAllocator::AxrStackAllocator() = default;
 
-AxrStackAllocator::AxrStackAllocator(void* memory, const size_t size, const AxrDeallocateBlock& deallocator) :
-    AxrSubAllocatorBase(memory, size, deallocator) {
+AxrStackAllocator::AxrStackAllocator(const AxrMemoryBlock& memoryBlock) :
+    AxrSubAllocatorBase(memoryBlock) {
 }
 
 AxrStackAllocator::AxrStackAllocator(AxrStackAllocator&& src) noexcept :

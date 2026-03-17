@@ -20,11 +20,8 @@ public:
     /// Default constructor
     AxrSubAllocatorBase();
     /// Constructor
-    /// @param memory A pointer to the block of memory this allocator has access to
-    /// @param size The number of bytes the given block of memory has
-    /// @param deallocator A function pointer to use when we're done with the given memory block and wish to deallocate
-    /// it
-    AxrSubAllocatorBase(void* memory, size_t size, const AxrDeallocateBlock& deallocator);
+    /// @param memoryBlock memory block to use
+    explicit AxrSubAllocatorBase(const AxrMemoryBlock& memoryBlock);
     /// Copy Constructor
     /// @param src Source AxrSubAllocatorBase to copy from
     AxrSubAllocatorBase(const AxrSubAllocatorBase& src) = delete;
@@ -58,7 +55,7 @@ protected:
     // ----------------------------------------- //
     // Protected Variables
     // ----------------------------------------- //
-    AxrDeallocateBlock m_MainMemoryDeallocator{};
+    AxrDeallocateBlock m_Deallocator{};
     uint8_t* m_Memory{};
     size_t m_Capacity{};
 
@@ -84,12 +81,9 @@ public:
     AxrSubAllocatorBase_Aligned() = default;
 
     /// Constructor
-    /// @param memory A pointer to the block of memory this allocator has access to
-    /// @param size The number of bytes the given block of memory has
-    /// @param deallocator A function pointer to use when we're done with the given memory block and wish to deallocate
-    /// it
-    AxrSubAllocatorBase_Aligned(void* memory, const size_t size, const AxrDeallocateBlock& deallocator) :
-        AxrSubAllocatorBase(memory, size, deallocator) {
+    /// @param memoryBlock memory block to use
+    explicit AxrSubAllocatorBase_Aligned(const AxrMemoryBlock& memoryBlock) :
+        AxrSubAllocatorBase(memoryBlock) {
         m_Memory = static_cast<uint8_t*>(axrAlignMemory(m_Memory, alignof(Type)));
         m_Capacity = m_Capacity - alignof(Type);
 

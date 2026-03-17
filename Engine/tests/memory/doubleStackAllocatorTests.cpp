@@ -80,7 +80,11 @@ static void allocateOne_Test(const bool upperEnd) {
     constexpr size_t allocatorSize =
         sizeof(TestData_Small) + alignof(TestData_Small) + AxrDoubleStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
-    AxrDoubleStackAllocator allocator(memory, allocatorSize, callback);
+    AxrDoubleStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     TestData_Small* outTestData = nullptr;
     AxrDoubleStackAllocator::MarkerID markerID{};
@@ -102,7 +106,11 @@ static void allocateTwo_Test(const bool upperEnd) {
         sizeof(TestData_Large) + alignof(TestData_Large) + AxrDoubleStackAllocator::getMarkerSize();
     constexpr size_t allocatorSize = testData1MemSize + testData2MemSize;
     void* memory = malloc(allocatorSize);
-    AxrDoubleStackAllocator allocator(memory, allocatorSize, callback);
+    AxrDoubleStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     TestData_Small* outTestData1 = nullptr;
     TestData_Large* outTestData2 = nullptr;
@@ -139,7 +147,11 @@ static void allocateTooMuch_Test(const bool upperEnd) {
     constexpr size_t allocatorSize =
         sizeof(TestData_Small) + alignof(TestData_Small) + AxrDoubleStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
-    AxrDoubleStackAllocator allocator(memory, allocatorSize, callback);
+    AxrDoubleStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     TestData_Small* outTestData1 = nullptr;
     AxrDoubleStackAllocator::MarkerID testData1MarkerID{};
@@ -167,7 +179,11 @@ static void allocateTwoDeallocateOne_Test(const bool upperEnd) {
         sizeof(TestData_Large) + alignof(TestData_Large) + AxrDoubleStackAllocator::getMarkerSize();
     constexpr size_t allocatorSize = testData1MemSize + testData2MemSize;
     void* memory = malloc(allocatorSize);
-    AxrDoubleStackAllocator allocator(memory, allocatorSize, callback);
+    AxrDoubleStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     TestData_Small* outTestData1 = nullptr;
     TestData_Large* outTestData2 = nullptr;
@@ -196,7 +212,11 @@ static void allocateTwoDeallocateMarker1_Test(const bool upperEnd) {
         sizeof(TestData_Large) + alignof(TestData_Large) + AxrDoubleStackAllocator::getMarkerSize();
     constexpr size_t allocatorSize = testData1MemSize + testData2MemSize;
     void* memory = malloc(allocatorSize);
-    AxrDoubleStackAllocator allocator(memory, allocatorSize, callback);
+    AxrDoubleStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     TestData_Small* outTestData1 = nullptr;
     TestData_Large* outTestData2 = nullptr;
@@ -226,7 +246,11 @@ static void DeallocateIfLast_Success_Test(const bool upperEnd) {
 
     constexpr size_t allocatorSize = testData1MemSize + testData2MemSize;
     void* memory = malloc(allocatorSize);
-    AxrDoubleStackAllocator allocator(memory, allocatorSize, callback);
+    AxrDoubleStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     TestData_Small* outTestData1 = nullptr;
     TestData_Large* outTestData2 = nullptr;
@@ -259,7 +283,11 @@ static void DeallocateIfLast_Failure_Test(const bool upperEnd) {
 
     constexpr size_t allocatorSize = testData1MemSize + testData2MemSize;
     void* memory = malloc(allocatorSize);
-    AxrDoubleStackAllocator allocator(memory, allocatorSize, callback);
+    AxrDoubleStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     TestData_Small* outTestData1 = nullptr;
     TestData_Large* outTestData2 = nullptr;
@@ -296,7 +324,11 @@ TEST(DoubleStackAllocator, DeallocatorCallback) {
 
         constexpr size_t allocatorSize = 128;
         void* memory = malloc(allocatorSize);
-        AxrDoubleStackAllocator allocator(memory, allocatorSize, callback);
+        AxrDoubleStackAllocator allocator(AxrMemoryBlock{
+            .Memory = memory,
+            .Size = allocatorSize,
+            .Deallocator = callback,
+        });
     }
     ASSERT_TRUE(wasDeallocated);
 }
@@ -316,7 +348,11 @@ TEST(DoubleStackAllocator, AllocateOneLowerOneUpper) {
     constexpr size_t allocatorSize =
         (sizeof(TestData_Small) + alignof(TestData_Small) + AxrDoubleStackAllocator::getMarkerSize()) * 2;
     void* memory = malloc(allocatorSize);
-    AxrDoubleStackAllocator allocator(memory, allocatorSize, callback);
+    AxrDoubleStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     TestData_Small* outTestDataLower = nullptr;
     TestData_Small* outTestDataUpper = nullptr;

@@ -34,13 +34,10 @@ public:
     /// Default Constructor
     AxrDynamicAllocator();
     /// Constructor
-    /// @param memory A pointer to the block of memory this allocator has access to
-    /// @param size The number of bytes the given block of memory has
+    /// @param memoryBlock Memory block to use
     /// @param maxHandleCount The maximum number of handles we can have in use at one time. The same memory buffer is
     /// used to store the handles. Use `getHandlesMemoryBlockCapacity()` and add the result to the `size` parameter.
-    /// @param deallocator A function pointer to use when we're done with the given memory block and wish to deallocate
-    /// it
-    AxrDynamicAllocator(void* memory, size_t size, uint32_t maxHandleCount, const AxrDeallocateBlock& deallocator);
+    AxrDynamicAllocator(const AxrMemoryBlock& memoryBlock, uint32_t maxHandleCount);
     /// Copy Constructor
     /// @param src Source AxrDynamicAllocator to copy from
     AxrDynamicAllocator(const AxrDynamicAllocator& src) = delete;

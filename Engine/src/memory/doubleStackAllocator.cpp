@@ -3,6 +3,7 @@
 // ----------------------------------------- //
 #include "doubleStackAllocator.h"
 #include "axr/logging.h"
+#include "utils.h"
 
 #include <cstring>
 
@@ -12,10 +13,8 @@
 
 AxrDoubleStackAllocator::AxrDoubleStackAllocator() = default;
 
-AxrDoubleStackAllocator::AxrDoubleStackAllocator(void* memory,
-                                                 const size_t size,
-                                                 const AxrDeallocateBlock& deallocator) :
-    AxrSubAllocatorBase(memory, size, deallocator) {
+AxrDoubleStackAllocator::AxrDoubleStackAllocator(const AxrMemoryBlock& memoryBlock) :
+    AxrSubAllocatorBase(memoryBlock) {
 }
 
 AxrDoubleStackAllocator::AxrDoubleStackAllocator(AxrDoubleStackAllocator&& src) noexcept :

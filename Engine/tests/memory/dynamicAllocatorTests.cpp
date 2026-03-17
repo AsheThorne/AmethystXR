@@ -60,7 +60,13 @@ TEST(DynamicAllocator, DeallocatorCallback) {
         constexpr uint32_t maxHandleCount = 32;
         const size_t allocatorSize = 128 + AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
         void* memory = malloc(allocatorSize);
-        AxrDynamicAllocator allocator(memory, allocatorSize, maxHandleCount, callback);
+        AxrDynamicAllocator allocator(
+            AxrMemoryBlock{
+                .Memory = memory,
+                .Size = allocatorSize,
+                .Deallocator = callback,
+            },
+            maxHandleCount);
     }
     ASSERT_TRUE(wasDeallocated);
 }
@@ -74,7 +80,13 @@ TEST(DynamicAllocator, Allocate_One) {
                                  sizeof(AxrDynamicAllocator::DataHeader) +
                                  AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
     void* memory = malloc(allocatorSize);
-    AxrDynamicAllocator allocator(memory, allocatorSize, maxHandleCount, callback);
+    AxrDynamicAllocator allocator(
+        AxrMemoryBlock{
+            .Memory = memory,
+            .Size = allocatorSize,
+            .Deallocator = callback,
+        },
+        maxHandleCount);
 
     AxrHandle<TestData_Small> outTestDataHandle{};
     const AxrResult axrResult = allocator.allocate(1, outTestDataHandle);
@@ -104,7 +116,13 @@ TEST(DynamicAllocator, Allocate_Two) {
     const size_t allocatorSize =
         testData1MemSize + testData2MemSize + AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
     void* memory = malloc(allocatorSize);
-    AxrDynamicAllocator allocator(memory, allocatorSize, maxHandleCount, callback);
+    AxrDynamicAllocator allocator(
+        AxrMemoryBlock{
+            .Memory = memory,
+            .Size = allocatorSize,
+            .Deallocator = callback,
+        },
+        maxHandleCount);
 
     AxrHandle<TestData_Small> outTestData1Handle{};
     AxrHandle<TestData_Large> outTestData2Handle{};
@@ -139,7 +157,13 @@ TEST(DynamicAllocator, Allocate_TooMuch) {
         sizeof(TestData_Small) + alignof(TestData_Small) + sizeof(AxrDynamicAllocator::DataHeader);
     const size_t allocatorSize = testData1MemSize + AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
     void* memory = malloc(allocatorSize);
-    AxrDynamicAllocator allocator(memory, allocatorSize, maxHandleCount, callback);
+    AxrDynamicAllocator allocator(
+        AxrMemoryBlock{
+            .Memory = memory,
+            .Size = allocatorSize,
+            .Deallocator = callback,
+        },
+        maxHandleCount);
 
     AxrHandle<TestData_Small> outTestData1Handle{};
     AxrResult axrResult = allocator.allocate(1, outTestData1Handle);
@@ -163,7 +187,13 @@ TEST(DynamicAllocator, Allocate_FailedToCreateHandle) {
     const size_t allocatorSize =
         (testData1MemSize * 2) + AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
     void* memory = malloc(allocatorSize);
-    AxrDynamicAllocator allocator(memory, allocatorSize, maxHandleCount, callback);
+    AxrDynamicAllocator allocator(
+        AxrMemoryBlock{
+            .Memory = memory,
+            .Size = allocatorSize,
+            .Deallocator = callback,
+        },
+        maxHandleCount);
 
     AxrHandle<TestData_Small> outTestData1Handle{};
     AxrResult axrResult = allocator.allocate(1, outTestData1Handle);
@@ -189,7 +219,13 @@ TEST(DynamicAllocator, AllocateTwo_DeallocateOne) {
     const size_t allocatorSize =
         allocatorMainMemSize + AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
     void* memory = malloc(allocatorSize);
-    AxrDynamicAllocator allocator(memory, allocatorSize, maxHandleCount, callback);
+    AxrDynamicAllocator allocator(
+        AxrMemoryBlock{
+            .Memory = memory,
+            .Size = allocatorSize,
+            .Deallocator = callback,
+        },
+        maxHandleCount);
 
     AxrHandle<TestData_Small> outTestData1Handle{};
     AxrHandle<TestData_Large> outTestData2Handle{};
@@ -219,7 +255,13 @@ TEST(DynamicAllocator, AutoDeallocate) {
     const size_t allocatorSize =
         allocatorMainMemSize + AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
     void* memory = malloc(allocatorSize);
-    AxrDynamicAllocator allocator(memory, allocatorSize, maxHandleCount, callback);
+    AxrDynamicAllocator allocator(
+        AxrMemoryBlock{
+            .Memory = memory,
+            .Size = allocatorSize,
+            .Deallocator = callback,
+        },
+        maxHandleCount);
 
     AxrHandle<TestData_Small> outTestData1Handle{};
     AxrResult axrResult = allocator.allocate(1, outTestData1Handle);
@@ -253,7 +295,13 @@ TEST(DynamicAllocator, Deallocate_CausingFragmentation) {
     const size_t allocatorSize =
         allocatorMainMemSize + AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
     void* memory = malloc(allocatorSize);
-    AxrDynamicAllocator allocator(memory, allocatorSize, maxHandleCount, callback);
+    AxrDynamicAllocator allocator(
+        AxrMemoryBlock{
+            .Memory = memory,
+            .Size = allocatorSize,
+            .Deallocator = callback,
+        },
+        maxHandleCount);
 
     AxrHandle<TestData_Small> outTestData1Handle{};
     AxrResult axrResult = allocator.allocate(1, outTestData1Handle);
@@ -322,7 +370,13 @@ TEST(DynamicAllocator, Deallocate_CausingFragmentationAndMerging_ThenAllocate) {
     const size_t allocatorSize =
         allocatorMainMemSize + AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
     void* memory = malloc(allocatorSize);
-    AxrDynamicAllocator allocator(memory, allocatorSize, maxHandleCount, callback);
+    AxrDynamicAllocator allocator(
+        AxrMemoryBlock{
+            .Memory = memory,
+            .Size = allocatorSize,
+            .Deallocator = callback,
+        },
+        maxHandleCount);
 
     AxrHandle<TestData_Small> outTestData1Handle{};
     AxrResult axrResult = allocator.allocate(1, outTestData1Handle);
@@ -437,7 +491,13 @@ TEST(DynamicAllocator, Defragmentation) {
     const size_t allocatorSize =
         allocatorMainMemSize + AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
     void* memory = malloc(allocatorSize);
-    AxrDynamicAllocator allocator(memory, allocatorSize, maxHandleCount, callback);
+    AxrDynamicAllocator allocator(
+        AxrMemoryBlock{
+            .Memory = memory,
+            .Size = allocatorSize,
+            .Deallocator = callback,
+        },
+        maxHandleCount);
 
     AxrHandle<TestData_Small> outTestData1Handle{};
     AxrResult axrResult = allocator.allocate(1, outTestData1Handle);

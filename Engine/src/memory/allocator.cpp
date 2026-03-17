@@ -40,16 +40,23 @@ AxrResult AxrAllocator::setup(const Config& config) {
     AxrDeallocateBlock frameAllocatorDeallocateCallback;
     frameAllocatorDeallocateCallback.connect<&AxrAllocator::deallocateFrameAllocatorCallback>();
     uint8_t* frameAllocatorMemory = m_Memory;
-    FrameAllocator = AxrStackAllocator(frameAllocatorMemory, frameAllocatorSize, frameAllocatorDeallocateCallback);
+    FrameAllocator = AxrStackAllocator(AxrMemoryBlock{
+        .Memory = frameAllocatorMemory,
+        .Size = frameAllocatorSize,
+        .Deallocator = frameAllocatorDeallocateCallback,
+    });
 
     // ---- Engine Data Allocator ----
     AxrDeallocateBlock engineDataAllocatorDeallocateCallback;
     engineDataAllocatorDeallocateCallback.connect<&AxrAllocator::deallocateEngineDataAllocatorCallback>();
     uint8_t* engineDataAllocatorMemory = frameAllocatorMemory + frameAllocatorSize;
-    EngineDataAllocator = AxrDynamicAllocator(engineDataAllocatorMemory,
-                                              config.EngineDataAllocatorMainMemorySize,
-                                              config.EngineDataAllocatorMaxHandleCount,
-                                              frameAllocatorDeallocateCallback);
+    EngineDataAllocator = AxrDynamicAllocator(
+        AxrMemoryBlock{
+            .Memory = engineDataAllocatorMemory,
+            .Size = config.EngineDataAllocatorMainMemorySize,
+            .Deallocator = frameAllocatorDeallocateCallback,
+        },
+        config.EngineDataAllocatorMaxHandleCount);
 
     m_IsSetup = true;
     return AXR_SUCCESS;

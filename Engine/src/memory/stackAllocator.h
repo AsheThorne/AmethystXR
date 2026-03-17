@@ -28,11 +28,8 @@ public:
     /// Default Constructor
     AxrStackAllocator();
     /// Constructor
-    /// @param memory A pointer to the block of memory this allocator has access to
-    /// @param size The number of bytes the given block of memory has
-    /// @param deallocator A function pointer to use when we're done with the given memory block and wish to deallocate
-    /// it
-    AxrStackAllocator(void* memory, size_t size, const AxrDeallocateBlock& deallocator);
+    /// @param memoryBlock Memory block to use
+    explicit AxrStackAllocator(const AxrMemoryBlock& memoryBlock);
     /// Copy Constructor
     /// @param src Source AxrStackAllocator to copy from
     AxrStackAllocator(const AxrStackAllocator& src) = delete;

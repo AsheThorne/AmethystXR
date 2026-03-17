@@ -1,8 +1,8 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
-#include "axr/logging.h"
 #include "subAllocatorBase.h"
+#include "axr/logging.h"
 
 // ----------------------------------------- //
 // Special Functions
@@ -10,18 +10,18 @@
 
 AxrSubAllocatorBase::AxrSubAllocatorBase() = default;
 
-AxrSubAllocatorBase::AxrSubAllocatorBase(void* memory, const size_t size, const AxrDeallocateBlock& deallocator) {
-    m_MainMemoryDeallocator = deallocator;
-    m_Memory = static_cast<uint8_t*>(memory);
-    m_Capacity = size;
+AxrSubAllocatorBase::AxrSubAllocatorBase(const AxrMemoryBlock& memoryBlock) {
+    m_Deallocator = memoryBlock.Deallocator;
+    m_Memory = static_cast<uint8_t*>(memoryBlock.Memory);
+    m_Capacity = memoryBlock.Size;
 }
 
 AxrSubAllocatorBase::AxrSubAllocatorBase(AxrSubAllocatorBase&& src) noexcept {
-    m_MainMemoryDeallocator = src.m_MainMemoryDeallocator;
+    m_Deallocator = src.m_Deallocator;
     m_Memory = src.m_Memory;
     m_Capacity = src.m_Capacity;
 
-    src.m_MainMemoryDeallocator = {};
+    src.m_Deallocator = {};
     src.m_Memory = {};
     src.m_Capacity = {};
 }
@@ -34,11 +34,11 @@ AxrSubAllocatorBase& AxrSubAllocatorBase::operator=(AxrSubAllocatorBase&& src) n
     if (this != &src) {
         cleanup();
 
-        m_MainMemoryDeallocator = src.m_MainMemoryDeallocator;
+        m_Deallocator = src.m_Deallocator;
         m_Memory = src.m_Memory;
         m_Capacity = src.m_Capacity;
 
-        src.m_MainMemoryDeallocator = {};
+        src.m_Deallocator = {};
         src.m_Memory = {};
         src.m_Capacity = {};
     }
@@ -59,13 +59,13 @@ size_t AxrSubAllocatorBase::capacity() const {
 
 void AxrSubAllocatorBase::cleanup() {
     if (m_Memory != nullptr) {
-        if (m_MainMemoryDeallocator) {
-            m_MainMemoryDeallocator(reinterpret_cast<void*&>(m_Memory));
+        if (m_Deallocator) {
+            m_Deallocator(reinterpret_cast<void*&>(m_Memory));
         } else {
             axrLogWarning("Memory leak detected inside AxrSubAllocatorBase. Failed to deallocate a block of memory. No "
                           "deallocator available.");
         }
     }
     m_Capacity = {};
-    m_MainMemoryDeallocator.reset();
+    m_Deallocator.reset();
 }

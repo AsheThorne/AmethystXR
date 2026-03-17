@@ -54,7 +54,11 @@ TEST(AxrRedBlackTree_Pool, Initialization) {
 
     constexpr size_t allocatorSize = (sizeof(Node_T) * capacity) + alignof(Node_T);
     void* memory = malloc(allocatorSize);
-    AxrPoolAllocator<Node_T> allocator(memory, allocatorSize, callback);
+    AxrPoolAllocator<Node_T> allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     const AxrRedBlackTree_Pool<TestData_T> tree(&allocator);
     ASSERT_TRUE(tree.size() == 0);
@@ -71,7 +75,11 @@ TEST(AxrRedBlackTree_Pool, Insert_One) {
 
     constexpr size_t allocatorSize = (sizeof(Node_T) * capacity) + alignof(Node_T);
     void* memory = malloc(allocatorSize);
-    AxrPoolAllocator<Node_T> allocator(memory, allocatorSize, callback);
+    AxrPoolAllocator<Node_T> allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrRedBlackTree_Pool<TestData_T> tree(&allocator);
     ASSERT_TRUE(tree.empty());
@@ -104,7 +112,11 @@ TEST(AxrRedBlackTree_Pool, FindNode_Exists) {
 
     constexpr size_t allocatorSize = (sizeof(Node_T) * capacity) + alignof(Node_T);
     void* memory = malloc(allocatorSize);
-    AxrPoolAllocator<Node_T> allocator(memory, allocatorSize, callback);
+    AxrPoolAllocator<Node_T> allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrRedBlackTree_Pool<TestData_T> tree(&allocator);
 
@@ -130,7 +142,11 @@ TEST(AxrRedBlackTree_Pool, FindNode_DoesntExist) {
 
     constexpr size_t allocatorSize = (sizeof(Node_T) * capacity) + alignof(Node_T);
     void* memory = malloc(allocatorSize);
-    AxrPoolAllocator<Node_T> allocator(memory, allocatorSize, callback);
+    AxrPoolAllocator<Node_T> allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrRedBlackTree_Pool<TestData_T> tree(&allocator);
 
@@ -152,7 +168,11 @@ TEST(AxrRedBlackTree_Pool, FindNextLargest) {
 
     constexpr size_t allocatorSize = (sizeof(Node_T) * capacity) + alignof(Node_T);
     void* memory = malloc(allocatorSize);
-    AxrPoolAllocator<Node_T> allocator(memory, allocatorSize, callback);
+    AxrPoolAllocator<Node_T> allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrRedBlackTree_Pool<TestData_T> tree(&allocator);
     ASSERT_TRUE(tree.empty());
@@ -205,7 +225,11 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
 
     constexpr size_t allocatorSize = (sizeof(Node_T) * capacity) + alignof(Node_T);
     void* memory = malloc(allocatorSize);
-    AxrPoolAllocator<Node_T> allocator(memory, allocatorSize, callback);
+    AxrPoolAllocator<Node_T> allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrRedBlackTree_Pool<TestData_T> tree(&allocator);
     ASSERT_TRUE(tree.empty());
@@ -522,7 +546,11 @@ TEST(AxrRedBlackTree_Pool, ForLoop_Increment) {
 
     constexpr size_t allocatorSize = (sizeof(Node_T) * capacity) + alignof(Node_T);
     void* memory = malloc(allocatorSize);
-    AxrPoolAllocator<Node_T> allocator(memory, allocatorSize, callback);
+    AxrPoolAllocator<Node_T> allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrRedBlackTree_Pool<TestData_T> tree(&allocator);
     ASSERT_TRUE(tree.empty());
@@ -553,7 +581,11 @@ TEST(AxrRedBlackTree_Pool, ForLoop_Decrement) {
 
     constexpr size_t allocatorSize = (sizeof(Node_T) * capacity) + alignof(Node_T);
     void* memory = malloc(allocatorSize);
-    AxrPoolAllocator<Node_T> allocator(memory, allocatorSize, callback);
+    AxrPoolAllocator<Node_T> allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrRedBlackTree_Pool<TestData_T> tree(&allocator);
     ASSERT_TRUE(tree.empty());
@@ -585,7 +617,11 @@ TEST(AxrRedBlackTree_Pool, Insert_TooMany) {
 
     constexpr size_t allocatorSize = (sizeof(Node_T) * capacity) + alignof(Node_T);
     void* memory = malloc(allocatorSize);
-    AxrPoolAllocator<Node_T> allocator(memory, allocatorSize, callback);
+    AxrPoolAllocator<Node_T> allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrRedBlackTree_Pool<TestData_T> tree(&allocator);
     ASSERT_TRUE(tree.empty());
@@ -712,7 +748,11 @@ TEST(AxrRedBlackTree_Pool, Remove_1) {
 
     constexpr size_t allocatorSize = (sizeof(Node_T) * capacity) + alignof(Node_T);
     void* memory = malloc(allocatorSize);
-    AxrPoolAllocator<Node_T> allocator(memory, allocatorSize, callback);
+    AxrPoolAllocator<Node_T> allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrRedBlackTree_Pool<TestData_T> tree(&allocator);
     ASSERT_TRUE(tree.empty());
@@ -738,7 +778,11 @@ TEST(AxrRedBlackTree_Pool, Remove_All) {
 
     constexpr size_t allocatorSize = (sizeof(Node_T) * capacity) + alignof(Node_T);
     void* memory = malloc(allocatorSize);
-    AxrPoolAllocator<Node_T> allocator(memory, allocatorSize, callback);
+    AxrPoolAllocator<Node_T> allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrRedBlackTree_Pool<TestData_T> tree(&allocator);
     ASSERT_TRUE(tree.empty());
@@ -1066,7 +1110,11 @@ TEST(AxrRedBlackTree_Pool, Replace) {
 
     constexpr size_t allocatorSize = (sizeof(Node_T) * capacity) + alignof(Node_T);
     void* memory = malloc(allocatorSize);
-    AxrPoolAllocator<Node_T> allocator(memory, allocatorSize, callback);
+    AxrPoolAllocator<Node_T> allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrRedBlackTree_Pool<TestData_T> tree(&allocator);
     ASSERT_TRUE(tree.empty());
@@ -1242,7 +1290,11 @@ TEST(AxrRedBlackTree_Pool, Clear) {
 
     constexpr size_t allocatorSize = (sizeof(Node_T) * capacity) + alignof(Node_T);
     void* memory = malloc(allocatorSize);
-    AxrPoolAllocator<Node_T> allocator(memory, allocatorSize, callback);
+    AxrPoolAllocator<Node_T> allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrRedBlackTree_Pool<TestData_T> tree(&allocator);
     ASSERT_TRUE(tree.empty());
@@ -1272,7 +1324,11 @@ TEST(AxrRedBlackTree_Pool, OutOfScopeCleanup) {
 
     constexpr size_t allocatorSize = (sizeof(Node_T) * capacity) + alignof(Node_T);
     void* memory = malloc(allocatorSize);
-    AxrPoolAllocator<Node_T> allocator(memory, allocatorSize, callback);
+    AxrPoolAllocator<Node_T> allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
     ASSERT_TRUE(allocator.empty());
 
     {

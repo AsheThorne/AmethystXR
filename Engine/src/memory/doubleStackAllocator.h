@@ -3,11 +3,9 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
-#include "axr/common/defines.h"
 #include "axr/common/enums.h"
 #include "subAllocatorBase.h"
 #include "types.h"
-#include "utils.h"
 
 #include <cstdint>
 
@@ -30,11 +28,8 @@ public:
     /// Default constructor
     AxrDoubleStackAllocator();
     /// Constructor
-    /// @param memory A pointer to the block of memory this allocator has access to
-    /// @param size The number of bytes the given block of memory has
-    /// @param deallocator A function pointer to use when we're done with the given memory block and wish to deallocate
-    /// it
-    AxrDoubleStackAllocator(void* memory, size_t size, const AxrDeallocateBlock& deallocator);
+    /// @param memoryBlock Memory block to use
+    explicit AxrDoubleStackAllocator(const AxrMemoryBlock& memoryBlock);
     /// Copy Constructor
     /// @param src Source AxrDoubleStackAllocator to copy from
     AxrDoubleStackAllocator(const AxrDoubleStackAllocator& src) = delete;

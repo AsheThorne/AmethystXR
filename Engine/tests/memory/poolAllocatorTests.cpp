@@ -49,7 +49,12 @@ static void deallocatorCallback_Test() {
 
         constexpr size_t chunkCount = 10;
         constexpr size_t allocatorSize = (chunkCount * sizeof(DataType)) + alignof(DataType);
-        AxrPoolAllocator<DataType> allocator(malloc(allocatorSize), allocatorSize, callback);
+        void* memory = malloc(allocatorSize);
+        AxrPoolAllocator<DataType> allocator(AxrMemoryBlock{
+            .Memory = memory,
+            .Size = allocatorSize,
+            .Deallocator = callback,
+        });
     }
     ASSERT_TRUE(wasDeallocated);
 }
@@ -62,7 +67,12 @@ static void allocateOne_Test() {
 
     constexpr size_t chunkCount = 10;
     constexpr size_t allocatorSize = (chunkCount * sizeof(DataType)) + alignof(DataType);
-    AxrPoolAllocator<DataType> allocator(malloc(allocatorSize), allocatorSize, callback);
+    void* memory = malloc(allocatorSize);
+    AxrPoolAllocator<DataType> allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     DataType* outTestData = nullptr;
     const AxrResult axrResult = allocator.allocate(outTestData);
@@ -80,7 +90,12 @@ static void allocateAll_Test(const DataType* exampleTestDatas) {
     callback.connect<deallocateCallback>();
 
     const size_t allocatorSize = (DataSize * sizeof(DataType)) + alignof(DataType);
-    AxrPoolAllocator<DataType> allocator(malloc(allocatorSize), allocatorSize, callback);
+    void* memory = malloc(allocatorSize);
+    AxrPoolAllocator<DataType> allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     DataType* outTestDatas[DataSize]{};
     for (int i = 0; i < DataSize; i++) {
@@ -109,7 +124,12 @@ static void allocateTooMuch_Test() {
 
     constexpr size_t chunkCount = 10;
     constexpr size_t allocatorSize = (chunkCount * sizeof(DataType)) + alignof(DataType);
-    AxrPoolAllocator<DataType> allocator(malloc(allocatorSize), allocatorSize, callback);
+    void* memory = malloc(allocatorSize);
+    AxrPoolAllocator<DataType> allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     DataType* outTestDatas[chunkCount]{};
     for (DataType*& outTestData : outTestDatas) {
@@ -133,7 +153,12 @@ static void allocateAllDeallocateTwoAllocateTwo_Test() {
 
     constexpr size_t chunkCount = 10;
     constexpr size_t allocatorSize = (chunkCount * sizeof(DataType)) + alignof(DataType);
-    AxrPoolAllocator<DataType> allocator(malloc(allocatorSize), allocatorSize, callback);
+    void* memory = malloc(allocatorSize);
+    AxrPoolAllocator<DataType> allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     auto allocate = [&allocator](DataType*& outTestData) -> void {
         const AxrResult axrResult = allocator.allocate(outTestData);

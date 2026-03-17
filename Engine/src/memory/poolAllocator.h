@@ -35,14 +35,9 @@ public:
     AxrPoolAllocator() = default;
 
     /// Constructor
-    /// @param memory A pointer to the block of memory this allocator has access to
-    /// @param size The number of bytes the given block of memory has. Must be a multiple of `Type` and
-    /// have an additional `alignof(Type)` bytes, because the buffer is aligned. `size = (numberOfItems * sizeof(Type))
-    /// + alignof(Type)`.
-    /// @param deallocator A function pointer to use when we're done with the given memory block and wish to deallocate
-    /// it
-    AxrPoolAllocator(void* memory, const size_t size, const AxrDeallocateBlock& deallocator) :
-        AxrSubAllocatorBase_Aligned<Type>(memory, size, deallocator) {
+    /// @param memoryBlock Memory block to use
+    explicit AxrPoolAllocator(const AxrMemoryBlock& memoryBlock) :
+        AxrSubAllocatorBase_Aligned<Type>(memoryBlock) {
         assert(AxrSubAllocatorBase::m_Capacity % sizeof(Type) == 0);
 
         m_ChunkCapacity = AxrSubAllocatorBase::m_Capacity / sizeof(Type);
@@ -306,12 +301,9 @@ public:
     AxrPoolAllocator() = default;
 
     /// Constructor
-    /// @param memory A pointer to the block of memory this allocator has access to
-    /// @param size The number of bytes the given block of memory has
-    /// @param deallocator A function pointer to use when we're done with the given memory block and wish to deallocate
-    /// it
-    AxrPoolAllocator(void* memory, const size_t size, const AxrDeallocateBlock& deallocator) :
-        AxrSubAllocatorBase_Aligned<Type>(memory, size, deallocator) {
+    /// @param memoryBlock Memory block to use
+    explicit AxrPoolAllocator(const AxrMemoryBlock& memoryBlock) :
+        AxrSubAllocatorBase_Aligned<Type>(memoryBlock) {
         assert(AxrSubAllocatorBase::m_Capacity % sizeof(Type) == 0);
 
         m_ChunkCapacity = AxrSubAllocatorBase::m_Capacity / sizeof(Type);

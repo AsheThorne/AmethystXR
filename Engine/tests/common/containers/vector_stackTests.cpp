@@ -30,7 +30,11 @@ TEST(AxrVector_Stack, Initialization) {
     constexpr size_t allocatorSize =
         (sizeof(TestData) * capacity) + alignof(TestData) + AxrStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
-    AxrStackAllocator allocator(memory, allocatorSize, callback);
+    AxrStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     const AxrVector_Stack<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.capacity() == capacity);
@@ -50,7 +54,11 @@ TEST(AxrVector_Stack, PushBackOne) {
     constexpr size_t allocatorSize =
         (sizeof(TestData) * capacity) + alignof(TestData) + AxrStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
-    AxrStackAllocator allocator(memory, allocatorSize, callback);
+    AxrStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     constexpr TestData testData{.value = 43};
 
@@ -73,7 +81,11 @@ TEST(AxrVector_Stack, PushBackCharArray) {
     constexpr size_t allocatorSize =
         (sizeof(TestData) * capacity) + alignof(TestData) + AxrStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
-    AxrStackAllocator allocator(memory, allocatorSize, callback);
+    AxrStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrVector_Stack<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
@@ -95,7 +107,11 @@ TEST(AxrVector_Stack, PushBackConstCharPtr) {
     constexpr size_t allocatorSize =
         (sizeof(TestData) * capacity) + alignof(TestData) + AxrStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
-    AxrStackAllocator allocator(memory, allocatorSize, callback);
+    AxrStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrVector_Stack<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
@@ -138,7 +154,11 @@ TEST(AxrVector_Stack, PushBackAll) {
     constexpr size_t allocatorSize =
         (sizeof(TestData) * capacity) + alignof(TestData) + AxrStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
-    AxrStackAllocator allocator(memory, allocatorSize, callback);
+    AxrStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrVector_Stack<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
@@ -186,7 +206,11 @@ TEST(AxrVector_Stack, PushBackTooMany) {
     constexpr size_t allocatorSize =
         (sizeof(TestData) * capacity) + alignof(TestData) + AxrStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
-    AxrStackAllocator allocator(memory, allocatorSize, callback);
+    AxrStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrVector_Stack<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
@@ -216,7 +240,11 @@ TEST(AxrVector_Stack, AutoDeallocation_Enabled) {
     constexpr size_t allocatorSize =
         (sizeof(TestData) * capacity) + alignof(TestData) + AxrStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
-    AxrStackAllocator allocator(memory, allocatorSize, callback);
+    AxrStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
     ASSERT_TRUE(allocator.empty());
 
     {
@@ -239,7 +267,11 @@ TEST(AxrVector_Stack, AutoDeallocation_Disabled) {
     constexpr size_t allocatorSize =
         (sizeof(TestData) * capacity) + alignof(TestData) + AxrStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
-    AxrStackAllocator allocator(memory, allocatorSize, callback);
+    AxrStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
     ASSERT_TRUE(allocator.empty());
 
     size_t allocatorSizeAfterAllocation{};
@@ -265,7 +297,11 @@ TEST(AxrVector_Stack, AutoDeallocation_Enabled_ButIsntLast) {
     constexpr size_t allocatorSize =
         ((sizeof(TestData) * capacity) + alignof(TestData) + AxrStackAllocator::getMarkerSize()) * 2;
     void* memory = malloc(allocatorSize);
-    AxrStackAllocator allocator(memory, allocatorSize, callback);
+    AxrStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
     ASSERT_TRUE(allocator.empty());
 
     size_t allocatorSizeAfterAllocation{};
@@ -298,7 +334,11 @@ TEST(AxrVector_Stack, PopBack_1) {
     constexpr size_t allocatorSize =
         (sizeof(TestData) * capacity) + alignof(TestData) + AxrStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
-    AxrStackAllocator allocator(memory, allocatorSize, callback);
+    AxrStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrVector_Stack<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
@@ -326,7 +366,11 @@ TEST(AxrVector_Stack, PopBack_2) {
     constexpr size_t allocatorSize =
         (sizeof(TestData) * capacity) + alignof(TestData) + AxrStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
-    AxrStackAllocator allocator(memory, allocatorSize, callback);
+    AxrStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrVector_Stack<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
@@ -374,7 +418,11 @@ TEST(AxrVector_Stack, Clear) {
     constexpr size_t allocatorSize =
         (sizeof(TestData) * capacity) + alignof(TestData) + AxrStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
-    AxrStackAllocator allocator(memory, allocatorSize, callback);
+    AxrStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrVector_Stack<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
@@ -422,7 +470,11 @@ TEST(AxrVector_Stack, GetAt_InBounds) {
     constexpr size_t allocatorSize =
         (sizeof(TestData) * capacity) + alignof(TestData) + AxrStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
-    AxrStackAllocator allocator(memory, allocatorSize, callback);
+    AxrStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrVector_Stack<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
@@ -474,7 +526,11 @@ TEST(AxrVector_Stack, GetAt_OutBounds) {
     constexpr size_t allocatorSize =
         (sizeof(TestData) * capacity) + alignof(TestData) + AxrStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
-    AxrStackAllocator allocator(memory, allocatorSize, callback);
+    AxrStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrVector_Stack<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
@@ -505,7 +561,11 @@ TEST(AxrVector_Stack, FindFirst_Exists) {
     constexpr size_t allocatorSize =
         (sizeof(TestData) * capacity) + alignof(TestData) + AxrStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
-    AxrStackAllocator allocator(memory, allocatorSize, callback);
+    AxrStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrVector_Stack<TestData> vector(capacity, &allocator);
 
@@ -544,7 +604,11 @@ TEST(AxrVector_Stack, FindFirst_DoesntExist) {
     constexpr size_t allocatorSize =
         (sizeof(TestData) * capacity) + alignof(TestData) + AxrStackAllocator::getMarkerSize();
     void* memory = malloc(allocatorSize);
-    AxrStackAllocator allocator(memory, allocatorSize, callback);
+    AxrStackAllocator allocator(AxrMemoryBlock{
+        .Memory = memory,
+        .Size = allocatorSize,
+        .Deallocator = callback,
+    });
 
     AxrVector_Stack<TestData> vector(capacity, &allocator);
 
