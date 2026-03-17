@@ -12,7 +12,7 @@ AxrSubAllocatorBase::AxrSubAllocatorBase() = default;
 
 AxrSubAllocatorBase::AxrSubAllocatorBase(const AxrMemoryBlock& memoryBlock) {
     m_Deallocator = memoryBlock.Deallocator;
-    m_Memory = static_cast<uint8_t*>(memoryBlock.Memory);
+    m_Memory = memoryBlock.Memory;
     m_Capacity = memoryBlock.Size;
 }
 

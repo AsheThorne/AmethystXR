@@ -240,9 +240,7 @@ protected:
 
         auto currentChunk = reinterpret_cast<Chunk*>(AxrSubAllocatorBase::m_Memory);
         for (size_t i = 0; i < m_ChunkCapacity - 1; ++i) {
-            // TODO: Maybe use uintptr_t instead of uint8* type.
-            //  Check other places it should be replaced too
-            currentChunk->Next = reinterpret_cast<Chunk*>(reinterpret_cast<uint8_t*>(currentChunk) + sizeof(Type));
+            currentChunk->Next = reinterpret_cast<Chunk*>(reinterpret_cast<uintptr_t>(currentChunk) + sizeof(Type));
             currentChunk = currentChunk->Next;
         }
         currentChunk->Next = nullptr;
@@ -432,9 +430,10 @@ public:
             axrLogWarning("Attempted to deallocate data that isn't from this pool allocator.");
             return;
         }
-        
-        const auto index = static_cast<ChunkIndexTraits::Type>((memory - AxrSubAllocatorBase::m_Memory) / sizeof(Type));
 
+        const auto index = static_cast<ChunkIndexTraits::Type>(
+            (reinterpret_cast<uintptr_t>(memory) - reinterpret_cast<uintptr_t>(AxrSubAllocatorBase::m_Memory)) /
+            sizeof(Type));
 
         at(index) = m_FreeChunksHeadIndex;
         m_FreeChunksHeadIndex = index;
@@ -532,6 +531,7 @@ private:
     /// Get the data within memory at the given index
     /// @param index Item index
     Type* ptrAt(ChunkIndexTraits::Type index) const {
-        return AxrSubAllocatorBase::m_Memory + (index * sizeof(Type));
+        return reinterpret_cast<Type*>(reinterpret_cast<uintptr_t>(AxrSubAllocatorBase::m_Memory) +
+                                       (index * sizeof(Type)));
     }
 };

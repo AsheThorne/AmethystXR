@@ -217,17 +217,17 @@ private:
     void cleanup();
 
     /// Get the beginning of the allocated memory on the lower end
-    /// @return A handle to the beginning of the allocated memory on the lower end
-    [[nodiscard]] uint8_t* beginLower() const;
+    /// @return The address to the beginning of the allocated memory on the lower end
+    [[nodiscard]] uintptr_t beginLower() const;
     /// Get the beginning of the allocated memory on the upper end
-    /// @return A handle to the beginning of the allocated memory on the upper end
-    [[nodiscard]] uint8_t* beginUpper() const;
+    /// @return The address to the beginning of the allocated memory on the upper end
+    [[nodiscard]] uintptr_t beginUpper() const;
     /// Get the end of the allocated memory on the lower end
-    /// @return A handle to the end of the allocated memory on the lower end
-    [[nodiscard]] uint8_t* endLower() const;
+    /// @return The address to the end of the allocated memory on the lower end
+    [[nodiscard]] uintptr_t endLower() const;
     /// Get the end of the allocated memory on the upper end
-    /// @return A handle to the end of the allocated memory on the upper end
-    [[nodiscard]] uint8_t* endUpper() const;
+    /// @return The address to the end of the allocated memory on the upper end
+    [[nodiscard]] uintptr_t endUpper() const;
 
     /// Get the current marker on the lower end
     /// @return The current marker on the lower end

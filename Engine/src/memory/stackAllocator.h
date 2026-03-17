@@ -148,11 +148,11 @@ private:
     void cleanup();
 
     /// Get the beginning of the allocated memory
-    /// @return A handle to the beginning of the allocated memory
-    [[nodiscard]] uint8_t* begin() const;
+    /// @return The address to the beginning of the allocated memory
+    [[nodiscard]] uintptr_t begin() const;
     /// Get the end of the allocated memory
-    /// @return A handle to the end of the allocated memory
-    [[nodiscard]] uint8_t* end() const;
+    /// @return The address to the end of the allocated memory
+    [[nodiscard]] uintptr_t end() const;
 
     /// Get the current marker
     /// @return The current marker

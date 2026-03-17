@@ -56,7 +56,7 @@ protected:
     // Protected Variables
     // ----------------------------------------- //
     AxrDeallocateBlock m_Deallocator{};
-    uint8_t* m_Memory{};
+    void* m_Memory{};
     size_t m_Capacity{};
 
     // ----------------------------------------- //
@@ -84,7 +84,7 @@ public:
     /// @param memoryBlock memory block to use
     explicit AxrSubAllocatorBase_Aligned(const AxrMemoryBlock& memoryBlock) :
         AxrSubAllocatorBase(memoryBlock) {
-        m_Memory = static_cast<uint8_t*>(axrAlignMemory(m_Memory, alignof(Type)));
+        m_Memory = axrAlignMemory(m_Memory, alignof(Type));
         m_Capacity = m_Capacity - alignof(Type);
 
         assert(m_Capacity != 0);

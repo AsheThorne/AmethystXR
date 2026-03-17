@@ -80,10 +80,10 @@ AxrResult AxrDoubleStackAllocator::allocateLowerBlock(const size_t size,
     MarkerID currentID = getCurrentMarkerLower().ID;
 
     if (zeroOutMemory) {
-        std::memset(endLower(), 0, blockSize);
+        std::memset(reinterpret_cast<void*>(endLower()), 0, blockSize);
     }
 
-    memory = axrAlignMemory(endLower(), alignment);
+    memory = axrAlignMemory(reinterpret_cast<void*>(endLower()), alignment);
     // Yes, we will never get an ID of 0. This is so if we get a marker ID of 0 from `getCurrentMarkerLower()`,
     // then it means there is nothing allocated.
     markerID = ++currentID;
@@ -120,12 +120,12 @@ AxrResult AxrDoubleStackAllocator::allocateUpperBlock(const size_t size,
     MarkerID currentID = getCurrentMarkerUpper().ID;
 
     if (zeroOutMemory) {
-        std::memset(endUpper() - blockSize, 0, blockSize);
+        std::memset(reinterpret_cast<void*>(endUpper() - blockSize), 0, blockSize);
     }
 
     // minus size, not block size. if it was block size then the marker would be at the head of this address which we
     // obviously don't want
-    memory = axrAlignMemory(endUpper() - dataSize, alignment);
+    memory = axrAlignMemory(reinterpret_cast<void*>(endUpper() - dataSize), alignment);
     // Yes, we will never get an ID of 0. This is so if we get a marker ID of 0 from `getCurrentMarkerUpper()`,
     // then it means there is nothing allocated.
     markerID = ++currentID;
@@ -238,23 +238,23 @@ void AxrDoubleStackAllocator::cleanup() {
     AxrSubAllocatorBase::cleanup();
 }
 
-inline uint8_t* AxrDoubleStackAllocator::beginLower() const {
+inline uintptr_t AxrDoubleStackAllocator::beginLower() const {
     assert(m_Memory);
 
-    return m_Memory;
+    return reinterpret_cast<uintptr_t>(m_Memory);
 }
 
-uint8_t* AxrDoubleStackAllocator::beginUpper() const {
+uintptr_t AxrDoubleStackAllocator::beginUpper() const {
     assert(m_Memory);
 
-    return m_Memory + m_Capacity;
+    return reinterpret_cast<uintptr_t>(m_Memory) + m_Capacity;
 }
 
-inline uint8_t* AxrDoubleStackAllocator::endLower() const {
+inline uintptr_t AxrDoubleStackAllocator::endLower() const {
     return beginLower() + m_SizeLower;
 }
 
-uint8_t* AxrDoubleStackAllocator::endUpper() const {
+uintptr_t AxrDoubleStackAllocator::endUpper() const {
     return beginUpper() - m_SizeUpper;
 }
 

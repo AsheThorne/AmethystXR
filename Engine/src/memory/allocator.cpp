@@ -34,12 +34,12 @@ AxrResult AxrAllocator::setup(const Config& config) {
         config.EngineDataAllocatorMainMemorySize +
         AxrDynamicAllocator::getHandlesMemoryBlockCapacity(config.EngineDataAllocatorMaxHandleCount);
     m_MemorySize = frameAllocatorSize + engineDataAllocatorSize;
-    m_Memory = static_cast<uint8_t*>(malloc(m_MemorySize));
+    m_Memory = malloc(m_MemorySize);
 
     // ---- Frame Allocator ----
     AxrDeallocateBlock frameAllocatorDeallocateCallback;
     frameAllocatorDeallocateCallback.connect<&AxrAllocator::deallocateFrameAllocatorCallback>();
-    uint8_t* frameAllocatorMemory = m_Memory;
+    void* frameAllocatorMemory = m_Memory;
     FrameAllocator = AxrStackAllocator(AxrMemoryBlock{
         .Memory = frameAllocatorMemory,
         .Size = frameAllocatorSize,
@@ -49,7 +49,8 @@ AxrResult AxrAllocator::setup(const Config& config) {
     // ---- Engine Data Allocator ----
     AxrDeallocateBlock engineDataAllocatorDeallocateCallback;
     engineDataAllocatorDeallocateCallback.connect<&AxrAllocator::deallocateEngineDataAllocatorCallback>();
-    uint8_t* engineDataAllocatorMemory = frameAllocatorMemory + frameAllocatorSize;
+    const auto engineDataAllocatorMemory =
+        reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(frameAllocatorMemory) + frameAllocatorSize);
     EngineDataAllocator = AxrDynamicAllocator(
         AxrMemoryBlock{
             .Memory = engineDataAllocatorMemory,
@@ -64,6 +65,7 @@ AxrResult AxrAllocator::setup(const Config& config) {
 
 void AxrAllocator::shutDown() {
     FrameAllocator = {};
+    EngineDataAllocator = {};
 
     if (m_Memory != nullptr) {
         free(m_Memory);
@@ -143,9 +145,8 @@ void AxrAllocator::deallocateFrameAllocatorCallback(void*& memory) {
 }
 
 void AxrAllocator::deallocateEngineDataAllocatorCallback(void*& memory) {
-    // NEVER EVER modify anything about the FrameAllocator within this function. We don't want to risk retriggering this
-    // callback and entering an infinite loop.
-    // We don't really need to do anything here since we don't intend to reuse
-    // its memory block and the entire block gets freed when the allocator is cleaned up.
+    // NEVER EVER modify anything about the EngineDataAllocator within this function. We don't want to risk retriggering
+    // this callback and entering an infinite loop. We don't really need to do anything here since we don't intend to
+    // reuse its memory block and the entire block gets freed when the allocator is cleaned up.
     memory = nullptr;
 }

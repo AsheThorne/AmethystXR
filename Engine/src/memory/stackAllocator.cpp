@@ -76,10 +76,10 @@ AxrResult AxrStackAllocator::allocateBlock(const size_t size,
     MarkerID currentID = getCurrentMarker().ID;
 
     if (zeroOutMemory) {
-        std::memset(end(), 0, blockSize);
+        std::memset(reinterpret_cast<void*>(end()), 0, blockSize);
     }
 
-    memory = axrAlignMemory(end(), alignment);
+    memory = axrAlignMemory(reinterpret_cast<void*>(end()), alignment);
     // Yes, we will never get an ID of 0. This is so if we get a marker ID of 0 from `getCurrentMarker()`,
     // then it means there is nothing allocated.
     markerID = ++currentID;
@@ -147,13 +147,13 @@ void AxrStackAllocator::cleanup() {
     AxrSubAllocatorBase::cleanup();
 }
 
-inline uint8_t* AxrStackAllocator::begin() const {
+inline uintptr_t AxrStackAllocator::begin() const {
     assert(m_Memory);
 
-    return m_Memory;
+    return reinterpret_cast<uintptr_t>(m_Memory);
 }
 
-inline uint8_t* AxrStackAllocator::end() const {
+inline uintptr_t AxrStackAllocator::end() const {
     return begin() + m_Size;
 }
 

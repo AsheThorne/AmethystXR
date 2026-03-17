@@ -98,7 +98,7 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
-    uint8_t* m_Memory{};
+    void* m_Memory{};
     size_t m_MemorySize{};
     bool m_IsSetup = false;
 
