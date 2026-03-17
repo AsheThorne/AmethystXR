@@ -388,7 +388,7 @@ protected:
             return AXR_ERROR_VALIDATION_FAILED;
         }
 
-        const AxrResult axrResult = m_StackAllocator->allocateAligned(m_Capacity, m_Data, m_AllocatorMarkerID);
+        const AxrResult axrResult = m_StackAllocator->allocate(m_Capacity, m_Data, m_AllocatorMarkerID);
         if (AXR_FAILED(axrResult)) [[unlikely]] {
             axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to allocate memory.");
             return axrResult;

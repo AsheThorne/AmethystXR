@@ -3,11 +3,9 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
-#include "axr/common/defines.h"
 #include "axr/common/enums.h"
 #include "subAllocatorBase.h"
 #include "types.h"
-#include "utils.h"
 
 #include <cstdint>
 
@@ -62,11 +60,12 @@ public:
 
     /// Allocate new memory block to the stack
     /// @param size Size in bytes for how much memory to allocate
+    /// @param alignment Memory alignment
     /// @param memory Output allocated memory
     /// @param markerID Output marker ID for this memory
     /// @return AXR_SUCCESS if the function succeeded.
     /// AXR_ERROR_OUT_OF_MEMORY if there isn't enough space on the stack for the requested memory.
-    [[nodiscard]] AxrResult allocateBlock(size_t size, void*& memory, MarkerID& markerID);
+    [[nodiscard]] AxrResult allocateBlock(size_t size, uint8_t alignment, void*& memory, MarkerID& markerID);
 
     /// Allocate new memory to the stack
     /// @tparam Type The memory data type
@@ -77,26 +76,7 @@ public:
     /// AXR_ERROR_OUT_OF_MEMORY if there isn't enough space on the stack for the requested memory.
     template<typename Type>
     [[nodiscard]] AxrResult allocate(const size_t size, Type*& memory, MarkerID& markerID) {
-        return allocateBlock(sizeof(Type) * size, reinterpret_cast<void*&>(memory), markerID);
-    }
-
-    /// Allocate new memory to the stack with optimal alignment
-    /// @tparam Type The memory data type
-    /// @param size The number of data items of type `Type` to store in memory
-    /// @param memory Output allocated memory
-    /// @param markerID Output marker ID for this memory
-    /// @return AXR_SUCCESS if the function succeeded.
-    /// AXR_ERROR_OUT_OF_MEMORY if there isn't enough space on the stack for the requested memory.
-    template<typename Type>
-    [[nodiscard]] AxrResult allocateAligned(const size_t size, Type*& memory, MarkerID& markerID) {
-        const AxrResult axrResult =
-            allocateBlock((sizeof(Type) * size) + alignof(Type), reinterpret_cast<void*&>(memory), markerID);
-        if (AXR_FAILED(axrResult)) [[unlikely]] {
-            return axrResult;
-        }
-
-        memory = axrAlignMemory(memory);
-        return axrResult;
+        return allocateBlock(sizeof(Type) * size, alignof(Type), reinterpret_cast<void*&>(memory), markerID);
     }
 
     /// Deallocate the memory for the given marker ID. Including all memory allocated after the given marker.

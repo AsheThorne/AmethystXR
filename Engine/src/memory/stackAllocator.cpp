@@ -3,6 +3,7 @@
 // ----------------------------------------- //
 #include "stackAllocator.h"
 #include "axr/logging.h"
+#include "utils.h"
 
 #include <cstring>
 
@@ -45,11 +46,17 @@ AxrStackAllocator& AxrStackAllocator::operator=(AxrStackAllocator&& src) noexcep
 // ----------------------------------------- //
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to allocate memory block for AxrStackAllocator. "
-AxrResult AxrStackAllocator::allocateBlock(const size_t size, void*& memory, MarkerID& markerID) {
+AxrResult AxrStackAllocator::allocateBlock(const size_t size,
+                                           const uint8_t alignment,
+                                           void*& memory,
+                                           MarkerID& markerID) {
     // Make sure there's enough space for both the requested memory size and for its marker.
-    const size_t blockSize = size + sizeof(Marker);
+    const size_t blockSize = size + alignment + sizeof(Marker);
+    const size_t dataSize = size + alignment;
     if (blockSize > m_Capacity - m_Size) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Ran out of memory for a block of size {} bytes.", size);
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Ran out of memory for a block of size {} bytes and alignment of {}.",
+                    size,
+                    alignment);
         return AXR_ERROR_OUT_OF_MEMORY;
     }
 
@@ -57,14 +64,14 @@ AxrResult AxrStackAllocator::allocateBlock(const size_t size, void*& memory, Mar
     // TODO (Ashe): Make zeroing out memory optional maybe. Possibly with a flag
     std::memset(end(), 0, blockSize);
 
-    memory = end();
+    memory = axrAlignMemory(end(), alignment);
     // Yes, we will never get an ID of 0. This is so if we get a marker ID of 0 from `getCurrentMarker()`,
     // then it means there is nothing allocated.
     markerID = ++currentID;
 
     m_Size += blockSize;
 
-    setCurrentMarker(Marker{.Size = size, .ID = markerID});
+    setCurrentMarker(Marker{.Size = dataSize, .ID = markerID});
 
     return AXR_SUCCESS;
 }

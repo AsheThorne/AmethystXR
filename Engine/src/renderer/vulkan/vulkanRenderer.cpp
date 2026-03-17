@@ -222,7 +222,7 @@ AxrResult AxrVulkanRenderer::createInstanceChain(const AxrVulkanExtensions::Exte
 
         // We aren't deallocating this memory manually so we can ignore the markerID
         AxrStackAllocator::MarkerID markerID;
-        axrResult = AxrAllocator::get().FrameAllocator.allocateAligned(1, debugUtilsCreateInfo, markerID);
+        axrResult = AxrAllocator::get().FrameAllocator.allocate(1, debugUtilsCreateInfo, markerID);
         if (AXR_FAILED(axrResult)) [[unlikely]] {
             axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to allocate memory for VkDebugUtilsMessengerCreateInfoEXT.");
             return axrResult;
@@ -628,7 +628,7 @@ AxrResult AxrVulkanRenderer::createDeviceChain(const VkPhysicalDevice& physicalD
 
     // We aren't deallocating this memory manually so we can ignore the markerID
     AxrStackAllocator::MarkerID markerID;
-    axrResult = AxrAllocator::get().FrameAllocator.allocateAligned(1, deviceFeatures, markerID);
+    axrResult = AxrAllocator::get().FrameAllocator.allocate(1, deviceFeatures, markerID);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to allocate memory for VkPhysicalDeviceFeatures2.");
         return axrResult;
