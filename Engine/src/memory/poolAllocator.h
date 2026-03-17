@@ -424,7 +424,17 @@ public:
     /// Return the given memory back to the pool
     /// @param memory Memory to return to the pool
     void deallocate(Type*& memory) {
+        const auto memoryAddress = reinterpret_cast<uintptr_t>(memory);
+        // If the given data isn't part of the memory we manage, don't do anything with it
+        if (memoryAddress < reinterpret_cast<uintptr_t>(AxrSubAllocatorBase::m_Memory) ||
+            memoryAddress > reinterpret_cast<uintptr_t>(AxrSubAllocatorBase::m_Memory) +
+                                AxrSubAllocatorBase::m_Capacity) [[unlikely]] {
+            axrLogWarning("Attempted to deallocate data that isn't from this pool allocator.");
+            return;
+        }
+        
         const auto index = static_cast<ChunkIndexTraits::Type>((memory - AxrSubAllocatorBase::m_Memory) / sizeof(Type));
+
 
         at(index) = m_FreeChunksHeadIndex;
         m_FreeChunksHeadIndex = index;
