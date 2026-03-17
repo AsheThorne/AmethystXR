@@ -117,9 +117,9 @@ public:
     /// @param src Source AxrSubAllocatorBase_Aligned to move from
     AxrSubAllocatorBase_Aligned& operator=(AxrSubAllocatorBase_Aligned&& src) noexcept {
         if (this != &src) {
-            AxrSubAllocatorBase::operator=(std::move(src));
-
             cleanup();
+
+            AxrSubAllocatorBase::operator=(std::move(src));
         }
         return *this;
     }

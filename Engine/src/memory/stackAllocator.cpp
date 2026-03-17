@@ -139,12 +139,12 @@ bool AxrStackAllocator::empty() const {
 // ----------------------------------------- //
 
 void AxrStackAllocator::cleanup() {
-    AxrSubAllocatorBase::cleanup();
-
     m_Size = {};
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
     m_PeakSize = {};
 #endif
+
+    AxrSubAllocatorBase::cleanup();
 }
 
 inline uint8_t* AxrStackAllocator::begin() const {

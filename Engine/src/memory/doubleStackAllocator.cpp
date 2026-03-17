@@ -229,13 +229,13 @@ bool AxrDoubleStackAllocator::emptyUpper() const {
 // ----------------------------------------- //
 
 void AxrDoubleStackAllocator::cleanup() {
-    AxrSubAllocatorBase::cleanup();
-
     m_SizeLower = {};
     m_SizeUpper = {};
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
     m_PeakSize = {};
 #endif
+
+    AxrSubAllocatorBase::cleanup();
 }
 
 inline uint8_t* AxrDoubleStackAllocator::beginLower() const {

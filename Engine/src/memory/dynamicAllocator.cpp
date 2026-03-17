@@ -69,9 +69,9 @@ AxrDynamicAllocator::~AxrDynamicAllocator() {
 
 AxrDynamicAllocator& AxrDynamicAllocator::operator=(AxrDynamicAllocator&& src) noexcept {
     if (this != &src) {
-        AxrSubAllocatorBase::operator=(std::move(src));
-
         cleanup();
+
+        AxrSubAllocatorBase::operator=(std::move(src));
 
         m_HandlesAllocator = std::move(src.m_HandlesAllocator);
         m_HandlesTree = std::move(src.m_HandlesTree);

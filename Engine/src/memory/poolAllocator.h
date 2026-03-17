@@ -86,9 +86,9 @@ public:
     /// @param src Source AxrPoolAllocator to move from
     AxrPoolAllocator& operator=(AxrPoolAllocator&& src) noexcept {
         if (this != &src) {
-            AxrSubAllocatorBase_Aligned<Type>::operator=(std::move(src));
-
             cleanup();
+
+            AxrSubAllocatorBase_Aligned<Type>::operator=(std::move(src));
 
             m_FreeChunksHead = src.m_FreeChunksHead;
             m_ChunkCapacity = src.m_ChunkCapacity;
@@ -146,7 +146,15 @@ public:
     /// Return the given memory back to the pool
     /// @param memory Memory to return to the pool
     void deallocate(Type*& memory) {
-        // TODO: Check that the memory we're given to delete, belongs to us here. like we do for the dynamic allocator
+        const auto memoryAddress = reinterpret_cast<uintptr_t>(memory);
+        // If the given data isn't part of the memory we manage, don't do anything with it
+        if (memoryAddress < reinterpret_cast<uintptr_t>(AxrSubAllocatorBase::m_Memory) ||
+            memoryAddress > reinterpret_cast<uintptr_t>(AxrSubAllocatorBase::m_Memory) +
+                                AxrSubAllocatorBase::m_Capacity) [[unlikely]] {
+            axrLogWarning("Attempted to deallocate data that isn't from this pool allocator.");
+            return;
+        }
+
         auto chunk = reinterpret_cast<Chunk*>(memory);
 
         chunk->Next = m_FreeChunksHead;
@@ -475,14 +483,14 @@ private:
 
     /// Clean up this class
     void cleanup() {
-        AxrSubAllocatorBase_Aligned<Type>::cleanup();
-
         m_FreeChunksHeadIndex = {};
         m_ChunkCapacity = {};
         m_UsedChunkCount = {};
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
         m_PeakUsedChunkCount = {};
 #endif
+
+        AxrSubAllocatorBase_Aligned<Type>::cleanup();
     }
 
     /// Chain together all chunks, marking them all as free to use
