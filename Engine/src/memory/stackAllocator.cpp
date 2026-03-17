@@ -20,8 +20,14 @@ AxrStackAllocator::AxrStackAllocator(void* memory, const size_t size, const AxrD
 AxrStackAllocator::AxrStackAllocator(AxrStackAllocator&& src) noexcept :
     AxrSubAllocatorBase(std::move(src)) {
     m_Size = src.m_Size;
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    m_PeakSize = src.m_PeakSize;
+#endif
 
     src.m_Size = {};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    src.m_PeakSize = {};
+#endif
 }
 
 AxrStackAllocator::~AxrStackAllocator() {
@@ -35,8 +41,14 @@ AxrStackAllocator& AxrStackAllocator::operator=(AxrStackAllocator&& src) noexcep
         AxrSubAllocatorBase::operator=(std::move(src));
 
         m_Size = src.m_Size;
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+        m_PeakSize = src.m_PeakSize;
+#endif
 
         src.m_Size = {};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+        src.m_PeakSize = {};
+#endif
     }
     return *this;
 }
@@ -70,6 +82,11 @@ AxrResult AxrStackAllocator::allocateBlock(const size_t size,
     markerID = ++currentID;
 
     m_Size += blockSize;
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    if (m_Size > m_PeakSize) {
+        m_PeakSize = m_Size;
+    }
+#endif
 
     setCurrentMarker(Marker{.Size = dataSize, .ID = markerID});
 
@@ -104,6 +121,12 @@ size_t AxrStackAllocator::size() const {
     return m_Size;
 }
 
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+size_t AxrStackAllocator::peakSize() const {
+    return m_PeakSize;
+}
+#endif
+
 bool AxrStackAllocator::empty() const {
     return m_Size == 0;
 }
@@ -116,6 +139,9 @@ void AxrStackAllocator::cleanup() {
     AxrSubAllocatorBase::cleanup();
 
     m_Size = {};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    m_PeakSize = {};
+#endif
 }
 
 inline uint8_t* AxrStackAllocator::begin() const {

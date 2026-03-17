@@ -22,9 +22,15 @@ AxrDoubleStackAllocator::AxrDoubleStackAllocator(AxrDoubleStackAllocator&& src) 
     AxrSubAllocatorBase(std::move(src)) {
     m_SizeLower = src.m_SizeLower;
     m_SizeUpper = src.m_SizeUpper;
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    m_PeakSize = src.m_PeakSize;
+#endif
 
     src.m_SizeLower = {};
     src.m_SizeUpper = {};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    src.m_PeakSize = {};
+#endif
 }
 
 AxrDoubleStackAllocator::~AxrDoubleStackAllocator() {
@@ -39,9 +45,15 @@ AxrDoubleStackAllocator& AxrDoubleStackAllocator::operator=(AxrDoubleStackAlloca
 
         m_SizeLower = src.m_SizeLower;
         m_SizeUpper = src.m_SizeUpper;
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+        m_PeakSize = src.m_PeakSize;
+#endif
 
         src.m_SizeLower = {};
         src.m_SizeUpper = {};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+        src.m_PeakSize = {};
+#endif
     }
     return *this;
 }
@@ -75,6 +87,11 @@ AxrResult AxrDoubleStackAllocator::allocateLowerBlock(const size_t size,
     markerID = ++currentID;
 
     m_SizeLower += blockSize;
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    if (m_SizeLower + m_SizeUpper > m_PeakSize) {
+        m_PeakSize = m_SizeLower + m_SizeUpper;
+    }
+#endif
 
     setCurrentMarkerLower(Marker{.Size = dataSize, .ID = markerID});
 
@@ -109,6 +126,11 @@ AxrResult AxrDoubleStackAllocator::allocateUpperBlock(const size_t size,
     markerID = ++currentID;
 
     m_SizeUpper += blockSize;
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    if (m_SizeLower + m_SizeUpper > m_PeakSize) {
+        m_PeakSize = m_SizeLower + m_SizeUpper;
+    }
+#endif
 
     setCurrentMarkerUpper(Marker{.Size = dataSize, .ID = markerID});
 
@@ -179,6 +201,12 @@ size_t AxrDoubleStackAllocator::sizeUpper() const {
     return m_SizeUpper;
 }
 
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+size_t AxrDoubleStackAllocator::peakSize() const {
+    return m_PeakSize;
+}
+#endif
+
 bool AxrDoubleStackAllocator::empty() const {
     return emptyLower() && emptyUpper();
 }
@@ -200,6 +228,9 @@ void AxrDoubleStackAllocator::cleanup() {
 
     m_SizeLower = {};
     m_SizeUpper = {};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    m_PeakSize = {};
+#endif
 }
 
 inline uint8_t* AxrDoubleStackAllocator::beginLower() const {

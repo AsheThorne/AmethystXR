@@ -134,6 +134,7 @@ endif()
 target_compile_definitions(AXR_Engine PRIVATE
     AXR_BUILD_DLL
     $<$<CONFIG:Debug>:AXR_LOG_SOURCE_LOCATION>
+    $<$<CONFIG:Debug>:AXR_TRACK_ALLOCATOR_PEAK_USAGE>
 )
 
 if(WIN32)
@@ -211,7 +212,7 @@ target_link_libraries(AXR_Test PRIVATE
 )
 
 if(Vulkan_FOUND)
-    target_link_libraries(AXR_Engine PRIVATE
+    target_link_libraries(AXR_Test PRIVATE
         Vulkan::Vulkan
     )
 endif()
@@ -233,8 +234,13 @@ target_include_directories(AXR_Test PUBLIC
 # Set AXR_Test compile definitions
 # ---------------------------------------------
 
+target_compile_definitions(AXR_Test PRIVATE
+        $<$<CONFIG:Debug>:AXR_LOG_SOURCE_LOCATION>
+        $<$<CONFIG:Debug>:AXR_TRACK_ALLOCATOR_PEAK_USAGE>
+)
+
 if(Vulkan_FOUND)
-    target_compile_definitions(AXR_Engine PRIVATE
+    target_compile_definitions(AXR_Test PRIVATE
         AXR_VULKAN_SUPPORTED
         # This definition is for OpenXR
         XR_USE_GRAPHICS_API_VULKAN

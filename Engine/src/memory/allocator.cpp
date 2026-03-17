@@ -56,11 +56,23 @@ void AxrAllocator::shutDown() {
 void AxrAllocator::logFrameAllocatorUsage(const char* message) const {
     const size_t size = FrameAllocator.size();
     const size_t capacity = FrameAllocator.capacity();
-    axrLogInfo("{}: Frame Allocator memory usage. {:.2f}% Used. {} Bytes used out of {}.",
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    const size_t peakSize = FrameAllocator.peakSize();
+#endif
+
+    axrLogInfo("{}: Frame Allocator memory usage. {:.2f}% Used currently. {} Bytes used out of {}."
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+               " Peak usage reached {:.2f}%.",
+#endif
                message,
                static_cast<float>(size) / static_cast<float>(capacity) * 100,
                size,
-               capacity);
+               capacity
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+               ,
+               static_cast<float>(peakSize) / static_cast<float>(capacity) * 100
+#endif
+    );
 }
 
 // ----------------------------------------- //

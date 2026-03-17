@@ -62,10 +62,16 @@ public:
         m_FreeChunksHead = src.m_FreeChunksHead;
         m_ChunkCapacity = src.m_ChunkCapacity;
         m_UsedChunkCount = src.m_UsedChunkCount;
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+        m_PeakMemorySize = src.m_PeakMemorySize;
+#endif
 
         src.m_FreeChunksHead = {};
         src.m_ChunkCapacity = {};
         src.m_UsedChunkCount = {};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+        src.m_PeakMemorySize = {};
+#endif
     }
 
     // ---- Destructor ----
@@ -92,10 +98,16 @@ public:
             m_FreeChunksHead = src.m_FreeChunksHead;
             m_ChunkCapacity = src.m_ChunkCapacity;
             m_UsedChunkCount = src.m_UsedChunkCount;
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+            m_PeakMemorySize = src.m_PeakMemorySize;
+#endif
 
             src.m_FreeChunksHead = {};
             src.m_ChunkCapacity = {};
             src.m_UsedChunkCount = {};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+            src.m_PeakMemorySize = {};
+#endif
         }
         return *this;
     }
@@ -121,7 +133,15 @@ public:
         std::memset(static_cast<void*>(chunk), 0, sizeof(Type));
 
         memory = chunk;
-        m_UsedChunkCount++;
+        ++m_UsedChunkCount;
+
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+        const size_t currentMemoryUsage = m_UsedChunkCount * (AxrSubAllocatorBase::m_Capacity / m_ChunkCapacity);
+        if (currentMemoryUsage > m_PeakMemorySize) {
+            m_PeakMemorySize = currentMemoryUsage;
+        }
+#endif
+
         return AXR_SUCCESS;
     }
 #undef AXR_FUNCTION_FAILED_STRING
@@ -158,6 +178,14 @@ public:
         return m_UsedChunkCount;
     }
 
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    /// Get the peak memory usage in bytes
+    /// @return The peak memory usage in bytes
+    [[nodiscard]] size_t peakMemorySize() const {
+        return m_PeakMemorySize;
+    }
+#endif
+
     /// Get the empty state of the allocator
     /// @return True if the allocator is empty and all chunks are free to use
     [[nodiscard]] bool empty() const {
@@ -180,6 +208,9 @@ protected:
     Chunk* m_FreeChunksHead{};
     size_t m_ChunkCapacity{};
     size_t m_UsedChunkCount{};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    size_t m_PeakMemorySize{};
+#endif
 
     // ----------------------------------------- //
     // Protected Functions
@@ -190,6 +221,9 @@ protected:
         m_FreeChunksHead = {};
         m_ChunkCapacity = {};
         m_UsedChunkCount = {};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+        m_PeakMemorySize = {};
+#endif
 
         AxrSubAllocatorBase_Aligned<Type>::cleanup();
     }
@@ -299,10 +333,16 @@ public:
         m_FreeChunksHeadIndex = src.m_FreeChunksHeadIndex;
         m_ChunkCapacity = src.m_ChunkCapacity;
         m_UsedChunkCount = src.m_UsedChunkCount;
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+        m_PeakMemorySize = src.m_PeakMemorySize;
+#endif
 
         src.m_FreeChunksHeadIndex = {};
         src.m_ChunkCapacity = {};
         src.m_UsedChunkCount = {};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+        src.m_PeakMemorySize = {};
+#endif
     }
 
     // ---- Destructor ----
@@ -329,10 +369,16 @@ public:
             m_FreeChunksHeadIndex = src.m_FreeChunksHeadIndex;
             m_ChunkCapacity = src.m_ChunkCapacity;
             m_UsedChunkCount = src.m_UsedChunkCount;
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+            m_PeakMemorySize = src.m_PeakMemorySize;
+#endif
 
             src.m_FreeChunksHeadIndex = {};
             src.m_ChunkCapacity = {};
             src.m_UsedChunkCount = {};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+            src.m_PeakMemorySize = {};
+#endif
         }
         return *this;
     }
@@ -359,6 +405,14 @@ public:
 
         memory = chunk;
         m_UsedChunkCount++;
+
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+        const size_t currentMemoryUsage = m_UsedChunkCount * (AxrSubAllocatorBase::m_Capacity / m_ChunkCapacity);
+        if (currentMemoryUsage > m_PeakMemorySize) {
+            m_PeakMemorySize = currentMemoryUsage;
+        }
+#endif
+
         return AXR_SUCCESS;
     }
 #undef AXR_FUNCTION_FAILED_STRING
@@ -394,6 +448,14 @@ public:
         return m_UsedChunkCount;
     }
 
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    /// Get the peak memory usage in bytes
+    /// @return The peak memory usage in bytes
+    [[nodiscard]] size_t peakMemorySize() const {
+        return m_PeakMemorySize;
+    }
+#endif
+
     /// Get the empty state of the allocator
     /// @return True if the allocator is empty
     [[nodiscard]] bool empty() const {
@@ -406,6 +468,9 @@ private:
     // ----------------------------------------- //
     size_t m_ChunkCapacity{};
     size_t m_UsedChunkCount{};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    size_t m_PeakMemorySize{};
+#endif
     ChunkIndexTraits::Type m_FreeChunksHeadIndex{};
 
     // ----------------------------------------- //
@@ -419,6 +484,9 @@ private:
         m_FreeChunksHeadIndex = {};
         m_ChunkCapacity = {};
         m_UsedChunkCount = {};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+        m_PeakMemorySize = {};
+#endif
     }
 
     /// Chain together all chunks, marking them all as free to use

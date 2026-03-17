@@ -149,6 +149,11 @@ public:
     /// Get the size of the allocated memory on the upper end
     /// @return The size of the allocated memory on the upper end
     [[nodiscard]] size_t sizeUpper() const;
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    /// Get the peak usage size of the allocated memory
+    /// @return The peak usage size of the allocated memory
+    [[nodiscard]] size_t peakSize() const;
+#endif
     /// Get the empty state of the allocator
     /// @return True if the allocator is empty
     [[nodiscard]] bool empty() const;
@@ -179,6 +184,9 @@ private:
     // ----------------------------------------- //
     size_t m_SizeLower{};
     size_t m_SizeUpper{};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    size_t m_PeakSize{};
+#endif
 
     // ----------------------------------------- //
     // Private Functions

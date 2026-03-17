@@ -50,6 +50,10 @@ AxrDynamicAllocator::AxrDynamicAllocator(AxrDynamicAllocator&& src) noexcept :
     m_HandlesMemoryCapacity = src.m_HandlesMemoryCapacity;
     m_MainMemoryCapacity = src.m_MainMemoryCapacity;
     m_TotalMainMemoryUsed = src.m_TotalMainMemoryUsed;
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    m_PeakMainMemoryUsed = src.m_PeakMainMemoryUsed;
+    m_PeakHandlesMemoryUsed = src.m_PeakHandlesMemoryUsed;
+#endif
 
     src.m_HandlesMemory = {};
     src.m_MainMemory = {};
@@ -57,6 +61,10 @@ AxrDynamicAllocator::AxrDynamicAllocator(AxrDynamicAllocator&& src) noexcept :
     src.m_HandlesMemoryCapacity = {};
     src.m_MainMemoryCapacity = {};
     src.m_TotalMainMemoryUsed = {};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    src.m_PeakMainMemoryUsed = {};
+    src.m_PeakHandlesMemoryUsed = {};
+#endif
 }
 
 AxrDynamicAllocator::~AxrDynamicAllocator() {
@@ -78,6 +86,10 @@ AxrDynamicAllocator& AxrDynamicAllocator::operator=(AxrDynamicAllocator&& src) n
         m_HandlesMemoryCapacity = src.m_HandlesMemoryCapacity;
         m_MainMemoryCapacity = src.m_MainMemoryCapacity;
         m_TotalMainMemoryUsed = src.m_TotalMainMemoryUsed;
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+        m_PeakMainMemoryUsed = src.m_PeakMainMemoryUsed;
+        m_PeakHandlesMemoryUsed = src.m_PeakHandlesMemoryUsed;
+#endif
 
         src.m_HandlesMemory = {};
         src.m_MainMemory = {};
@@ -85,6 +97,10 @@ AxrDynamicAllocator& AxrDynamicAllocator::operator=(AxrDynamicAllocator&& src) n
         src.m_HandlesMemoryCapacity = {};
         src.m_MainMemoryCapacity = {};
         src.m_TotalMainMemoryUsed = {};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+        src.m_PeakMainMemoryUsed = {};
+        src.m_PeakHandlesMemoryUsed = {};
+#endif
     }
     return *this;
 }
@@ -184,6 +200,12 @@ AxrResult AxrDynamicAllocator::allocateBlock(const size_t size, const uint8_t al
     handle = AxrHandle(&reinterpret_cast<void*&>(allocatedBlockHandleNode->Data), deallocatorCallback);
 
     m_TotalMainMemoryUsed += blockSize;
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    if (m_TotalMainMemoryUsed > m_PeakMainMemoryUsed) {
+        m_PeakMainMemoryUsed = m_TotalMainMemoryUsed;
+    }
+    m_PeakHandlesMemoryUsed = m_HandlesAllocator.peakMemorySize();
+#endif
 
     return AXR_SUCCESS;
 }
@@ -255,9 +277,31 @@ bool AxrDynamicAllocator::empty() const {
     return m_FreeBlocksHead != nullptr && m_FreeBlocksHead->Size == m_MainMemoryCapacity;
 }
 
-size_t AxrDynamicAllocator::size() const {
+size_t AxrDynamicAllocator::mainMemorySize() const {
     return m_TotalMainMemoryUsed;
 }
+
+size_t AxrDynamicAllocator::handlesMemorySize() const {
+    return m_HandlesAllocator.size();
+}
+
+size_t AxrDynamicAllocator::mainMemoryCapacity() const {
+    return m_MainMemoryCapacity;
+}
+
+size_t AxrDynamicAllocator::handlesMemoryCapacity() const {
+    return m_HandlesMemoryCapacity;
+}
+
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+size_t AxrDynamicAllocator::peakMainMemorySize() const {
+    return m_PeakMainMemoryUsed;
+}
+
+size_t AxrDynamicAllocator::peakHandlesMemorySize() const {
+    return m_PeakHandlesMemoryUsed;
+}
+#endif
 
 size_t AxrDynamicAllocator::getHandlesMemoryBlockCapacity(const uint32_t maxHandleCount) {
     return (maxHandleCount * sizeof(HandlesTree_T::Node)) + alignof(HandlesTree_T::Node);
@@ -277,6 +321,10 @@ void AxrDynamicAllocator::cleanup() {
     m_HandlesMemoryCapacity = {};
     m_MainMemoryCapacity = {};
     m_TotalMainMemoryUsed = {};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    m_PeakMainMemoryUsed = {};
+    m_PeakHandlesMemoryUsed = {};
+#endif
 
     AxrSubAllocatorBase::cleanup();
 }

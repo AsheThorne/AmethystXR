@@ -149,7 +149,7 @@ TEST(DynamicAllocator, Allocate_TooMuch) {
     axrResult = allocator.allocate(1, outTestData2Handle);
     ASSERT_TRUE(axrResult == AXR_ERROR_OUT_OF_MEMORY);
 
-    ASSERT_TRUE(allocator.size() == testData1MemSize);
+    ASSERT_TRUE(allocator.mainMemorySize() == testData1MemSize);
 }
 
 TEST(DynamicAllocator, Allocate_FailedToCreateHandle) {
@@ -173,7 +173,7 @@ TEST(DynamicAllocator, Allocate_FailedToCreateHandle) {
     axrResult = allocator.allocate(1, outTestData2Handle);
     ASSERT_TRUE(axrResult == AXR_ERROR_OUT_OF_MEMORY);
 
-    ASSERT_TRUE(allocator.size() == testData1MemSize);
+    ASSERT_TRUE(allocator.mainMemorySize() == testData1MemSize);
 }
 
 TEST(DynamicAllocator, AllocateTwo_DeallocateOne) {
@@ -200,10 +200,10 @@ TEST(DynamicAllocator, AllocateTwo_DeallocateOne) {
     ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
     // Check allocator is full first.
-    ASSERT_TRUE(allocator.size() == allocatorMainMemSize);
+    ASSERT_TRUE(allocator.mainMemorySize() == allocatorMainMemSize);
     allocator.deallocate(outTestData2Handle);
     // Check that the allocator now only holds data item 1
-    ASSERT_TRUE(allocator.size() == testData1MemSize);
+    ASSERT_TRUE(allocator.mainMemorySize() == testData1MemSize);
 }
 
 TEST(DynamicAllocator, AutoDeallocate) {
@@ -231,11 +231,11 @@ TEST(DynamicAllocator, AutoDeallocate) {
         ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
 
         // Check allocator is full first.
-        ASSERT_TRUE(allocator.size() == allocatorMainMemSize);
+        ASSERT_TRUE(allocator.mainMemorySize() == allocatorMainMemSize);
     }
 
     // Check that the allocator now only holds data item 1
-    ASSERT_TRUE(allocator.size() == testData1MemSize);
+    ASSERT_TRUE(allocator.mainMemorySize() == testData1MemSize);
 }
 
 TEST(DynamicAllocator, Deallocate_CausingFragmentation) {
@@ -295,7 +295,7 @@ TEST(DynamicAllocator, Deallocate_CausingFragmentation) {
     ASSERT_TRUE(outTestData2Handle == nullptr);
     ASSERT_TRUE(*outTestData3Handle == exampleTestData3);
 
-    ASSERT_TRUE(allocator.size() == allocatorMainMemSize - testData2MemSize);
+    ASSERT_TRUE(allocator.mainMemorySize() == allocatorMainMemSize - testData2MemSize);
 }
 
 // Test allocating several blocks [ 1-2-3-4-5 ], then deallocating blocks [ 2-3-4 ], so there's a gap of a few
@@ -390,7 +390,8 @@ TEST(DynamicAllocator, Deallocate_CausingFragmentationAndMerging_ThenAllocate) {
     ASSERT_TRUE(outTestData4Handle == nullptr);
     ASSERT_TRUE(*outTestData5Handle == exampleTestData5);
 
-    ASSERT_TRUE(allocator.size() == allocatorMainMemSize - testData2MemSize - testData3MemSize - testData4MemSize);
+    ASSERT_TRUE(allocator.mainMemorySize() ==
+                allocatorMainMemSize - testData2MemSize - testData3MemSize - testData4MemSize);
 
     // To make sure slot 2, 3 and 4 combine to make one free block, we allocate a large block that wouldn't fit anywhere
     // unless they combined
@@ -412,7 +413,7 @@ TEST(DynamicAllocator, Deallocate_CausingFragmentationAndMerging_ThenAllocate) {
     ASSERT_TRUE(*outTestData5Handle == exampleTestData5);
     ASSERT_TRUE(*outTestDataLargeHandle == exampleTestDataLarge);
 
-    ASSERT_TRUE(allocator.size() ==
+    ASSERT_TRUE(allocator.mainMemorySize() ==
                 allocatorMainMemSize - testData2MemSize - testData3MemSize - testData4MemSize + testDataLargeMemSize);
 }
 
@@ -504,7 +505,8 @@ TEST(DynamicAllocator, Defragmentation) {
     ASSERT_TRUE(*outTestData4Handle == exampleTestData4);
     ASSERT_TRUE(outTestData5Handle == nullptr);
 
-    ASSERT_TRUE(allocator.size() == allocatorMainMemSize - testData1MemSize - testData3MemSize - testData5MemSize);
+    ASSERT_TRUE(allocator.mainMemorySize() ==
+                allocatorMainMemSize - testData1MemSize - testData3MemSize - testData5MemSize);
 
     // Even there are only 2 data blocks remaining, defrag more just to make sure nothing goes wrong when there's
     // nothing left to defrag
@@ -517,7 +519,8 @@ TEST(DynamicAllocator, Defragmentation) {
     ASSERT_TRUE(*outTestData4Handle == exampleTestData4);
     ASSERT_TRUE(outTestData5Handle == nullptr);
 
-    ASSERT_TRUE(allocator.size() == allocatorMainMemSize - testData1MemSize - testData3MemSize - testData5MemSize);
+    ASSERT_TRUE(allocator.mainMemorySize() ==
+                allocatorMainMemSize - testData1MemSize - testData3MemSize - testData5MemSize);
 
     // To make sure slots 1, 3 and 5 combine to make one free block, we allocate a large block that wouldn't fit
     // anywhere unless they combined
@@ -539,6 +542,6 @@ TEST(DynamicAllocator, Defragmentation) {
     ASSERT_TRUE(*outTestData4Handle == exampleTestData4);
     ASSERT_TRUE(*outTestDataLargeHandle == exampleTestDataLarge);
 
-    ASSERT_TRUE(allocator.size() ==
+    ASSERT_TRUE(allocator.mainMemorySize() ==
                 allocatorMainMemSize - testData1MemSize - testData3MemSize - testData5MemSize + testDataLargeMemSize);
 }

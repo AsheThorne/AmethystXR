@@ -103,9 +103,28 @@ public:
     /// Get the empty state of the allocator
     /// @return True if the allocator is empty
     [[nodiscard]] bool empty() const;
-    /// Get the number of bytes currently in use
-    /// @return The number of bytes in use
-    [[nodiscard]] size_t size() const;
+    /// Get the number of bytes currently in use by the main memory
+    /// @return The number of bytes in use by the main memory
+    [[nodiscard]] size_t mainMemorySize() const;
+    /// Get the number of bytes currently in use by the main memory
+    /// @return The number of bytes in use by the main memory
+    [[nodiscard]] size_t handlesMemorySize() const;
+
+    /// Get the capacity of the main memory
+    /// @return The capacity of the main memory
+    [[nodiscard]] size_t mainMemoryCapacity() const;
+    /// Get the capacity of the handles memory
+    /// @return The capacity of the handles memory
+    [[nodiscard]] size_t handlesMemoryCapacity() const;
+
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    /// Get the peak usage size of the allocated main memory
+    /// @return The peak usage size of the allocated main memory
+    [[nodiscard]] size_t peakMainMemorySize() const;
+    /// Get the peak usage size of the allocated handles memory
+    /// @return The peak usage size of the allocated handles memory
+    [[nodiscard]] size_t peakHandlesMemorySize() const;
+#endif
 
     /// Get the number of extra bytes this allocator requires for the given max number of handles.
     /// @param maxHandleCount Max number of handles allowed at one time
@@ -150,6 +169,10 @@ private:
     size_t m_HandlesMemoryCapacity{};
     size_t m_MainMemoryCapacity{};
     size_t m_TotalMainMemoryUsed{};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    size_t m_PeakMainMemoryUsed{};
+    size_t m_PeakHandlesMemoryUsed{};
+#endif
 
     /// Any block must be at least the size of `FreeBlockHeader` because when this memory is freed, there needs to
     /// be enough space to insert a `FreeBlockHeader` in its place.
