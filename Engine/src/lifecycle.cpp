@@ -16,11 +16,7 @@
 #define AXR_FUNCTION_FAILED_STRING "Failed to set up axr engine. "
 AxrResult axrSetup(const AxrEngineConfig* config) {
     axrLoggerSetup(AxrEngineName);
-
-    if (config == nullptr) {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "`config` is null.");
-        return AXR_ERROR_VALIDATION_FAILED;
-    }
+    assert(config != nullptr);
 
     AxrResult axrResult = AXR_SUCCESS;
 

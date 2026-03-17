@@ -378,14 +378,11 @@ protected:
     /// Allocate the data we need
     /// @return AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult allocateData() {
+        assert(m_StackAllocator != nullptr);
+
         if (m_Data != nullptr) [[unlikely]] {
             axrLogWarning("Data has already been allocated.");
             return AXR_SUCCESS;
-        }
-
-        if (m_StackAllocator == nullptr) [[unlikely]] {
-            axrLogError(AXR_FUNCTION_FAILED_STRING "`stackAllocator` is null.");
-            return AXR_ERROR_VALIDATION_FAILED;
         }
 
         const AxrResult axrResult = m_StackAllocator->allocate(m_Capacity, m_Data, m_AllocatorMarkerID);

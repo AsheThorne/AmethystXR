@@ -20,11 +20,7 @@
 #define AXR_FUNCTION_FAILED_STRING "Failed to set up axr vulkan renderer. "
 AxrResult AxrVulkanRenderer::setup(Context& context, const Config& config) {
     assert(!context.IsSetup);
-
-    if (config.VulkanConfig == nullptr) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "`config.VulkanConfig` is null.");
-        return AXR_ERROR_VALIDATION_FAILED;
-    }
+    assert(config.VulkanConfig != VK_NULL_HANDLE);
 
     AxrResult axrResult = AXR_SUCCESS;
 
@@ -312,14 +308,11 @@ void AxrVulkanRenderer::resetPhysicalDevice(AxrVulkanQueueFamilies& queueFamilie
 AxrResult AxrVulkanRenderer::pickPhysicalDevice(const VkInstance& instance,
                                                 const AxrVulkanExtensions::ExtensionsArray_T& extensions,
                                                 VkPhysicalDevice& physicalDevice) {
-    if (physicalDevice != VK_NULL_HANDLE) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Physical device already exists.");
-        return AXR_ERROR_VALIDATION_FAILED;
-    }
+    assert(instance != VK_NULL_HANDLE);
 
-    if (instance == VK_NULL_HANDLE) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Instance is null.");
-        return AXR_ERROR_VALIDATION_FAILED;
+    if (physicalDevice != VK_NULL_HANDLE) [[unlikely]] {
+        axrLogWarning(AXR_FUNCTION_FAILED_STRING "Physical device already exists.");
+        return AXR_SUCCESS;
     }
 
     // TODO: If OpenXR is set up, let it pick the physical device.
@@ -530,14 +523,11 @@ AxrResult AxrVulkanRenderer::createLogicalDevice(const AxrVulkanExtensions::Exte
                                                  VkDevice& device,
                                                  VkPhysicalDeviceFeatures& enabledFeatures,
                                                  VkPhysicalDeviceMultiviewFeatures& enabledMultiviewFeatures) {
+    assert(physicalDevice != VK_NULL_HANDLE);
+
     if (device != VK_NULL_HANDLE) [[unlikely]] {
         axrLogWarning(AXR_FUNCTION_FAILED_STRING "Device already exists.");
         return AXR_SUCCESS;
-    }
-
-    if (physicalDevice == VK_NULL_HANDLE) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Physical device is null.");
-        return AXR_ERROR_VALIDATION_FAILED;
     }
 
     if (!queueFamilies.areIndicesValid()) [[unlikely]] {
@@ -664,10 +654,7 @@ AxrResult AxrVulkanRenderer::createDeviceChain(const VkPhysicalDevice& physicalD
 AxrResult AxrVulkanRenderer::getDeviceFeaturesToUse(const VkPhysicalDevice& physicalDevice,
                                                     VkPhysicalDeviceFeatures& enabledFeatures,
                                                     VkPhysicalDeviceMultiviewFeatures& enabledMultiviewFeatures) {
-    if (physicalDevice == VK_NULL_HANDLE) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Physical device is null.");
-        return AXR_ERROR_VALIDATION_FAILED;
-    }
+    assert(physicalDevice != VK_NULL_HANDLE);
 
     VkPhysicalDeviceMultiviewFeaturesKHR supportedMultiviewFeatures = {
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES,
@@ -706,13 +693,13 @@ AxrResult AxrVulkanRenderer::createCommandPools(const VkDevice& device,
                                                 VkCommandPool& graphicsCommandPool,
                                                 VkCommandPool& transferCommandPool) {
     if (graphicsCommandPool != VK_NULL_HANDLE) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Graphics command pool already exists.");
-        return AXR_ERROR_VALIDATION_FAILED;
+        axrLogWarning(AXR_FUNCTION_FAILED_STRING "Graphics command pool already exists.");
+        return AXR_SUCCESS;
     }
 
     if (transferCommandPool != VK_NULL_HANDLE) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Transfer command pool already exists.");
-        return AXR_ERROR_VALIDATION_FAILED;
+        axrLogWarning(AXR_FUNCTION_FAILED_STRING "Transfer command pool already exists.");
+        return AXR_SUCCESS;
     }
 
     if (!queueFamilies.GraphicsQueueFamilyIndex.has_value()) [[unlikely]] {
@@ -761,14 +748,11 @@ AxrResult AxrVulkanRenderer::createCommandPool(const VkDevice& device,
                                                const uint32_t queueFamilyIndex,
                                                const VkCommandPoolCreateFlags commandPoolFlags,
                                                VkCommandPool& commandPool) {
-    if (commandPool != VK_NULL_HANDLE) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Command pool already exists.");
-        return AXR_ERROR_VALIDATION_FAILED;
-    }
+    assert(device != VK_NULL_HANDLE);
 
-    if (device == VK_NULL_HANDLE) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Device is null.");
-        return AXR_ERROR_VALIDATION_FAILED;
+    if (commandPool != VK_NULL_HANDLE) [[unlikely]] {
+        axrLogWarning(AXR_FUNCTION_FAILED_STRING "Command pool already exists.");
+        return AXR_SUCCESS;
     }
 
     const VkCommandPoolCreateInfo commandPoolCreateInfo{

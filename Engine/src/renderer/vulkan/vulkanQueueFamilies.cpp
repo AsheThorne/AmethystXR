@@ -21,10 +21,7 @@ void AxrVulkanQueueFamilies::reset() {
 #define AXR_FUNCTION_FAILED_STRING "Failed to set queue family indices. "
 AxrResult AxrVulkanQueueFamilies::setQueueFamilyIndices(const VkInstance& instance,
                                                         const VkPhysicalDevice& physicalDevice) {
-    if (physicalDevice == VK_NULL_HANDLE) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Physical device is null.");
-        return AXR_ERROR_VALIDATION_FAILED;
-    }
+    assert(physicalDevice != VK_NULL_HANDLE);
 
     // Reset the queue families
     cleanup();
@@ -95,6 +92,8 @@ void AxrVulkanQueueFamilies::resetQueueFamilyIndices() {
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to set queue family queues. "
 AxrResult AxrVulkanQueueFamilies::setQueueFamilyQueues(const VkDevice& device) {
+    assert(device != VK_NULL_HANDLE);
+
     if (!GraphicsQueueFamilyIndex.has_value() || !TransferQueueFamilyIndex.has_value() ||
         !PresentationQueueFamilyIndex.has_value()) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Queue family indices are not valid.");
@@ -104,11 +103,6 @@ AxrResult AxrVulkanQueueFamilies::setQueueFamilyQueues(const VkDevice& device) {
     if (GraphicsQueue != VK_NULL_HANDLE || PresentationQueue != VK_NULL_HANDLE || TransferQueue != VK_NULL_HANDLE)
         [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Queue family queues already exist.");
-        return AXR_ERROR_VALIDATION_FAILED;
-    }
-
-    if (device == VK_NULL_HANDLE) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Device is null.");
         return AXR_ERROR_VALIDATION_FAILED;
     }
 

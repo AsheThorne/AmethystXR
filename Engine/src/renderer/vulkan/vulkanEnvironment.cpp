@@ -128,15 +128,8 @@ void AxrVulkanEnvironment::resetDesktopSwapchainFormats(VkFormat& colorFormat,
 AxrResult AxrVulkanEnvironment::getSupportedSurfaceFormats(const VkSurfaceKHR& surface,
                                                            const VkPhysicalDevice& physicalDevice,
                                                            AxrVector_Stack<VkSurfaceFormatKHR>& supportedFormats) {
-    if (surface == VK_NULL_HANDLE) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Surface is null.");
-        return AXR_ERROR_VALIDATION_FAILED;
-    }
-
-    if (physicalDevice == VK_NULL_HANDLE) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Physical device is null.");
-        return AXR_ERROR_VALIDATION_FAILED;
-    }
+    assert(surface != VK_NULL_HANDLE);
+    assert(physicalDevice != VK_NULL_HANDLE);
 
     if (supportedFormats.allocated()) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "`supportedFormats` have already been allocated.");
@@ -169,10 +162,7 @@ AxrResult AxrVulkanEnvironment::setSwapchainFormats(const VkPhysicalDevice& phys
                                                     const AxrVector_Stack<VkFormat>& supportedSwapchainFormats,
                                                     VkFormat& colorFormat,
                                                     VkFormat& depthFormat) {
-    if (physicalDevice == VK_NULL_HANDLE) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Physical device is null.");
-        return AXR_ERROR_VALIDATION_FAILED;
-    }
+    assert(physicalDevice != VK_NULL_HANDLE);
 
     if (swapchainColorFormatOptions.empty()) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "`swapchainColorFormatOptions` are empty.");
@@ -275,14 +265,11 @@ AxrResult AxrVulkanEnvironment::createRenderPass(const VkDevice& device,
                                                  const VkFormat depthStencilFormat,
                                                  const VkSampleCountFlagBits msaaSampleCount,
                                                  VkRenderPass& renderPass) {
-    if (renderPass != VK_NULL_HANDLE) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Render pass already exists.");
-        return AXR_ERROR_VALIDATION_FAILED;
-    }
+    assert(device != VK_NULL_HANDLE);
 
-    if (device == VK_NULL_HANDLE) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Device is null.");
-        return AXR_ERROR_VALIDATION_FAILED;
+    if (renderPass != VK_NULL_HANDLE) [[unlikely]] {
+        axrLogWarning(AXR_FUNCTION_FAILED_STRING "Render pass already exists.");
+        return AXR_SUCCESS;
     }
 
     const bool isMsaaEnabled = msaaSampleCount != VK_SAMPLE_COUNT_1_BIT;

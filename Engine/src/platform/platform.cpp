@@ -31,11 +31,7 @@ AxrPlatform& AxrPlatform::get() {
 #define AXR_FUNCTION_FAILED_STRING "Failed to set up axr platform. "
 AxrResult AxrPlatform::setup(const Config& config) {
     assert(!m_IsSetup);
-
-    if (config.WindowConfig == nullptr) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "`config.WindowConfig` is null.");
-        return AXR_ERROR_VALIDATION_FAILED;
-    }
+    assert(config.WindowConfig != nullptr);
 
     AxrResult axrResult = AXR_SUCCESS;
 
@@ -109,14 +105,11 @@ bool AxrPlatform::getVulkanPresentationSupport(const VkInstance& instance,
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to create vulkan surface. "
 AxrResult AxrPlatform::createVulkanSurface(const VkInstance& instance, VkSurfaceKHR& surface) const {
+    assert(instance != VK_NULL_HANDLE);
+
     if (surface != VK_NULL_HANDLE) [[unlikely]] {
         axrLogWarning(AXR_FUNCTION_FAILED_STRING "Surface already exists.");
         return AXR_SUCCESS;
-    }
-
-    if (instance == VK_NULL_HANDLE) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Instance is null.");
-        return AXR_ERROR_VALIDATION_FAILED;
     }
 
     if (!SDL_Vulkan_CreateSurface(m_SDLWindow, instance, nullptr, &surface)) [[unlikely]] {

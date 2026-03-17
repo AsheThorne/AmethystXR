@@ -28,11 +28,7 @@ AxrRenderer& AxrRenderer::get() {
 #define AXR_FUNCTION_FAILED_STRING "Failed to set up axr renderer. "
 AxrResult AxrRenderer::setup(const Config& config) {
     assert(!m_IsSetup);
-
-    if (config.RendererConfig == nullptr) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "`rendererConfig.RendererConfig` is null.");
-        return AXR_ERROR_VALIDATION_FAILED;
-    }
+    assert(config.RendererConfig != nullptr);
 
     m_Context = Context{
         .ApiType = config.RendererConfig->ApiType,
