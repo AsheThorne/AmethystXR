@@ -77,6 +77,16 @@ void AxrRenderer::shutDown() {
     m_IsSetup = false;
 }
 
+void AxrRenderer::destroyDesktopResources() {
+    auto vulkan = [](AxrVulkanRenderer::Context& context) -> void {
+#ifdef AXR_VULKAN_SUPPORTED
+        AxrVulkanRenderer::destroyDesktopResources(context);
+#endif
+    };
+
+    axrRendererContextExecute(m_Context, vulkan);
+}
+
 // ----------------------------------------- //
 // Private Functions
 // ----------------------------------------- //

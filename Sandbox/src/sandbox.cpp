@@ -73,7 +73,7 @@ int start() {
 
     while (axrApplicationIsRunning()) {
         const AxrResult axrResult = axrApplicationStartNewFrame();
-        if (axrResult == AXR_APPLICATION_CLOSED) [[unlikely]] {
+        if (axrResult == AXR_EVENT_APPLICATION_CLOSED) [[unlikely]] {
             break;
         }
         if (AXR_FAILED(axrResult)) [[unlikely]] {

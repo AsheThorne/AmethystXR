@@ -99,6 +99,10 @@ public:
     /// @param context Vulkan renderer context
     static void shutDown(Context& context);
 
+    /// Destroy all desktop related resources
+    /// @param context Vulkan renderer context
+    static void destroyDesktopResources(Context& context);
+
 private:
     // ----------------------------------------- //
     // Private Functions

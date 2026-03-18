@@ -80,8 +80,13 @@ public:
     /// @return True if the platform window is open
     [[nodiscard]] bool isWindowOpen() const;
     /// Process all platform events
-    /// @return False if the window closed
-    [[nodiscard]] bool processEvents();
+    /// @return AXR_SUCCESS if the events were processed successfully.
+    /// AXR_EVENT_WINDOW_CLOSE_REQUESTED if the window should be closed and resources for it, cleaned up.
+    /// AXR_EVENT_WINDOW_CLOSED if the window has closed and all processing for it should stop.
+    [[nodiscard]] AxrResult processEvents();
+
+    /// Destroy the desktop window
+    void destroyWindow();
 
 #ifdef AXR_VULKAN_SUPPORTED
     /// Get the required vulkan platform extensions
@@ -128,8 +133,6 @@ private:
                                          uint32_t width,
                                          uint32_t height,
                                          AxrRendererApiTypeEnum rendererApiType);
-    /// Destroy the desktop window
-    void destroyWindow();
 
     /// Get the SDL window flags to use
     /// @param rendererApiType Renderer api type
@@ -138,5 +141,7 @@ private:
 
     /// Handle the given window event
     /// @param event Window event to handle
-    void handleWindowEvent(const SDL_WindowEvent& event);
+    /// @return AXR_SUCCESS if the event was handled.
+    /// AXR_EVENT_WINDOW_CLOSE_REQUESTED if the window should be closed and resources for it, cleaned up.
+    [[nodiscard]] AxrResult handleWindowEvent(const SDL_WindowEvent& event);
 };

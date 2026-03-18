@@ -15,7 +15,11 @@ enum AxrResult {
     /// The function succeeded as expected
     AXR_SUCCESS = 0,
     /// The application has closed. The program should exit
-    AXR_APPLICATION_CLOSED = 1,
+    AXR_EVENT_APPLICATION_CLOSED = 1,
+    /// The window has requested to close. The window and all resources for it should be cleaned up
+    AXR_EVENT_WINDOW_CLOSE_REQUESTED = 2,
+    /// The window has closed. All processing for it should stop
+    AXR_EVENT_WINDOW_CLOSED = 3,
 
     // ---- Failed ----
     /// Error, an unknown error occurred

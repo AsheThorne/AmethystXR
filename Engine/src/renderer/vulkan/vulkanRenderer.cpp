@@ -128,6 +128,10 @@ void AxrVulkanRenderer::shutDown(Context& context) {
     context.IsSetup = false;
 }
 
+void AxrVulkanRenderer::destroyDesktopResources(Context& context) {
+    AxrVulkanEnvironment::destroyDesktopContext(context.DesktopEnvironmentContext);
+}
+
 void AxrVulkanRenderer::appendNextPtrChain(VkBaseOutStructure* source, VkBaseOutStructure* nextStruct) {
     VkBaseOutStructure*& currentNextStruct = source->pNext;
     while (currentNextStruct != nullptr) {

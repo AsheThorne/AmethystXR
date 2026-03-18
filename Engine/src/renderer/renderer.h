@@ -87,6 +87,9 @@ public:
     /// Shut down the renderer
     void shutDown();
 
+    /// Destroy all desktop related resources
+    void destroyDesktopResources();
+
 private:
     // ----------------------------------------- //
     // Private Variables

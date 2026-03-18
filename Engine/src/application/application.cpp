@@ -4,6 +4,7 @@
 #include "application.h"
 #include "../memory/allocator.h"
 #include "../platform/platform.h"
+#include "../renderer/renderer.h"
 #include "axr/logging.h"
 
 #include <cassert>
@@ -62,7 +63,7 @@ AxrResult AxrApplication::startNewFrame() const {
     AxrAllocator::get().FrameAllocator.clear();
 
     const AxrResult axrResult = processEvents();
-    if (axrResult == AXR_APPLICATION_CLOSED) [[unlikely]] {
+    if (axrResult == AXR_EVENT_APPLICATION_CLOSED) [[unlikely]] {
         return axrResult;
     }
     if (AXR_FAILED(axrResult)) [[unlikely]] {
@@ -79,14 +80,21 @@ AxrResult AxrApplication::startNewFrame() const {
 // ----------------------------------------- //
 
 AxrResult AxrApplication::processEvents() const {
-    // TODO (Ashe): When we integrate OpenXR, only return false if both OpenXR session and window is closed.
-    //  If the user wants to exit if only one exists, then they can manually do that.
-    //  Changed my mind. don't have them manually exit if only one closes. Do it automatically. and maybe have a config
-    //  option to change this behaviour
+    AxrResult axrResult = AxrPlatform::get().processEvents();
 
-    // If the platform window closed
-    if (!AxrPlatform::get().processEvents()) {
-        return AXR_APPLICATION_CLOSED;
+    if (axrResult == AXR_EVENT_WINDOW_CLOSE_REQUESTED) [[unlikely]] {
+        AxrRenderer::get().destroyDesktopResources();
+        AxrPlatform::get().destroyWindow();
+
+        // After we've cleaned up all resources, process events again so we can trigger and process the
+        // AXR_EVENT_WINDOW_CLOSED event before returning control to whoever called this function
+        axrResult = AxrPlatform::get().processEvents();
+    }
+
+    // TODO (Ashe): When we integrate OpenXR, return AXR_EVENT_APPLICATION_CLOSED if either of them are destroyed. Maybe
+    //  have a config option to only close the application if both of them are closed though.
+    if (axrResult == AXR_EVENT_WINDOW_CLOSED) [[unlikely]] {
+        return AXR_EVENT_APPLICATION_CLOSED;
     }
 
     return AXR_SUCCESS;

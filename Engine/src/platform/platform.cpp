@@ -64,20 +64,32 @@ bool AxrPlatform::isWindowOpen() const {
     return m_IsWindowOpen;
 }
 
-bool AxrPlatform::processEvents() {
+AxrResult AxrPlatform::processEvents() {
     assert(m_IsSetup);
 
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         if (event.type >= SDL_EVENT_WINDOW_FIRST && event.type <= SDL_EVENT_WINDOW_LAST) {
-            handleWindowEvent(event.window);
+            const AxrResult axrResult = handleWindowEvent(event.window);
+
+            if (axrResult == AXR_EVENT_WINDOW_CLOSE_REQUESTED) {
+                return AXR_EVENT_WINDOW_CLOSE_REQUESTED;
+            }
         } else if (event.type == SDL_EVENT_QUIT) {
-            // Signal that the platform layer has requested to exit processing
-            return false;
+            return AXR_EVENT_WINDOW_CLOSED;
         }
     }
 
-    return true;
+    return AXR_SUCCESS;
+}
+
+void AxrPlatform::destroyWindow() {
+    if (m_SDLWindow != nullptr) {
+        SDL_DestroyWindow(m_SDLWindow);
+        m_SDLWindow = nullptr;
+    }
+
+    m_IsWindowOpen = false;
 }
 
 #ifdef AXR_VULKAN_SUPPORTED
@@ -153,15 +165,6 @@ AxrResult AxrPlatform::createWindow(const char (&title)[AXR_MAX_WINDOW_TITLE_SIZ
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
-void AxrPlatform::destroyWindow() {
-    if (m_SDLWindow != nullptr) {
-        SDL_DestroyWindow(m_SDLWindow);
-        m_SDLWindow = nullptr;
-    }
-
-    m_IsWindowOpen = false;
-}
-
 SDL_WindowFlags AxrPlatform::getSDLWindowFlags(const AxrRendererApiTypeEnum rendererApiType) {
     SDL_WindowFlags windowFlags = 0;
 
@@ -181,15 +184,16 @@ SDL_WindowFlags AxrPlatform::getSDLWindowFlags(const AxrRendererApiTypeEnum rend
     return windowFlags;
 }
 
-void AxrPlatform::handleWindowEvent(const SDL_WindowEvent& event) {
+AxrResult AxrPlatform::handleWindowEvent(const SDL_WindowEvent& event) {
     switch (event.type) {
         case SDL_EVENT_WINDOW_CLOSE_REQUESTED: {
-            destroyWindow();
-            break;
+            return AXR_EVENT_WINDOW_CLOSE_REQUESTED;
         }
         default: {
             // Don't handle any unknown event
             break;
         }
     }
+
+    return AXR_SUCCESS;
 }
