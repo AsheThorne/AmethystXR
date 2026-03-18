@@ -34,8 +34,6 @@ enum AxrResult {
     AXR_ERROR_VULKAN_ERROR = -7,
     /// Error, Encountered an error with SDL
     AXR_ERROR_SDL_ERROR = -8,
-    /// Error, Feature isn't implemented
-    AXR_ERROR_NOT_IMPLEMENTED = -9,
 };
 
 /// Axr renderer api type

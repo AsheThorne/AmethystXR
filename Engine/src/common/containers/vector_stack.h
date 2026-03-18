@@ -68,7 +68,7 @@ public:
             return;
         }
 
-        AxrVectorBase<Type>::append(list);
+        AxrVectorBase<Type>::append(list, m_Data);
     }
 #undef AXR_FUNCTION_FAILED_STRING
 
@@ -121,15 +121,118 @@ public:
         return *this;
     }
 
+    /// [] Operator
+    /// @param index Vector index to access
+    /// @return A reference to the item at the given index
+    [[nodiscard]] Type& operator[](size_t index) {
+        return m_Data[index];
+    }
+
+    /// [] Operator
+    /// @param index Vector index to access
+    /// @return A const reference to the item at the given index
+    [[nodiscard]] const Type& operator[](size_t index) const {
+        return m_Data[index];
+    }
+
     // ----------------------------------------- //
     // Public Functions
     // ----------------------------------------- //
+
+    /// The beginning of the vector
+    /// @return An iterator to the beginning of the vector
+    Iterator begin() {
+        return AxrVectorBase<Type>::begin(m_Data);
+    }
+
+    /// The beginning of the vector
+    /// @return A const iterator to the beginning of the vector
+    ConstIterator begin() const {
+        return AxrVectorBase<Type>::begin(m_Data);
+    }
+
+    /// The end of the vector
+    /// @return An iterator to the end of the vector
+    Iterator end() {
+        return AxrVectorBase<Type>::end(m_Data);
+    }
+
+    /// The end of the vector
+    /// @return A const iterator to the end of the vector
+    ConstIterator end() const {
+        return AxrVectorBase<Type>::end(m_Data);
+    }
+
+    /// Get the vector data
+    /// @return The vector data
+    Type* data() {
+        return m_Data;
+    }
+
+    /// Get the vector data
+    /// @return The vector data
+    const Type* data() const {
+        return m_Data;
+    }
+
+    /// Push a single item to the end of the vector
+    /// @param dataItem Data item to push back
+    /// @return AXR_SUCCESS if the function succeeded. AXR_ERROR_OUT_OF_MEMORY if there isn't enough space.
+    void pushBack(const Type& dataItem) {
+        AxrVectorBase<Type>::pushBack(dataItem, m_Data);
+    }
+
+    /// Prefill the entire vector with the default value
+    void prefillData() {
+        AxrVectorBase<Type>::prefillData(m_Data);
+    }
+
+    /// Prefill the entire vector with the given value
+    /// @param data Data to prefill vector with
+    void prefillData(const Type& data) {
+        AxrVectorBase<Type>::prefillData(data, m_Data);
+    }
+
+    /// Append the vector with the given items
+    /// @param list Items to append
+    void append(const std::initializer_list<Type>& list) {
+        AxrVectorBase<Type>::append(list, m_Data);
+    }
+
+    /// Get the item at the given index with bounds checking
+    /// @param index Vector index to access
+    /// @return A pointer to the item at the given index or nullptr if index is out of range
+    [[nodiscard]] Type* at(const size_t index) {
+        return AxrVectorBase<Type>::at(index, m_Data);
+    }
+
+    /// Get the item at the given index with bounds checking
+    /// @param index Vector index to access
+    /// @return A pointer to the item at the given index or nullptr if index is out of range
+    [[nodiscard]] const Type* at(const size_t index) const {
+        return AxrVectorBase<Type>::at(index, m_Data);
+    }
+
+    /// Find an iterator to the first instance of the given value
+    /// @param data Item to search for
+    /// @return An iterator to the first instance of the given value. Or end() if it wasn't found
+    [[nodiscard]] Iterator findFirst(const Type& data) {
+        return AxrVectorBase<Type>::findFirst(data, m_Data);
+    }
+
+    /// Find an iterator to the first instance of the given value
+    /// @param data Item to search for
+    /// @return An iterator to the first instance of the given value. Or end() if it wasn't found
+    [[nodiscard]] ConstIterator findFirst(const Type& data) const {
+        return AxrVectorBase<Type>::findFirst(data, m_Data);
+    }
 
 protected:
     // ----------------------------------------- //
     // Protected Variables
     // ----------------------------------------- //
     AxrStackAllocator* m_StackAllocator{};
+    Type* m_Data{};
     AxrStackAllocator::MarkerID m_AllocatorMarkerID{};
     bool m_AutoDeallocateMemory{};
 
@@ -154,14 +257,13 @@ protected:
     [[nodiscard]] AxrResult allocateData() {
         assert(m_StackAllocator != nullptr);
 
-        if (AxrVectorBase<Type>::m_Data != nullptr) [[unlikely]] {
+        if (m_Data != nullptr) [[unlikely]] {
             axrLogWarning("Data has already been allocated.");
             return AXR_SUCCESS;
         }
 
-        const AxrResult axrResult = m_StackAllocator->allocate(AxrVectorBase<Type>::m_Capacity,
-                                                               AxrVectorBase<Type>::m_Data,
-                                                               m_AllocatorMarkerID);
+        const AxrResult axrResult =
+            m_StackAllocator->allocate(AxrVectorBase<Type>::m_Capacity, m_Data, m_AllocatorMarkerID);
         if (AXR_FAILED(axrResult)) [[unlikely]] {
             axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to allocate memory.");
             return axrResult;
@@ -178,7 +280,7 @@ protected:
             return;
         }
 
-        if (AxrVectorBase<Type>::m_Data == nullptr) {
+        if (m_Data == nullptr) {
             return;
         }
 
@@ -188,7 +290,7 @@ protected:
         }
 
         if (m_StackAllocator->deallocateIfLast(m_AllocatorMarkerID)) {
-            AxrVectorBase<Type>::m_Data = nullptr;
+            m_Data = nullptr;
         }
     }
 #undef AXR_FUNCTION_FAILED_STRING
