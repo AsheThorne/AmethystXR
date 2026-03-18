@@ -85,9 +85,10 @@ set(AXR_SOURCE_FILES
     # ---- Common - Containers ----
     ${AXR_SRC_DIR}/common/containers/array.h
     ${AXR_SRC_DIR}/common/containers/extensionArray.h
-    ${AXR_SRC_DIR}/common/containers/redBlackTree_pool.h
     ${AXR_SRC_DIR}/common/containers/vectorBase.h
     ${AXR_SRC_DIR}/common/containers/vector_stack.h
+    ${AXR_SRC_DIR}/common/containers/vector_dynamic.h
+    ${AXR_SRC_DIR}/common/containers/redBlackTree_pool.h
 )
 
 # ---------------------------------------------
@@ -193,6 +194,7 @@ set(AXR_TEST_FILES
     ${AXR_TEST_DIR}/common/containers/arrayTests.cpp
     ${AXR_TEST_DIR}/common/containers/extensionArrayTests.cpp
     ${AXR_TEST_DIR}/common/containers/vector_stackTests.cpp
+    ${AXR_TEST_DIR}/common/containers/vector_dynamicTests.cpp
     ${AXR_TEST_DIR}/common/containers/redBlackTree_poolTests.cpp
 )
 

@@ -250,7 +250,7 @@ protected:
     /// @return AXR_SUCCESS if the function succeeded. AXR_ERROR_OUT_OF_MEMORY if there isn't enough space.
     void pushBack(const Type& dataItem, Type* arrayData) {
         if (arrayData == nullptr) [[unlikely]] {
-            axrLogError(AXR_FUNCTION_FAILED_STRING "Memory is null.");
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Array data is null.");
             return;
         }
 

@@ -126,6 +126,26 @@ public:
     // Public Functions
     // ----------------------------------------- //
 
+    /// Get the pointer to the data
+    /// @return The pointer to the data
+    Type* getDataPtr() {
+        if (m_Data == nullptr) {
+            return nullptr;
+        }
+
+        return *m_Data;
+    }
+
+    /// Get the pointer to the data
+    /// @return The pointer to the data
+    const Type* getDataPtr() const {
+        if (m_Data == nullptr) {
+            return nullptr;
+        }
+
+        return *m_Data;
+    }
+
 private:
     // ----------------------------------------- //
     // Private Variables
