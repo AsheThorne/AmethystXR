@@ -13,53 +13,32 @@
 
 AxrDynamicAllocator::AxrDynamicAllocator() = default;
 
-AxrDynamicAllocator::AxrDynamicAllocator(const AxrMemoryBlock& memoryBlock, const uint32_t maxHandleCount) :
+AxrDynamicAllocator::AxrDynamicAllocator(const AxrMemoryBlock& memoryBlock,
+                                         AxrPoolAllocator<HandlesTree_T::Node>* handlesAllocator) :
     AxrSubAllocatorBase(memoryBlock) {
-    m_HandlesMemory = m_Memory;
-    const size_t handlesMemoryCapacity = getHandlesMemoryBlockCapacity(maxHandleCount);
-    assert(handlesMemoryCapacity < AxrSubAllocatorBase::m_Capacity);
+    m_HandlesTree = HandlesTree_T(handlesAllocator);
 
-    AxrDeallocateBlock deallocateHandlesCallback;
-    deallocateHandlesCallback.connect<&AxrDynamicAllocator::deallocateHandlesAllocator>();
-
-    m_HandlesAllocator = AxrPoolAllocator<HandlesTree_T::Node>(AxrMemoryBlock{
-        .Memory = m_HandlesMemory,
-        .Size = handlesMemoryCapacity,
-        .Deallocator = deallocateHandlesCallback,
-    });
-    m_HandlesTree = HandlesTree_T(&m_HandlesAllocator);
-
-    m_MainMemoryCapacity = AxrSubAllocatorBase::m_Capacity - handlesMemoryCapacity;
-    m_MainMemory = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(m_HandlesMemory) + handlesMemoryCapacity);
-
-    m_FreeBlocksHead = static_cast<FreeBlockHeader*>(m_MainMemory);
+    m_FreeBlocksHead = static_cast<FreeBlockHeader*>(AxrSubAllocatorBase::m_Memory);
     *m_FreeBlocksHead = FreeBlockHeader{
-        .Size = m_MainMemoryCapacity,
+        .Size = AxrSubAllocatorBase::m_Capacity,
         .Next = nullptr,
     };
 }
 
 AxrDynamicAllocator::AxrDynamicAllocator(AxrDynamicAllocator&& src) noexcept :
     AxrSubAllocatorBase(std::move(src)) {
-    m_HandlesAllocator = std::move(src.m_HandlesAllocator);
     m_HandlesTree = std::move(src.m_HandlesTree);
 
-    m_HandlesMemory = src.m_HandlesMemory;
-    m_MainMemory = src.m_MainMemory;
     m_FreeBlocksHead = src.m_FreeBlocksHead;
-    m_MainMemoryCapacity = src.m_MainMemoryCapacity;
-    m_TotalMainMemoryUsed = src.m_TotalMainMemoryUsed;
+    m_Size = src.m_Size;
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-    m_PeakMainMemoryUsed = src.m_PeakMainMemoryUsed;
+    m_PeakSize = src.m_PeakSize;
 #endif
 
-    src.m_HandlesMemory = {};
-    src.m_MainMemory = {};
     src.m_FreeBlocksHead = {};
-    src.m_MainMemoryCapacity = {};
-    src.m_TotalMainMemoryUsed = {};
+    src.m_Size = {};
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-    src.m_PeakMainMemoryUsed = {};
+    src.m_PeakSize = {};
 #endif
 }
 
@@ -73,25 +52,18 @@ AxrDynamicAllocator& AxrDynamicAllocator::operator=(AxrDynamicAllocator&& src) n
 
         AxrSubAllocatorBase::operator=(std::move(src));
 
-        m_HandlesAllocator = std::move(src.m_HandlesAllocator);
         m_HandlesTree = std::move(src.m_HandlesTree);
 
-        m_HandlesMemory = src.m_HandlesMemory;
-        m_MainMemory = src.m_MainMemory;
         m_FreeBlocksHead = src.m_FreeBlocksHead;
-        m_MainMemoryCapacity = src.m_MainMemoryCapacity;
-        m_TotalMainMemoryUsed = src.m_TotalMainMemoryUsed;
+        m_Size = src.m_Size;
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-        m_PeakMainMemoryUsed = src.m_PeakMainMemoryUsed;
+        m_PeakSize = src.m_PeakSize;
 #endif
 
-        src.m_HandlesMemory = {};
-        src.m_MainMemory = {};
         src.m_FreeBlocksHead = {};
-        src.m_MainMemoryCapacity = {};
-        src.m_TotalMainMemoryUsed = {};
+        src.m_Size = {};
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-        src.m_PeakMainMemoryUsed = {};
+        src.m_PeakSize = {};
 #endif
     }
     return *this;
@@ -108,14 +80,14 @@ AxrResult AxrDynamicAllocator::allocateBlock(const size_t size,
                                              const bool zeroOutMemory) {
     // This should never be null. The only time it's null is if this allocator is empty and wasn't given any data to
     // manage. In such case, we shouldn't be calling this function
-    assert(m_MainMemory != nullptr);
+    assert(AxrSubAllocatorBase::m_Memory != nullptr);
 
     size_t blockSize = std::max(m_MinDataItemSize, size) + alignment + sizeof(DataHeader);
 
     FreeBlockHeader* previousFreeBlock = nullptr;
     FreeBlockHeader* freeBlock = findFreeBlock(blockSize, previousFreeBlock);
 
-    if (freeBlock == nullptr && blockSize <= m_MainMemoryCapacity - m_TotalMainMemoryUsed) [[unlikely]] {
+    if (freeBlock == nullptr && blockSize <= AxrSubAllocatorBase::m_Capacity - m_Size) [[unlikely]] {
         // If no free block was found, but the `blockSize` is less than or equal to the total amount of memory we have
         // spare, then it means we have the space, it's just fragmented. So instead of returning that we don't have the
         // memory, instead, defragment as little as possible until the free block is big enough.
@@ -202,10 +174,10 @@ AxrResult AxrDynamicAllocator::allocateBlock(const size_t size,
 
     handle = AxrHandle(&reinterpret_cast<void*&>(allocatedBlockHandleNode->Data), deallocatorCallback);
 
-    m_TotalMainMemoryUsed += blockSize;
+    m_Size += blockSize;
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-    if (m_TotalMainMemoryUsed > m_PeakMainMemoryUsed) {
-        m_PeakMainMemoryUsed = m_TotalMainMemoryUsed;
+    if (m_Size > m_PeakSize) {
+        m_PeakSize = m_Size;
     }
 #endif
 
@@ -216,7 +188,7 @@ AxrResult AxrDynamicAllocator::allocateBlock(const size_t size,
 void AxrDynamicAllocator::deallocateHandle(AxrHandle<void>& handle) {
     // This should never be null. The only time it's null is if this allocator is empty and wasn't given any data to
     // manage. In such case, we shouldn't be calling this function
-    assert(m_MainMemory != nullptr);
+    assert(AxrSubAllocatorBase::m_Memory != nullptr);
 
     if (handle.m_Data == nullptr) {
         return;
@@ -224,8 +196,9 @@ void AxrDynamicAllocator::deallocateHandle(AxrHandle<void>& handle) {
 
     const auto dataAddress = reinterpret_cast<uintptr_t>(*handle.m_Data);
     // If the given data isn't part of the memory we manage, don't do anything with it
-    if (dataAddress < reinterpret_cast<uintptr_t>(m_MainMemory) ||
-        dataAddress > reinterpret_cast<uintptr_t>(m_MainMemory) + m_MainMemoryCapacity) [[unlikely]] {
+    if (dataAddress < reinterpret_cast<uintptr_t>(AxrSubAllocatorBase::m_Memory) ||
+        dataAddress > reinterpret_cast<uintptr_t>(AxrSubAllocatorBase::m_Memory) + AxrSubAllocatorBase::m_Capacity)
+        [[unlikely]] {
         axrLogWarning("Attempted to deallocate data that isn't from this dynamic allocator.");
         return;
     }
@@ -266,7 +239,7 @@ void AxrDynamicAllocator::deallocateHandle(AxrHandle<void>& handle) {
     }
 
     handle.m_Data = nullptr;
-    m_TotalMainMemoryUsed -= originalDataHeader.Size + sizeof(DataHeader);
+    m_Size -= originalDataHeader.Size + sizeof(DataHeader);
 }
 
 void AxrDynamicAllocator::defragment(const uint32_t blockCount) {
@@ -276,38 +249,18 @@ void AxrDynamicAllocator::defragment(const uint32_t blockCount) {
 }
 
 bool AxrDynamicAllocator::empty() const {
-    return m_FreeBlocksHead != nullptr && m_FreeBlocksHead->Size == m_MainMemoryCapacity;
+    return m_FreeBlocksHead != nullptr && m_FreeBlocksHead->Size == AxrSubAllocatorBase::m_Capacity;
 }
 
-size_t AxrDynamicAllocator::mainMemorySize() const {
-    return m_TotalMainMemoryUsed;
-}
-
-size_t AxrDynamicAllocator::handleCount() const {
-    return m_HandlesAllocator.size();
-}
-
-size_t AxrDynamicAllocator::mainMemoryCapacity() const {
-    return m_MainMemoryCapacity;
-}
-
-size_t AxrDynamicAllocator::handlesCountCapacity() const {
-    return m_HandlesAllocator.chunkCapacity();
+size_t AxrDynamicAllocator::size() const {
+    return m_Size;
 }
 
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-size_t AxrDynamicAllocator::peakMainMemorySize() const {
-    return m_PeakMainMemoryUsed;
-}
-
-size_t AxrDynamicAllocator::peakHandleCount() const {
-    return m_HandlesAllocator.peakChunkCount();
+size_t AxrDynamicAllocator::peakSize() const {
+    return m_PeakSize;
 }
 #endif
-
-size_t AxrDynamicAllocator::getHandlesMemoryBlockCapacity(const uint32_t maxHandleCount) {
-    return (maxHandleCount * sizeof(HandlesTree_T::Node)) + alignof(HandlesTree_T::Node);
-}
 
 // ----------------------------------------- //
 // Private Functions
@@ -315,15 +268,10 @@ size_t AxrDynamicAllocator::getHandlesMemoryBlockCapacity(const uint32_t maxHand
 
 void AxrDynamicAllocator::cleanup() {
     m_HandlesTree = {};
-    m_HandlesAllocator = {};
-
-    m_HandlesMemory = {};
-    m_MainMemory = {};
     m_FreeBlocksHead = {};
-    m_MainMemoryCapacity = {};
-    m_TotalMainMemoryUsed = {};
+    m_Size = {};
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-    m_PeakMainMemoryUsed = {};
+    m_PeakSize = {};
 #endif
 
     AxrSubAllocatorBase::cleanup();
@@ -333,7 +281,7 @@ AxrDynamicAllocator::FreeBlockHeader* AxrDynamicAllocator::findFreeBlock(const s
                                                                          FreeBlockHeader*& prevFreeBlock) const {
     // This should never be null. The only time it's null is if this allocator is empty and wasn't given any data to
     // manage. In such case, we shouldn't be calling this function
-    assert(m_MainMemory != nullptr);
+    assert(AxrSubAllocatorBase::m_Memory != nullptr);
 
     if (m_FreeBlocksHead == nullptr) [[unlikely]] {
         // There are no free blocks and all memory is in use
@@ -360,7 +308,7 @@ AxrDynamicAllocator::FreeBlockHeader* AxrDynamicAllocator::findFreeBlock(const s
 AxrDynamicAllocator::FreeBlockHeader* AxrDynamicAllocator::findAdjacentFreeBlock(const uintptr_t address) const {
     // This should never be null. The only time it's null is if this allocator is empty and wasn't given any data to
     // manage. In such case, we shouldn't be calling this function
-    assert(m_MainMemory != nullptr);
+    assert(AxrSubAllocatorBase::m_Memory != nullptr);
 
     if (m_FreeBlocksHead == nullptr) [[unlikely]] {
         // There are no free blocks and all memory is in use
@@ -395,7 +343,7 @@ void AxrDynamicAllocator::mergeFreeBlocks(FreeBlockHeader* freeBlock) {
 void AxrDynamicAllocator::defragment() {
     // This should never be null. The only time it's null is if this allocator is empty and wasn't given any data to
     // manage. In such case, we shouldn't be calling this function
-    assert(m_MainMemory != nullptr);
+    assert(AxrSubAllocatorBase::m_Memory != nullptr);
 
     if (m_FreeBlocksHead == nullptr) [[unlikely]] {
         // There are no free blocks and all memory is in use
@@ -455,8 +403,3 @@ void AxrDynamicAllocator::defragment() {
     m_HandlesTree.replace(oldDataAddress, newDataAddress);
 }
 #undef AXR_FUNCTION_FAILED_STRING
-
-void AxrDynamicAllocator::deallocateHandlesAllocator(void*& memory) {
-    // Nothing else to do here
-    memory = nullptr;
-}

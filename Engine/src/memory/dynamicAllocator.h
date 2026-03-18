@@ -15,6 +15,12 @@
 class AxrDynamicAllocator : public AxrSubAllocatorBase {
 public:
     // ----------------------------------------- //
+    // Types
+    // ----------------------------------------- //
+
+    using HandlesTree_T = AxrRedBlackTree_Pool<uintptr_t>;
+
+    // ----------------------------------------- //
     // Public Structs
     // ----------------------------------------- //
 
@@ -37,7 +43,7 @@ public:
     /// @param memoryBlock Memory block to use
     /// @param maxHandleCount The maximum number of handles we can have in use at one time. The same memory buffer is
     /// used to store the handles. Use `getHandlesMemoryBlockCapacity()` and add the result to the `size` parameter.
-    AxrDynamicAllocator(const AxrMemoryBlock& memoryBlock, uint32_t maxHandleCount);
+    AxrDynamicAllocator(const AxrMemoryBlock& memoryBlock, AxrPoolAllocator<HandlesTree_T::Node>* handlesAllocator);
     /// Copy Constructor
     /// @param src Source AxrDynamicAllocator to copy from
     AxrDynamicAllocator(const AxrDynamicAllocator& src) = delete;
@@ -108,41 +114,17 @@ public:
     /// Get the empty state of the allocator
     /// @return True if the allocator is empty
     [[nodiscard]] bool empty() const;
-    /// Get the number of bytes currently in use by the main memory
-    /// @return The number of bytes in use by the main memory
-    [[nodiscard]] size_t mainMemorySize() const;
-    /// Get the number handles currently in use
-    /// @return The number handles currently in use
-    [[nodiscard]] size_t handleCount() const;
-
-    /// Get the capacity of the main memory
-    /// @return The capacity of the main memory
-    [[nodiscard]] size_t mainMemoryCapacity() const;
-    /// Get the max number of handles this allocator can hold
-    /// @return The max number of handles this allocator can hold
-    [[nodiscard]] size_t handlesCountCapacity() const;
+    /// Get the number of bytes currently in use
+    /// @return The number of bytes currently in use
+    [[nodiscard]] size_t size() const;
 
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-    /// Get the peak usage size of the allocated main memory
-    /// @return The peak usage size of the allocated main memory
-    [[nodiscard]] size_t peakMainMemorySize() const;
-    /// Get the peak number of handles being used at one moment
-    /// @return The peak number of handles being used at one moment
-    [[nodiscard]] size_t peakHandleCount() const;
+    /// Get the peak number of bytes in use at one time
+    /// @return The peak number of bytes in use at one time
+    [[nodiscard]] size_t peakSize() const;
 #endif
 
-    /// Get the number of extra bytes this allocator requires for the given max number of handles.
-    /// @param maxHandleCount Max number of handles allowed at one time
-    /// @return Number of extra bytes required for the handles
-    [[nodiscard]] static size_t getHandlesMemoryBlockCapacity(uint32_t maxHandleCount);
-
 private:
-    // ----------------------------------------- //
-    // Types
-    // ----------------------------------------- //
-
-    using HandlesTree_T = AxrRedBlackTree_Pool<uintptr_t>;
-
     // ----------------------------------------- //
     // Private Structs
     // ----------------------------------------- //
@@ -162,19 +144,13 @@ private:
     // ----------------------------------------- //
     // Private Data
     // ----------------------------------------- //
-    AxrPoolAllocator<HandlesTree_T::Node> m_HandlesAllocator{};
     HandlesTree_T m_HandlesTree{};
 
-    /// The beginning of the memory block that the m_Handles container uses
-    void* m_HandlesMemory{};
-    /// The beginning of the main memory block this allocator uses
-    void* m_MainMemory{};
     /// This head will always point to the lowest address. And each next free block is ordered from lowest to highest.
     FreeBlockHeader* m_FreeBlocksHead{};
-    size_t m_MainMemoryCapacity{};
-    size_t m_TotalMainMemoryUsed{};
+    size_t m_Size{};
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-    size_t m_PeakMainMemoryUsed{};
+    size_t m_PeakSize{};
 #endif
 
     /// Any block must be at least the size of `FreeBlockHeader` because when this memory is freed, there needs to
@@ -209,8 +185,4 @@ private:
 
     /// Defragment a single data block
     void defragment();
-
-    /// Callback function to deallocate the Handles Allocator
-    /// @param memory Handles allocator memory block
-    static void deallocateHandlesAllocator(void*& memory);
 };

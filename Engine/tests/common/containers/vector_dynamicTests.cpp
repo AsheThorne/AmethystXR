@@ -6,6 +6,12 @@
 #include "common/containers/vector_dynamic.h"
 
 // ----------------------------------------- //
+// Shared Data
+// ----------------------------------------- //
+
+static AxrPoolAllocator<AxrDynamicAllocator::HandlesTree_T::Node> HandlesAllocator;
+
+// ----------------------------------------- //
 // Shared Functions
 // ----------------------------------------- //
 
@@ -14,11 +20,29 @@ static void deallocateCallback(void*& memory) {
     memory = nullptr;
 };
 
+static void initializeHandlesAllocator(const uint32_t maxHandleCount) {
+    AxrDeallocateBlock handlesDeallocator;
+    handlesDeallocator.connect<deallocateCallback>();
+
+    const size_t allocatorSize =
+        AxrPoolAllocator<AxrDynamicAllocator::HandlesTree_T::Node>::getAllocatorSize(maxHandleCount);
+
+    const AxrMemoryBlock memoryBlock{
+        .Memory = malloc(allocatorSize),
+        .Size = allocatorSize,
+        .Deallocator = handlesDeallocator,
+    };
+
+    HandlesAllocator = AxrPoolAllocator<AxrDynamicAllocator::HandlesTree_T::Node>(memoryBlock);
+}
+
 // ----------------------------------------- //
 // Tests
 // ----------------------------------------- //
 
 TEST(AxrVector_Dynamic, Initialization) {
+    initializeHandlesAllocator(1);
+
     struct TestData {
         uint32_t value;
     };
@@ -27,10 +51,8 @@ TEST(AxrVector_Dynamic, Initialization) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    constexpr uint32_t maxHandleCount = 1;
     const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader) + sizeof(AxrDynamicAllocator::DataHeader) +
-                                 AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
+                                 sizeof(AxrDynamicAllocator::DataHeader) + sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -38,7 +60,7 @@ TEST(AxrVector_Dynamic, Initialization) {
             .Size = allocatorSize,
             .Deallocator = callback,
         },
-        maxHandleCount);
+        &HandlesAllocator);
 
     const AxrVector_Dynamic<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.capacity() == capacity);
@@ -47,6 +69,8 @@ TEST(AxrVector_Dynamic, Initialization) {
 }
 
 TEST(AxrVector_Dynamic, PushBackOne) {
+    initializeHandlesAllocator(1);
+
     struct TestData {
         uint32_t value;
     };
@@ -55,10 +79,8 @@ TEST(AxrVector_Dynamic, PushBackOne) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    constexpr uint32_t maxHandleCount = 1;
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader) +
-                                 AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
+    const size_t allocatorSize =
+        (sizeof(TestData) * capacity) + alignof(TestData) + sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -66,7 +88,7 @@ TEST(AxrVector_Dynamic, PushBackOne) {
             .Size = allocatorSize,
             .Deallocator = callback,
         },
-        maxHandleCount);
+        &HandlesAllocator);
 
     constexpr TestData testData{.value = 43};
 
@@ -80,16 +102,16 @@ TEST(AxrVector_Dynamic, PushBackOne) {
 }
 
 TEST(AxrVector_Dynamic, PushBackCharArray) {
+    initializeHandlesAllocator(1);
+
     using TestData = char[8];
     constexpr uint32_t capacity = 16;
 
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    constexpr uint32_t maxHandleCount = 1;
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader) +
-                                 AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
+    const size_t allocatorSize =
+        (sizeof(TestData) * capacity) + alignof(TestData) + sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -97,7 +119,7 @@ TEST(AxrVector_Dynamic, PushBackCharArray) {
             .Size = allocatorSize,
             .Deallocator = callback,
         },
-        maxHandleCount);
+        &HandlesAllocator);
 
     AxrVector_Dynamic<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
@@ -110,16 +132,16 @@ TEST(AxrVector_Dynamic, PushBackCharArray) {
 }
 
 TEST(AxrVector_Dynamic, PushBackConstCharPtr) {
+    initializeHandlesAllocator(1);
+
     using TestData = const char*;
     constexpr uint32_t capacity = 16;
 
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    constexpr uint32_t maxHandleCount = 1;
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader) +
-                                 AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
+    const size_t allocatorSize =
+        (sizeof(TestData) * capacity) + alignof(TestData) + sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -127,7 +149,7 @@ TEST(AxrVector_Dynamic, PushBackConstCharPtr) {
             .Size = allocatorSize,
             .Deallocator = callback,
         },
-        maxHandleCount);
+        &HandlesAllocator);
 
     AxrVector_Dynamic<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
@@ -139,6 +161,8 @@ TEST(AxrVector_Dynamic, PushBackConstCharPtr) {
 }
 
 TEST(AxrVector_Dynamic, PushBackAll) {
+    initializeHandlesAllocator(1);
+
     struct TestData {
         uint32_t value;
     };
@@ -167,10 +191,8 @@ TEST(AxrVector_Dynamic, PushBackAll) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    constexpr uint32_t maxHandleCount = 1;
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader) +
-                                 AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
+    const size_t allocatorSize =
+        (sizeof(TestData) * capacity) + alignof(TestData) + sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -178,7 +200,7 @@ TEST(AxrVector_Dynamic, PushBackAll) {
             .Size = allocatorSize,
             .Deallocator = callback,
         },
-        maxHandleCount);
+        &HandlesAllocator);
 
     AxrVector_Dynamic<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
@@ -195,6 +217,8 @@ TEST(AxrVector_Dynamic, PushBackAll) {
 }
 
 TEST(AxrVector_Dynamic, PushBackTooMany) {
+    initializeHandlesAllocator(1);
+
     struct TestData {
         uint32_t value;
     };
@@ -223,10 +247,8 @@ TEST(AxrVector_Dynamic, PushBackTooMany) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    constexpr uint32_t maxHandleCount = 1;
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader) +
-                                 AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
+    const size_t allocatorSize =
+        (sizeof(TestData) * capacity) + alignof(TestData) + sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -234,7 +256,7 @@ TEST(AxrVector_Dynamic, PushBackTooMany) {
             .Size = allocatorSize,
             .Deallocator = callback,
         },
-        maxHandleCount);
+        &HandlesAllocator);
 
     AxrVector_Dynamic<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
@@ -253,6 +275,8 @@ TEST(AxrVector_Dynamic, PushBackTooMany) {
 }
 
 TEST(AxrVector_Dynamic, AutoDeallocation) {
+    initializeHandlesAllocator(1);
+
     struct TestData {
         uint32_t value;
     };
@@ -261,10 +285,8 @@ TEST(AxrVector_Dynamic, AutoDeallocation) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    constexpr uint32_t maxHandleCount = 1;
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader) +
-                                 AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
+    const size_t allocatorSize =
+        (sizeof(TestData) * capacity) + alignof(TestData) + sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -272,7 +294,7 @@ TEST(AxrVector_Dynamic, AutoDeallocation) {
             .Size = allocatorSize,
             .Deallocator = callback,
         },
-        maxHandleCount);
+        &HandlesAllocator);
     ASSERT_TRUE(allocator.empty());
 
     {
@@ -284,6 +306,8 @@ TEST(AxrVector_Dynamic, AutoDeallocation) {
 }
 
 TEST(AxrVector_Dynamic, PopBack_1) {
+    initializeHandlesAllocator(1);
+
     struct TestData {
         uint32_t value;
     };
@@ -294,10 +318,8 @@ TEST(AxrVector_Dynamic, PopBack_1) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    constexpr uint32_t maxHandleCount = 1;
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader) +
-                                 AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
+    const size_t allocatorSize =
+        (sizeof(TestData) * capacity) + alignof(TestData) + sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -305,7 +327,7 @@ TEST(AxrVector_Dynamic, PopBack_1) {
             .Size = allocatorSize,
             .Deallocator = callback,
         },
-        maxHandleCount);
+        &HandlesAllocator);
 
     AxrVector_Dynamic<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
@@ -320,6 +342,8 @@ TEST(AxrVector_Dynamic, PopBack_1) {
 }
 
 TEST(AxrVector_Dynamic, PopBack_2) {
+    initializeHandlesAllocator(1);
+
     struct TestData {
         uint32_t value;
     };
@@ -330,10 +354,8 @@ TEST(AxrVector_Dynamic, PopBack_2) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    constexpr uint32_t maxHandleCount = 1;
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader) +
-                                 AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
+    const size_t allocatorSize =
+        (sizeof(TestData) * capacity) + alignof(TestData) + sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -341,7 +363,7 @@ TEST(AxrVector_Dynamic, PopBack_2) {
             .Size = allocatorSize,
             .Deallocator = callback,
         },
-        maxHandleCount);
+        &HandlesAllocator);
 
     AxrVector_Dynamic<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
@@ -358,6 +380,8 @@ TEST(AxrVector_Dynamic, PopBack_2) {
 }
 
 TEST(AxrVector_Dynamic, Clear) {
+    initializeHandlesAllocator(1);
+
     struct TestData {
         uint32_t value;
     };
@@ -386,10 +410,8 @@ TEST(AxrVector_Dynamic, Clear) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    constexpr uint32_t maxHandleCount = 1;
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader) +
-                                 AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
+    const size_t allocatorSize =
+        (sizeof(TestData) * capacity) + alignof(TestData) + sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -397,7 +419,7 @@ TEST(AxrVector_Dynamic, Clear) {
             .Size = allocatorSize,
             .Deallocator = callback,
         },
-        maxHandleCount);
+        &HandlesAllocator);
 
     AxrVector_Dynamic<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
@@ -414,6 +436,8 @@ TEST(AxrVector_Dynamic, Clear) {
 }
 
 TEST(AxrVector_Dynamic, GetAt_InBounds) {
+    initializeHandlesAllocator(1);
+
     struct TestData {
         uint32_t value;
     };
@@ -442,10 +466,8 @@ TEST(AxrVector_Dynamic, GetAt_InBounds) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    constexpr uint32_t maxHandleCount = 1;
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader) +
-                                 AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
+    const size_t allocatorSize =
+        (sizeof(TestData) * capacity) + alignof(TestData) + sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -453,7 +475,7 @@ TEST(AxrVector_Dynamic, GetAt_InBounds) {
             .Size = allocatorSize,
             .Deallocator = callback,
         },
-        maxHandleCount);
+        &HandlesAllocator);
 
     AxrVector_Dynamic<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
@@ -474,6 +496,8 @@ TEST(AxrVector_Dynamic, GetAt_InBounds) {
 }
 
 TEST(AxrVector_Dynamic, GetAt_OutBounds) {
+    initializeHandlesAllocator(1);
+
     struct TestData {
         uint32_t value;
     };
@@ -502,10 +526,8 @@ TEST(AxrVector_Dynamic, GetAt_OutBounds) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    constexpr uint32_t maxHandleCount = 1;
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader) +
-                                 AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
+    const size_t allocatorSize =
+        (sizeof(TestData) * capacity) + alignof(TestData) + sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -513,7 +535,7 @@ TEST(AxrVector_Dynamic, GetAt_OutBounds) {
             .Size = allocatorSize,
             .Deallocator = callback,
         },
-        maxHandleCount);
+        &HandlesAllocator);
 
     AxrVector_Dynamic<TestData> vector(capacity, &allocator);
     ASSERT_TRUE(vector.empty());
@@ -528,6 +550,8 @@ TEST(AxrVector_Dynamic, GetAt_OutBounds) {
 }
 
 TEST(AxrVector_Dynamic, FindFirst_Exists) {
+    initializeHandlesAllocator(1);
+
     struct TestData {
         uint32_t value;
 
@@ -541,10 +565,8 @@ TEST(AxrVector_Dynamic, FindFirst_Exists) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    constexpr uint32_t maxHandleCount = 1;
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader) +
-                                 AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
+    const size_t allocatorSize =
+        (sizeof(TestData) * capacity) + alignof(TestData) + sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -552,7 +574,7 @@ TEST(AxrVector_Dynamic, FindFirst_Exists) {
             .Size = allocatorSize,
             .Deallocator = callback,
         },
-        maxHandleCount);
+        &HandlesAllocator);
 
     AxrVector_Dynamic<TestData> vector(capacity, &allocator);
 
@@ -575,6 +597,8 @@ TEST(AxrVector_Dynamic, FindFirst_Exists) {
 }
 
 TEST(AxrVector_Dynamic, FindFirst_DoesntExist) {
+    initializeHandlesAllocator(1);
+
     struct TestData {
         uint32_t value;
 
@@ -588,10 +612,8 @@ TEST(AxrVector_Dynamic, FindFirst_DoesntExist) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    constexpr uint32_t maxHandleCount = 1;
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader) +
-                                 AxrDynamicAllocator::getHandlesMemoryBlockCapacity(maxHandleCount);
+    const size_t allocatorSize =
+        (sizeof(TestData) * capacity) + alignof(TestData) + sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -599,7 +621,7 @@ TEST(AxrVector_Dynamic, FindFirst_DoesntExist) {
             .Size = allocatorSize,
             .Deallocator = callback,
         },
-        maxHandleCount);
+        &HandlesAllocator);
 
     AxrVector_Dynamic<TestData> vector(capacity, &allocator);
 

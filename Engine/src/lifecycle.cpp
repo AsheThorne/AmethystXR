@@ -25,7 +25,7 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
         .FrameAllocatorSize = 1'048'576,
         /// 1 Mebibyte
         .EngineDataAllocatorMainMemorySize = 1'048'576,
-        .EngineDataAllocatorMaxHandleCount = 10'000,
+        .MaxHandleCount = 10'000,
     };
 
     axrResult = AxrAllocator::get().setup(axrAllocatorConfig);
@@ -41,6 +41,7 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
     }
 
     AxrAllocator::get().logFrameAllocatorUsage("Server Setup");
+    AxrAllocator::get().logHandlesAllocatorUsage("Server Setup");
     AxrAllocator::get().logEngineDataAllocatorUsage("Server Setup");
 
     const AxrPlatform::Config axrPlatformConfig{
@@ -55,6 +56,7 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
     }
 
     AxrAllocator::get().logFrameAllocatorUsage("Platform Setup");
+    AxrAllocator::get().logHandlesAllocatorUsage("Platform Setup");
     AxrAllocator::get().logEngineDataAllocatorUsage("Platform Setup");
 
     AxrRenderer::Config axrRendererConfig{
@@ -74,6 +76,7 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
     }
 
     AxrAllocator::get().logFrameAllocatorUsage("Renderer Setup");
+    AxrAllocator::get().logHandlesAllocatorUsage("Renderer Setup");
     AxrAllocator::get().logEngineDataAllocatorUsage("Renderer Setup");
 
     axrResult = AxrApplication::get().setup(AxrApplication::Config{});
@@ -83,6 +86,7 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
     }
 
     AxrAllocator::get().logFrameAllocatorUsage("Application Setup");
+    AxrAllocator::get().logHandlesAllocatorUsage("Application Setup");
     AxrAllocator::get().logEngineDataAllocatorUsage("Application Setup");
 
     return AXR_SUCCESS;

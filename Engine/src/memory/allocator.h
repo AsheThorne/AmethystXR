@@ -58,7 +58,8 @@ public:
         size_t FrameAllocatorSize;
         /// Size in bytes
         size_t EngineDataAllocatorMainMemorySize;
-        uint32_t EngineDataAllocatorMaxHandleCount;
+        /// The max number of dynamic allocator handles to allow for
+        uint32_t MaxHandleCount;
     };
 
     // ----------------------------------------- //
@@ -67,7 +68,8 @@ public:
 
     /// Clears all data at the beginning of each frame
     AxrStackAllocator FrameAllocator{};
-
+    /// Allocator for all dynamic allocator handles
+    AxrPoolAllocator<AxrDynamicAllocator::HandlesTree_T::Node> HandlesAllocator{};
     /// Allocator for any and all persistent engine related data
     AxrDynamicAllocator EngineDataAllocator{};
 
@@ -89,7 +91,9 @@ public:
     /// Log the frame allocator's usage
     /// @param message Message to prefix log message with
     void logFrameAllocatorUsage(const char* message) const;
-
+    /// Log the handles allocator's usage
+    /// @param message Message to prefix log message with
+    void logHandlesAllocatorUsage(const char* message) const;
     /// Log the engine data allocator's usage
     /// @param message Message to prefix log message with
     void logEngineDataAllocatorUsage(const char* message) const;
@@ -109,6 +113,9 @@ private:
     /// Callback function for when the frame allocator gets deallocated
     /// @param memory Frame allocator memory block to deallocate
     static void deallocateFrameAllocatorCallback(void*& memory);
+    /// Callback function for when the handles allocator gets deallocated
+    /// @param memory Handles allocator memory block to deallocate
+    static void deallocateHandlesAllocatorCallback(void*& memory);
     /// Callback function for when the engine data allocator gets deallocated
     /// @param memory Engine data allocator memory block to deallocate
     static void deallocateEngineDataAllocatorCallback(void*& memory);

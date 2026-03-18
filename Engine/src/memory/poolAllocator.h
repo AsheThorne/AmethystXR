@@ -197,6 +197,13 @@ public:
         return m_UsedChunkCount == 0;
     }
 
+    /// Get the number of bytes this allocator requires for the given number of chunks.
+    /// @param chunkCount Max number of chunks to allow for
+    /// @return Number of bytes required for the given number of chunks
+    [[nodiscard]] static size_t getAllocatorSize(const uint32_t chunkCount) {
+        return (chunkCount * sizeof(Type)) + alignof(Type);
+    }
+
 protected:
     // ----------------------------------------- //
     // Protected Structs
@@ -473,6 +480,13 @@ public:
     /// @return True if the allocator is empty
     [[nodiscard]] bool empty() const {
         return m_UsedChunkCount == 0;
+    }
+    
+    /// Get the number of bytes this allocator requires for the given number of chunks.
+    /// @param chunkCount Max number of chunks to allow for
+    /// @return Number of bytes required for the given number of chunks
+    [[nodiscard]] static size_t getAllocatorSize(const uint32_t chunkCount) {
+        return (chunkCount * sizeof(Type)) + alignof(Type);
     }
 
 private:
