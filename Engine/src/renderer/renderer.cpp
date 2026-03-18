@@ -30,9 +30,7 @@ AxrResult AxrRenderer::setup(const Config& config) {
     assert(!m_IsSetup);
     assert(config.RendererConfig != nullptr);
 
-    m_Context = Context{
-        .ApiType = config.RendererConfig->ApiType,
-    };
+    m_Context = Context(config.RendererConfig->ApiType);
 
     auto vulkan = [](AxrVulkanRenderer::Context& context, const Config& config) -> AxrResult {
 #ifndef AXR_VULKAN_SUPPORTED
