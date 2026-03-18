@@ -16,6 +16,7 @@
 AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, DesktopContext& context) {
     context.Instance = config.Instance;
     context.Device = config.Device;
+    context.MaxFramesInFlight = config.MaxFramesInFlight;
 
     AxrResult axrResult = AXR_SUCCESS;
 
@@ -50,16 +51,35 @@ AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, D
         return axrResult;
     }
 
+    axrResult = createDesktopSyncObjects(context.Device,
+                                         context.MaxFramesInFlight,
+                                         context.ImageAvailableSemaphores,
+                                         context.RenderingFinishedSemaphores,
+                                         context.RenderingFences);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        destroyDesktopContext(context);
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create desktop sync objects.");
+        return axrResult;
+    }
+
     return AXR_SUCCESS;
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
 void AxrVulkanEnvironment::destroyDesktopContext(DesktopContext& context) {
+    destroyDesktopSyncObjects(context.Device,
+                              context.ImageAvailableSemaphores,
+                              context.RenderingFinishedSemaphores,
+                              context.RenderingFences);
     destroyRenderPass(context.Device, context.RenderPass);
     resetDesktopSwapchainFormats(context.SwapchainColorFormat,
                                  context.SwapchainColorSpace,
                                  context.SwapchainDepthFormat);
     AxrPlatform::get().destroyVulkanSurface(context.Instance, context.Surface);
+
+    context.Instance = VK_NULL_HANDLE;
+    context.Device = VK_NULL_HANDLE;
+    context.MaxFramesInFlight = {};
 }
 
 // ----------------------------------------- //
@@ -394,6 +414,188 @@ void AxrVulkanEnvironment::destroyRenderPass(const VkDevice& device, VkRenderPas
 
     vkDestroyRenderPass(device, renderPass, nullptr);
     renderPass = VK_NULL_HANDLE;
+}
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to create desktop sync objects. "
+AxrResult AxrVulkanEnvironment::createDesktopSyncObjects(const VkDevice& device,
+                                                         const uint32_t maxFramesInFlight,
+                                                         AxrVector_Dynamic<VkSemaphore>& imageAvailableSemaphores,
+                                                         AxrVector_Dynamic<VkSemaphore>& renderingFinishedSemaphores,
+                                                         AxrVector_Dynamic<VkFence>& renderingFences) {
+    // ----------------------------------------- //
+    // Validation
+    // ----------------------------------------- //
+
+    if (imageAvailableSemaphores.allocated()) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Image available semaphores already exist.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    if (renderingFinishedSemaphores.allocated()) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Rendering finished semaphores already exist.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    if (renderingFences.allocated()) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Rendering fences already exist.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    // ----------------------------------------- //
+    // Process
+    // ----------------------------------------- //
+    AxrResult axrResult = AXR_SUCCESS;
+
+    imageAvailableSemaphores =
+        AxrVector_Dynamic<VkSemaphore>(maxFramesInFlight, &AxrAllocator::get().EngineDataAllocator);
+    renderingFinishedSemaphores =
+        AxrVector_Dynamic<VkSemaphore>(maxFramesInFlight, &AxrAllocator::get().EngineDataAllocator);
+    renderingFences = AxrVector_Dynamic<VkFence>(maxFramesInFlight, &AxrAllocator::get().EngineDataAllocator);
+
+    axrResult = createSemaphores(device, imageAvailableSemaphores);
+    if (AXR_FAILED(axrResult)) {
+        destroyDesktopSyncObjects(device, imageAvailableSemaphores, renderingFinishedSemaphores, renderingFences);
+        return axrResult;
+    }
+
+    axrResult = createSemaphores(device, renderingFinishedSemaphores);
+    if (AXR_FAILED(axrResult)) {
+        destroyDesktopSyncObjects(device, imageAvailableSemaphores, renderingFinishedSemaphores, renderingFences);
+        return axrResult;
+    }
+
+    axrResult = createFences(device, VK_FENCE_CREATE_SIGNALED_BIT, renderingFences);
+    if (AXR_FAILED(axrResult)) {
+        destroyDesktopSyncObjects(device, imageAvailableSemaphores, renderingFinishedSemaphores, renderingFences);
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+void AxrVulkanEnvironment::destroyDesktopSyncObjects(const VkDevice& device,
+                                                     AxrVector_Dynamic<VkSemaphore>& imageAvailableSemaphores,
+                                                     AxrVector_Dynamic<VkSemaphore>& renderingFinishedSemaphores,
+                                                     AxrVector_Dynamic<VkFence>& renderingFences) {
+    destroySemaphores(device, imageAvailableSemaphores);
+    destroySemaphores(device, renderingFinishedSemaphores);
+    destroyFences(device, renderingFences);
+
+    // Reset the vectors so the data can be deallocated
+    imageAvailableSemaphores = AxrVector_Dynamic<VkSemaphore>();
+    renderingFinishedSemaphores = AxrVector_Dynamic<VkSemaphore>();
+    renderingFences = AxrVector_Dynamic<VkFence>();
+}
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to create semaphores. "
+AxrResult AxrVulkanEnvironment::createSemaphores(const VkDevice& device, AxrVector_Dynamic<VkSemaphore>& semaphores) {
+    assert(device != VK_NULL_HANDLE);
+
+    if (!semaphores.allocated()) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "`semaphores` haven't been allocated.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    if (!semaphores.empty()) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "`semaphores` already exist.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    constexpr VkSemaphoreCreateInfo semaphoreCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = {},
+    };
+
+    VkResult vkResult = VK_SUCCESS;
+    semaphores.prefillData(VK_NULL_HANDLE);
+
+    for (size_t i = 0; i < semaphores.capacity(); ++i) {
+        vkResult = vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &semaphores[i]);
+        axrLogVkResult(vkResult, "vkCreateSemaphore");
+
+        if (VK_FAILED(vkResult)) [[unlikely]] {
+            break;
+        }
+    }
+
+    if (VK_FAILED(vkResult)) [[unlikely]] {
+        destroySemaphores(device, semaphores);
+        return AXR_ERROR_VULKAN_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+void AxrVulkanEnvironment::destroySemaphores(const VkDevice& device, AxrVector_Dynamic<VkSemaphore>& semaphores) {
+    for (VkSemaphore& semaphore : semaphores) {
+        if (semaphore == VK_NULL_HANDLE) {
+            continue;
+        }
+
+        vkDestroySemaphore(device, semaphore, nullptr);
+        semaphore = VK_NULL_HANDLE;
+    }
+
+    semaphores.clear();
+}
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to create fences. "
+AxrResult AxrVulkanEnvironment::createFences(const VkDevice& device,
+                                             const VkFenceCreateFlags flags,
+                                             AxrVector_Dynamic<VkFence>& fences) {
+    assert(device != VK_NULL_HANDLE);
+
+    if (!fences.allocated()) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "`fences` haven't been allocated.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    if (!fences.empty()) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "`fences` already exist.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    const VkFenceCreateInfo fenceCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = flags,
+    };
+
+    VkResult vkResult = VK_SUCCESS;
+    fences.prefillData(VK_NULL_HANDLE);
+
+    for (size_t i = 0; i < fences.capacity(); ++i) {
+        vkResult = vkCreateFence(device, &fenceCreateInfo, nullptr, &fences[i]);
+        axrLogVkResult(vkResult, "vkCreateFence");
+
+        if (VK_FAILED(vkResult)) [[unlikely]] {
+            break;
+        }
+    }
+
+    if (VK_FAILED(vkResult)) [[unlikely]] {
+        destroyFences(device, fences);
+        return AXR_ERROR_VULKAN_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+void AxrVulkanEnvironment::destroyFences(const VkDevice& device, AxrVector_Dynamic<VkFence>& fences) {
+    for (VkFence& fence : fences) {
+        if (fence == VK_NULL_HANDLE) {
+            continue;
+        }
+
+        vkDestroyFence(device, fence, nullptr);
+        fence = VK_NULL_HANDLE;
+    }
+
+    fences.clear();
 }
 
 #endif

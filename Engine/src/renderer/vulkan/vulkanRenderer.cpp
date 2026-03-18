@@ -102,6 +102,7 @@ AxrResult AxrVulkanRenderer::setup(Context& context, const Config& config) {
                     VK_FORMAT_D16_UNORM,
                 },
                 &AxrAllocator::get().FrameAllocator),
+            .MaxFramesInFlight = 2,
         },
         context.DesktopEnvironmentContext);
     if (AXR_FAILED(axrResult)) [[unlikely]] {

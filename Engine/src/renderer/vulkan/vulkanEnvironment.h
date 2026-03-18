@@ -4,6 +4,7 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
+#include "../../common/containers/vector_dynamic.h"
 #include "vulkanQueueFamilies.h"
 
 #include <vulkan/vulkan_core.h>
@@ -25,9 +26,13 @@ public:
         const AxrVector_Stack<VkFormat>& SwapchainColorFormatOptions;
         /// Ordered from most desired to the least desired
         const AxrVector_Stack<VkFormat>& SwapchainDepthFormatOptions;
+        uint32_t MaxFramesInFlight;
     };
 
     struct DesktopContext {
+        AxrVector_Dynamic<VkSemaphore> ImageAvailableSemaphores = AxrVector_Dynamic<VkSemaphore>();
+        AxrVector_Dynamic<VkSemaphore> RenderingFinishedSemaphores = AxrVector_Dynamic<VkSemaphore>();
+        AxrVector_Dynamic<VkFence> RenderingFences = AxrVector_Dynamic<VkFence>();
         VkInstance Instance = VK_NULL_HANDLE;
         VkDevice Device = VK_NULL_HANDLE;
         VkSurfaceKHR Surface = VK_NULL_HANDLE;
@@ -36,6 +41,7 @@ public:
         VkFormat SwapchainDepthFormat = VK_FORMAT_UNDEFINED;
         VkColorSpaceKHR SwapchainColorSpace = VK_COLOR_SPACE_MAX_ENUM_KHR;
         VkSampleCountFlagBits MsaaSampleCount = VK_SAMPLE_COUNT_1_BIT;
+        uint32_t MaxFramesInFlight{};
     };
 
     // ----------------------------------------- //
@@ -167,6 +173,55 @@ private:
     /// @param device Device to use
     /// @param renderPass Render pass to destroy
     static void destroyRenderPass(const VkDevice& device, VkRenderPass& renderPass);
+
+    // ---- Sync Objects ----
+
+    /// Create the rendering sync objects for the desktop environment
+    /// @param device Device to use
+    /// @param maxFramesInFlight The max frames in flight
+    /// @param imageAvailableSemaphores Output image available semaphores
+    /// @param renderingFinishedSemaphores Output rendering finished semaphores
+    /// @param renderingFences Output rendering fences
+    /// @return AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult createDesktopSyncObjects(const VkDevice& device,
+                                                            uint32_t maxFramesInFlight,
+                                                            AxrVector_Dynamic<VkSemaphore>& imageAvailableSemaphores,
+                                                            AxrVector_Dynamic<VkSemaphore>& renderingFinishedSemaphores,
+                                                            AxrVector_Dynamic<VkFence>& renderingFences);
+    /// Destroy the rendering sync objects for the desktop environment
+    /// @param device Device to use
+    /// @param imageAvailableSemaphores Image available semaphores to destroy
+    /// @param renderingFinishedSemaphores Rendering finished semaphores to destroy
+    /// @param renderingFences Rendering fences to destroy
+    void static destroyDesktopSyncObjects(const VkDevice& device,
+                                          AxrVector_Dynamic<VkSemaphore>& imageAvailableSemaphores,
+                                          AxrVector_Dynamic<VkSemaphore>& renderingFinishedSemaphores,
+                                          AxrVector_Dynamic<VkFence>& renderingFences);
+
+    /// Fill the given vector with newly created semaphores
+    /// @param device Device to use
+    /// @param semaphores Output created semaphores
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult createSemaphores(const VkDevice& device, AxrVector_Dynamic<VkSemaphore>& semaphores);
+    /// Destroy the given semaphores
+    /// @param device Device to use
+    /// @param semaphores Semaphores to destroy
+    /// @returns AXR_SUCCESS if the function succeeded
+    static void destroySemaphores(const VkDevice& device, AxrVector_Dynamic<VkSemaphore>& semaphores);
+
+    /// Fill the given vector with newly created fences
+    /// @param device Device to use
+    /// @param flags Fence create info flags to use
+    /// @param fences Output created fences
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult createFences(const VkDevice& device,
+                                                VkFenceCreateFlags flags,
+                                                AxrVector_Dynamic<VkFence>& fences);
+    /// Destroy the given fences
+    /// @param device Device to use
+    /// @param fences Fences to destroy
+    /// @returns AXR_SUCCESS if the function succeeded
+    static void destroyFences(const VkDevice& device, AxrVector_Dynamic<VkFence>& fences);
 };
 
 #endif
