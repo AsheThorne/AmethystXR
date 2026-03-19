@@ -71,6 +71,7 @@ public:
     /// Allocator for all dynamic allocator handles
     AxrPoolAllocator<AxrDynamicAllocator::HandlesTree_T::Node> HandlesAllocator{};
     /// Allocator for any and all persistent engine related data
+    // TODO (Ashe): Defragment this allocator every now and then
     AxrDynamicAllocator EngineDataAllocator{};
 
     // ----------------------------------------- //
