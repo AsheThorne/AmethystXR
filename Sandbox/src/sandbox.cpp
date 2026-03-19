@@ -15,6 +15,10 @@ int start() {
     constexpr AxrVulkanRendererConfig vulkanConfig{};
 #else
     constexpr AxrVulkanRendererConfig vulkanConfig{
+        .DesktopConfig =
+            {
+                .PreferredPresentationMode = AXR_VULKAN_PRESENTATION_MODE_MAILBOX,
+            },
         .ApiLayers =
             {
 #ifndef NDEBUG

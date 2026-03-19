@@ -21,11 +21,11 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
     AxrResult axrResult = AXR_SUCCESS;
 
     constexpr AxrAllocator::Config axrAllocatorConfig{
-        /// 1 Mebibyte
-        .FrameAllocatorSize = 1'048'576,
+        /// 512 Kibibytes (Half a Mebibyte)
+        .FrameAllocatorSize = 524'288,
+        .MaxHandleCount = 10'000,
         /// 1 Mebibyte
         .EngineDataAllocatorMainMemorySize = 1'048'576,
-        .MaxHandleCount = 10'000,
     };
 
     axrResult = AxrAllocator::get().setup(axrAllocatorConfig);

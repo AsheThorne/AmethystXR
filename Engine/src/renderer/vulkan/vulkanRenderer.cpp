@@ -81,6 +81,7 @@ AxrResult AxrVulkanRenderer::setup(Context& context, const Config& config) {
 
     axrResult = AxrVulkanEnvironment::setupDesktopContext(
         AxrVulkanEnvironment::SetupConfig{
+            .DesktopConfig = &config.VulkanConfig->DesktopConfig,
             .Instance = context.Instance,
             .PhysicalDevice = context.PhysicalDevice,
             .Device = context.Device,

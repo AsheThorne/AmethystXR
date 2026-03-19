@@ -62,6 +62,10 @@ public:
         char ApplicationName[AXR_MAX_APPLICATION_NAME_SIZE]{};
     };
 
+    // ----------------------------------------- //
+    // Public Classes
+    // ----------------------------------------- //
+
     /// AxrRenderer Context
     class Context {
     public:

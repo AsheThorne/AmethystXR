@@ -14,6 +14,8 @@
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to set up desktop context. "
 AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, DesktopContext& context) {
+    assert(config.DesktopConfig != nullptr);
+
     context.Instance = config.Instance;
     context.Device = config.Device;
     context.GraphicsCommandPool = config.GraphicsCommandPool;
@@ -68,7 +70,17 @@ AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, D
                                      context.RenderingCommandBuffers);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
         destroyDesktopContext(context);
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create desktop sync objects.");
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create desktop command buffers.");
+        return axrResult;
+    }
+
+    axrResult = setupDesktopSwapchain(config.PhysicalDevice,
+                                      context.Surface,
+                                      config.DesktopConfig->PreferredPresentationMode,
+                                      context.SwapchainPresentationMode);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        destroyDesktopContext(context);
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to set up desktop swapchain.");
         return axrResult;
     }
 
@@ -77,6 +89,7 @@ AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, D
 #undef AXR_FUNCTION_FAILED_STRING
 
 void AxrVulkanEnvironment::destroyDesktopContext(DesktopContext& context) {
+    resetSetupDesktopSwapchain(context.SwapchainPresentationMode);
     destroyCommandBuffers(context.Device, context.GraphicsCommandPool, context.RenderingCommandBuffers);
     destroyDesktopSyncObjects(context.Device,
                               context.ImageAvailableSemaphores,
@@ -657,5 +670,124 @@ void AxrVulkanEnvironment::destroyCommandBuffers(const VkDevice& device,
     // Reset the vector so the data can be deallocated
     commandBuffers = {};
 }
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to set up desktop swapchain. "
+AxrResult AxrVulkanEnvironment::setupDesktopSwapchain(const VkPhysicalDevice& physicalDevice,
+                                                      const VkSurfaceKHR& surface,
+                                                      const AxrVulkanPresentationModeEnum preferredPresentationMode,
+                                                      VkPresentModeKHR& swapchainPresentationMode) {
+    AxrResult axrResult = AXR_SUCCESS;
+
+    axrResult = setDesktopSwapchainPresentationMode(physicalDevice,
+                                                    surface,
+                                                    preferredPresentationMode,
+                                                    swapchainPresentationMode);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        resetSetupDesktopSwapchain(swapchainPresentationMode);
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to set swapchain presentation mode.");
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+void AxrVulkanEnvironment::resetSetupDesktopSwapchain(VkPresentModeKHR& swapchainPresentationMode) {
+    resetDesktopSwapchainPresentationMode(swapchainPresentationMode);
+}
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to set desktop swapchain presentation mode. "
+AxrResult AxrVulkanEnvironment::setDesktopSwapchainPresentationMode(
+    const VkPhysicalDevice& physicalDevice,
+    const VkSurfaceKHR& surface,
+    const AxrVulkanPresentationModeEnum preferredPresentationMode,
+    VkPresentModeKHR& swapchainPresentationMode) {
+    assert(physicalDevice != VK_NULL_HANDLE);
+    assert(surface != VK_NULL_HANDLE);
+
+    if (swapchainPresentationMode != VK_PRESENT_MODE_MAX_ENUM_KHR) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Swapchain presentation mode has already been set.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    if (preferredPresentationMode == AXR_VULKAN_PRESENTATION_MODE_UNDEFINED) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Preferred presentation mode is undefined.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    AxrVector_Stack<VkPresentModeKHR> supportedPresentationModes;
+    const AxrResult axrResult =
+        getSupportedSurfacePresentationModes(surface, physicalDevice, supportedPresentationModes);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to get supported surface presentation modes.");
+        return axrResult;
+    }
+
+    VkPresentModeKHR backupPresentationMode = VK_PRESENT_MODE_MAX_ENUM_KHR;
+    const VkPresentModeKHR preferredVkPresentationMode = axrToVkPresentMode(preferredPresentationMode);
+
+    // Find the preferred presentation mode
+    for (const VkPresentModeKHR presentationMode : supportedPresentationModes) {
+        if (presentationMode == preferredVkPresentationMode) {
+            swapchainPresentationMode = presentationMode;
+            return AXR_SUCCESS;
+        }
+
+        if (presentationMode == VK_PRESENT_MODE_FIFO_KHR) {
+            backupPresentationMode = presentationMode;
+        }
+    }
+
+    // If the preferred presentation mode couldn't be found, but the backup was. Use that
+    if (backupPresentationMode != VK_PRESENT_MODE_MAX_ENUM_KHR) {
+        swapchainPresentationMode = backupPresentationMode;
+        return AXR_SUCCESS;
+    }
+
+    // As a last resort, just use whatever we can that's supported
+    swapchainPresentationMode = supportedPresentationModes[0];
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+void AxrVulkanEnvironment::resetDesktopSwapchainPresentationMode(VkPresentModeKHR& swapchainPresentationMode) {
+    swapchainPresentationMode = VK_PRESENT_MODE_MAX_ENUM_KHR;
+}
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to get supported surface presentation modes. "
+AxrResult AxrVulkanEnvironment::getSupportedSurfacePresentationModes(
+    const VkSurfaceKHR& surface,
+    const VkPhysicalDevice& physicalDevice,
+    AxrVector_Stack<VkPresentModeKHR>& supportedPresentationModes) {
+    assert(surface != VK_NULL_HANDLE);
+    assert(physicalDevice != VK_NULL_HANDLE);
+
+    if (supportedPresentationModes.allocated()) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "`supportedPresentationModes` have already been allocated.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    uint32_t presentationModesCount;
+    VkResult vkResult =
+        vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentationModesCount, nullptr);
+    axrLogVkResult(vkResult, "vkGetPhysicalDeviceSurfacePresentModesKHR");
+    if (VK_FAILED(vkResult)) [[unlikely]]
+        return AXR_ERROR_VULKAN_ERROR;
+
+    AxrVector_Stack<VkPresentModeKHR> presentationModes(presentationModesCount, &AxrAllocator::get().FrameAllocator);
+    presentationModes.prefillData();
+    vkResult = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice,
+                                                         surface,
+                                                         &presentationModesCount,
+                                                         presentationModes.data());
+    axrLogVkResult(vkResult, "vkGetPhysicalDeviceSurfacePresentModesKHR");
+    if (VK_FAILED(vkResult)) [[unlikely]]
+        return AXR_ERROR_VULKAN_ERROR;
+
+    supportedPresentationModes = std::move(presentationModes);
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
 
 #endif

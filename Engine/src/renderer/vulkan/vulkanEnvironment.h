@@ -5,6 +5,7 @@
 // Headers
 // ----------------------------------------- //
 #include "../../common/containers/vector_dynamic.h"
+#include "axr/vulkanApi.h"
 #include "vulkanQueueFamilies.h"
 
 #include <vulkan/vulkan_core.h>
@@ -17,6 +18,7 @@ public:
     // ----------------------------------------- //
 
     struct SetupConfig {
+        const AxrVulkanRendererDesktopConfig* DesktopConfig;
         VkInstance Instance;
         VkPhysicalDevice PhysicalDevice;
         VkDevice Device;
@@ -43,6 +45,7 @@ public:
         VkFormat SwapchainDepthFormat = VK_FORMAT_UNDEFINED;
         VkColorSpaceKHR SwapchainColorSpace = VK_COLOR_SPACE_MAX_ENUM_KHR;
         VkSampleCountFlagBits MsaaSampleCount = VK_SAMPLE_COUNT_1_BIT;
+        VkPresentModeKHR SwapchainPresentationMode = VK_PRESENT_MODE_MAX_ENUM_KHR;
     };
 
     // ----------------------------------------- //
@@ -243,6 +246,47 @@ private:
     static void destroyCommandBuffers(const VkDevice& device,
                                       const VkCommandPool& commandPool,
                                       AxrVector_Dynamic<VkCommandBuffer>& commandBuffers);
+
+    // ---- Swapchain ----
+
+    /// Set up the swapchain and all objects that depend on it for the desktop environment
+    /// @param surface Surface to use
+    /// @param physicalDevice Physical device to use
+    /// @param preferredPresentationMode Preferred swapchain presentation mode to use
+    /// @param swapchainPresentationMode Output selected swapchain presentation mode
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult setupDesktopSwapchain(const VkPhysicalDevice& physicalDevice,
+                                                         const VkSurfaceKHR& surface,
+                                                         AxrVulkanPresentationModeEnum preferredPresentationMode,
+                                                         VkPresentModeKHR& swapchainPresentationMode);
+    /// Reset the swapchain and all objects that depend on it for the desktop environment
+    /// @param swapchainPresentationMode Swapchain presentation mode to reset
+    static void resetSetupDesktopSwapchain(VkPresentModeKHR& swapchainPresentationMode);
+
+    /// Set the swapchain presentation mode for the desktop environment
+    /// @param surface Surface to use
+    /// @param physicalDevice Physical device to use
+    /// @param preferredPresentationMode Preferred swapchain presentation mode to use
+    /// @param swapchainPresentationMode Output selected swapchain presentation mode
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult setDesktopSwapchainPresentationMode(
+        const VkPhysicalDevice& physicalDevice,
+        const VkSurfaceKHR& surface,
+        AxrVulkanPresentationModeEnum preferredPresentationMode,
+        VkPresentModeKHR& swapchainPresentationMode);
+    /// Reset the swapchain presentation mode for the desktop environment
+    /// @param swapchainPresentationMode Swapchain presentation mode to reset
+    static void resetDesktopSwapchainPresentationMode(VkPresentModeKHR& swapchainPresentationMode);
+
+    /// Get the supported presentation modes for the given surface
+    /// @param surface Surface to use
+    /// @param physicalDevice Physical device to use
+    /// @param supportedPresentationModes Output supported presentation modes
+    /// @return AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult getSupportedSurfacePresentationModes(
+        const VkSurfaceKHR& surface,
+        const VkPhysicalDevice& physicalDevice,
+        AxrVector_Stack<VkPresentModeKHR>& supportedPresentationModes);
 };
 
 #endif

@@ -24,4 +24,28 @@ inline void axrLogVkResult(const VkResult vkResult,
     }
 }
 
+/// Convert an AxrVulkanPresentationModeEnum to a VkPresentModeKHR
+/// @param presentationMode Presentation mode to convert
+/// @returns The converted presentation mode
+inline VkPresentModeKHR axrToVkPresentMode(const AxrVulkanPresentationModeEnum presentationMode) {
+    switch (presentationMode) {
+        case AXR_VULKAN_PRESENTATION_MODE_IMMEDIATE: {
+            return VK_PRESENT_MODE_IMMEDIATE_KHR;
+        }
+        case AXR_VULKAN_PRESENTATION_MODE_MAILBOX: {
+            return VK_PRESENT_MODE_MAILBOX_KHR;
+        }
+        case AXR_VULKAN_PRESENTATION_MODE_FIFO: {
+            return VK_PRESENT_MODE_FIFO_KHR;
+        }
+        case AXR_VULKAN_PRESENTATION_MODE_FIFO_RELAXED: {
+            return VK_PRESENT_MODE_FIFO_RELAXED_KHR;
+        }
+        case AXR_VULKAN_PRESENTATION_MODE_UNDEFINED:
+        default: {
+            return VK_PRESENT_MODE_MAX_ENUM_KHR;
+        }
+    }
+}
+
 #endif

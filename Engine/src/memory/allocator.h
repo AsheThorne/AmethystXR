@@ -56,10 +56,10 @@ public:
     struct Config {
         /// Size in bytes
         size_t FrameAllocatorSize;
-        /// Size in bytes
-        size_t EngineDataAllocatorMainMemorySize;
         /// The max number of dynamic allocator handles to allow for
         uint32_t MaxHandleCount;
+        /// Size in bytes
+        size_t EngineDataAllocatorMainMemorySize;
     };
 
     // ----------------------------------------- //

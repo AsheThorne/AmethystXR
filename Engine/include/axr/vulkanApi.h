@@ -305,6 +305,32 @@ extern "C" {
     /// @return Given AxrVulkanExtensionTypeEnum as a string
     AXR_API const char* axrVulkanExtensionTypeEnumToString(AxrVulkanExtensionTypeEnum extensionType);
 }
+
+// ---------------------------------------------------------------------------------- //
+//                                  Desktop Config                                    //
+// ---------------------------------------------------------------------------------- //
+
+// ----------------------------------------- //
+// Enums
+// ----------------------------------------- //
+
+/// Vulkan presentation mode
+enum AxrVulkanPresentationModeEnum {
+    AXR_VULKAN_PRESENTATION_MODE_UNDEFINED = 0,
+    AXR_VULKAN_PRESENTATION_MODE_IMMEDIATE,
+    AXR_VULKAN_PRESENTATION_MODE_MAILBOX,
+    AXR_VULKAN_PRESENTATION_MODE_FIFO,
+    AXR_VULKAN_PRESENTATION_MODE_FIFO_RELAXED,
+};
+
+// ----------------------------------------- //
+// Structs
+// ----------------------------------------- //
+
+/// Vulkan desktop renderer config
+struct AxrVulkanRendererDesktopConfig {
+    AxrVulkanPresentationModeEnum PreferredPresentationMode;
+};
 #endif
 
 // ---------------------------------------------------------------------------------- //
@@ -317,6 +343,7 @@ struct AxrVulkanRendererConfig {};
 #else
 /// Vulkan renderer config
 struct AxrVulkanRendererConfig {
+    AxrVulkanRendererDesktopConfig DesktopConfig;
     AxrVulkanApiLayer ApiLayers[AxrVulkanApiLayerMaxCount];
     AxrVulkanExtension Extensions[AxrVulkanExtensionMaxCount];
     uint32_t ApiLayerCount;
