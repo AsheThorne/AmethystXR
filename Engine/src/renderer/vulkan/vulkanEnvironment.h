@@ -33,15 +33,16 @@ public:
         AxrVector_Dynamic<VkSemaphore> ImageAvailableSemaphores = AxrVector_Dynamic<VkSemaphore>();
         AxrVector_Dynamic<VkSemaphore> RenderingFinishedSemaphores = AxrVector_Dynamic<VkSemaphore>();
         AxrVector_Dynamic<VkFence> RenderingFences = AxrVector_Dynamic<VkFence>();
+        AxrVector_Dynamic<VkCommandBuffer> RenderingCommandBuffers = AxrVector_Dynamic<VkCommandBuffer>();
         VkInstance Instance = VK_NULL_HANDLE;
         VkDevice Device = VK_NULL_HANDLE;
         VkSurfaceKHR Surface = VK_NULL_HANDLE;
         VkRenderPass RenderPass = VK_NULL_HANDLE;
+        VkCommandPool GraphicsCommandPool = VK_NULL_HANDLE;
         VkFormat SwapchainColorFormat = VK_FORMAT_UNDEFINED;
         VkFormat SwapchainDepthFormat = VK_FORMAT_UNDEFINED;
         VkColorSpaceKHR SwapchainColorSpace = VK_COLOR_SPACE_MAX_ENUM_KHR;
         VkSampleCountFlagBits MsaaSampleCount = VK_SAMPLE_COUNT_1_BIT;
-        uint32_t MaxFramesInFlight{};
     };
 
     // ----------------------------------------- //
@@ -155,7 +156,7 @@ private:
                                                          VkFormatFeatureFlags features,
                                                          const VkPhysicalDevice& physicalDevice);
 
-    // ---- Renderpass ----
+    // ---- Render Pass ----
 
     /// Create a render pass
     /// @param device Device to use
@@ -222,6 +223,26 @@ private:
     /// @param fences Fences to destroy
     /// @returns AXR_SUCCESS if the function succeeded
     static void destroyFences(const VkDevice& device, AxrVector_Dynamic<VkFence>& fences);
+
+    // ---- Command Buffers ----
+
+    /// Fill the given vector with newly created command buffers
+    /// @param device Device to use
+    /// @param commandPool Command pool to use
+    /// @param maxFramesInFlight The max frames in flight
+    /// @param commandBuffers Output created command buffers
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult createCommandBuffers(const VkDevice& device,
+                                                        const VkCommandPool& commandPool,
+                                                        uint32_t maxFramesInFlight,
+                                                        AxrVector_Dynamic<VkCommandBuffer>& commandBuffers);
+    /// Destroy the given command buffers
+    /// @param device Device to use
+    /// @param commandPool Command pool that was used to create the command buffers
+    /// @param commandBuffers Command buffers to destroy
+    static void destroyCommandBuffers(const VkDevice& device,
+                                      const VkCommandPool& commandPool,
+                                      AxrVector_Dynamic<VkCommandBuffer>& commandBuffers);
 };
 
 #endif

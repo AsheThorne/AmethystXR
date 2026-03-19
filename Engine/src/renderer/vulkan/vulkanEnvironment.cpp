@@ -16,7 +16,7 @@
 AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, DesktopContext& context) {
     context.Instance = config.Instance;
     context.Device = config.Device;
-    context.MaxFramesInFlight = config.MaxFramesInFlight;
+    context.GraphicsCommandPool = config.GraphicsCommandPool;
 
     AxrResult axrResult = AXR_SUCCESS;
 
@@ -52,10 +52,20 @@ AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, D
     }
 
     axrResult = createDesktopSyncObjects(context.Device,
-                                         context.MaxFramesInFlight,
+                                         config.MaxFramesInFlight,
                                          context.ImageAvailableSemaphores,
                                          context.RenderingFinishedSemaphores,
                                          context.RenderingFences);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        destroyDesktopContext(context);
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create desktop sync objects.");
+        return axrResult;
+    }
+
+    axrResult = createCommandBuffers(context.Device,
+                                     context.GraphicsCommandPool,
+                                     config.MaxFramesInFlight,
+                                     context.RenderingCommandBuffers);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
         destroyDesktopContext(context);
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create desktop sync objects.");
@@ -67,6 +77,7 @@ AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, D
 #undef AXR_FUNCTION_FAILED_STRING
 
 void AxrVulkanEnvironment::destroyDesktopContext(DesktopContext& context) {
+    destroyCommandBuffers(context.Device, context.GraphicsCommandPool, context.RenderingCommandBuffers);
     destroyDesktopSyncObjects(context.Device,
                               context.ImageAvailableSemaphores,
                               context.RenderingFinishedSemaphores,
@@ -79,7 +90,7 @@ void AxrVulkanEnvironment::destroyDesktopContext(DesktopContext& context) {
 
     context.Instance = VK_NULL_HANDLE;
     context.Device = VK_NULL_HANDLE;
-    context.MaxFramesInFlight = {};
+    context.GraphicsCommandPool = VK_NULL_HANDLE;
 }
 
 // ----------------------------------------- //
@@ -511,8 +522,8 @@ AxrResult AxrVulkanEnvironment::createSemaphores(const VkDevice& device, AxrVect
     VkResult vkResult = VK_SUCCESS;
     semaphores.prefillData(VK_NULL_HANDLE);
 
-    for (size_t i = 0; i < semaphores.capacity(); ++i) {
-        vkResult = vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &semaphores[i]);
+    for (VkSemaphore& semaphore : semaphores) {
+        vkResult = vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &semaphore);
         axrLogVkResult(vkResult, "vkCreateSemaphore");
 
         if (VK_FAILED(vkResult)) [[unlikely]] {
@@ -567,8 +578,8 @@ AxrResult AxrVulkanEnvironment::createFences(const VkDevice& device,
     VkResult vkResult = VK_SUCCESS;
     fences.prefillData(VK_NULL_HANDLE);
 
-    for (size_t i = 0; i < fences.capacity(); ++i) {
-        vkResult = vkCreateFence(device, &fenceCreateInfo, nullptr, &fences[i]);
+    for (VkFence& fence : fences) {
+        vkResult = vkCreateFence(device, &fenceCreateInfo, nullptr, &fence);
         axrLogVkResult(vkResult, "vkCreateFence");
 
         if (VK_FAILED(vkResult)) [[unlikely]] {
@@ -596,6 +607,55 @@ void AxrVulkanEnvironment::destroyFences(const VkDevice& device, AxrVector_Dynam
     }
 
     fences.clear();
+}
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to create command buffers. "
+AxrResult AxrVulkanEnvironment::createCommandBuffers(const VkDevice& device,
+                                                     const VkCommandPool& commandPool,
+                                                     const uint32_t maxFramesInFlight,
+                                                     AxrVector_Dynamic<VkCommandBuffer>& commandBuffers) {
+    assert(device != VK_NULL_HANDLE);
+    assert(commandPool != VK_NULL_HANDLE);
+
+    if (commandBuffers.allocated() || !commandBuffers.empty()) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "`commandBuffers` already exist.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    commandBuffers = AxrVector_Dynamic<VkCommandBuffer>(maxFramesInFlight, &AxrAllocator::get().EngineDataAllocator);
+    commandBuffers.prefillData(VK_NULL_HANDLE);
+
+    const VkCommandBufferAllocateInfo commandBufferAllocateInfo{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+        .pNext = nullptr,
+        .commandPool = commandPool,
+        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+        .commandBufferCount = static_cast<uint32_t>(commandBuffers.size()),
+    };
+
+    const VkResult vkResult = vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, commandBuffers.data());
+    axrLogVkResult(vkResult, "vkAllocateCommandBuffers");
+
+    if (VK_FAILED(vkResult)) [[unlikely]] {
+        destroyCommandBuffers(device, commandPool, commandBuffers);
+        return AXR_ERROR_VULKAN_ERROR;
+    }
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+void AxrVulkanEnvironment::destroyCommandBuffers(const VkDevice& device,
+                                                 const VkCommandPool& commandPool,
+                                                 AxrVector_Dynamic<VkCommandBuffer>& commandBuffers) {
+    if (commandBuffers.empty()) {
+        return;
+    }
+
+    vkFreeCommandBuffers(device, commandPool, static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
+
+    // Reset the vector so the data can be deallocated
+    commandBuffers = {};
 }
 
 #endif
