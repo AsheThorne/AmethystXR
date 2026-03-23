@@ -31,22 +31,28 @@ public:
         uint32_t MaxFramesInFlight;
     };
 
+    struct DesktopSwapchainContext {
+        VkSwapchainKHR Swapchain = VK_NULL_HANDLE;
+        VkExtent2D Extent = {};
+        VkFormat ColorFormat = VK_FORMAT_UNDEFINED;
+        VkFormat DepthFormat = VK_FORMAT_UNDEFINED;
+        VkColorSpaceKHR ColorSpace = VK_COLOR_SPACE_MAX_ENUM_KHR;
+        AxrVulkanPresentationModeEnum PreferredPresentationMode = AXR_VULKAN_PRESENTATION_MODE_UNDEFINED;
+        VkPresentModeKHR PresentationMode = VK_PRESENT_MODE_MAX_ENUM_KHR;
+    };
+
     struct DesktopContext {
         AxrVector_Dynamic<VkSemaphore> ImageAvailableSemaphores = AxrVector_Dynamic<VkSemaphore>();
         AxrVector_Dynamic<VkSemaphore> RenderingFinishedSemaphores = AxrVector_Dynamic<VkSemaphore>();
         AxrVector_Dynamic<VkFence> RenderingFences = AxrVector_Dynamic<VkFence>();
         AxrVector_Dynamic<VkCommandBuffer> RenderingCommandBuffers = AxrVector_Dynamic<VkCommandBuffer>();
+        DesktopSwapchainContext SwapchainContext;
         VkInstance Instance = VK_NULL_HANDLE;
         VkDevice Device = VK_NULL_HANDLE;
         VkSurfaceKHR Surface = VK_NULL_HANDLE;
         VkRenderPass RenderPass = VK_NULL_HANDLE;
         VkCommandPool GraphicsCommandPool = VK_NULL_HANDLE;
-        VkExtent2D SwapchainExtent = {};
-        VkFormat SwapchainColorFormat = VK_FORMAT_UNDEFINED;
-        VkFormat SwapchainDepthFormat = VK_FORMAT_UNDEFINED;
-        VkColorSpaceKHR SwapchainColorSpace = VK_COLOR_SPACE_MAX_ENUM_KHR;
         VkSampleCountFlagBits MsaaSampleCount = VK_SAMPLE_COUNT_1_BIT;
-        VkPresentModeKHR SwapchainPresentationMode = VK_PRESENT_MODE_MAX_ENUM_KHR;
     };
 
     // ----------------------------------------- //
@@ -250,22 +256,26 @@ private:
 
     // ---- Swapchain ----
 
-    /// Set up the swapchain and all objects that depend on it for the desktop environment
+    /// Set up the swapchain and all objects that depend on it for the desktop environment.
+    /// Please note that the swapchain context `ColorFormat`, `DepthFormat` and `ColorSpace` is NOT set in this
+    /// function. They must be set prior to using it here.
     /// @param physicalDevice Physical device to use
+    /// @param device Device to use
     /// @param surface Surface to use
-    /// @param preferredPresentationMode Preferred swapchain presentation mode to use
-    /// @param presentationMode Output selected swapchain presentation mode
-    /// @param extent Output swapchain extent
+    /// @param queueFamilies Queue families to use
+    /// @param swapchainContext Input/Output swapchain context
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] static AxrResult setupDesktopSwapchain(const VkPhysicalDevice& physicalDevice,
+                                                         const VkDevice& device,
                                                          const VkSurfaceKHR& surface,
-                                                         AxrVulkanPresentationModeEnum preferredPresentationMode,
-                                                         VkPresentModeKHR& presentationMode,
-                                                         VkExtent2D& extent);
-    /// Reset the swapchain and all objects that depend on it for the desktop environment
-    /// @param presentationMode Swapchain presentation mode to reset
-    /// @param extent Swapchain extent to reset
-    static void resetSetupDesktopSwapchain(VkPresentModeKHR& presentationMode, VkExtent2D& extent);
+                                                         const AxrVulkanQueueFamilies& queueFamilies,
+                                                         DesktopSwapchainContext& swapchainContext);
+    /// Reset the swapchain and all objects that depend on it for the desktop environment.
+    /// Please note that the swapchain context `ColorFormat`, `DepthFormat` and `ColorSpace` is NOT reset in this
+    /// function.
+    /// @param device Logical device to use
+    /// @param swapchainContext Swapchain context to reset
+    static void resetSetupDesktopSwapchain(const VkDevice& device, DesktopSwapchainContext& swapchainContext);
 
     /// Set the swapchain presentation mode for the desktop environment
     /// @param physicalDevice Physical device to use
@@ -292,6 +302,14 @@ private:
         const VkSurfaceKHR& surface,
         AxrVector_Stack<VkPresentModeKHR>& supportedPresentationModes);
 
+    /// @param physicalDevice Physical device to use
+    /// @param surface Surface to use
+    /// @param capabilities Output swapchain capabilities
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult getSurfaceCapabilities(const VkPhysicalDevice& physicalDevice,
+                                                          const VkSurfaceKHR& surface,
+                                                          VkSurfaceCapabilitiesKHR& capabilities);
+
     /// Set the swapchain extent for the desktop environment
     /// @param physicalDevice Physical device to use
     /// @param surface Surface to use
@@ -303,6 +321,25 @@ private:
     /// Reset the swapchain extent
     /// @param extent Swapchain extent to reset
     static void resetSwapchainExtent(VkExtent2D& extent);
+
+    /// Create the swapchain for the desktop environment.
+    /// Please note that only the swapchain context `Swapchain` variable is set in this function. `Extent`, `ColorFormat`,
+    /// `ColorSpace` and `PresentationMode` must be set prior to using this function.
+    /// @param physicalDevice Physical device to use
+    /// @param device Logical device to use
+    /// @param surface Surface to use
+    /// @param queueFamilies Queue families to use
+    /// @param swapchainContext Input/Output swapchain context
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult createDesktopSwapchain(const VkPhysicalDevice& physicalDevice,
+                                                          const VkDevice& device,
+                                                          const VkSurfaceKHR& surface,
+                                                          const AxrVulkanQueueFamilies& queueFamilies,
+                                                          DesktopSwapchainContext& swapchainContext);
+    /// Destroy the swapchain for the desktop environment
+    /// @param device Logical device to use
+    /// @param swapchain Swapchain to destroy
+    static void destroyDesktopSwapchain(const VkDevice& device, VkSwapchainKHR& swapchain);
 };
 
 #endif

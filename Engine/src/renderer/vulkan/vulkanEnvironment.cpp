@@ -19,6 +19,7 @@ AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, D
     context.Instance = config.Instance;
     context.Device = config.Device;
     context.GraphicsCommandPool = config.GraphicsCommandPool;
+    context.SwapchainContext.PreferredPresentationMode = config.DesktopConfig->PreferredPresentationMode;
 
     AxrResult axrResult = AXR_SUCCESS;
 
@@ -33,9 +34,9 @@ AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, D
                                            config.PhysicalDevice,
                                            config.SwapchainColorFormatOptions,
                                            config.SwapchainDepthFormatOptions,
-                                           context.SwapchainColorFormat,
-                                           context.SwapchainColorSpace,
-                                           context.SwapchainDepthFormat);
+                                           context.SwapchainContext.ColorFormat,
+                                           context.SwapchainContext.ColorSpace,
+                                           context.SwapchainContext.DepthFormat);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
         destroyDesktopContext(context);
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to set desktop swapchain formats.");
@@ -43,8 +44,8 @@ AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, D
     }
 
     axrResult = createRenderPass(config.Device,
-                                 context.SwapchainColorFormat,
-                                 context.SwapchainDepthFormat,
+                                 context.SwapchainContext.ColorFormat,
+                                 context.SwapchainContext.DepthFormat,
                                  context.MsaaSampleCount,
                                  context.RenderPass);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
@@ -75,10 +76,10 @@ AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, D
     }
 
     axrResult = setupDesktopSwapchain(config.PhysicalDevice,
+                                      context.Device,
                                       context.Surface,
-                                      config.DesktopConfig->PreferredPresentationMode,
-                                      context.SwapchainPresentationMode,
-                                      context.SwapchainExtent);
+                                      config.QueueFamilies,
+                                      context.SwapchainContext);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
         destroyDesktopContext(context);
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to set up desktop swapchain.");
@@ -90,21 +91,22 @@ AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, D
 #undef AXR_FUNCTION_FAILED_STRING
 
 void AxrVulkanEnvironment::destroyDesktopContext(DesktopContext& context) {
-    resetSetupDesktopSwapchain(context.SwapchainPresentationMode, context.SwapchainExtent);
+    resetSetupDesktopSwapchain(context.Device, context.SwapchainContext);
     destroyCommandBuffers(context.Device, context.GraphicsCommandPool, context.RenderingCommandBuffers);
     destroyDesktopSyncObjects(context.Device,
                               context.ImageAvailableSemaphores,
                               context.RenderingFinishedSemaphores,
                               context.RenderingFences);
     destroyRenderPass(context.Device, context.RenderPass);
-    resetDesktopSwapchainFormats(context.SwapchainColorFormat,
-                                 context.SwapchainColorSpace,
-                                 context.SwapchainDepthFormat);
+    resetDesktopSwapchainFormats(context.SwapchainContext.ColorFormat,
+                                 context.SwapchainContext.ColorSpace,
+                                 context.SwapchainContext.DepthFormat);
     AxrPlatform::get().destroyVulkanSurface(context.Instance, context.Surface);
 
     context.Instance = VK_NULL_HANDLE;
     context.Device = VK_NULL_HANDLE;
     context.GraphicsCommandPool = VK_NULL_HANDLE;
+    context.SwapchainContext.PreferredPresentationMode = AXR_VULKAN_PRESENTATION_MODE_UNDEFINED;
 }
 
 // ----------------------------------------- //
@@ -285,10 +287,7 @@ bool AxrVulkanEnvironment::areFormatFeaturesSupported(const VkFormat format,
                                                       const VkImageTiling imageTiling,
                                                       const VkFormatFeatureFlags features,
                                                       const VkPhysicalDevice& physicalDevice) {
-    if (physicalDevice == VK_NULL_HANDLE) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Physical device is null.");
-        return false;
-    }
+    assert(physicalDevice != VK_NULL_HANDLE);
 
     VkFormatProperties properties{};
     vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &properties);
@@ -674,24 +673,33 @@ void AxrVulkanEnvironment::destroyCommandBuffers(const VkDevice& device,
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to set up desktop swapchain. "
 AxrResult AxrVulkanEnvironment::setupDesktopSwapchain(const VkPhysicalDevice& physicalDevice,
+                                                      const VkDevice& device,
                                                       const VkSurfaceKHR& surface,
-                                                      const AxrVulkanPresentationModeEnum preferredPresentationMode,
-                                                      VkPresentModeKHR& presentationMode,
-                                                      VkExtent2D& extent) {
+                                                      const AxrVulkanQueueFamilies& queueFamilies,
+                                                      DesktopSwapchainContext& swapchainContext) {
     AxrResult axrResult = AXR_SUCCESS;
 
-    axrResult =
-        setDesktopSwapchainPresentationMode(physicalDevice, surface, preferredPresentationMode, presentationMode);
+    axrResult = setDesktopSwapchainPresentationMode(physicalDevice,
+                                                    surface,
+                                                    swapchainContext.PreferredPresentationMode,
+                                                    swapchainContext.PresentationMode);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
-        resetSetupDesktopSwapchain(presentationMode, extent);
+        resetSetupDesktopSwapchain(device, swapchainContext);
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to set swapchain presentation mode.");
         return axrResult;
     }
 
-    axrResult = setDesktopSwapchainExtent(physicalDevice, surface, extent);
+    axrResult = setDesktopSwapchainExtent(physicalDevice, surface, swapchainContext.Extent);
     if (AXR_FAILED(axrResult)) {
-        resetSetupDesktopSwapchain(presentationMode, extent);
+        resetSetupDesktopSwapchain(device, swapchainContext);
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to set swapchain extent.");
+        return axrResult;
+    }
+
+    axrResult = createDesktopSwapchain(physicalDevice, device, surface, queueFamilies, swapchainContext);
+    if (AXR_FAILED(axrResult)) {
+        resetSetupDesktopSwapchain(device, swapchainContext);
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create swapchain.");
         return axrResult;
     }
 
@@ -699,9 +707,11 @@ AxrResult AxrVulkanEnvironment::setupDesktopSwapchain(const VkPhysicalDevice& ph
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
-void AxrVulkanEnvironment::resetSetupDesktopSwapchain(VkPresentModeKHR& presentationMode, VkExtent2D& extent) {
-    resetSwapchainExtent(extent);
-    resetDesktopSwapchainPresentationMode(presentationMode);
+void AxrVulkanEnvironment::resetSetupDesktopSwapchain(const VkDevice& device,
+                                                      DesktopSwapchainContext& swapchainContext) {
+    destroyDesktopSwapchain(device, swapchainContext.Swapchain);
+    resetSwapchainExtent(swapchainContext.Extent);
+    resetDesktopSwapchainPresentationMode(swapchainContext.PresentationMode);
 }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to set desktop swapchain presentation mode. "
@@ -798,17 +808,30 @@ AxrResult AxrVulkanEnvironment::getSupportedSurfacePresentationModes(
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
-AxrResult AxrVulkanEnvironment::setDesktopSwapchainExtent(const VkPhysicalDevice& physicalDevice,
-                                                          const VkSurfaceKHR& surface,
-                                                          VkExtent2D& extent) {
+AxrResult AxrVulkanEnvironment::getSurfaceCapabilities(const VkPhysicalDevice& physicalDevice,
+                                                       const VkSurfaceKHR& surface,
+                                                       VkSurfaceCapabilitiesKHR& capabilities) {
     assert(physicalDevice != VK_NULL_HANDLE);
     assert(surface != VK_NULL_HANDLE);
 
-    VkSurfaceCapabilitiesKHR surfaceCapabilities;
-    const VkResult vkResult = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCapabilities);
+    const VkResult vkResult = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &capabilities);
     axrLogVkResult(vkResult, "vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
     if (VK_FAILED(vkResult)) [[unlikely]]
         return AXR_ERROR_VULKAN_ERROR;
+
+    return AXR_SUCCESS;
+}
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to set desktop swapchain extent. "
+AxrResult AxrVulkanEnvironment::setDesktopSwapchainExtent(const VkPhysicalDevice& physicalDevice,
+                                                          const VkSurfaceKHR& surface,
+                                                          VkExtent2D& extent) {
+    VkSurfaceCapabilitiesKHR surfaceCapabilities;
+    AxrResult axrResult = getSurfaceCapabilities(physicalDevice, surface, surfaceCapabilities);
+    if (AXR_FAILED(axrResult)) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to get surface capabilities.");
+        return axrResult;
+    }
 
     // If the current extent width is the max uint32_t value, then we need to get the extent manually
     if (surfaceCapabilities.currentExtent.width != UINT32_MAX) {
@@ -818,8 +841,9 @@ AxrResult AxrVulkanEnvironment::setDesktopSwapchainExtent(const VkPhysicalDevice
 
     uint32_t width;
     uint32_t height;
-    const AxrResult axrResult = AxrPlatform::get().getWindowSizeInPixels(width, height);
+    axrResult = AxrPlatform::get().getWindowSizeInPixels(width, height);
     if (AXR_FAILED(axrResult)) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to get window size in pixels.");
         return axrResult;
     }
 
@@ -829,9 +853,87 @@ AxrResult AxrVulkanEnvironment::setDesktopSwapchainExtent(const VkPhysicalDevice
     extent = VkExtent2D(width, height);
     return AXR_SUCCESS;
 }
+#undef AXR_FUNCTION_FAILED_STRING
 
 void AxrVulkanEnvironment::resetSwapchainExtent(VkExtent2D& extent) {
     extent = VkExtent2D{};
+}
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to create desktop swapchain. "
+AxrResult AxrVulkanEnvironment::createDesktopSwapchain(const VkPhysicalDevice& physicalDevice,
+                                                       const VkDevice& device,
+                                                       const VkSurfaceKHR& surface,
+                                                       const AxrVulkanQueueFamilies& queueFamilies,
+                                                       DesktopSwapchainContext& swapchainContext) {
+    assert(physicalDevice != VK_NULL_HANDLE);
+    assert(device != VK_NULL_HANDLE);
+    assert(surface != VK_NULL_HANDLE);
+
+    if (swapchainContext.Swapchain != VK_NULL_HANDLE) [[unlikely]] {
+        axrLogWarning(AXR_FUNCTION_FAILED_STRING "Swapchain already exists.");
+        return AXR_SUCCESS;
+    }
+
+    VkSurfaceCapabilitiesKHR surfaceCapabilities;
+    const AxrResult axrResult = getSurfaceCapabilities(physicalDevice, surface, surfaceCapabilities);
+    if (AXR_FAILED(axrResult)) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to get surface capabilities.");
+        return axrResult;
+    }
+
+    uint32_t minImageCount = surfaceCapabilities.minImageCount + 1;
+
+    // 0 is a special value that indicates that there is no maximum
+    if (surfaceCapabilities.maxImageCount > 0 && minImageCount > surfaceCapabilities.maxImageCount) {
+        minImageCount = surfaceCapabilities.maxImageCount;
+    }
+
+    VkSwapchainCreateInfoKHR swapchainCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+        .pNext = nullptr,
+        .flags = {},
+        .surface = surface,
+        .minImageCount = minImageCount,
+        .imageFormat = swapchainContext.ColorFormat,
+        .imageColorSpace = swapchainContext.ColorSpace,
+        .imageExtent = swapchainContext.Extent,
+        .imageArrayLayers = 1,
+        .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+        .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .queueFamilyIndexCount = 0,
+        .pQueueFamilyIndices = nullptr,
+        .preTransform = surfaceCapabilities.currentTransform,
+        .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+        .presentMode = swapchainContext.PresentationMode,
+        .clipped = VK_TRUE,
+        .oldSwapchain = VK_NULL_HANDLE,
+    };
+
+    const uint32_t graphicsFamilyIndex = queueFamilies.GraphicsQueueFamilyIndex.value();
+    const uint32_t presentationFamilyIndex = queueFamilies.PresentationQueueFamilyIndex.value();
+    const uint32_t queueFamilyIndices[] = {graphicsFamilyIndex, presentationFamilyIndex};
+
+    if (graphicsFamilyIndex != presentationFamilyIndex) {
+        swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+        swapchainCreateInfo.queueFamilyIndexCount = 2;
+        swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
+    }
+
+    const VkResult vkResult = vkCreateSwapchainKHR(device, &swapchainCreateInfo, nullptr, &swapchainContext.Swapchain);
+    axrLogVkResult(vkResult, "vkCreateSwapchainKHR");
+    if (VK_FAILED(vkResult))
+        return AXR_ERROR_VULKAN_ERROR;
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+void AxrVulkanEnvironment::destroyDesktopSwapchain(const VkDevice& device, VkSwapchainKHR& swapchain) {
+    if (swapchain == VK_NULL_HANDLE)
+        return;
+
+    vkDestroySwapchainKHR(device, swapchain, nullptr);
+    swapchain = VK_NULL_HANDLE;
 }
 
 #endif
