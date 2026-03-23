@@ -51,6 +51,7 @@ public:
         AxrVector_Dynamic<VkSemaphore> RenderingFinishedSemaphores = AxrVector_Dynamic<VkSemaphore>();
         AxrVector_Dynamic<VkFence> RenderingFences = AxrVector_Dynamic<VkFence>();
         AxrVector_Dynamic<VkCommandBuffer> RenderingCommandBuffers = AxrVector_Dynamic<VkCommandBuffer>();
+        AxrVector_Dynamic<VkFramebuffer> Framebuffers = AxrVector_Dynamic<VkFramebuffer>();
         DesktopSwapchainContext SwapchainContext;
         VkInstance Instance = VK_NULL_HANDLE;
         VkDevice Device = VK_NULL_HANDLE;
@@ -267,24 +268,31 @@ private:
     /// @param physicalDevice Physical device to use
     /// @param device Device to use
     /// @param surface Surface to use
+    /// @param renderPass Render pass to use
     /// @param graphicsCommandPool Graphics command pool to use
     /// @param queueFamilies Queue families to use
     /// @param msaaSampleCount Msaa sample count to use
     /// @param swapchainContext Input/Output swapchain context
+    /// @param framebuffers Output Framebuffers to create
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] static AxrResult setupDesktopSwapchain(const VkPhysicalDevice& physicalDevice,
                                                          const VkDevice& device,
                                                          const VkSurfaceKHR& surface,
+                                                         const VkRenderPass& renderPass,
                                                          const VkCommandPool& graphicsCommandPool,
                                                          const AxrVulkanQueueFamilies& queueFamilies,
                                                          VkSampleCountFlagBits msaaSampleCount,
-                                                         DesktopSwapchainContext& swapchainContext);
+                                                         DesktopSwapchainContext& swapchainContext,
+                                                         AxrVector_Dynamic<VkFramebuffer>& framebuffers);
     /// Reset the swapchain and all objects that depend on it for the desktop environment.
     /// Please note that the swapchain context `ColorFormat`, `DepthFormat` and `ColorSpace` is NOT reset in this
     /// function.
     /// @param device Logical device to use
     /// @param swapchainContext Swapchain context to reset
-    static void resetSetupDesktopSwapchain(const VkDevice& device, DesktopSwapchainContext& swapchainContext);
+    /// @param framebuffers Framebuffers to reset
+    static void resetSetupDesktopSwapchain(const VkDevice& device,
+                                           DesktopSwapchainContext& swapchainContext,
+                                           AxrVector_Dynamic<VkFramebuffer>& framebuffers);
 
     /// Set the swapchain presentation mode for the desktop environment
     /// @param physicalDevice Physical device to use
@@ -400,18 +408,45 @@ private:
     /// @param imageFormat Swapchain msaa image format
     /// @param images Output created swapchain msaa images
     [[nodiscard]] static AxrResult createSwapchainMsaaImages(const VkPhysicalDevice& physicalDevice,
-                                                              const VkDevice& device,
-                                                              const VkCommandPool& graphicsCommandPool,
-                                                              const VkQueue& graphicsQueue,
-                                                              VkExtent2D swapchainExtent,
-                                                              uint32_t imageCount,
-                                                              VkSampleCountFlagBits msaaSampleCount,
-                                                              VkFormat imageFormat,
-                                                              AxrVector_Dynamic<AxrVulkanImage>& images);
-    
+                                                             const VkDevice& device,
+                                                             const VkCommandPool& graphicsCommandPool,
+                                                             const VkQueue& graphicsQueue,
+                                                             VkExtent2D swapchainExtent,
+                                                             uint32_t imageCount,
+                                                             VkSampleCountFlagBits msaaSampleCount,
+                                                             VkFormat imageFormat,
+                                                             AxrVector_Dynamic<AxrVulkanImage>& images);
+
     /// Destroy the given vulkan images
     /// @param images Vulkan images to destroy
     static void destroyVulkanImages(AxrVector_Dynamic<AxrVulkanImage>& images);
+
+    // ---- Framebuffer ----
+
+    /// Create a framebuffer for each swapchain image
+    /// @param device Device to use
+    /// @param renderPass Render pass to use
+    /// @param swapchainImageCount Number of swapchain images in each swapchainImageViews array
+    /// @param swapchainColorImageViews Swapchain color image views array
+    /// @param swapchainDepthImageViews Swapchain depth image views array
+    /// @param swapchainMsaaImageViews Swapchain msaa image views array
+    /// @param swapchainExtent Swapchain extent
+    /// @param msaaSampleCount Msaa sample count
+    /// @param framebuffers Output created framebuffers
+    /// @return AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult createFramebuffers(const VkDevice& device,
+                                                      const VkRenderPass& renderPass,
+                                                      uint32_t swapchainImageCount,
+                                                      const VkImageView* swapchainColorImageViews,
+                                                      const VkImageView* swapchainDepthImageViews,
+                                                      const VkImageView* swapchainMsaaImageViews,
+                                                      VkExtent2D swapchainExtent,
+                                                      VkSampleCountFlagBits msaaSampleCount,
+                                                      AxrVector_Dynamic<VkFramebuffer>& framebuffers);
+    /// Destroy the given framebuffers
+    /// @param device Device to use
+    /// @param framebuffers Framebuffers to destroy
+    static void destroyFramebuffers(const VkDevice& device, AxrVector_Dynamic<VkFramebuffer>& framebuffers);
 };
 
 #endif

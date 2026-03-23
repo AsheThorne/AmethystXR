@@ -78,10 +78,12 @@ AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, D
     axrResult = setupDesktopSwapchain(config.PhysicalDevice,
                                       context.Device,
                                       context.Surface,
+                                      context.RenderPass,
                                       config.GraphicsCommandPool,
                                       config.QueueFamilies,
                                       context.MsaaSampleCount,
-                                      context.SwapchainContext);
+                                      context.SwapchainContext,
+                                      context.Framebuffers);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
         destroyDesktopContext(context);
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to set up desktop swapchain.");
@@ -93,7 +95,7 @@ AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, D
 #undef AXR_FUNCTION_FAILED_STRING
 
 void AxrVulkanEnvironment::destroyDesktopContext(DesktopContext& context) {
-    resetSetupDesktopSwapchain(context.Device, context.SwapchainContext);
+    resetSetupDesktopSwapchain(context.Device, context.SwapchainContext, context.Framebuffers);
     destroyCommandBuffers(context.Device, context.GraphicsCommandPool, context.RenderingCommandBuffers);
     destroyDesktopSyncObjects(context.Device,
                               context.ImageAvailableSemaphores,
@@ -679,10 +681,12 @@ void AxrVulkanEnvironment::destroyCommandBuffers(const VkDevice& device,
 AxrResult AxrVulkanEnvironment::setupDesktopSwapchain(const VkPhysicalDevice& physicalDevice,
                                                       const VkDevice& device,
                                                       const VkSurfaceKHR& surface,
+                                                      const VkRenderPass& renderPass,
                                                       const VkCommandPool& graphicsCommandPool,
                                                       const AxrVulkanQueueFamilies& queueFamilies,
                                                       const VkSampleCountFlagBits msaaSampleCount,
-                                                      DesktopSwapchainContext& swapchainContext) {
+                                                      DesktopSwapchainContext& swapchainContext,
+                                                      AxrVector_Dynamic<VkFramebuffer>& framebuffers) {
     AxrResult axrResult = AXR_SUCCESS;
 
     axrResult = setDesktopSwapchainPresentationMode(physicalDevice,
@@ -690,21 +694,21 @@ AxrResult AxrVulkanEnvironment::setupDesktopSwapchain(const VkPhysicalDevice& ph
                                                     swapchainContext.PreferredPresentationMode,
                                                     swapchainContext.PresentationMode);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
-        resetSetupDesktopSwapchain(device, swapchainContext);
+        resetSetupDesktopSwapchain(device, swapchainContext, framebuffers);
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to set swapchain presentation mode.");
         return axrResult;
     }
 
     axrResult = setDesktopSwapchainExtent(physicalDevice, surface, swapchainContext.Extent);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
-        resetSetupDesktopSwapchain(device, swapchainContext);
+        resetSetupDesktopSwapchain(device, swapchainContext, framebuffers);
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to set swapchain extent.");
         return axrResult;
     }
 
     axrResult = createDesktopSwapchain(physicalDevice, device, surface, queueFamilies, swapchainContext);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
-        resetSetupDesktopSwapchain(device, swapchainContext);
+        resetSetupDesktopSwapchain(device, swapchainContext, framebuffers);
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create swapchain.");
         return axrResult;
     }
@@ -715,7 +719,7 @@ AxrResult AxrVulkanEnvironment::setupDesktopSwapchain(const VkPhysicalDevice& ph
                                           swapchainContext.ColorImages,
                                           swapchainContext.ColorImageViews);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
-        resetSetupDesktopSwapchain(device, swapchainContext);
+        resetSetupDesktopSwapchain(device, swapchainContext, framebuffers);
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to get swapchain images.");
         return axrResult;
     }
@@ -730,23 +734,52 @@ AxrResult AxrVulkanEnvironment::setupDesktopSwapchain(const VkPhysicalDevice& ph
                                            swapchainContext.DepthFormat,
                                            swapchainContext.DepthImages);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
-        resetSetupDesktopSwapchain(device, swapchainContext);
+        resetSetupDesktopSwapchain(device, swapchainContext, framebuffers);
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create swapchain depth images.");
         return axrResult;
     }
+
+    const auto swapchainImageCount = static_cast<uint32_t>(swapchainContext.ColorImages.size());
 
     axrResult = createSwapchainMsaaImages(physicalDevice,
                                           device,
                                           graphicsCommandPool,
                                           queueFamilies.GraphicsQueue,
                                           swapchainContext.Extent,
-                                          swapchainContext.ColorImages.size(),
+                                          swapchainImageCount,
                                           msaaSampleCount,
                                           swapchainContext.ColorFormat,
                                           swapchainContext.MsaaImages);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
-        resetSetupDesktopSwapchain(device, swapchainContext);
+        resetSetupDesktopSwapchain(device, swapchainContext, framebuffers);
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create swapchain msaa images.");
+        return axrResult;
+    }
+
+    AxrVector_Stack<VkImageView> tempSwapchainDepthImageViews(swapchainContext.DepthImages.size(),
+                                                              &AxrAllocator::get().FrameAllocator);
+    for (const AxrVulkanImage& depthImage : swapchainContext.DepthImages) {
+        tempSwapchainDepthImageViews.pushBack(depthImage.getImageView());
+    }
+
+    AxrVector_Stack<VkImageView> tempSwapchainMsaaImageViews(swapchainContext.MsaaImages.size(),
+                                                             &AxrAllocator::get().FrameAllocator);
+    for (const AxrVulkanImage& msaaImage : swapchainContext.MsaaImages) {
+        tempSwapchainMsaaImageViews.pushBack(msaaImage.getImageView());
+    }
+
+    axrResult = createFramebuffers(device,
+                                   renderPass,
+                                   swapchainImageCount,
+                                   swapchainContext.ColorImageViews.data(),
+                                   tempSwapchainDepthImageViews.data(),
+                                   tempSwapchainMsaaImageViews.data(),
+                                   swapchainContext.Extent,
+                                   msaaSampleCount,
+                                   framebuffers);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        resetSetupDesktopSwapchain(device, swapchainContext, framebuffers);
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create framebuffers.");
         return axrResult;
     }
 
@@ -755,7 +788,9 @@ AxrResult AxrVulkanEnvironment::setupDesktopSwapchain(const VkPhysicalDevice& ph
 #undef AXR_FUNCTION_FAILED_STRING
 
 void AxrVulkanEnvironment::resetSetupDesktopSwapchain(const VkDevice& device,
-                                                      DesktopSwapchainContext& swapchainContext) {
+                                                      DesktopSwapchainContext& swapchainContext,
+                                                      AxrVector_Dynamic<VkFramebuffer>& framebuffers) {
+    destroyFramebuffers(device, framebuffers);
     destroyVulkanImages(swapchainContext.MsaaImages);
     destroyVulkanImages(swapchainContext.DepthImages);
     resetDesktopSwapchainImages(device, swapchainContext.ColorImages, swapchainContext.ColorImageViews);
@@ -1052,6 +1087,9 @@ void AxrVulkanEnvironment::resetDesktopSwapchainImages(const VkDevice& device,
                                                        AxrVector_Dynamic<VkImage>& images,
                                                        AxrVector_Dynamic<VkImageView>& imageViews) {
     for (VkImageView& imageView : imageViews) {
+        if (imageView == VK_NULL_HANDLE)
+            continue;
+
         AxrVulkanImage::destroyImageView(device, imageView);
     }
 
@@ -1192,6 +1230,82 @@ void AxrVulkanEnvironment::destroyVulkanImages(AxrVector_Dynamic<AxrVulkanImage>
 
     // Reset the vector so the data can be deallocated
     images = {};
+}
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to create framebuffers. "
+AxrResult AxrVulkanEnvironment::createFramebuffers(const VkDevice& device,
+                                                   const VkRenderPass& renderPass,
+                                                   const uint32_t swapchainImageCount,
+                                                   const VkImageView* swapchainColorImageViews,
+                                                   const VkImageView* swapchainDepthImageViews,
+                                                   const VkImageView* swapchainMsaaImageViews,
+                                                   const VkExtent2D swapchainExtent,
+                                                   const VkSampleCountFlagBits msaaSampleCount,
+                                                   AxrVector_Dynamic<VkFramebuffer>& framebuffers) {
+    assert(device != VK_NULL_HANDLE);
+    assert(renderPass != VK_NULL_HANDLE);
+    assert(swapchainColorImageViews != nullptr);
+    assert(swapchainDepthImageViews != nullptr);
+
+    const bool isMsaaEnabled = msaaSampleCount != VK_SAMPLE_COUNT_1_BIT;
+
+    if (isMsaaEnabled) {
+        assert(swapchainMsaaImageViews != nullptr);
+    }
+
+    if (framebuffers.allocated()) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Framebuffers have already been allocated.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    AxrVector_Dynamic<VkFramebuffer> tempFramebuffers(swapchainImageCount, &AxrAllocator::get().EngineDataAllocator);
+    tempFramebuffers.prefillData(VK_NULL_HANDLE);
+
+    for (uint32_t i = 0; i < swapchainImageCount; ++i) {
+        AxrVector_Stack<VkImageView> attachments(3, &AxrAllocator::get().FrameAllocator);
+
+        if (isMsaaEnabled) {
+            attachments.append({swapchainMsaaImageViews[i], swapchainDepthImageViews[i], swapchainColorImageViews[i]});
+        } else {
+            attachments.append({swapchainColorImageViews[i], swapchainDepthImageViews[i]});
+        }
+
+        const VkFramebufferCreateInfo framebufferCreateInfo{
+            .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = {},
+            .renderPass = renderPass,
+            .attachmentCount = static_cast<uint32_t>(attachments.size()),
+            .pAttachments = attachments.data(),
+            .width = swapchainExtent.width,
+            .height = swapchainExtent.height,
+            .layers = 1,
+        };
+
+        const VkResult vkResult = vkCreateFramebuffer(device, &framebufferCreateInfo, nullptr, &tempFramebuffers[i]);
+        axrLogVkResult(vkResult, "vkCreateFramebuffer");
+        if (VK_FAILED(vkResult)) [[unlikely]] {
+            return AXR_ERROR_VULKAN_ERROR;
+        }
+    }
+
+    framebuffers = std::move(tempFramebuffers);
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+void AxrVulkanEnvironment::destroyFramebuffers(const VkDevice& device, AxrVector_Dynamic<VkFramebuffer>& framebuffers) {
+    for (VkFramebuffer& framebuffer : framebuffers) {
+        if (framebuffer == VK_NULL_HANDLE)
+            continue;
+
+        vkDestroyFramebuffer(device, framebuffer, nullptr);
+        framebuffer = VK_NULL_HANDLE;
+    }
+
+    // Reset the vector so the data can be deallocated
+    framebuffers = {};
 }
 
 #endif
