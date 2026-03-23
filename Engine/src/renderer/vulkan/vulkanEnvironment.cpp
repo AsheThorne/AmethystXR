@@ -6,7 +6,6 @@
 
 #include "../../memory/allocator.h"
 #include "../../platform/platform.h"
-#include "vulkanImage.h"
 #include "vulkanUtils.h"
 
 // ----------------------------------------- //
@@ -79,7 +78,9 @@ AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, D
     axrResult = setupDesktopSwapchain(config.PhysicalDevice,
                                       context.Device,
                                       context.Surface,
+                                      config.GraphicsCommandPool,
                                       config.QueueFamilies,
+                                      context.MsaaSampleCount,
                                       context.SwapchainContext);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
         destroyDesktopContext(context);
@@ -192,8 +193,10 @@ AxrResult AxrVulkanEnvironment::getSupportedSurfaceFormats(const VkSurfaceKHR& s
 
     AxrVector_Stack<VkSurfaceFormatKHR> surfaceFormats(surfaceFormatsCount, &AxrAllocator::get().FrameAllocator);
     surfaceFormats.prefillData();
-    vkResult =
-        vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &surfaceFormatsCount, surfaceFormats.data());
+    vkResult = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice,
+                                                    surface,
+                                                    &surfaceFormatsCount,
+                                                    surfaceFormats.data());
     axrLogVkResult(vkResult, "vkGetPhysicalDeviceSurfaceFormatsKHR");
     if (VK_FAILED(vkResult)) [[unlikely]]
         return AXR_ERROR_VULKAN_ERROR;
@@ -256,11 +259,11 @@ AxrResult AxrVulkanEnvironment::setSwapchainFormats(const VkPhysicalDevice& phys
     VkFormat selectedDepthFormat = VK_FORMAT_UNDEFINED;
 
     for (const VkFormat formatOption : swapchainDepthFormatOptions) {
-        if (!areFormatFeaturesSupported(formatOption,
-                                        VK_IMAGE_TILING_OPTIMAL,
-                                        VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT |
-                                            VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                                        physicalDevice)) {
+        if (!areFormatFeaturesSupported(
+                formatOption,
+                VK_IMAGE_TILING_OPTIMAL,
+                VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                physicalDevice)) {
             continue;
         }
 
@@ -471,10 +474,10 @@ AxrResult AxrVulkanEnvironment::createDesktopSyncObjects(const VkDevice& device,
     // ----------------------------------------- //
     AxrResult axrResult = AXR_SUCCESS;
 
-    imageAvailableSemaphores =
-        AxrVector_Dynamic<VkSemaphore>(maxFramesInFlight, &AxrAllocator::get().EngineDataAllocator);
-    renderingFinishedSemaphores =
-        AxrVector_Dynamic<VkSemaphore>(maxFramesInFlight, &AxrAllocator::get().EngineDataAllocator);
+    imageAvailableSemaphores = AxrVector_Dynamic<VkSemaphore>(maxFramesInFlight,
+                                                              &AxrAllocator::get().EngineDataAllocator);
+    renderingFinishedSemaphores = AxrVector_Dynamic<VkSemaphore>(maxFramesInFlight,
+                                                                 &AxrAllocator::get().EngineDataAllocator);
     renderingFences = AxrVector_Dynamic<VkFence>(maxFramesInFlight, &AxrAllocator::get().EngineDataAllocator);
 
     axrResult = createSemaphores(device, imageAvailableSemaphores);
@@ -676,7 +679,9 @@ void AxrVulkanEnvironment::destroyCommandBuffers(const VkDevice& device,
 AxrResult AxrVulkanEnvironment::setupDesktopSwapchain(const VkPhysicalDevice& physicalDevice,
                                                       const VkDevice& device,
                                                       const VkSurfaceKHR& surface,
+                                                      const VkCommandPool& graphicsCommandPool,
                                                       const AxrVulkanQueueFamilies& queueFamilies,
+                                                      const VkSampleCountFlagBits msaaSampleCount,
                                                       DesktopSwapchainContext& swapchainContext) {
     AxrResult axrResult = AXR_SUCCESS;
 
@@ -715,12 +720,28 @@ AxrResult AxrVulkanEnvironment::setupDesktopSwapchain(const VkPhysicalDevice& ph
         return axrResult;
     }
 
+    axrResult = createSwapchainDepthImages(physicalDevice,
+                                           device,
+                                           graphicsCommandPool,
+                                           queueFamilies.GraphicsQueue,
+                                           swapchainContext.Extent,
+                                           swapchainContext.ColorImages.size(),
+                                           msaaSampleCount,
+                                           swapchainContext.DepthFormat,
+                                           swapchainContext.DepthImages);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        resetSetupDesktopSwapchain(device, swapchainContext);
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create swapchain depth images.");
+        return axrResult;
+    }
+
     return AXR_SUCCESS;
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
 void AxrVulkanEnvironment::resetSetupDesktopSwapchain(const VkDevice& device,
                                                       DesktopSwapchainContext& swapchainContext) {
+    destroySwapchainDepthImages(swapchainContext.DepthImages);
     resetDesktopSwapchainImages(device, swapchainContext.ColorImages, swapchainContext.ColorImageViews);
     destroyDesktopSwapchain(device, swapchainContext.Swapchain);
     resetSwapchainExtent(swapchainContext.Extent);
@@ -747,8 +768,9 @@ AxrResult AxrVulkanEnvironment::setDesktopSwapchainPresentationMode(
     }
 
     AxrVector_Stack<VkPresentModeKHR> supportedPresentationModes;
-    const AxrResult axrResult =
-        getSupportedSurfacePresentationModes(physicalDevice, surface, supportedPresentationModes);
+    const AxrResult axrResult = getSupportedSurfacePresentationModes(physicalDevice,
+                                                                     surface,
+                                                                     supportedPresentationModes);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to get supported surface presentation modes.");
         return axrResult;
@@ -800,8 +822,10 @@ AxrResult AxrVulkanEnvironment::getSupportedSurfacePresentationModes(
     }
 
     uint32_t presentationModesCount;
-    VkResult vkResult =
-        vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentationModesCount, nullptr);
+    VkResult vkResult = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice,
+                                                                  surface,
+                                                                  &presentationModesCount,
+                                                                  nullptr);
     axrLogVkResult(vkResult, "vkGetPhysicalDeviceSurfacePresentModesKHR");
     if (VK_FAILED(vkResult)) [[unlikely]]
         return AXR_ERROR_VULKAN_ERROR;
@@ -1017,6 +1041,83 @@ void AxrVulkanEnvironment::resetDesktopSwapchainImages(const VkDevice& device,
 
     // Reset the vectors so the data can be deallocated
     imageViews = {};
+    images = {};
+}
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to create swapchain depth images. "
+AxrResult AxrVulkanEnvironment::createSwapchainDepthImages(const VkPhysicalDevice& physicalDevice,
+                                                           const VkDevice& device,
+                                                           const VkCommandPool& graphicsCommandPool,
+                                                           const VkQueue& graphicsQueue,
+                                                           const VkExtent2D swapchainExtent,
+                                                           const uint32_t imageCount,
+                                                           const VkSampleCountFlagBits msaaSampleCount,
+                                                           const VkFormat imageFormat,
+                                                           AxrVector_Dynamic<AxrVulkanImage>& images) {
+    assert(physicalDevice != VK_NULL_HANDLE);
+    assert(device != VK_NULL_HANDLE);
+    assert(graphicsCommandPool != VK_NULL_HANDLE);
+    assert(graphicsQueue != VK_NULL_HANDLE);
+
+    if (images.allocated()) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Images have already been allocated.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    AxrResult axrResult = AXR_SUCCESS;
+    VkImageAspectFlags imageAspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+    if (axrFormatHasStencilComponent(imageFormat)) {
+        imageAspectFlags |= VK_IMAGE_ASPECT_STENCIL_BIT;
+    }
+
+    AxrVector_Dynamic<AxrVulkanImage> depthImages(imageCount, &AxrAllocator::get().EngineDataAllocator);
+    depthImages.prefillEmplaceData(AxrVulkanImage(AxrVulkanImage::Config{
+        .PhysicalDevice = physicalDevice,
+        .Device = device,
+        .GraphicsCommandPool = graphicsCommandPool,
+        .GraphicsQueue = graphicsQueue,
+    }));
+
+    for (AxrVulkanImage& depthImage : depthImages) {
+        axrResult = depthImage.createImage(swapchainExtent,
+                                           msaaSampleCount,
+                                           imageFormat,
+                                           VK_IMAGE_TILING_OPTIMAL,
+                                           VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                                           imageAspectFlags);
+        if (AXR_FAILED(axrResult)) [[unlikely]] {
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create image.");
+            return axrResult;
+        }
+
+        axrResult = depthImage.transitionImageLayout(
+            VK_ACCESS_NONE,
+            VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+            VK_IMAGE_LAYOUT_UNDEFINED,
+            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT);
+
+        if (AXR_FAILED(axrResult)) [[unlikely]] {
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to transition image layout.");
+            return axrResult;
+        }
+    }
+
+    images = std::move(depthImages);
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+void AxrVulkanEnvironment::destroySwapchainDepthImages(AxrVector_Dynamic<AxrVulkanImage>& images) {
+    for (AxrVulkanImage& image : images) {
+        image.destroyImage();
+    }
+
+    // Reset the vector so the data can be deallocated
     images = {};
 }
 

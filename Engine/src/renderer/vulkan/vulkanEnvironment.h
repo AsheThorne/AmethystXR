@@ -6,6 +6,7 @@
 // ----------------------------------------- //
 #include "../../common/containers/vector_dynamic.h"
 #include "axr/vulkanApi.h"
+#include "vulkanImage.h"
 #include "vulkanQueueFamilies.h"
 
 #include <vulkan/vulkan_core.h>
@@ -34,6 +35,7 @@ public:
     struct DesktopSwapchainContext {
         AxrVector_Dynamic<VkImage> ColorImages = AxrVector_Dynamic<VkImage>();
         AxrVector_Dynamic<VkImageView> ColorImageViews = AxrVector_Dynamic<VkImageView>();
+        AxrVector_Dynamic<AxrVulkanImage> DepthImages = AxrVector_Dynamic<AxrVulkanImage>();
         VkSwapchainKHR Swapchain = VK_NULL_HANDLE;
         VkExtent2D Extent = {};
         VkFormat ColorFormat = VK_FORMAT_UNDEFINED;
@@ -264,13 +266,17 @@ private:
     /// @param physicalDevice Physical device to use
     /// @param device Device to use
     /// @param surface Surface to use
+    /// @param graphicsCommandPool Graphics command pool to use
     /// @param queueFamilies Queue families to use
+    /// @param msaaSampleCount Msaa sample count to use
     /// @param swapchainContext Input/Output swapchain context
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] static AxrResult setupDesktopSwapchain(const VkPhysicalDevice& physicalDevice,
                                                          const VkDevice& device,
                                                          const VkSurfaceKHR& surface,
+                                                         const VkCommandPool& graphicsCommandPool,
                                                          const AxrVulkanQueueFamilies& queueFamilies,
+                                                         VkSampleCountFlagBits msaaSampleCount,
                                                          DesktopSwapchainContext& swapchainContext);
     /// Reset the swapchain and all objects that depend on it for the desktop environment.
     /// Please note that the swapchain context `ColorFormat`, `DepthFormat` and `ColorSpace` is NOT reset in this
@@ -362,6 +368,29 @@ private:
     static void resetDesktopSwapchainImages(const VkDevice& device,
                                             AxrVector_Dynamic<VkImage>& images,
                                             AxrVector_Dynamic<VkImageView>& imageViews);
+
+    /// Create swapchain depth images
+    /// @param physicalDevice Physical device to use
+    /// @param device Device to use
+    /// @param graphicsCommandPool Graphics command pool to use
+    /// @param graphicsQueue Graphics Queue to use
+    /// @param swapchainExtent Swapchain extent
+    /// @param imageCount Number of depth images to create
+    /// @param msaaSampleCount Msaa sample count
+    /// @param imageFormat Swapchain depth image format
+    /// @param images Output created swapchain depth images
+    [[nodiscard]] static AxrResult createSwapchainDepthImages(const VkPhysicalDevice& physicalDevice,
+                                                              const VkDevice& device,
+                                                              const VkCommandPool& graphicsCommandPool,
+                                                              const VkQueue& graphicsQueue,
+                                                              VkExtent2D swapchainExtent,
+                                                              uint32_t imageCount,
+                                                              VkSampleCountFlagBits msaaSampleCount,
+                                                              VkFormat imageFormat,
+                                                              AxrVector_Dynamic<AxrVulkanImage>& images);
+    /// Destroy the given swapchain depth images
+    /// @param images Swapchain depth images to destroy
+    static void destroySwapchainDepthImages(AxrVector_Dynamic<AxrVulkanImage>& images);
 };
 
 #endif

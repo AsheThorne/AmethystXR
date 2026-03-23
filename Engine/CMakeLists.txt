@@ -72,6 +72,7 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanRenderer.h
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanRenderer.cpp
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanUtils.h
+    ${AXR_SRC_DIR}/renderer/vulkan/vulkanUtils.cpp
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanExtensions.h
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanExtensions.cpp
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanExtensionFunctions.cpp
