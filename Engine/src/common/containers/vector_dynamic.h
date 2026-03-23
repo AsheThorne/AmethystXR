@@ -164,6 +164,14 @@ public:
         AxrVectorBase<Type>::pushBack(dataItem, m_DataHandle.getDataPtr());
     }
 
+    /// Emplace a single item to the end of the vector
+    /// @param args Data item emplace arguments
+    /// @return AXR_SUCCESS if the function succeeded. AXR_ERROR_OUT_OF_MEMORY if there isn't enough space.
+    template<typename... Args>
+    void emplaceBack(Args&&... args) {
+        AxrVectorBase<Type>::emplaceBack(m_DataHandle.getDataPtr(), std::forward<Args>(args)...);
+    }
+
     /// Prefill the entire vector with the default value
     void prefillData() {
         AxrVectorBase<Type>::prefillData(m_DataHandle.getDataPtr());
@@ -173,6 +181,13 @@ public:
     /// @param data Data to prefill vector with
     void prefillData(const Type& data) {
         AxrVectorBase<Type>::prefillData(data, m_DataHandle.getDataPtr());
+    }
+
+    /// Prefill the entire vector with the given value using emplace
+    /// @param args Data item emplace arguments to prefill the vector with
+    template<typename... Args>
+    void prefillEmplaceData(Args&&... args) {
+        AxrVectorBase<Type>::prefillEmplaceData(m_DataHandle.getDataPtr(), std::forward<Args>(args)...);
     }
 
     /// Append the vector with the given items

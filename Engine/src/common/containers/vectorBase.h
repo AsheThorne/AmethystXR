@@ -131,8 +131,8 @@ protected:
     // ----------------------------------------- //
     size_t m_Capacity{};
     size_t m_Size{};
-    static constexpr bool const& m_IsTypeCharArray =
-        std::is_array_v<Type> && std::is_same_v<std::remove_extent_t<Type>, char>;
+    static constexpr bool const& m_IsTypeCharArray = std::is_array_v<Type> &&
+                                                     std::is_same_v<std::remove_extent_t<Type>, char>;
     static constexpr bool const& m_IsTypeConstCharPtr = std::is_same_v<std::remove_extent_t<Type>, const char*>;
 
     // ----------------------------------------- //
@@ -268,6 +268,27 @@ protected:
     }
 #undef AXR_FUNCTION_FAILED_STRING
 
+#define AXR_FUNCTION_FAILED_STRING "Failed to emplace back data in AxrVectorBase. "
+    /// Emplace a single item to the end of the vector
+    /// @param arrayData The data array to use
+    /// @param args Data item emplace arguments
+    /// @return AXR_SUCCESS if the function succeeded. AXR_ERROR_OUT_OF_MEMORY if there isn't enough space.
+    template<typename... Args>
+    void emplaceBack(Type* arrayData, Args&&... args) {
+        if (arrayData == nullptr) [[unlikely]] {
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Array data is null.");
+            return;
+        }
+
+        if (m_Size + 1 > m_Capacity) [[unlikely]] {
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Vector is full.");
+            return;
+        }
+
+        new (arrayData + m_Size++) Type(std::forward<Args>(args)...);
+    }
+#undef AXR_FUNCTION_FAILED_STRING
+
     /// Prefill the entire vector with the default value
     /// @param arrayData The data array to use
     void prefillData(Type* arrayData) {
@@ -280,6 +301,16 @@ protected:
     void prefillData(const Type& data, Type* arrayData) {
         for (size_t i = 0; i < m_Capacity; ++i) {
             pushBack(data, arrayData);
+        }
+    }
+
+    /// Prefill the entire vector with the given value using emplace
+    /// @param arrayData The data array to use
+    /// @param args Data item emplace arguments to prefill the vector with
+    template<typename... Args>
+    void prefillEmplaceData(Type* arrayData, Args&&... args) {
+        for (size_t i = 0; i < m_Capacity; ++i) {
+            emplaceBack(arrayData, std::forward<Args>(args)...);
         }
     }
 

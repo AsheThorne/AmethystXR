@@ -186,6 +186,14 @@ public:
         AxrVectorBase<Type>::pushBack(dataItem, m_Data);
     }
 
+    /// Emplace a single item to the end of the vector
+    /// @param args Data item emplace arguments
+    /// @return AXR_SUCCESS if the function succeeded. AXR_ERROR_OUT_OF_MEMORY if there isn't enough space.
+    template<typename... Args>
+    void emplaceBack(Args&&... args) {
+        AxrVectorBase<Type>::emplaceBack(m_Data, std::forward<Args>(args)...);
+    }
+
     /// Prefill the entire vector with the default value
     void prefillData() {
         AxrVectorBase<Type>::prefillData(m_Data);
@@ -195,6 +203,13 @@ public:
     /// @param data Data to prefill vector with
     void prefillData(const Type& data) {
         AxrVectorBase<Type>::prefillData(data, m_Data);
+    }
+
+    /// Prefill the entire vector with the given value using emplace
+    /// @param args Data item emplace arguments to prefill the vector with
+    template<typename... Args>
+    void prefillEmplaceData(Args&&... args) {
+        AxrVectorBase<Type>::prefillEmplaceData(m_Data, std::forward<Args>(args)...);
     }
 
     /// Append the vector with the given items
@@ -266,8 +281,9 @@ protected:
             return AXR_SUCCESS;
         }
 
-        const AxrResult axrResult =
-            m_StackAllocator->allocate(AxrVectorBase<Type>::m_Capacity, m_Data, m_AllocatorMarkerID);
+        const AxrResult axrResult = m_StackAllocator->allocate(AxrVectorBase<Type>::m_Capacity,
+                                                               m_Data,
+                                                               m_AllocatorMarkerID);
         if (AXR_FAILED(axrResult)) [[unlikely]] {
             axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to allocate memory.");
             return axrResult;
