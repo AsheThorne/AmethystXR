@@ -23,7 +23,7 @@ public:
     // Types
     // ----------------------------------------- //
     using ReturnNoConst_T = std::remove_const_t<Return_T>;
-    using Function_T = ReturnNoConst_T(const void* instance, Args... args);
+    using Function_T = ReturnNoConst_T(const void* instance, Args&&... args);
 
     // ----------------------------------------- //
     // Special Functions
@@ -45,20 +45,20 @@ public:
     /// == Operator overload
     /// @param other Other callback to check equality with
     /// @returns True if this callback and the other callback are equal
-    bool operator==(const AxrCallback<Return_T(Args...)>& other) const {
+    bool operator==(const AxrCallback<Return_T(Args&&...)>& other) const {
         return m_Function == other.m_Function && m_Instance == other.m_Instance;
     }
 
     /// != Operator overload
     /// @param other Other callback to check equality with
     /// @returns True if this callback and the other callback are not equal
-    bool operator!=(const AxrCallback<Return_T(Args...)>& other) const {
+    bool operator!=(const AxrCallback<Return_T(Args&&...)>& other) const {
         return !(*this == other);
     }
 
     /// () Operator overload
     /// @param args Function arguments
-    Return_T operator()(Args... args) const {
+    Return_T operator()(Args&&... args) const {
         if (m_Function == nullptr)
             return static_cast<Return_T>(0);
 
@@ -74,7 +74,7 @@ public:
     template<auto Candidate>
     void connect() {
         m_Instance = nullptr;
-        m_Function = [](const void*, Args... args) -> ReturnNoConst_T {
+        m_Function = [](const void*, Args&&... args) -> ReturnNoConst_T {
             return Return_T(std::invoke(Candidate, std::forward<Args>(args)...));
         };
     }
@@ -85,7 +85,7 @@ public:
     template<auto Candidate, typename Type>
     void connect(Type& instance) {
         m_Instance = &instance;
-        m_Function = [](const void* payload, Args... args) -> ReturnNoConst_T {
+        m_Function = [](const void* payload, Args&&... args) -> ReturnNoConst_T {
             Type* curr = static_cast<Type*>(const_cast<AxrConstnessAs_T<void, Type>*>(payload));
             return Return_T(std::invoke(Candidate, *curr, std::forward<Args>(args)...));
         };
@@ -97,7 +97,7 @@ public:
     template<auto Candidate, typename Type>
     void connect(Type* instance) {
         m_Instance = instance;
-        m_Function = [](const void* payload, Args... args) -> ReturnNoConst_T {
+        m_Function = [](const void* payload, Args&&... args) -> ReturnNoConst_T {
             Type* curr = static_cast<Type*>(const_cast<AxrConstnessAs_T<void, Type>*>(payload));
             return Return_T(std::invoke(Candidate, curr, std::forward<Args>(args)...));
         };
