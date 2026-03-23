@@ -6,6 +6,7 @@
 
 #include "../../memory/allocator.h"
 #include "../../platform/platform.h"
+#include "vulkanImage.h"
 #include "vulkanUtils.h"
 
 // ----------------------------------------- //
@@ -451,18 +452,18 @@ AxrResult AxrVulkanEnvironment::createDesktopSyncObjects(const VkDevice& device,
     // ----------------------------------------- //
 
     if (imageAvailableSemaphores.allocated()) {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Image available semaphores already exist.");
-        return AXR_ERROR_VALIDATION_FAILED;
+        axrLogWarning(AXR_FUNCTION_FAILED_STRING "Image available semaphores already exist.");
+        return AXR_SUCCESS;
     }
 
     if (renderingFinishedSemaphores.allocated()) {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Rendering finished semaphores already exist.");
-        return AXR_ERROR_VALIDATION_FAILED;
+        axrLogWarning(AXR_FUNCTION_FAILED_STRING "Rendering finished semaphores already exist.");
+        return AXR_SUCCESS;
     }
 
     if (renderingFences.allocated()) {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Rendering fences already exist.");
-        return AXR_ERROR_VALIDATION_FAILED;
+        axrLogWarning(AXR_FUNCTION_FAILED_STRING "Rendering fences already exist.");
+        return AXR_SUCCESS;
     }
 
     // ----------------------------------------- //
@@ -522,8 +523,8 @@ AxrResult AxrVulkanEnvironment::createSemaphores(const VkDevice& device, AxrVect
     }
 
     if (!semaphores.empty()) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "`semaphores` already exist.");
-        return AXR_ERROR_VALIDATION_FAILED;
+        axrLogWarning(AXR_FUNCTION_FAILED_STRING "`semaphores` already exist.");
+        return AXR_SUCCESS;
     }
 
     constexpr VkSemaphoreCreateInfo semaphoreCreateInfo{
@@ -578,8 +579,8 @@ AxrResult AxrVulkanEnvironment::createFences(const VkDevice& device,
     }
 
     if (!fences.empty()) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "`fences` already exist.");
-        return AXR_ERROR_VALIDATION_FAILED;
+        axrLogWarning(AXR_FUNCTION_FAILED_STRING "`fences` already exist.");
+        return AXR_SUCCESS;
     }
 
     const VkFenceCreateInfo fenceCreateInfo{
@@ -631,8 +632,8 @@ AxrResult AxrVulkanEnvironment::createCommandBuffers(const VkDevice& device,
     assert(commandPool != VK_NULL_HANDLE);
 
     if (commandBuffers.allocated() || !commandBuffers.empty()) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "`commandBuffers` already exist.");
-        return AXR_ERROR_VALIDATION_FAILED;
+        axrLogWarning(AXR_FUNCTION_FAILED_STRING "`commandBuffers` already exist.");
+        return AXR_SUCCESS;
     }
 
     commandBuffers = AxrVector_Dynamic<VkCommandBuffer>(maxFramesInFlight, &AxrAllocator::get().EngineDataAllocator);
@@ -690,16 +691,27 @@ AxrResult AxrVulkanEnvironment::setupDesktopSwapchain(const VkPhysicalDevice& ph
     }
 
     axrResult = setDesktopSwapchainExtent(physicalDevice, surface, swapchainContext.Extent);
-    if (AXR_FAILED(axrResult)) {
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
         resetSetupDesktopSwapchain(device, swapchainContext);
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to set swapchain extent.");
         return axrResult;
     }
 
     axrResult = createDesktopSwapchain(physicalDevice, device, surface, queueFamilies, swapchainContext);
-    if (AXR_FAILED(axrResult)) {
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
         resetSetupDesktopSwapchain(device, swapchainContext);
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create swapchain.");
+        return axrResult;
+    }
+
+    axrResult = getDesktopSwapchainImages(device,
+                                          swapchainContext.Swapchain,
+                                          swapchainContext.ColorFormat,
+                                          swapchainContext.ColorImages,
+                                          swapchainContext.ColorImageViews);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        resetSetupDesktopSwapchain(device, swapchainContext);
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to get swapchain images.");
         return axrResult;
     }
 
@@ -709,6 +721,7 @@ AxrResult AxrVulkanEnvironment::setupDesktopSwapchain(const VkPhysicalDevice& ph
 
 void AxrVulkanEnvironment::resetSetupDesktopSwapchain(const VkDevice& device,
                                                       DesktopSwapchainContext& swapchainContext) {
+    resetDesktopSwapchainImages(device, swapchainContext.ColorImages, swapchainContext.ColorImageViews);
     destroyDesktopSwapchain(device, swapchainContext.Swapchain);
     resetSwapchainExtent(swapchainContext.Extent);
     resetDesktopSwapchainPresentationMode(swapchainContext.PresentationMode);
@@ -723,12 +736,12 @@ AxrResult AxrVulkanEnvironment::setDesktopSwapchainPresentationMode(
     assert(physicalDevice != VK_NULL_HANDLE);
     assert(surface != VK_NULL_HANDLE);
 
-    if (presentationMode != VK_PRESENT_MODE_MAX_ENUM_KHR) {
+    if (presentationMode != VK_PRESENT_MODE_MAX_ENUM_KHR) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Swapchain presentation mode has already been set.");
         return AXR_ERROR_VALIDATION_FAILED;
     }
 
-    if (preferredPresentationMode == AXR_VULKAN_PRESENTATION_MODE_UNDEFINED) {
+    if (preferredPresentationMode == AXR_VULKAN_PRESENTATION_MODE_UNDEFINED) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Preferred presentation mode is undefined.");
         return AXR_ERROR_VALIDATION_FAILED;
     }
@@ -828,7 +841,7 @@ AxrResult AxrVulkanEnvironment::setDesktopSwapchainExtent(const VkPhysicalDevice
                                                           VkExtent2D& extent) {
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
     AxrResult axrResult = getSurfaceCapabilities(physicalDevice, surface, surfaceCapabilities);
-    if (AXR_FAILED(axrResult)) {
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to get surface capabilities.");
         return axrResult;
     }
@@ -842,7 +855,7 @@ AxrResult AxrVulkanEnvironment::setDesktopSwapchainExtent(const VkPhysicalDevice
     uint32_t width;
     uint32_t height;
     axrResult = AxrPlatform::get().getWindowSizeInPixels(width, height);
-    if (AXR_FAILED(axrResult)) {
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to get window size in pixels.");
         return axrResult;
     }
@@ -876,7 +889,7 @@ AxrResult AxrVulkanEnvironment::createDesktopSwapchain(const VkPhysicalDevice& p
 
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
     const AxrResult axrResult = getSurfaceCapabilities(physicalDevice, surface, surfaceCapabilities);
-    if (AXR_FAILED(axrResult)) {
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to get surface capabilities.");
         return axrResult;
     }
@@ -921,7 +934,7 @@ AxrResult AxrVulkanEnvironment::createDesktopSwapchain(const VkPhysicalDevice& p
 
     const VkResult vkResult = vkCreateSwapchainKHR(device, &swapchainCreateInfo, nullptr, &swapchainContext.Swapchain);
     axrLogVkResult(vkResult, "vkCreateSwapchainKHR");
-    if (VK_FAILED(vkResult))
+    if (VK_FAILED(vkResult)) [[unlikely]]
         return AXR_ERROR_VULKAN_ERROR;
 
     return AXR_SUCCESS;
@@ -934,6 +947,77 @@ void AxrVulkanEnvironment::destroyDesktopSwapchain(const VkDevice& device, VkSwa
 
     vkDestroySwapchainKHR(device, swapchain, nullptr);
     swapchain = VK_NULL_HANDLE;
+}
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to get desktop swapchain images. "
+AxrResult AxrVulkanEnvironment::getDesktopSwapchainImages(const VkDevice& device,
+                                                          const VkSwapchainKHR& swapchain,
+                                                          const VkFormat swapchainColorFormat,
+                                                          AxrVector_Dynamic<VkImage>& images,
+                                                          AxrVector_Dynamic<VkImageView>& imageViews) {
+    assert(device != VK_NULL_HANDLE);
+    assert(swapchain != VK_NULL_HANDLE);
+
+    if (images.allocated()) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Images have already been allocated.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    if (imageViews.allocated()) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Image views have already been allocated.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    uint32_t imageCount;
+    VkResult vkResult = vkGetSwapchainImagesKHR(device, swapchain, &imageCount, nullptr);
+    axrLogVkResult(vkResult, "vkGetSwapchainImagesKHR");
+    if (VK_FAILED(vkResult)) [[unlikely]]
+        return AXR_ERROR_VULKAN_ERROR;
+
+    AxrVector_Dynamic<VkImage> swapchainImages(imageCount, &AxrAllocator::get().EngineDataAllocator);
+    swapchainImages.prefillData(VK_NULL_HANDLE);
+
+    vkResult = vkGetSwapchainImagesKHR(device, swapchain, &imageCount, swapchainImages.data());
+    axrLogVkResult(vkResult, "vkGetSwapchainImagesKHR");
+    if (VK_FAILED(vkResult)) [[unlikely]]
+        return AXR_ERROR_VULKAN_ERROR;
+
+    AxrVector_Dynamic<VkImageView> swapchainImageViews(imageCount, &AxrAllocator::get().EngineDataAllocator);
+    swapchainImageViews.prefillData(VK_NULL_HANDLE);
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    for (uint32_t i = 0; i < imageCount; ++i) {
+        axrResult = AxrVulkanImage::createImageView(device,
+                                                    swapchainImages[i],
+                                                    swapchainColorFormat,
+                                                    VK_IMAGE_ASPECT_COLOR_BIT,
+                                                    1,
+                                                    swapchainImageViews[i]);
+
+        if (AXR_FAILED(axrResult)) [[unlikely]] {
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create image view.");
+            return axrResult;
+        }
+    }
+
+    images = std::move(swapchainImages);
+    imageViews = std::move(swapchainImageViews);
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+void AxrVulkanEnvironment::resetDesktopSwapchainImages(const VkDevice& device,
+                                                       AxrVector_Dynamic<VkImage>& images,
+                                                       AxrVector_Dynamic<VkImageView>& imageViews) {
+    for (VkImageView& imageView : imageViews) {
+        AxrVulkanImage::destroyImageView(device, imageView);
+    }
+
+    // Reset the vectors so the data can be deallocated
+    imageViews = {};
+    images = {};
 }
 
 #endif

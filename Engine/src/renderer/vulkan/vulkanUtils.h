@@ -8,6 +8,7 @@
 // Headers
 // ----------------------------------------- //
 #include "axr/logging.h"
+#include "axr/vulkanApi.h"
 
 #include <vulkan/vk_enum_string_helper.h>
 #include <vulkan/vulkan.h>

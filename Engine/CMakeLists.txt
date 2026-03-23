@@ -79,6 +79,8 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanQueueFamilies.cpp
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanEnvironment.h
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanEnvironment.cpp
+    ${AXR_SRC_DIR}/renderer/vulkan/vulkanImage.h
+    ${AXR_SRC_DIR}/renderer/vulkan/vulkanImage.cpp
     # ---- Common ----
     ${AXR_SRC_DIR}/common/enums.cpp
     ${AXR_SRC_DIR}/common/handle.h

@@ -32,6 +32,8 @@ public:
     };
 
     struct DesktopSwapchainContext {
+        AxrVector_Dynamic<VkImage> ColorImages = AxrVector_Dynamic<VkImage>();
+        AxrVector_Dynamic<VkImageView> ColorImageViews = AxrVector_Dynamic<VkImageView>();
         VkSwapchainKHR Swapchain = VK_NULL_HANDLE;
         VkExtent2D Extent = {};
         VkFormat ColorFormat = VK_FORMAT_UNDEFINED;
@@ -323,8 +325,8 @@ private:
     static void resetSwapchainExtent(VkExtent2D& extent);
 
     /// Create the swapchain for the desktop environment.
-    /// Please note that only the swapchain context `Swapchain` variable is set in this function. `Extent`, `ColorFormat`,
-    /// `ColorSpace` and `PresentationMode` must be set prior to using this function.
+    /// Please note that only the swapchain context `Swapchain` variable is set in this function. `Extent`,
+    /// `ColorFormat`, `ColorSpace` and `PresentationMode` must be set prior to using this function.
     /// @param physicalDevice Physical device to use
     /// @param device Logical device to use
     /// @param surface Surface to use
@@ -340,6 +342,26 @@ private:
     /// @param device Logical device to use
     /// @param swapchain Swapchain to destroy
     static void destroyDesktopSwapchain(const VkDevice& device, VkSwapchainKHR& swapchain);
+
+    /// Get the swapchain color images for the desktop environment
+    /// @param device Device to use
+    /// @param swapchain Swapchain to get the images of
+    /// @param swapchainColorFormat Swapchain color format to use
+    /// @param images Output swapchain images
+    /// @param imageViews Output swapchain image views
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult getDesktopSwapchainImages(const VkDevice& device,
+                                                             const VkSwapchainKHR& swapchain,
+                                                             VkFormat swapchainColorFormat,
+                                                             AxrVector_Dynamic<VkImage>& images,
+                                                             AxrVector_Dynamic<VkImageView>& imageViews);
+    /// Reset the swapchain color images for the desktop environment
+    /// @param device Device to use
+    /// @param images Swapchain images to reset
+    /// @param imageViews Swapchain image views to reset
+    static void resetDesktopSwapchainImages(const VkDevice& device,
+                                            AxrVector_Dynamic<VkImage>& images,
+                                            AxrVector_Dynamic<VkImageView>& imageViews);
 };
 
 #endif
