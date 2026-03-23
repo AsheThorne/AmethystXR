@@ -36,6 +36,7 @@ public:
         AxrVector_Dynamic<VkImage> ColorImages = AxrVector_Dynamic<VkImage>();
         AxrVector_Dynamic<VkImageView> ColorImageViews = AxrVector_Dynamic<VkImageView>();
         AxrVector_Dynamic<AxrVulkanImage> DepthImages = AxrVector_Dynamic<AxrVulkanImage>();
+        AxrVector_Dynamic<AxrVulkanImage> MsaaImages = AxrVector_Dynamic<AxrVulkanImage>();
         VkSwapchainKHR Swapchain = VK_NULL_HANDLE;
         VkExtent2D Extent = {};
         VkFormat ColorFormat = VK_FORMAT_UNDEFINED;
@@ -388,9 +389,29 @@ private:
                                                               VkSampleCountFlagBits msaaSampleCount,
                                                               VkFormat imageFormat,
                                                               AxrVector_Dynamic<AxrVulkanImage>& images);
-    /// Destroy the given swapchain depth images
-    /// @param images Swapchain depth images to destroy
-    static void destroySwapchainDepthImages(AxrVector_Dynamic<AxrVulkanImage>& images);
+    /// Create swapchain msaa images
+    /// @param physicalDevice Physical device to use
+    /// @param device Device to use
+    /// @param graphicsCommandPool Graphics command pool to use
+    /// @param graphicsQueue Graphics Queue to use
+    /// @param swapchainExtent Swapchain extent
+    /// @param imageCount Number of msaa images to create
+    /// @param msaaSampleCount Msaa sample count
+    /// @param imageFormat Swapchain msaa image format
+    /// @param images Output created swapchain msaa images
+    [[nodiscard]] static AxrResult createSwapchainMsaaImages(const VkPhysicalDevice& physicalDevice,
+                                                              const VkDevice& device,
+                                                              const VkCommandPool& graphicsCommandPool,
+                                                              const VkQueue& graphicsQueue,
+                                                              VkExtent2D swapchainExtent,
+                                                              uint32_t imageCount,
+                                                              VkSampleCountFlagBits msaaSampleCount,
+                                                              VkFormat imageFormat,
+                                                              AxrVector_Dynamic<AxrVulkanImage>& images);
+    
+    /// Destroy the given vulkan images
+    /// @param images Vulkan images to destroy
+    static void destroyVulkanImages(AxrVector_Dynamic<AxrVulkanImage>& images);
 };
 
 #endif

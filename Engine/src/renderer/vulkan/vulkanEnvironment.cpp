@@ -735,13 +735,29 @@ AxrResult AxrVulkanEnvironment::setupDesktopSwapchain(const VkPhysicalDevice& ph
         return axrResult;
     }
 
+    axrResult = createSwapchainMsaaImages(physicalDevice,
+                                          device,
+                                          graphicsCommandPool,
+                                          queueFamilies.GraphicsQueue,
+                                          swapchainContext.Extent,
+                                          swapchainContext.ColorImages.size(),
+                                          msaaSampleCount,
+                                          swapchainContext.ColorFormat,
+                                          swapchainContext.MsaaImages);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        resetSetupDesktopSwapchain(device, swapchainContext);
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create swapchain msaa images.");
+        return axrResult;
+    }
+
     return AXR_SUCCESS;
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
 void AxrVulkanEnvironment::resetSetupDesktopSwapchain(const VkDevice& device,
                                                       DesktopSwapchainContext& swapchainContext) {
-    destroySwapchainDepthImages(swapchainContext.DepthImages);
+    destroyVulkanImages(swapchainContext.MsaaImages);
+    destroyVulkanImages(swapchainContext.DepthImages);
     resetDesktopSwapchainImages(device, swapchainContext.ColorImages, swapchainContext.ColorImageViews);
     destroyDesktopSwapchain(device, swapchainContext.Swapchain);
     resetSwapchainExtent(swapchainContext.Extent);
@@ -1112,7 +1128,64 @@ AxrResult AxrVulkanEnvironment::createSwapchainDepthImages(const VkPhysicalDevic
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
-void AxrVulkanEnvironment::destroySwapchainDepthImages(AxrVector_Dynamic<AxrVulkanImage>& images) {
+#define AXR_FUNCTION_FAILED_STRING "Failed to create swapchain msaa images. "
+AxrResult AxrVulkanEnvironment::createSwapchainMsaaImages(const VkPhysicalDevice& physicalDevice,
+                                                          const VkDevice& device,
+                                                          const VkCommandPool& graphicsCommandPool,
+                                                          const VkQueue& graphicsQueue,
+                                                          const VkExtent2D swapchainExtent,
+                                                          const uint32_t imageCount,
+                                                          const VkSampleCountFlagBits msaaSampleCount,
+                                                          const VkFormat imageFormat,
+                                                          AxrVector_Dynamic<AxrVulkanImage>& images) {
+    const bool isMsaaEnabled = msaaSampleCount != VK_SAMPLE_COUNT_1_BIT;
+
+    if (!isMsaaEnabled) {
+        // Msaa is disabled, don't need to create any images
+        return AXR_SUCCESS;
+    }
+
+    assert(physicalDevice != VK_NULL_HANDLE);
+    assert(device != VK_NULL_HANDLE);
+    assert(graphicsCommandPool != VK_NULL_HANDLE);
+    assert(graphicsQueue != VK_NULL_HANDLE);
+
+    if (images.allocated()) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Images have already been allocated.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    AxrVector_Dynamic<AxrVulkanImage> msaaImages(imageCount, &AxrAllocator::get().EngineDataAllocator);
+    msaaImages.prefillEmplaceData(AxrVulkanImage(AxrVulkanImage::Config{
+        .PhysicalDevice = physicalDevice,
+        .Device = device,
+        .GraphicsCommandPool = graphicsCommandPool,
+        .GraphicsQueue = graphicsQueue,
+    }));
+
+    for (AxrVulkanImage& msaaImage : msaaImages) {
+        axrResult = msaaImage.createImage(swapchainExtent,
+                                          msaaSampleCount,
+                                          imageFormat,
+                                          VK_IMAGE_TILING_OPTIMAL,
+                                          VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                                          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                                          VK_IMAGE_ASPECT_COLOR_BIT);
+        if (AXR_FAILED(axrResult)) [[unlikely]] {
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create image.");
+            return axrResult;
+        }
+    }
+
+    images = std::move(msaaImages);
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
+void AxrVulkanEnvironment::destroyVulkanImages(AxrVector_Dynamic<AxrVulkanImage>& images) {
     for (AxrVulkanImage& image : images) {
         image.destroyImage();
     }
