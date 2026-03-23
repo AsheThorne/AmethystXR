@@ -88,6 +88,12 @@ public:
     /// Destroy the desktop window
     void destroyWindow();
 
+    /// Get the window client area size in pixels
+    /// @param width Output window width
+    /// @param height Output window height
+    /// @return AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult getWindowSizeInPixels(uint32_t& width, uint32_t& height) const;
+
 #ifdef AXR_VULKAN_SUPPORTED
     /// Get the required vulkan platform extensions
     /// @return Required vulkan platform extensions

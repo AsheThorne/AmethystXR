@@ -41,6 +41,7 @@ public:
         VkSurfaceKHR Surface = VK_NULL_HANDLE;
         VkRenderPass RenderPass = VK_NULL_HANDLE;
         VkCommandPool GraphicsCommandPool = VK_NULL_HANDLE;
+        VkExtent2D SwapchainExtent = {};
         VkFormat SwapchainColorFormat = VK_FORMAT_UNDEFINED;
         VkFormat SwapchainDepthFormat = VK_FORMAT_UNDEFINED;
         VkColorSpaceKHR SwapchainColorSpace = VK_COLOR_SPACE_MAX_ENUM_KHR;
@@ -250,43 +251,58 @@ private:
     // ---- Swapchain ----
 
     /// Set up the swapchain and all objects that depend on it for the desktop environment
-    /// @param surface Surface to use
     /// @param physicalDevice Physical device to use
+    /// @param surface Surface to use
     /// @param preferredPresentationMode Preferred swapchain presentation mode to use
-    /// @param swapchainPresentationMode Output selected swapchain presentation mode
+    /// @param presentationMode Output selected swapchain presentation mode
+    /// @param extent Output swapchain extent
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] static AxrResult setupDesktopSwapchain(const VkPhysicalDevice& physicalDevice,
                                                          const VkSurfaceKHR& surface,
                                                          AxrVulkanPresentationModeEnum preferredPresentationMode,
-                                                         VkPresentModeKHR& swapchainPresentationMode);
+                                                         VkPresentModeKHR& presentationMode,
+                                                         VkExtent2D& extent);
     /// Reset the swapchain and all objects that depend on it for the desktop environment
-    /// @param swapchainPresentationMode Swapchain presentation mode to reset
-    static void resetSetupDesktopSwapchain(VkPresentModeKHR& swapchainPresentationMode);
+    /// @param presentationMode Swapchain presentation mode to reset
+    /// @param extent Swapchain extent to reset
+    static void resetSetupDesktopSwapchain(VkPresentModeKHR& presentationMode, VkExtent2D& extent);
 
     /// Set the swapchain presentation mode for the desktop environment
-    /// @param surface Surface to use
     /// @param physicalDevice Physical device to use
+    /// @param surface Surface to use
     /// @param preferredPresentationMode Preferred swapchain presentation mode to use
-    /// @param swapchainPresentationMode Output selected swapchain presentation mode
+    /// @param presentationMode Output selected swapchain presentation mode
     /// @returns AXR_SUCCESS if the function succeeded
     [[nodiscard]] static AxrResult setDesktopSwapchainPresentationMode(
         const VkPhysicalDevice& physicalDevice,
         const VkSurfaceKHR& surface,
         AxrVulkanPresentationModeEnum preferredPresentationMode,
-        VkPresentModeKHR& swapchainPresentationMode);
+        VkPresentModeKHR& presentationMode);
     /// Reset the swapchain presentation mode for the desktop environment
-    /// @param swapchainPresentationMode Swapchain presentation mode to reset
-    static void resetDesktopSwapchainPresentationMode(VkPresentModeKHR& swapchainPresentationMode);
+    /// @param presentationMode Swapchain presentation mode to reset
+    static void resetDesktopSwapchainPresentationMode(VkPresentModeKHR& presentationMode);
 
     /// Get the supported presentation modes for the given surface
-    /// @param surface Surface to use
     /// @param physicalDevice Physical device to use
+    /// @param surface Surface to use
     /// @param supportedPresentationModes Output supported presentation modes
     /// @return AXR_SUCCESS if the function succeeded
     [[nodiscard]] static AxrResult getSupportedSurfacePresentationModes(
-        const VkSurfaceKHR& surface,
         const VkPhysicalDevice& physicalDevice,
+        const VkSurfaceKHR& surface,
         AxrVector_Stack<VkPresentModeKHR>& supportedPresentationModes);
+
+    /// Set the swapchain extent for the desktop environment
+    /// @param physicalDevice Physical device to use
+    /// @param surface Surface to use
+    /// @param extent Output swapchain extent
+    /// @returns AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult setDesktopSwapchainExtent(const VkPhysicalDevice& physicalDevice,
+                                                             const VkSurfaceKHR& surface,
+                                                             VkExtent2D& extent);
+    /// Reset the swapchain extent
+    /// @param extent Swapchain extent to reset
+    static void resetSwapchainExtent(VkExtent2D& extent);
 };
 
 #endif

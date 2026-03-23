@@ -36,8 +36,8 @@ AxrResult AxrPlatform::setup(const Config& config) {
     AxrResult axrResult = AXR_SUCCESS;
 
     if (!SDL_Init(SDL_INIT_EVENTS | SDL_INIT_VIDEO)) {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "SDL init failed.");
-        return AXR_ERROR_UNKNOWN;
+        axrLogError(AXR_FUNCTION_FAILED_STRING "SDL_Init failed: {}", SDL_GetError());
+        return AXR_ERROR_SDL_ERROR;
     }
 
     if (config.WindowConfig->Enabled) {
@@ -92,6 +92,21 @@ void AxrPlatform::destroyWindow() {
     m_IsWindowOpen = false;
 }
 
+#define AXR_FUNCTION_FAILED_STRING "Failed to get window size in pixels. "
+AxrResult AxrPlatform::getWindowSizeInPixels(uint32_t& width, uint32_t& height) const {
+    int x;
+    int y;
+    if (!SDL_GetWindowSizeInPixels(m_SDLWindow, &x, &y)) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "SDL_GetWindowSizeInPixels failed: {}", SDL_GetError());
+        return AXR_ERROR_SDL_ERROR;
+    }
+
+    width = static_cast<uint32_t>(x);
+    height = static_cast<uint32_t>(y);
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
 #ifdef AXR_VULKAN_SUPPORTED
 AxrExtensionArray<AxrVulkanExtension, AxrVulkanExtensionMaxCount> AxrPlatform::getRequiredVulkanExtensions() {
     AxrExtensionArray<AxrVulkanExtension, AxrVulkanExtensionMaxCount> extensionsArray;
@@ -125,7 +140,7 @@ AxrResult AxrPlatform::createVulkanSurface(const VkInstance& instance, VkSurface
     }
 
     if (!SDL_Vulkan_CreateSurface(m_SDLWindow, instance, nullptr, &surface)) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "SDL_Vulkan_CreateSurface failed.");
+        axrLogError(AXR_FUNCTION_FAILED_STRING "SDL_Vulkan_CreateSurface failed: {}", SDL_GetError());
         return AXR_ERROR_SDL_ERROR;
     }
 
@@ -156,8 +171,8 @@ AxrResult AxrPlatform::createWindow(const char (&title)[AXR_MAX_WINDOW_TITLE_SIZ
     m_SDLWindow =
         SDL_CreateWindow(title, static_cast<int>(width), static_cast<int>(height), getSDLWindowFlags(rendererApiType));
     if (!m_SDLWindow) {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "SDL create window failed: {}.", SDL_GetError());
-        return AXR_ERROR_UNKNOWN;
+        axrLogError(AXR_FUNCTION_FAILED_STRING "SDL_CreateWindow failed: {}", SDL_GetError());
+        return AXR_ERROR_SDL_ERROR;
     }
 
     m_IsWindowOpen = true;

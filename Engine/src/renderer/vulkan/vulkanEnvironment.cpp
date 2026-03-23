@@ -77,7 +77,8 @@ AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, D
     axrResult = setupDesktopSwapchain(config.PhysicalDevice,
                                       context.Surface,
                                       config.DesktopConfig->PreferredPresentationMode,
-                                      context.SwapchainPresentationMode);
+                                      context.SwapchainPresentationMode,
+                                      context.SwapchainExtent);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
         destroyDesktopContext(context);
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to set up desktop swapchain.");
@@ -89,7 +90,7 @@ AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, D
 #undef AXR_FUNCTION_FAILED_STRING
 
 void AxrVulkanEnvironment::destroyDesktopContext(DesktopContext& context) {
-    resetSetupDesktopSwapchain(context.SwapchainPresentationMode);
+    resetSetupDesktopSwapchain(context.SwapchainPresentationMode, context.SwapchainExtent);
     destroyCommandBuffers(context.Device, context.GraphicsCommandPool, context.RenderingCommandBuffers);
     destroyDesktopSyncObjects(context.Device,
                               context.ImageAvailableSemaphores,
@@ -675,16 +676,22 @@ void AxrVulkanEnvironment::destroyCommandBuffers(const VkDevice& device,
 AxrResult AxrVulkanEnvironment::setupDesktopSwapchain(const VkPhysicalDevice& physicalDevice,
                                                       const VkSurfaceKHR& surface,
                                                       const AxrVulkanPresentationModeEnum preferredPresentationMode,
-                                                      VkPresentModeKHR& swapchainPresentationMode) {
+                                                      VkPresentModeKHR& presentationMode,
+                                                      VkExtent2D& extent) {
     AxrResult axrResult = AXR_SUCCESS;
 
-    axrResult = setDesktopSwapchainPresentationMode(physicalDevice,
-                                                    surface,
-                                                    preferredPresentationMode,
-                                                    swapchainPresentationMode);
+    axrResult =
+        setDesktopSwapchainPresentationMode(physicalDevice, surface, preferredPresentationMode, presentationMode);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
-        resetSetupDesktopSwapchain(swapchainPresentationMode);
+        resetSetupDesktopSwapchain(presentationMode, extent);
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to set swapchain presentation mode.");
+        return axrResult;
+    }
+
+    axrResult = setDesktopSwapchainExtent(physicalDevice, surface, extent);
+    if (AXR_FAILED(axrResult)) {
+        resetSetupDesktopSwapchain(presentationMode, extent);
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to set swapchain extent.");
         return axrResult;
     }
 
@@ -692,8 +699,9 @@ AxrResult AxrVulkanEnvironment::setupDesktopSwapchain(const VkPhysicalDevice& ph
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
-void AxrVulkanEnvironment::resetSetupDesktopSwapchain(VkPresentModeKHR& swapchainPresentationMode) {
-    resetDesktopSwapchainPresentationMode(swapchainPresentationMode);
+void AxrVulkanEnvironment::resetSetupDesktopSwapchain(VkPresentModeKHR& presentationMode, VkExtent2D& extent) {
+    resetSwapchainExtent(extent);
+    resetDesktopSwapchainPresentationMode(presentationMode);
 }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to set desktop swapchain presentation mode. "
@@ -701,11 +709,11 @@ AxrResult AxrVulkanEnvironment::setDesktopSwapchainPresentationMode(
     const VkPhysicalDevice& physicalDevice,
     const VkSurfaceKHR& surface,
     const AxrVulkanPresentationModeEnum preferredPresentationMode,
-    VkPresentModeKHR& swapchainPresentationMode) {
+    VkPresentModeKHR& presentationMode) {
     assert(physicalDevice != VK_NULL_HANDLE);
     assert(surface != VK_NULL_HANDLE);
 
-    if (swapchainPresentationMode != VK_PRESENT_MODE_MAX_ENUM_KHR) {
+    if (presentationMode != VK_PRESENT_MODE_MAX_ENUM_KHR) {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Swapchain presentation mode has already been set.");
         return AXR_ERROR_VALIDATION_FAILED;
     }
@@ -717,7 +725,7 @@ AxrResult AxrVulkanEnvironment::setDesktopSwapchainPresentationMode(
 
     AxrVector_Stack<VkPresentModeKHR> supportedPresentationModes;
     const AxrResult axrResult =
-        getSupportedSurfacePresentationModes(surface, physicalDevice, supportedPresentationModes);
+        getSupportedSurfacePresentationModes(physicalDevice, surface, supportedPresentationModes);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to get supported surface presentation modes.");
         return axrResult;
@@ -727,38 +735,38 @@ AxrResult AxrVulkanEnvironment::setDesktopSwapchainPresentationMode(
     const VkPresentModeKHR preferredVkPresentationMode = axrToVkPresentMode(preferredPresentationMode);
 
     // Find the preferred presentation mode
-    for (const VkPresentModeKHR presentationMode : supportedPresentationModes) {
-        if (presentationMode == preferredVkPresentationMode) {
-            swapchainPresentationMode = presentationMode;
+    for (const VkPresentModeKHR supportedPresentationMode : supportedPresentationModes) {
+        if (supportedPresentationMode == preferredVkPresentationMode) {
+            presentationMode = supportedPresentationMode;
             return AXR_SUCCESS;
         }
 
-        if (presentationMode == VK_PRESENT_MODE_FIFO_KHR) {
-            backupPresentationMode = presentationMode;
+        if (supportedPresentationMode == VK_PRESENT_MODE_FIFO_KHR) {
+            backupPresentationMode = supportedPresentationMode;
         }
     }
 
     // If the preferred presentation mode couldn't be found, but the backup was. Use that
     if (backupPresentationMode != VK_PRESENT_MODE_MAX_ENUM_KHR) {
-        swapchainPresentationMode = backupPresentationMode;
+        presentationMode = backupPresentationMode;
         return AXR_SUCCESS;
     }
 
     // As a last resort, just use whatever we can that's supported
-    swapchainPresentationMode = supportedPresentationModes[0];
+    presentationMode = supportedPresentationModes[0];
 
     return AXR_SUCCESS;
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
-void AxrVulkanEnvironment::resetDesktopSwapchainPresentationMode(VkPresentModeKHR& swapchainPresentationMode) {
-    swapchainPresentationMode = VK_PRESENT_MODE_MAX_ENUM_KHR;
+void AxrVulkanEnvironment::resetDesktopSwapchainPresentationMode(VkPresentModeKHR& presentationMode) {
+    presentationMode = VK_PRESENT_MODE_MAX_ENUM_KHR;
 }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to get supported surface presentation modes. "
 AxrResult AxrVulkanEnvironment::getSupportedSurfacePresentationModes(
-    const VkSurfaceKHR& surface,
     const VkPhysicalDevice& physicalDevice,
+    const VkSurfaceKHR& surface,
     AxrVector_Stack<VkPresentModeKHR>& supportedPresentationModes) {
     assert(surface != VK_NULL_HANDLE);
     assert(physicalDevice != VK_NULL_HANDLE);
@@ -789,5 +797,41 @@ AxrResult AxrVulkanEnvironment::getSupportedSurfacePresentationModes(
     return AXR_SUCCESS;
 }
 #undef AXR_FUNCTION_FAILED_STRING
+
+AxrResult AxrVulkanEnvironment::setDesktopSwapchainExtent(const VkPhysicalDevice& physicalDevice,
+                                                          const VkSurfaceKHR& surface,
+                                                          VkExtent2D& extent) {
+    assert(physicalDevice != VK_NULL_HANDLE);
+    assert(surface != VK_NULL_HANDLE);
+
+    VkSurfaceCapabilitiesKHR surfaceCapabilities;
+    const VkResult vkResult = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCapabilities);
+    axrLogVkResult(vkResult, "vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
+    if (VK_FAILED(vkResult)) [[unlikely]]
+        return AXR_ERROR_VULKAN_ERROR;
+
+    // If the current extent width is the max uint32_t value, then we need to get the extent manually
+    if (surfaceCapabilities.currentExtent.width != UINT32_MAX) {
+        extent = surfaceCapabilities.currentExtent;
+        return AXR_SUCCESS;
+    }
+
+    uint32_t width;
+    uint32_t height;
+    const AxrResult axrResult = AxrPlatform::get().getWindowSizeInPixels(width, height);
+    if (AXR_FAILED(axrResult)) {
+        return axrResult;
+    }
+
+    width = std::clamp(width, surfaceCapabilities.minImageExtent.width, surfaceCapabilities.maxImageExtent.width);
+    height = std::clamp(height, surfaceCapabilities.minImageExtent.height, surfaceCapabilities.maxImageExtent.height);
+
+    extent = VkExtent2D(width, height);
+    return AXR_SUCCESS;
+}
+
+void AxrVulkanEnvironment::resetSwapchainExtent(VkExtent2D& extent) {
+    extent = VkExtent2D{};
+}
 
 #endif
