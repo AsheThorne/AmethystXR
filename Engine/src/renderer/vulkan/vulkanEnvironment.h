@@ -47,6 +47,7 @@ public:
     };
 
     struct DesktopContext {
+        const AxrVulkanQueueFamilies* QueueFamilies = nullptr;
         AxrVector_Dynamic<VkSemaphore> ImageAvailableSemaphores = AxrVector_Dynamic<VkSemaphore>();
         AxrVector_Dynamic<VkSemaphore> RenderingFinishedSemaphores = AxrVector_Dynamic<VkSemaphore>();
         AxrVector_Dynamic<VkFence> RenderingFences = AxrVector_Dynamic<VkFence>();
@@ -54,11 +55,14 @@ public:
         AxrVector_Dynamic<VkFramebuffer> Framebuffers = AxrVector_Dynamic<VkFramebuffer>();
         DesktopSwapchainContext SwapchainContext;
         VkInstance Instance = VK_NULL_HANDLE;
+        VkPhysicalDevice PhysicalDevice = VK_NULL_HANDLE;
         VkDevice Device = VK_NULL_HANDLE;
         VkSurfaceKHR Surface = VK_NULL_HANDLE;
         VkRenderPass RenderPass = VK_NULL_HANDLE;
         VkCommandPool GraphicsCommandPool = VK_NULL_HANDLE;
         VkSampleCountFlagBits MsaaSampleCount = VK_SAMPLE_COUNT_1_BIT;
+        bool IsSwapchainOutOfDate = false;
+        bool IsSetup = false;
     };
 
     // ----------------------------------------- //
@@ -421,6 +425,28 @@ private:
     /// @param images Vulkan images to destroy
     static void destroyVulkanImages(AxrVector_Dynamic<AxrVulkanImage>& images);
 
+    /// Recreate the swapchain and it's related data for the desktop environment
+    /// @param physicalDevice Physical device to use
+    /// @param device Device to use
+    /// @param surface Surface to use
+    /// @param renderPass Render pass to use
+    /// @param graphicsCommandPool Graphics command pool to use
+    /// @param queueFamilies Queue families to use
+    /// @param msaaSampleCount Msaa sample count to use
+    /// @param swapchainContext Input/Output swapchain context
+    /// @param framebuffers Output Framebuffers to create
+    /// @returns AXR_SUCCESS if the function succeeded.
+    /// @returns AXR_DONT_RENDER if we should skip rendering this frame.
+    [[nodiscard]] static AxrResult recreateDesktopSwapchain(const VkPhysicalDevice& physicalDevice,
+                                                            const VkDevice& device,
+                                                            const VkSurfaceKHR& surface,
+                                                            const VkRenderPass& renderPass,
+                                                            const VkCommandPool& graphicsCommandPool,
+                                                            const AxrVulkanQueueFamilies& queueFamilies,
+                                                            VkSampleCountFlagBits msaaSampleCount,
+                                                            DesktopSwapchainContext& swapchainContext,
+                                                            AxrVector_Dynamic<VkFramebuffer>& framebuffers);
+
     // ---- Framebuffer ----
 
     /// Create a framebuffer for each swapchain image
@@ -447,6 +473,14 @@ private:
     /// @param device Device to use
     /// @param framebuffers Framebuffers to destroy
     static void destroyFramebuffers(const VkDevice& device, AxrVector_Dynamic<VkFramebuffer>& framebuffers);
+
+    // ---- Callbacks ----
+
+    /// Callback for when the desktop window has resized
+    /// @param context Desktop context
+    /// @param width New window width
+    /// @param height New window height
+    static void onWindowResizedCallback(DesktopContext& context, uint32_t width, uint32_t height);
 };
 
 #endif

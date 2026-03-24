@@ -20,6 +20,8 @@ enum AxrResult {
     AXR_EVENT_WINDOW_CLOSE_REQUESTED = 2,
     /// The window has closed. All processing for it should stop
     AXR_EVENT_WINDOW_CLOSED = 3,
+    /// A signal that we shouldn't do any rendering for the current frame
+    AXR_DONT_RENDER = 4,
 
     // ---- Failed ----
     /// Error, an unknown error occurred

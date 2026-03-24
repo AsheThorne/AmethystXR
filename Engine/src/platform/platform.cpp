@@ -168,8 +168,10 @@ AxrResult AxrPlatform::createWindow(const char (&title)[AXR_MAX_WINDOW_TITLE_SIZ
                                     const AxrRendererApiTypeEnum rendererApiType) {
     assert(!m_IsSetup);
 
-    m_SDLWindow =
-        SDL_CreateWindow(title, static_cast<int>(width), static_cast<int>(height), getSDLWindowFlags(rendererApiType));
+    m_SDLWindow = SDL_CreateWindow(title,
+                                   static_cast<int>(width),
+                                   static_cast<int>(height),
+                                   getSDLWindowFlags(rendererApiType));
     if (!m_SDLWindow) {
         axrLogError(AXR_FUNCTION_FAILED_STRING "SDL_CreateWindow failed: {}", SDL_GetError());
         return AXR_ERROR_SDL_ERROR;
@@ -203,6 +205,12 @@ AxrResult AxrPlatform::handleWindowEvent(const SDL_WindowEvent& event) {
     switch (event.type) {
         case SDL_EVENT_WINDOW_CLOSE_REQUESTED: {
             return AXR_EVENT_WINDOW_CLOSE_REQUESTED;
+        }
+        case SDL_EVENT_WINDOW_RESIZED: {
+            // TODO: Instead of using callbacks, we could just set a flag here that the window resized. Then on every
+            //  frame, in the renderer, we check if the window swapchain needs recreating
+            OnWindowResizedRendererCallback(static_cast<uint32_t>(event.data1), static_cast<uint32_t>(event.data2));
+            return AXR_SUCCESS;
         }
         default: {
             // Don't handle any unknown event

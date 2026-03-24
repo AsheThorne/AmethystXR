@@ -4,6 +4,7 @@
 // Headers
 // ----------------------------------------- //
 #include "../common/containers/extensionArray.h"
+#include "axr/common/callback.h"
 #include "axr/common/defines.h"
 #include "axr/common/enums.h"
 #include "axr/lifecycle.h"
@@ -52,6 +53,15 @@ private:
 
 public:
     // ----------------------------------------- //
+    // Types
+    // ----------------------------------------- //
+
+    /// On window resized callback function type
+    /// @param 1: New window width
+    /// @param 2: New window height
+    using OnWindowResizedCallback_T = AxrCallback<void(uint32_t, uint32_t)>;
+
+    // ----------------------------------------- //
     // Public Structs
     // ----------------------------------------- //
 
@@ -60,6 +70,13 @@ public:
         const AxrWindowConfig* WindowConfig;
         AxrRendererApiTypeEnum RendererApiType;
     };
+
+    // ----------------------------------------- //
+    // Public Variables
+    // ----------------------------------------- //
+
+    /// On window resized callback. For the renderer to use
+    OnWindowResizedCallback_T OnWindowResizedRendererCallback;
 
     // ----------------------------------------- //
     // Public Functions

@@ -16,7 +16,9 @@
 AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, DesktopContext& context) {
     assert(config.DesktopConfig != nullptr);
 
+    context.QueueFamilies = &config.QueueFamilies;
     context.Instance = config.Instance;
+    context.PhysicalDevice = config.PhysicalDevice;
     context.Device = config.Device;
     context.GraphicsCommandPool = config.GraphicsCommandPool;
     context.SwapchainContext.PreferredPresentationMode = config.DesktopConfig->PreferredPresentationMode;
@@ -80,7 +82,7 @@ AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, D
                                       context.Surface,
                                       context.RenderPass,
                                       config.GraphicsCommandPool,
-                                      config.QueueFamilies,
+                                      *context.QueueFamilies,
                                       context.MsaaSampleCount,
                                       context.SwapchainContext,
                                       context.Framebuffers);
@@ -90,11 +92,19 @@ AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, D
         return axrResult;
     }
 
+    AxrPlatform::get().OnWindowResizedRendererCallback.connect<&AxrVulkanEnvironment::onWindowResizedCallback>(context);
+
+    context.IsSetup = true;
+
     return AXR_SUCCESS;
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
 void AxrVulkanEnvironment::destroyDesktopContext(DesktopContext& context) {
+    context.IsSetup = false;
+
+    AxrPlatform::get().OnWindowResizedRendererCallback.reset();
+
     resetSetupDesktopSwapchain(context.Device, context.SwapchainContext, context.Framebuffers);
     destroyCommandBuffers(context.Device, context.GraphicsCommandPool, context.RenderingCommandBuffers);
     destroyDesktopSyncObjects(context.Device,
@@ -107,7 +117,9 @@ void AxrVulkanEnvironment::destroyDesktopContext(DesktopContext& context) {
                                  context.SwapchainContext.DepthFormat);
     AxrPlatform::get().destroyVulkanSurface(context.Instance, context.Surface);
 
+    context.QueueFamilies = nullptr;
     context.Instance = VK_NULL_HANDLE;
+    context.PhysicalDevice = VK_NULL_HANDLE;
     context.Device = VK_NULL_HANDLE;
     context.GraphicsCommandPool = VK_NULL_HANDLE;
     context.SwapchainContext.PreferredPresentationMode = AXR_VULKAN_PRESENTATION_MODE_UNDEFINED;
@@ -1232,6 +1244,60 @@ void AxrVulkanEnvironment::destroyVulkanImages(AxrVector_Dynamic<AxrVulkanImage>
     images = {};
 }
 
+#define AXR_FUNCTION_FAILED_STRING "Failed to recreate desktop swapchain. "
+AxrResult AxrVulkanEnvironment::recreateDesktopSwapchain(const VkPhysicalDevice& physicalDevice,
+                                                         const VkDevice& device,
+                                                         const VkSurfaceKHR& surface,
+                                                         const VkRenderPass& renderPass,
+                                                         const VkCommandPool& graphicsCommandPool,
+                                                         const AxrVulkanQueueFamilies& queueFamilies,
+                                                         const VkSampleCountFlagBits msaaSampleCount,
+                                                         DesktopSwapchainContext& swapchainContext,
+                                                         AxrVector_Dynamic<VkFramebuffer>& framebuffers) {
+    assert(device != VK_NULL_HANDLE);
+
+    AxrResult axrResult = AXR_SUCCESS;
+
+    // Don't bother recreating the swapchain if the window isn't visible
+    uint32_t width = 0;
+    uint32_t height = 0;
+    axrResult = AxrPlatform::get().getWindowSizeInPixels(width, height);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to get window size in pixels.");
+        return axrResult;
+    }
+
+    if (width == 0 || height == 0) {
+        return AXR_DONT_RENDER;
+    }
+
+    const VkResult vkResult = vkDeviceWaitIdle(device);
+    axrLogVkResult(vkResult, "vkDeviceWaitIdle");
+    if (VK_FAILED(vkResult)) [[unlikely]] {
+        return AXR_ERROR_VULKAN_ERROR;
+    }
+
+    resetSetupDesktopSwapchain(device, swapchainContext, framebuffers);
+
+    axrResult = setupDesktopSwapchain(physicalDevice,
+                                      device,
+                                      surface,
+                                      renderPass,
+                                      graphicsCommandPool,
+                                      queueFamilies,
+                                      msaaSampleCount,
+                                      swapchainContext,
+                                      framebuffers);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        resetSetupDesktopSwapchain(device, swapchainContext, framebuffers);
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to set up swapchain.");
+        return axrResult;
+    }
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
 #define AXR_FUNCTION_FAILED_STRING "Failed to create framebuffers. "
 AxrResult AxrVulkanEnvironment::createFramebuffers(const VkDevice& device,
                                                    const VkRenderPass& renderPass,
@@ -1307,5 +1373,36 @@ void AxrVulkanEnvironment::destroyFramebuffers(const VkDevice& device, AxrVector
     // Reset the vector so the data can be deallocated
     framebuffers = {};
 }
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to handle window resizing. "
+void AxrVulkanEnvironment::onWindowResizedCallback(DesktopContext& context, uint32_t width, uint32_t height) {
+    if (context.QueueFamilies == nullptr) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Queue Families is null.");
+        return;
+    }
+
+    const AxrResult axrResult = recreateDesktopSwapchain(context.PhysicalDevice,
+                                                         context.Device,
+                                                         context.Surface,
+                                                         context.RenderPass,
+                                                         context.GraphicsCommandPool,
+                                                         *context.QueueFamilies,
+                                                         context.MsaaSampleCount,
+                                                         context.SwapchainContext,
+                                                         context.Framebuffers);
+    if (axrResult == AXR_DONT_RENDER) {
+        context.IsSwapchainOutOfDate = true;
+        return;
+    }
+
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to recreate swapchain.");
+        return;
+    }
+
+    // If we get there, the swapchain was recreated successfully
+    context.IsSwapchainOutOfDate = false;
+}
+#undef AXR_FUNCTION_FAILED_STRING
 
 #endif
