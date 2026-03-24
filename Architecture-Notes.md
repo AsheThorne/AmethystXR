@@ -301,3 +301,14 @@ A module must NEVER access anything above or next to themselves in the following
 
 - Use a double ended stack allocator for scene assets. The upper end can hold global resources while the lower end can
   hold scene specific resources.
+
+### XR
+
+- Use [vulkan multiview](https://docs.vulkan.org/refpages/latest/refpages/source/VK_KHR_multiview.html) for rendering
+  vr.
+
+### ECS
+
+- Look into these resources when implementing entities with a parent and children.
+    - https://skypjack.github.io/2019-06-25-ecs-baf-part-4/
+    - https://github.com/skypjack/entt/wiki/Frequently-Asked-Questions#how-can-i-represent-hierarchies-with-my-components
