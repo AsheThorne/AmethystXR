@@ -226,7 +226,7 @@ void AxrDynamicAllocator::deallocateHandle(AxrHandle<void>& handle) {
         // free block
 
         if (m_FreeBlocksHead != nullptr) {
-            newFreeBlock->Next = m_FreeBlocksHead->Next;
+            newFreeBlock->Next = m_FreeBlocksHead;
         }
 
         m_FreeBlocksHead = newFreeBlock;
