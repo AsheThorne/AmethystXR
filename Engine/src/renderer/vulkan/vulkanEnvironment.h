@@ -8,6 +8,7 @@
 #include "axr/vulkanApi.h"
 #include "vulkanImage.h"
 #include "vulkanQueueFamilies.h"
+#include "types.h"
 
 #include <vulkan/vulkan_core.h>
 
@@ -30,39 +31,6 @@ public:
         /// Ordered from most desired to the least desired
         const AxrVector_Stack<VkFormat>& SwapchainDepthFormatOptions;
         uint32_t MaxFramesInFlight;
-    };
-
-    struct DesktopSwapchainContext {
-        AxrVector_Dynamic<VkImage> ColorImages = AxrVector_Dynamic<VkImage>();
-        AxrVector_Dynamic<VkImageView> ColorImageViews = AxrVector_Dynamic<VkImageView>();
-        AxrVector_Dynamic<AxrVulkanImage> DepthImages = AxrVector_Dynamic<AxrVulkanImage>();
-        AxrVector_Dynamic<AxrVulkanImage> MsaaImages = AxrVector_Dynamic<AxrVulkanImage>();
-        VkSwapchainKHR Swapchain = VK_NULL_HANDLE;
-        VkExtent2D Extent = {};
-        VkFormat ColorFormat = VK_FORMAT_UNDEFINED;
-        VkFormat DepthFormat = VK_FORMAT_UNDEFINED;
-        VkColorSpaceKHR ColorSpace = VK_COLOR_SPACE_MAX_ENUM_KHR;
-        AxrVulkanPresentationModeEnum PreferredPresentationMode = AXR_VULKAN_PRESENTATION_MODE_UNDEFINED;
-        VkPresentModeKHR PresentationMode = VK_PRESENT_MODE_MAX_ENUM_KHR;
-    };
-
-    struct DesktopContext {
-        const AxrVulkanQueueFamilies* QueueFamilies = nullptr;
-        AxrVector_Dynamic<VkSemaphore> ImageAvailableSemaphores = AxrVector_Dynamic<VkSemaphore>();
-        AxrVector_Dynamic<VkSemaphore> RenderingFinishedSemaphores = AxrVector_Dynamic<VkSemaphore>();
-        AxrVector_Dynamic<VkFence> RenderingFences = AxrVector_Dynamic<VkFence>();
-        AxrVector_Dynamic<VkCommandBuffer> RenderingCommandBuffers = AxrVector_Dynamic<VkCommandBuffer>();
-        AxrVector_Dynamic<VkFramebuffer> Framebuffers = AxrVector_Dynamic<VkFramebuffer>();
-        DesktopSwapchainContext SwapchainContext;
-        VkInstance Instance = VK_NULL_HANDLE;
-        VkPhysicalDevice PhysicalDevice = VK_NULL_HANDLE;
-        VkDevice Device = VK_NULL_HANDLE;
-        VkSurfaceKHR Surface = VK_NULL_HANDLE;
-        VkRenderPass RenderPass = VK_NULL_HANDLE;
-        VkCommandPool GraphicsCommandPool = VK_NULL_HANDLE;
-        VkSampleCountFlagBits MsaaSampleCount = VK_SAMPLE_COUNT_1_BIT;
-        bool IsSwapchainOutOfDate = false;
-        bool IsSetup = false;
     };
 
     // ----------------------------------------- //
@@ -102,10 +70,10 @@ public:
     /// @param config Setup config
     /// @param context Output desktop environment context
     /// @return AXR_SUCCESS if the function succeeded
-    [[nodiscard]] static AxrResult setupDesktopContext(const SetupConfig& config, DesktopContext& context);
+    [[nodiscard]] static AxrResult setupDesktopContext(const SetupConfig& config, AxrVulkanRendererDesktopContext& context);
     /// Destroy the given desktop environment context
     /// @param context Desktop environment context to destroy
-    static void destroyDesktopContext(DesktopContext& context);
+    static void destroyDesktopContext(AxrVulkanRendererDesktopContext& context);
 
 private:
     // ----------------------------------------- //
@@ -286,7 +254,7 @@ private:
                                                          const VkCommandPool& graphicsCommandPool,
                                                          const AxrVulkanQueueFamilies& queueFamilies,
                                                          VkSampleCountFlagBits msaaSampleCount,
-                                                         DesktopSwapchainContext& swapchainContext,
+                                                         AxrVulkanRendererDesktopSwapchainContext& swapchainContext,
                                                          AxrVector_Dynamic<VkFramebuffer>& framebuffers);
     /// Reset the swapchain and all objects that depend on it for the desktop environment.
     /// Please note that the swapchain context `ColorFormat`, `DepthFormat` and `ColorSpace` is NOT reset in this
@@ -295,7 +263,7 @@ private:
     /// @param swapchainContext Swapchain context to reset
     /// @param framebuffers Framebuffers to reset
     static void resetSetupDesktopSwapchain(const VkDevice& device,
-                                           DesktopSwapchainContext& swapchainContext,
+                                           AxrVulkanRendererDesktopSwapchainContext& swapchainContext,
                                            AxrVector_Dynamic<VkFramebuffer>& framebuffers);
 
     /// Set the swapchain presentation mode for the desktop environment
@@ -356,7 +324,7 @@ private:
                                                           const VkDevice& device,
                                                           const VkSurfaceKHR& surface,
                                                           const AxrVulkanQueueFamilies& queueFamilies,
-                                                          DesktopSwapchainContext& swapchainContext);
+                                                          AxrVulkanRendererDesktopSwapchainContext& swapchainContext);
     /// Destroy the swapchain for the desktop environment
     /// @param device Logical device to use
     /// @param swapchain Swapchain to destroy
@@ -444,7 +412,7 @@ private:
                                                             const VkCommandPool& graphicsCommandPool,
                                                             const AxrVulkanQueueFamilies& queueFamilies,
                                                             VkSampleCountFlagBits msaaSampleCount,
-                                                            DesktopSwapchainContext& swapchainContext,
+                                                            AxrVulkanRendererDesktopSwapchainContext& swapchainContext,
                                                             AxrVector_Dynamic<VkFramebuffer>& framebuffers);
 
     // ---- Framebuffer ----
@@ -480,7 +448,7 @@ private:
     /// @param context Desktop context
     /// @param width New window width
     /// @param height New window height
-    static void onWindowResizedCallback(DesktopContext& context, uint32_t width, uint32_t height);
+    static void onWindowResizedCallback(AxrVulkanRendererDesktopContext& context, uint32_t width, uint32_t height);
 };
 
 #endif

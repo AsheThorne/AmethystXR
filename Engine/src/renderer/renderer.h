@@ -6,6 +6,7 @@
 #include "axr/common/defines.h"
 #include "axr/common/enums.h"
 #include "axr/lifecycle.h"
+#include "types.h"
 #include "vulkan/vulkanRenderer.h"
 
 #include <cstdint>
@@ -63,142 +64,6 @@ public:
     };
 
     // ----------------------------------------- //
-    // Public Classes
-    // ----------------------------------------- //
-
-    /// AxrRenderer Context
-    class Context {
-    public:
-        // ----------------------------------------- //
-        // Public Variables
-        // ----------------------------------------- //
-
-        union {
-            // Don't wrap in an AXR_VULKAN_SUPPORTED preprocessor.
-            // An empty AxrVulkanRenderer::Context struct is declared if AXR_VULKAN_SUPPORTED isn't defined
-            AxrVulkanRenderer::Context Vulkan;
-        };
-        AxrRendererApiTypeEnum ApiType = AXR_RENDERER_API_TYPE_UNDEFINED;
-
-        // ----------------------------------------- //
-        // Special Functions
-        // ----------------------------------------- //
-
-        // ---- Constructors ----
-
-        /// Default Constructor
-        Context() {
-            // NOTE (Ashe): If a new api is added, like OpenGL, then modify the line below to be this instead
-            //  memset(reinterpret_cast<void*>(&Vulkan), 0, std::max(sizeof(Vulkan), sizeof(OpenGL)));
-            memset(reinterpret_cast<void*>(&Vulkan), 0, sizeof(Vulkan));
-        };
-
-        /// Constructor
-        explicit Context(const AxrRendererApiTypeEnum apiType) :
-            ApiType(apiType) {
-            switch (ApiType) {
-                case AXR_RENDERER_API_TYPE_VULKAN: {
-                    // We have to zero out Vulkan first. Since we trigger the copy assignment operator instead of the
-                    // copy constructor. So it will try cleaning up garbage data which can cause undefined behavior.
-                    memset(reinterpret_cast<void*>(&Vulkan), 0, sizeof(Vulkan));
-                    Vulkan = AxrVulkanRenderer::Context();
-                    break;
-                }
-                case AXR_RENDERER_API_TYPE_UNDEFINED: {
-                    // Nothing to do. No api selected
-                    break;
-                }
-                default: {
-                    axrLogWarning("Failed to properly construct renderer context. Unknown renderer api.");
-                    break;
-                }
-            }
-        }
-
-        /// Copy Constructor
-        /// @param src Source Context to copy from
-        Context(const Context& src) = delete;
-
-        /// Move Constructor
-        /// @param src Source Context to move from
-        Context(Context&& src) noexcept {
-            switch (src.ApiType) {
-                case AXR_RENDERER_API_TYPE_VULKAN: {
-                    Vulkan = std::move(src.Vulkan);
-                    break;
-                }
-                case AXR_RENDERER_API_TYPE_UNDEFINED: {
-                    // Nothing to do. No api selected
-                    break;
-                }
-                default: {
-                    axrLogWarning("Failed to properly move renderer context. Unknown renderer api.");
-                    break;
-                }
-            }
-
-            ApiType = src.ApiType;
-
-            src.ApiType = AXR_RENDERER_API_TYPE_UNDEFINED;
-        }
-
-        // ---- Destructor ----
-
-        /// Destructor
-        ~Context() {
-            switch (ApiType) {
-                case AXR_RENDERER_API_TYPE_VULKAN: {
-                    using ContextApi_T = AxrVulkanRenderer::Context;
-                    Vulkan.~ContextApi_T();
-                    break;
-                }
-                case AXR_RENDERER_API_TYPE_UNDEFINED: {
-                    // Nothing to do. No api selected
-                    break;
-                }
-                default: {
-                    axrLogWarning("Failed to properly destroy renderer context. Unknown renderer api.");
-                    break;
-                }
-            }
-
-            ApiType = AXR_RENDERER_API_TYPE_UNDEFINED;
-        }
-
-        // ---- Operator Overloads ----
-
-        /// Copy Assignment Operator
-        /// @param src Source Context to copy from
-        Context& operator=(const Context& src) = delete;
-
-        /// Move Assignment Operator
-        /// @param src Source Context to move from
-        Context& operator=(Context&& src) noexcept {
-            if (this != &src) {
-                switch (src.ApiType) {
-                    case AXR_RENDERER_API_TYPE_VULKAN: {
-                        Vulkan = std::move(src.Vulkan);
-                        break;
-                    }
-                    case AXR_RENDERER_API_TYPE_UNDEFINED: {
-                        // Nothing to do. No api selected
-                        break;
-                    }
-                    default: {
-                        axrLogWarning("Failed to properly move renderer context. Unknown renderer api.");
-                        break;
-                    }
-                }
-
-                ApiType = src.ApiType;
-
-                src.ApiType = AXR_RENDERER_API_TYPE_UNDEFINED;
-            }
-            return *this;
-        }
-    };
-
-    // ----------------------------------------- //
     // Public Functions
     // ----------------------------------------- //
 
@@ -215,11 +80,55 @@ public:
 
     /// Destroy all desktop related resources
     void destroyDesktopResources();
+    
+    /// Render a scene
+    /// @return ACR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult renderScene();
 
 private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
-    Context m_Context{};
+    AxrRendererContext m_Context{};
+    static constexpr size_t const& m_MaxRenderCommandCount = 100;
     bool m_IsSetup = false;
+
+    // ----------------------------------------- //
+    // Private Functions
+    // ----------------------------------------- //
+
+    /// Construct the scene render commands
+    /// @return The render commands
+    [[nodiscard]] static AxrVector_Stack<AxrRenderCommand> constructRenderCommands();
+
+    // ---- Renderer Context Functions ----
+
+    /// Set up the vulkan renderer
+    /// @param context Vulkan context to set up
+    /// @param config Renderer config to use
+    [[nodiscard]] static AxrResult setup_vulkan(AxrVulkanRendererContext& context, const Config& config);
+
+    /// Shut down the vulkan renderer
+    /// @param context Vulkan context to shut down
+    static void shutDown_vulkan(AxrVulkanRendererContext& context);
+
+    /// Destroy the vulkan desktop resources
+    /// @param context Vulkan context
+    static void destroyDesktopResources_vulkan(AxrVulkanRendererContext& context);
+
+    /// Render a scene in vulkan
+    /// @param context Vulkan context
+    /// @param renderCommands Render commands
+    /// @param renderSurface Output surface with the rendered scene
+    /// @return AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult renderScene_vulkan(const AxrVulkanRendererContext& context,
+                                                      const AxrVector_Stack<AxrRenderCommand>& renderCommands,
+                                                      AxrRenderSurface& renderSurface);
+
+    /// Present the given render surface to the desktop environment in vulkan
+    /// @param context Vulkan context
+    /// @param renderSurface Render surface to present
+    /// @return AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult presentToDesktop_vulkan(const AxrVulkanRendererContext& context,
+                                                           AxrRenderSurface& renderSurface);
 };

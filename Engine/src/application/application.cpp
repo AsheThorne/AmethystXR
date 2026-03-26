@@ -62,12 +62,18 @@ AxrResult AxrApplication::startNewFrame() const {
     // Clear the frame allocator at the start of each frame
     AxrAllocator::get().FrameAllocator.clear();
 
-    const AxrResult axrResult = processEvents();
+    AxrResult axrResult = processEvents();
     if (axrResult == AXR_EVENT_APPLICATION_CLOSED) [[unlikely]] {
         return axrResult;
     }
     if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "ProcessEvents() failed.");
+        return axrResult;
+    }
+
+    axrResult = AxrRenderer::get().renderScene();
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to render scene.");
         return axrResult;
     }
 

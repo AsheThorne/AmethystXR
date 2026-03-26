@@ -66,6 +66,7 @@ set(AXR_SOURCE_FILES
     # ---- Renderer ----
     ${AXR_SRC_DIR}/renderer/renderer.h
     ${AXR_SRC_DIR}/renderer/renderer.cpp
+    ${AXR_SRC_DIR}/renderer/types.h
     ${AXR_SRC_DIR}/renderer/utils.h
     # ---- Renderer - Vulkan ----
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanApi.cpp
@@ -82,6 +83,7 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanEnvironment.cpp
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanImage.h
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanImage.cpp
+    ${AXR_SRC_DIR}/renderer/vulkan/types.h
     # ---- Common ----
     ${AXR_SRC_DIR}/common/enums.cpp
     ${AXR_SRC_DIR}/common/handle.h

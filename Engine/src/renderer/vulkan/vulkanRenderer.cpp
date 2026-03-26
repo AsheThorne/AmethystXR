@@ -18,7 +18,7 @@
 // ----------------------------------------- //
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to set up axr vulkan renderer. "
-AxrResult AxrVulkanRenderer::setup(Context& context, const Config& config) {
+AxrResult AxrVulkanRenderer::setup(AxrVulkanRendererContext& context, const Config& config) {
     assert(!context.IsSetup);
     assert(config.VulkanConfig != VK_NULL_HANDLE);
 
@@ -49,8 +49,10 @@ AxrResult AxrVulkanRenderer::setup(Context& context, const Config& config) {
         return axrResult;
     }
 
-    axrResult =
-        setupPhysicalDevice(context.Instance, context.Extensions, context.QueueFamilies, context.PhysicalDevice);
+    axrResult = setupPhysicalDevice(context.Instance,
+                                    context.Extensions,
+                                    context.QueueFamilies,
+                                    context.PhysicalDevice);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
         shutDown(context);
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to set up physical device.");
@@ -117,7 +119,7 @@ AxrResult AxrVulkanRenderer::setup(Context& context, const Config& config) {
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
-void AxrVulkanRenderer::shutDown(Context& context) {
+void AxrVulkanRenderer::shutDown(AxrVulkanRendererContext& context) {
     AxrVulkanEnvironment::destroyDesktopContext(context.DesktopEnvironmentContext);
     destroyCommandPools(context.Device, context.GraphicsCommandPool, context.TransferCommandPool);
     destroyLogicalDevice(context.QueueFamilies, context.Device);
@@ -130,8 +132,21 @@ void AxrVulkanRenderer::shutDown(Context& context) {
     context.IsSetup = false;
 }
 
-void AxrVulkanRenderer::destroyDesktopResources(Context& context) {
+void AxrVulkanRenderer::destroyDesktopResources(AxrVulkanRendererContext& context) {
     AxrVulkanEnvironment::destroyDesktopContext(context.DesktopEnvironmentContext);
+}
+
+AxrResult AxrVulkanRenderer::renderScene(const AxrVulkanRendererContext& context,
+                                         const AxrVector_Stack<AxrRenderCommand>& renderCommands,
+                                         AxrVulkanRenderSurface& renderSurface) {
+    // TODO: Implement
+    return AXR_SUCCESS;
+}
+
+AxrResult AxrVulkanRenderer::presentToDesktop(const AxrVulkanRendererContext& context,
+                                              AxrVulkanRenderSurface& renderSurface) {
+    // TODO: Implement
+    return AXR_SUCCESS;
 }
 
 void AxrVulkanRenderer::appendNextPtrChain(VkBaseOutStructure* source, VkBaseOutStructure* nextStruct) {
@@ -217,8 +232,8 @@ AxrResult AxrVulkanRenderer::createInstanceChain(const AxrVulkanExtensions::Exte
                                                  VkInstanceCreateInfo& instanceCreateInfo) {
     AxrResult axrResult = AXR_SUCCESS;
 
-    if (const AxrVulkanExtensions::ExtensionsArray_T::ConstIterator iterator =
-            extensions.find(AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS);
+    if (const AxrVulkanExtensions::ExtensionsArray_T::ConstIterator iterator = extensions.find(
+            AXR_VULKAN_EXTENSION_TYPE_DEBUG_UTILS);
         iterator != extensions.end()) {
         VkDebugUtilsMessengerCreateInfoEXT* debugUtilsCreateInfo{};
 
@@ -256,8 +271,10 @@ AxrResult AxrVulkanRenderer::createDebugUtilsMessenger(const VkInstance& instanc
 
     const VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo =
         AxrVulkanExtensions::createDebugUtilsMessengerCreateInfo(extensions);
-    const VkResult vkResult =
-        vkCreateDebugUtilsMessengerEXT(instance, &debugUtilsMessengerCreateInfo, nullptr, &debugUtilsMessenger);
+    const VkResult vkResult = vkCreateDebugUtilsMessengerEXT(instance,
+                                                             &debugUtilsMessengerCreateInfo,
+                                                             nullptr,
+                                                             &debugUtilsMessenger);
     axrLogVkResult(vkResult, "vkCreateDebugUtilsMessengerEXT");
     if (VK_FAILED(vkResult)) [[unlikely]]
         return AXR_ERROR_VULKAN_ERROR;
@@ -559,8 +576,8 @@ AxrResult AxrVulkanRenderer::createLogicalDevice(const AxrVulkanExtensions::Exte
         });
     }
 
-    const AxrVulkanExtensions::ExtensionNamesArray_T extensionNames =
-        AxrVulkanExtensions::getDeviceExtensionNames(extensions);
+    const AxrVulkanExtensions::ExtensionNamesArray_T extensionNames = AxrVulkanExtensions::getDeviceExtensionNames(
+        extensions);
 
     VkDeviceCreateInfo deviceCreateInfo{
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -575,8 +592,11 @@ AxrResult AxrVulkanRenderer::createLogicalDevice(const AxrVulkanExtensions::Exte
         .pEnabledFeatures = nullptr,
     };
 
-    axrResult =
-        createDeviceChain(physicalDevice, extensions, deviceCreateInfo, enabledFeatures, enabledMultiviewFeatures);
+    axrResult = createDeviceChain(physicalDevice,
+                                  extensions,
+                                  deviceCreateInfo,
+                                  enabledFeatures,
+                                  enabledMultiviewFeatures);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create device chain.");
         return axrResult;

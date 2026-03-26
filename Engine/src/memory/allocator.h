@@ -66,7 +66,7 @@ public:
     // Public Variables
     // ----------------------------------------- //
 
-    /// Clears all data at the beginning of each frame
+    /// Allocator for temporary data. This allocator clears all data at the beginning of each frame
     AxrStackAllocator FrameAllocator{};
     /// Allocator for all dynamic allocator handles
     AxrPoolAllocator<AxrDynamicAllocator::HandlesTree_T::Node> HandlesAllocator{};

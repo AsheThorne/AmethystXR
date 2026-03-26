@@ -3,6 +3,7 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
+#include "../types.h"
 #include "axr/common/defines.h"
 #include "axr/common/enums.h"
 #include "axr/vulkanApi.h"
@@ -14,9 +15,6 @@
 /// Empty Axr Vulkan renderer static class. This class only holds static functions.
 class AxrVulkanRenderer {
 public:
-    /// Empty Vulkan renderer context
-    struct Context {};
-
     /// Empty Vulkan renderer setup Config
     struct Config {};
 };
@@ -32,23 +30,6 @@ public:
     // ----------------------------------------- //
     // Public Structs
     // ----------------------------------------- //
-
-    /// Vulkan renderer context
-    struct Context {
-        AxrVulkanEnvironment::DesktopContext DesktopEnvironmentContext{};
-        AxrVulkanExtensions::ApiLayersArray_T ApiLayers{};
-        AxrVulkanExtensions::ExtensionsArray_T Extensions{};
-        AxrVulkanQueueFamilies QueueFamilies{};
-        VkInstance Instance = VK_NULL_HANDLE;
-        VkDebugUtilsMessengerEXT DebugUtilsMessenger = VK_NULL_HANDLE;
-        VkPhysicalDevice PhysicalDevice = VK_NULL_HANDLE;
-        VkDevice Device = VK_NULL_HANDLE;
-        VkCommandPool GraphicsCommandPool = VK_NULL_HANDLE;
-        VkCommandPool TransferCommandPool = VK_NULL_HANDLE;
-        VkPhysicalDeviceMultiviewFeatures EnabledDeviceMultiviewFeatures{};
-        VkPhysicalDeviceFeatures EnabledDeviceFeatures{};
-        bool IsSetup = false;
-    };
 
     /// Vulkan renderer setup Config
     struct Config {
@@ -94,14 +75,30 @@ public:
     /// @param context Vulkan renderer context
     /// @param config Vulkan renderer config
     /// @return AXR_SUCCESS if the function succeeded
-    [[nodiscard]] static AxrResult setup(Context& context, const Config& config);
+    [[nodiscard]] static AxrResult setup(AxrVulkanRendererContext& context, const Config& config);
     /// Shut down the vulkan renderer
     /// @param context Vulkan renderer context
-    static void shutDown(Context& context);
+    static void shutDown(AxrVulkanRendererContext& context);
 
     /// Destroy all desktop related resources
     /// @param context Vulkan renderer context
-    static void destroyDesktopResources(Context& context);
+    static void destroyDesktopResources(AxrVulkanRendererContext& context);
+
+    /// Render a scene
+    /// @param context Vulkan context
+    /// @param renderCommands Render commands
+    /// @param renderSurface Output surface with the rendered scene
+    /// @return AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult renderScene(const AxrVulkanRendererContext& context,
+                                               const AxrVector_Stack<AxrRenderCommand>& renderCommands,
+                                               AxrVulkanRenderSurface& renderSurface);
+
+    /// Present the given render surface to the desktop environment
+    /// @param context Vulkan context
+    /// @param renderSurface Render surface to present
+    /// @return AXR_SUCCESS if the function succeeded
+    [[nodiscard]] static AxrResult presentToDesktop(const AxrVulkanRendererContext& context,
+                                                    AxrVulkanRenderSurface& renderSurface);
 
 private:
     // ----------------------------------------- //

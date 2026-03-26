@@ -13,7 +13,8 @@
 // ----------------------------------------- //
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to set up desktop context. "
-AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, DesktopContext& context) {
+AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config,
+                                                    AxrVulkanRendererDesktopContext& context) {
     assert(config.DesktopConfig != nullptr);
 
     context.QueueFamilies = &config.QueueFamilies;
@@ -100,7 +101,7 @@ AxrResult AxrVulkanEnvironment::setupDesktopContext(const SetupConfig& config, D
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
-void AxrVulkanEnvironment::destroyDesktopContext(DesktopContext& context) {
+void AxrVulkanEnvironment::destroyDesktopContext(AxrVulkanRendererDesktopContext& context) {
     context.IsSetup = false;
 
     AxrPlatform::get().OnWindowResizedRendererCallback.reset();
@@ -697,7 +698,7 @@ AxrResult AxrVulkanEnvironment::setupDesktopSwapchain(const VkPhysicalDevice& ph
                                                       const VkCommandPool& graphicsCommandPool,
                                                       const AxrVulkanQueueFamilies& queueFamilies,
                                                       const VkSampleCountFlagBits msaaSampleCount,
-                                                      DesktopSwapchainContext& swapchainContext,
+                                                      AxrVulkanRendererDesktopSwapchainContext& swapchainContext,
                                                       AxrVector_Dynamic<VkFramebuffer>& framebuffers) {
     AxrResult axrResult = AXR_SUCCESS;
 
@@ -800,7 +801,7 @@ AxrResult AxrVulkanEnvironment::setupDesktopSwapchain(const VkPhysicalDevice& ph
 #undef AXR_FUNCTION_FAILED_STRING
 
 void AxrVulkanEnvironment::resetSetupDesktopSwapchain(const VkDevice& device,
-                                                      DesktopSwapchainContext& swapchainContext,
+                                                      AxrVulkanRendererDesktopSwapchainContext& swapchainContext,
                                                       AxrVector_Dynamic<VkFramebuffer>& framebuffers) {
     destroyFramebuffers(device, framebuffers);
     destroyVulkanImages(swapchainContext.MsaaImages);
@@ -964,7 +965,7 @@ AxrResult AxrVulkanEnvironment::createDesktopSwapchain(const VkPhysicalDevice& p
                                                        const VkDevice& device,
                                                        const VkSurfaceKHR& surface,
                                                        const AxrVulkanQueueFamilies& queueFamilies,
-                                                       DesktopSwapchainContext& swapchainContext) {
+                                                       AxrVulkanRendererDesktopSwapchainContext& swapchainContext) {
     assert(physicalDevice != VK_NULL_HANDLE);
     assert(device != VK_NULL_HANDLE);
     assert(surface != VK_NULL_HANDLE);
@@ -1252,7 +1253,7 @@ AxrResult AxrVulkanEnvironment::recreateDesktopSwapchain(const VkPhysicalDevice&
                                                          const VkCommandPool& graphicsCommandPool,
                                                          const AxrVulkanQueueFamilies& queueFamilies,
                                                          const VkSampleCountFlagBits msaaSampleCount,
-                                                         DesktopSwapchainContext& swapchainContext,
+                                                         AxrVulkanRendererDesktopSwapchainContext& swapchainContext,
                                                          AxrVector_Dynamic<VkFramebuffer>& framebuffers) {
     assert(device != VK_NULL_HANDLE);
 
@@ -1375,7 +1376,9 @@ void AxrVulkanEnvironment::destroyFramebuffers(const VkDevice& device, AxrVector
 }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to handle window resizing. "
-void AxrVulkanEnvironment::onWindowResizedCallback(DesktopContext& context, uint32_t width, uint32_t height) {
+void AxrVulkanEnvironment::onWindowResizedCallback(AxrVulkanRendererDesktopContext& context,
+                                                   uint32_t width,
+                                                   uint32_t height) {
     if (context.QueueFamilies == nullptr) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Queue Families is null.");
         return;

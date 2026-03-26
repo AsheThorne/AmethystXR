@@ -4,7 +4,7 @@
 // Headers
 // ----------------------------------------- //
 #include "axr/logging.h"
-#include "vulkan/vulkanRenderer.h"
+#include "types.h"
 
 #include <utility>
 
@@ -25,7 +25,7 @@
 // An empty AxrVulkanRenderer::Context struct is declared if AXR_VULKAN_SUPPORTED isn't defined
 /// Check that the given function is invocable with the vulkan renderer context
 template<typename Func_T, typename... Args>
-concept AxrInvocableWithVulkanContext = std::invocable<Func_T, AxrVulkanRenderer::Context&, Args&&...>;
+concept AxrInvocableWithVulkanContext = std::invocable<Func_T, AxrVulkanRendererContext&, Args&&...>;
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to call renderer context function. "
 /// Generic function to call different callbacks depending on the rendering api type
@@ -36,10 +36,10 @@ concept AxrInvocableWithVulkanContext = std::invocable<Func_T, AxrVulkanRenderer
 /// @param args Callback function arguments
 template<typename VulkanCallback_T, typename... Args>
     requires AxrInvocableWithVulkanContext<VulkanCallback_T, Args&&...>
-decltype(auto) axrRendererContextExecute(AxrRenderer::Context& context,
+decltype(auto) axrRendererContextExecute(AxrRendererContext& context,
                                          VulkanCallback_T&& vulkanCallback,
                                          Args&&... args) {
-    using R1_T = std::invoke_result_t<VulkanCallback_T, AxrVulkanRenderer::Context&, Args&&...>;
+    using R1_T = std::invoke_result_t<VulkanCallback_T, AxrVulkanRendererContext&, Args&&...>;
     // using R2_T = std::invoke_result_t<NewApiCallback_T, AxrNewApiRenderer::Context&, Args&&...>;
 
     // static_assert(std::is_same_v<R1_T, R2_T>, "All functions must have the same return type.");
