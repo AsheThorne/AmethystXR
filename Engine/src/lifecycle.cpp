@@ -3,6 +3,7 @@
 // ----------------------------------------- //
 #include "axr/lifecycle.h"
 #include "application/application.h"
+#include "assets/assets.h"
 #include "axr/logging.h"
 #include "memory/allocator.h"
 #include "platform/platform.h"
@@ -59,6 +60,16 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
     AxrAllocator::get().logHandlesAllocatorUsage("Platform Setup");
     AxrAllocator::get().logEngineDataAllocatorUsage("Platform Setup");
 
+    axrResult = AxrAssets::get().setup(AxrAssets::Config{});
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "AxrAssets.setup() failed.");
+        return axrResult;
+    }
+
+    AxrAllocator::get().logFrameAllocatorUsage("Assets Setup");
+    AxrAllocator::get().logHandlesAllocatorUsage("Assets Setup");
+    AxrAllocator::get().logEngineDataAllocatorUsage("Assets Setup");
+
     AxrRenderer::Config axrRendererConfig{
         .RendererConfig = &config->RendererConfig,
         .ApplicationVersion = config->ApplicationConfig.ApplicationVersion,
@@ -96,6 +107,7 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
 void axrShutdown() {
     AxrApplication::get().shutDown();
     AxrRenderer::get().shutDown();
+    AxrAssets::get().shutDown();
     AxrPlatform::get().shutDown();
     AxrServer::get().shutDown();
     AxrAllocator::get().shutDown();

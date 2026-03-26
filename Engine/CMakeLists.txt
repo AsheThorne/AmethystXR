@@ -94,6 +94,9 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/common/containers/vector_stack.h
     ${AXR_SRC_DIR}/common/containers/vector_dynamic.h
     ${AXR_SRC_DIR}/common/containers/redBlackTree_pool.h
+    # ---- Assets ----
+    ${AXR_SRC_DIR}/assets/assets.cpp
+    ${AXR_SRC_DIR}/assets/assets.h
 )
 
 # ---------------------------------------------
