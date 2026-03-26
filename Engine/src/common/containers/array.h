@@ -179,6 +179,21 @@ public:
     }
 #undef AXR_FUNCTION_FAILED_STRING
 
+#define AXR_FUNCTION_FAILED_STRING "Failed to append data in AxrArray. "
+    /// Append the array with the given items
+    /// @param list Items to append
+    void append(const std::initializer_list<Type>& list) {
+        if (m_Size + list.size() > m_Capacity) {
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Not enough space for the whole list.");
+            return;
+        }
+
+        for (const Type& item : list) {
+            pushBack(item);
+        }
+    }
+#undef AXR_FUNCTION_FAILED_STRING
+
     /// Remove the last item in the array
     void popBack() {
         if (m_Size == 0) [[unlikely]] {
@@ -202,8 +217,8 @@ protected:
     Type m_Data[Cap]{};
     size_t m_Capacity = Cap;
     size_t m_Size{};
-    static constexpr bool const& m_IsTypeCharArray =
-        std::is_array_v<Type> && std::is_same_v<std::remove_extent_t<Type>, char>;
+    static constexpr bool const& m_IsTypeCharArray = std::is_array_v<Type> &&
+                                                     std::is_same_v<std::remove_extent_t<Type>, char>;
     static constexpr bool const& m_IsTypeConstCharPtr = std::is_same_v<std::remove_extent_t<Type>, const char*>;
 
     // ----------------------------------------- //
