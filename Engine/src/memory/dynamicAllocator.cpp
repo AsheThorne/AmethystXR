@@ -27,19 +27,7 @@ AxrDynamicAllocator::AxrDynamicAllocator(const AxrMemoryBlock& memoryBlock,
 
 AxrDynamicAllocator::AxrDynamicAllocator(AxrDynamicAllocator&& src) noexcept :
     AxrSubAllocatorBase(std::move(src)) {
-    m_HandlesTree = std::move(src.m_HandlesTree);
-
-    m_FreeBlocksHead = src.m_FreeBlocksHead;
-    m_Size = src.m_Size;
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-    m_PeakSize = src.m_PeakSize;
-#endif
-
-    src.m_FreeBlocksHead = {};
-    src.m_Size = {};
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-    src.m_PeakSize = {};
-#endif
+    move_internal(std::move(src));
 }
 
 AxrDynamicAllocator::~AxrDynamicAllocator() {
@@ -52,19 +40,7 @@ AxrDynamicAllocator& AxrDynamicAllocator::operator=(AxrDynamicAllocator&& src) n
 
         AxrSubAllocatorBase::operator=(std::move(src));
 
-        m_HandlesTree = std::move(src.m_HandlesTree);
-
-        m_FreeBlocksHead = src.m_FreeBlocksHead;
-        m_Size = src.m_Size;
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-        m_PeakSize = src.m_PeakSize;
-#endif
-
-        src.m_FreeBlocksHead = {};
-        src.m_Size = {};
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-        src.m_PeakSize = {};
-#endif
+        move_internal(std::move(src));
     }
     return *this;
 }
@@ -277,6 +253,25 @@ void AxrDynamicAllocator::cleanup() {
     AxrSubAllocatorBase::cleanup();
 }
 
+void AxrDynamicAllocator::move_internal(AxrDynamicAllocator&& src) {
+    // Please note that we aren't moving the base class. That should be done before calling this function because
+    // depending on how it's done, it changes if we call the base move constructor or move assignment operator.
+
+    m_HandlesTree = std::move(src.m_HandlesTree);
+
+    m_FreeBlocksHead = src.m_FreeBlocksHead;
+    m_Size = src.m_Size;
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    m_PeakSize = src.m_PeakSize;
+#endif
+
+    src.m_FreeBlocksHead = {};
+    src.m_Size = {};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    src.m_PeakSize = {};
+#endif
+}
+
 AxrDynamicAllocator::FreeBlockHeader* AxrDynamicAllocator::findFreeBlock(const size_t size,
                                                                          FreeBlockHeader*& prevFreeBlock) const {
     // This should never be null. The only time it's null is if this allocator is empty and wasn't given any data to
@@ -359,14 +354,14 @@ void AxrDynamicAllocator::defragment() {
     // [DataHeader1][Item1][---Free Block---][DataHeader2][Item2][---Free Block---]
     // We want to move DataHeader2 and Item2, to where the free block is, and shift the free block to after Item2.
 
-    const auto dataHeader =
-        reinterpret_cast<DataHeader*>(reinterpret_cast<uintptr_t>(m_FreeBlocksHead) + m_FreeBlocksHead->Size);
+    const auto dataHeader = reinterpret_cast<DataHeader*>(reinterpret_cast<uintptr_t>(m_FreeBlocksHead) +
+                                                          m_FreeBlocksHead->Size);
 
     // Find the next address that is after the `dataHeader`. Since the data after the header is aligned, we don't know
     // exactly what the address of it is. We do know that it will be after the address of the header though. So we just
     // grab the next address after the header.
-    const HandlesTree_T::Node::Iterator dataAddressIterator =
-        m_HandlesTree.findNextLargest(reinterpret_cast<uintptr_t>(dataHeader));
+    const HandlesTree_T::Node::Iterator dataAddressIterator = m_HandlesTree.findNextLargest(
+        reinterpret_cast<uintptr_t>(dataHeader));
     if (dataAddressIterator == m_HandlesTree.end()) {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to find the address for the next block to defragment.");
         return;
@@ -378,8 +373,8 @@ void AxrDynamicAllocator::defragment() {
 
     const auto oldDataAddress = *dataAddressIterator;
     const auto newDataBlockAddress = reinterpret_cast<uintptr_t>(m_FreeBlocksHead);
-    const uintptr_t newDataAddress =
-        axrAlignAddress(newDataBlockAddress + sizeof(DataHeader), originalDataHeader.Alignment);
+    const uintptr_t newDataAddress = axrAlignAddress(newDataBlockAddress + sizeof(DataHeader),
+                                                     originalDataHeader.Alignment);
     const size_t dataBlockSize = originalDataHeader.Size + sizeof(DataHeader);
     const size_t dataSize = originalDataHeader.Size - originalDataHeader.Alignment;
 

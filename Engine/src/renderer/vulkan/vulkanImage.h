@@ -178,6 +178,10 @@ private:
 
     /// Clean up this class
     void cleanup();
+    
+    /// Move the given AxrVulkanImage to this class
+    /// @param src AxrVulkanImage to move
+    void move_internal(AxrVulkanImage&& src);
 };
 
 #endif

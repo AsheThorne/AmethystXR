@@ -19,21 +19,7 @@ AxrVulkanImage::AxrVulkanImage(const Config& config) :
 }
 
 AxrVulkanImage::AxrVulkanImage(AxrVulkanImage&& src) noexcept {
-    m_Config = std::move(src.m_Config);
-
-    m_Image = src.m_Image;
-    m_ImageMemory = src.m_ImageMemory;
-    m_ImageView = src.m_ImageView;
-    m_MipLevelCount = src.m_MipLevelCount;
-    m_ImageAspectMask = src.m_ImageAspectMask;
-    m_ImageFormat = src.m_ImageFormat;
-
-    src.m_Image = VK_NULL_HANDLE;
-    src.m_ImageMemory = VK_NULL_HANDLE;
-    src.m_ImageView = VK_NULL_HANDLE;
-    src.m_MipLevelCount = {};
-    src.m_ImageAspectMask = VK_IMAGE_ASPECT_NONE;
-    src.m_ImageFormat = VK_FORMAT_UNDEFINED;
+    move_internal(std::move(src));
 }
 
 AxrVulkanImage::~AxrVulkanImage() {
@@ -44,21 +30,7 @@ AxrVulkanImage& AxrVulkanImage::operator=(AxrVulkanImage&& src) noexcept {
     if (this != &src) {
         cleanup();
 
-        m_Config = std::move(src.m_Config);
-
-        m_Image = src.m_Image;
-        m_ImageMemory = src.m_ImageMemory;
-        m_ImageView = src.m_ImageView;
-        m_MipLevelCount = src.m_MipLevelCount;
-        m_ImageAspectMask = src.m_ImageAspectMask;
-        m_ImageFormat = src.m_ImageFormat;
-
-        src.m_Image = VK_NULL_HANDLE;
-        src.m_ImageMemory = VK_NULL_HANDLE;
-        src.m_ImageView = VK_NULL_HANDLE;
-        src.m_MipLevelCount = {};
-        src.m_ImageAspectMask = VK_IMAGE_ASPECT_NONE;
-        src.m_ImageFormat = VK_FORMAT_UNDEFINED;
+        move_internal(std::move(src));
     }
 
     return *this;
@@ -368,6 +340,24 @@ void AxrVulkanImage::cleanup() {
     destroyImage();
 
     m_Config = {};
+}
+
+void AxrVulkanImage::move_internal(AxrVulkanImage&& src) {
+    m_Config = std::move(src.m_Config);
+
+    m_Image = src.m_Image;
+    m_ImageMemory = src.m_ImageMemory;
+    m_ImageView = src.m_ImageView;
+    m_MipLevelCount = src.m_MipLevelCount;
+    m_ImageAspectMask = src.m_ImageAspectMask;
+    m_ImageFormat = src.m_ImageFormat;
+
+    src.m_Image = VK_NULL_HANDLE;
+    src.m_ImageMemory = VK_NULL_HANDLE;
+    src.m_ImageView = VK_NULL_HANDLE;
+    src.m_MipLevelCount = {};
+    src.m_ImageAspectMask = VK_IMAGE_ASPECT_NONE;
+    src.m_ImageFormat = VK_FORMAT_UNDEFINED;
 }
 
 #endif

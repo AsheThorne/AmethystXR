@@ -113,24 +113,7 @@ public:
     /// Move Constructor
     /// @param src Source AxrRendererContext to move from
     AxrRendererContext(AxrRendererContext&& src) noexcept {
-        switch (src.ApiType) {
-            case AXR_RENDERER_API_TYPE_VULKAN: {
-                Vulkan = std::move(src.Vulkan);
-                break;
-            }
-            case AXR_RENDERER_API_TYPE_UNDEFINED: {
-                // Nothing to do. No api selected
-                break;
-            }
-            default: {
-                axrLogWarning("Failed to properly move renderer context. Unknown renderer api.");
-                break;
-            }
-        }
-
-        ApiType = src.ApiType;
-
-        src.ApiType = AXR_RENDERER_API_TYPE_UNDEFINED;
+        move_internal(std::move(src));
     }
 
     // ---- Destructor ----
@@ -152,24 +135,7 @@ public:
         if (this != &src) {
             cleanup();
 
-            switch (src.ApiType) {
-                case AXR_RENDERER_API_TYPE_VULKAN: {
-                    Vulkan = std::move(src.Vulkan);
-                    break;
-                }
-                case AXR_RENDERER_API_TYPE_UNDEFINED: {
-                    // Nothing to do. No api selected
-                    break;
-                }
-                default: {
-                    axrLogWarning("Failed to properly move renderer context. Unknown renderer api.");
-                    break;
-                }
-            }
-
-            ApiType = src.ApiType;
-
-            src.ApiType = AXR_RENDERER_API_TYPE_UNDEFINED;
+            move_internal(std::move(src));
         }
         return *this;
     }
@@ -198,6 +164,29 @@ private:
         }
 
         ApiType = AXR_RENDERER_API_TYPE_UNDEFINED;
+    }
+
+    /// Move the given AxrRendererContext to this class
+    /// @param src AxrRendererContext to move
+    void move_internal(AxrRendererContext&& src) {
+        switch (src.ApiType) {
+            case AXR_RENDERER_API_TYPE_VULKAN: {
+                Vulkan = std::move(src.Vulkan);
+                break;
+            }
+            case AXR_RENDERER_API_TYPE_UNDEFINED: {
+                // Nothing to do. No api selected
+                break;
+            }
+            default: {
+                axrLogWarning("Failed to properly move renderer context. Unknown renderer api.");
+                break;
+            }
+        }
+
+        ApiType = src.ApiType;
+
+        src.ApiType = AXR_RENDERER_API_TYPE_UNDEFINED;
     }
 };
 
@@ -265,24 +254,7 @@ public:
     /// Move Constructor
     /// @param src Source AxrRenderSurface to move from
     AxrRenderSurface(AxrRenderSurface&& src) noexcept {
-        switch (src.ApiType) {
-            case AXR_RENDERER_API_TYPE_VULKAN: {
-                Vulkan = std::move(src.Vulkan);
-                break;
-            }
-            case AXR_RENDERER_API_TYPE_UNDEFINED: {
-                // Nothing to do. No api selected
-                break;
-            }
-            default: {
-                axrLogWarning("Failed to properly move renderer context. Unknown renderer api.");
-                break;
-            }
-        }
-
-        ApiType = src.ApiType;
-
-        src.ApiType = AXR_RENDERER_API_TYPE_UNDEFINED;
+        move_internal(std::move(src));
     }
 
     // ---- Destructor ----
@@ -304,24 +276,7 @@ public:
         if (this != &src) {
             cleanup();
 
-            switch (src.ApiType) {
-                case AXR_RENDERER_API_TYPE_VULKAN: {
-                    Vulkan = std::move(src.Vulkan);
-                    break;
-                }
-                case AXR_RENDERER_API_TYPE_UNDEFINED: {
-                    // Nothing to do. No api selected
-                    break;
-                }
-                default: {
-                    axrLogWarning("Failed to properly move renderer context. Unknown renderer api.");
-                    break;
-                }
-            }
-
-            ApiType = src.ApiType;
-
-            src.ApiType = AXR_RENDERER_API_TYPE_UNDEFINED;
+            move_internal(std::move(src));
         }
         return *this;
     }
@@ -350,5 +305,28 @@ private:
         }
 
         ApiType = AXR_RENDERER_API_TYPE_UNDEFINED;
+    }
+
+    /// Move the given AxrRenderSurface to this class
+    /// @param src AxrRenderSurface to move
+    void move_internal(AxrRenderSurface&& src) {
+        switch (src.ApiType) {
+            case AXR_RENDERER_API_TYPE_VULKAN: {
+                Vulkan = std::move(src.Vulkan);
+                break;
+            }
+            case AXR_RENDERER_API_TYPE_UNDEFINED: {
+                // Nothing to do. No api selected
+                break;
+            }
+            default: {
+                axrLogWarning("Failed to properly move renderer context. Unknown renderer api.");
+                break;
+            }
+        }
+
+        ApiType = src.ApiType;
+
+        src.ApiType = AXR_RENDERER_API_TYPE_UNDEFINED;
     }
 };

@@ -17,13 +17,7 @@ AxrSubAllocatorBase::AxrSubAllocatorBase(const AxrMemoryBlock& memoryBlock) {
 }
 
 AxrSubAllocatorBase::AxrSubAllocatorBase(AxrSubAllocatorBase&& src) noexcept {
-    m_Deallocator = src.m_Deallocator;
-    m_Memory = src.m_Memory;
-    m_Capacity = src.m_Capacity;
-
-    src.m_Deallocator = {};
-    src.m_Memory = {};
-    src.m_Capacity = {};
+    move_internal(std::move(src));
 }
 
 AxrSubAllocatorBase::~AxrSubAllocatorBase() {
@@ -34,13 +28,7 @@ AxrSubAllocatorBase& AxrSubAllocatorBase::operator=(AxrSubAllocatorBase&& src) n
     if (this != &src) {
         cleanup();
 
-        m_Deallocator = src.m_Deallocator;
-        m_Memory = src.m_Memory;
-        m_Capacity = src.m_Capacity;
-
-        src.m_Deallocator = {};
-        src.m_Memory = {};
-        src.m_Capacity = {};
+        move_internal(std::move(src));
     }
     return *this;
 }
@@ -68,4 +56,14 @@ void AxrSubAllocatorBase::cleanup() {
     }
     m_Capacity = {};
     m_Deallocator.reset();
+}
+
+void AxrSubAllocatorBase::move_internal(AxrSubAllocatorBase&& src) {
+    m_Deallocator = src.m_Deallocator;
+    m_Memory = src.m_Memory;
+    m_Capacity = src.m_Capacity;
+
+    src.m_Deallocator = {};
+    src.m_Memory = {};
+    src.m_Capacity = {};
 }

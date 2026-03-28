@@ -66,11 +66,7 @@ public:
     /// @param src Source AxrVector_Dynamic to move from
     AxrVector_Dynamic(AxrVector_Dynamic&& src) noexcept :
         AxrVectorBase<Type>(std::move(src)) {
-        m_DataHandle = std::move(src.m_DataHandle);
-
-        m_DynamicAllocator = src.m_DynamicAllocator;
-
-        src.m_DynamicAllocator = {};
+        move_internal(std::move(src));
     }
 
     // ---- Destructor ----
@@ -94,11 +90,7 @@ public:
 
             AxrVectorBase<Type>::operator=(std::move(src));
 
-            m_DataHandle = std::move(src.m_DataHandle);
-
-            m_DynamicAllocator = src.m_DynamicAllocator;
-
-            src.m_DynamicAllocator = {};
+            move_internal(std::move(src));
         }
         return *this;
     }
@@ -242,6 +234,19 @@ protected:
         m_DynamicAllocator = {};
 
         AxrVectorBase<Type>::cleanup();
+    }
+
+    /// Move the given AxrVector_Dynamic to this class
+    /// @param src AxrVector_Dynamic to move
+    void move_internal(AxrVector_Dynamic&& src) {
+        // Please note that we aren't moving the base class. That should be done before calling this function because
+        // depending on how it's done, it changes if we call the base move constructor or move assignment operator.
+
+        m_DataHandle = std::move(src.m_DataHandle);
+
+        m_DynamicAllocator = src.m_DynamicAllocator;
+
+        src.m_DynamicAllocator = {};
     }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to allocate AxrVector_Dynamic data. "

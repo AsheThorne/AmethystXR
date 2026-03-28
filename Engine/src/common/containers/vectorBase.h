@@ -46,11 +46,7 @@ public:
     /// Move Constructor
     /// @param src Source AxrVectorBase to move from
     AxrVectorBase(AxrVectorBase&& src) noexcept {
-        m_Capacity = src.m_Capacity;
-        m_Size = src.m_Size;
-
-        src.m_Capacity = {};
-        src.m_Size = {};
+        move_internal(std::move(src));
     }
 
     // ---- Destructor ----
@@ -72,11 +68,7 @@ public:
         if (this != &src) {
             cleanup();
 
-            m_Capacity = src.m_Capacity;
-            m_Size = src.m_Size;
-
-            src.m_Capacity = {};
-            src.m_Size = {};
+            move_internal(std::move(src));
         }
         return *this;
     }
@@ -143,6 +135,16 @@ protected:
     void cleanup() {
         m_Capacity = {};
         m_Size = {};
+    }
+
+    /// Move the given AxrVectorBase to this class
+    /// @param src AxrVectorBase to move
+    void move_internal(AxrVectorBase&& src) {
+        m_Capacity = src.m_Capacity;
+        m_Size = src.m_Size;
+
+        src.m_Capacity = {};
+        src.m_Size = {};
     }
 
     /// The beginning of the vector

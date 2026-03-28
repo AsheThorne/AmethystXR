@@ -47,13 +47,13 @@ public:
 
         /// Check if this node is on the left of the binary tree
         /// @return True if this node is on the left of the binary tree
-        bool isLeftNode() const {
+        [[nodiscard]] bool isLeftNode() const {
             return Parent != nullptr && this == Parent->Left;
         }
 
         /// Check if this node is on the right of the binary tree
         /// @return True if this node is on the right of the binary tree
-        bool isRightNode() const {
+        [[nodiscard]] bool isRightNode() const {
             return Parent != nullptr && this == Parent->Right;
         }
 
@@ -87,7 +87,7 @@ public:
 
         /// Check if this node has a red child
         /// @return True if this node has a red child
-        bool hasRedChild() const {
+        [[nodiscard]] bool hasRedChild() const {
             return (Left != nullptr && Left->IsRed) || (Right != nullptr && Right->IsRed);
         }
 
@@ -262,13 +262,7 @@ public:
     /// Move Constructor
     /// @param src Source AxrRedBlackTree_Pool to move from
     AxrRedBlackTree_Pool(AxrRedBlackTree_Pool&& src) noexcept {
-        m_PoolAllocator = src.m_PoolAllocator;
-        m_RootNode = src.m_RootNode;
-        m_Size = src.m_Size;
-
-        src.m_PoolAllocator = {};
-        src.m_RootNode = {};
-        src.m_Size = {};
+        move_internal(std::move(src));
     }
 
     // ---- Destructor ----
@@ -290,13 +284,7 @@ public:
         if (this != &src) {
             cleanup();
 
-            m_PoolAllocator = src.m_PoolAllocator;
-            m_RootNode = src.m_RootNode;
-            m_Size = src.m_Size;
-
-            src.m_PoolAllocator = {};
-            src.m_RootNode = {};
-            src.m_Size = {};
+            move_internal(std::move(src));
         }
         return *this;
     }
@@ -529,6 +517,18 @@ private:
         m_PoolAllocator = {};
         m_RootNode = {};
         m_Size = {};
+    }
+
+    /// Move the given AxrRedBlackTree_Pool to this class
+    /// @param src AxrRedBlackTree_Pool to move
+    void move_internal(AxrRedBlackTree_Pool&& src) {
+        m_PoolAllocator = src.m_PoolAllocator;
+        m_RootNode = src.m_RootNode;
+        m_Size = src.m_Size;
+
+        src.m_PoolAllocator = {};
+        src.m_RootNode = {};
+        src.m_Size = {};
     }
 
     /// Find the node with the given data

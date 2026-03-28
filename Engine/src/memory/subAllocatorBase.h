@@ -65,6 +65,10 @@ protected:
 
     /// Clean up this class
     void cleanup();
+    
+    /// Move the given AxrSubAllocatorBase to this class
+    /// @param src AxrSubAllocatorBase to move
+    void move_internal(AxrSubAllocatorBase&& src);
 };
 
 /// Base generic sub allocator with type alignment to inherit from
@@ -123,6 +127,11 @@ public:
         }
         return *this;
     }
+
+protected:
+    // ----------------------------------------- //
+    // Protected functions
+    // ----------------------------------------- //
 
     /// Clean up this class
     void cleanup() {

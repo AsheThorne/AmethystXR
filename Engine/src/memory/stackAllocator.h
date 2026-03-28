@@ -146,6 +146,10 @@ private:
 
     /// Clean up this class
     void cleanup();
+    
+    /// Move the given AxrStackAllocator to this class
+    /// @param src AxrStackAllocator to move
+    void move_internal(AxrStackAllocator&& src);
 
     /// Get the beginning of the allocated memory
     /// @return The address to the beginning of the allocated memory

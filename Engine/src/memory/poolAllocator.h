@@ -54,19 +54,7 @@ public:
     /// @param src Source AxrPoolAllocator to move from
     AxrPoolAllocator(AxrPoolAllocator&& src) noexcept :
         AxrSubAllocatorBase_Aligned<Type>(std::move(src)) {
-        m_FreeChunksHead = src.m_FreeChunksHead;
-        m_ChunkCapacity = src.m_ChunkCapacity;
-        m_UsedChunkCount = src.m_UsedChunkCount;
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-        m_PeakUsedChunkCount = src.m_PeakUsedChunkCount;
-#endif
-
-        src.m_FreeChunksHead = {};
-        src.m_ChunkCapacity = {};
-        src.m_UsedChunkCount = {};
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-        src.m_PeakUsedChunkCount = {};
-#endif
+        move_internal(std::move(src));
     }
 
     // ---- Destructor ----
@@ -90,19 +78,7 @@ public:
 
             AxrSubAllocatorBase_Aligned<Type>::operator=(std::move(src));
 
-            m_FreeChunksHead = src.m_FreeChunksHead;
-            m_ChunkCapacity = src.m_ChunkCapacity;
-            m_UsedChunkCount = src.m_UsedChunkCount;
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-            m_PeakUsedChunkCount = src.m_PeakUsedChunkCount;
-#endif
-
-            src.m_FreeChunksHead = {};
-            src.m_ChunkCapacity = {};
-            src.m_UsedChunkCount = {};
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-            src.m_PeakUsedChunkCount = {};
-#endif
+            move_internal(std::move(src));
         }
         return *this;
     }
@@ -240,6 +216,27 @@ protected:
         AxrSubAllocatorBase_Aligned<Type>::cleanup();
     }
 
+    /// Move the given AxrPoolAllocator to this class
+    /// @param src AxrPoolAllocator to move
+    void move_internal(AxrPoolAllocator&& src) {
+        // Please note that we aren't moving the base class. That should be done before calling this function because
+        // depending on how it's done, it changes if we call the base move constructor or move assignment operator.
+
+        m_FreeChunksHead = src.m_FreeChunksHead;
+        m_ChunkCapacity = src.m_ChunkCapacity;
+        m_UsedChunkCount = src.m_UsedChunkCount;
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+        m_PeakUsedChunkCount = src.m_PeakUsedChunkCount;
+#endif
+
+        src.m_FreeChunksHead = {};
+        src.m_ChunkCapacity = {};
+        src.m_UsedChunkCount = {};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+        src.m_PeakUsedChunkCount = {};
+#endif
+    }
+
     /// Chain together all chunks, marking them all as free to use
     void chainAllChunks() {
         if (AxrSubAllocatorBase::m_Memory == nullptr || m_ChunkCapacity == 0)
@@ -337,19 +334,7 @@ public:
     /// @param src Source AxrPoolAllocator to move from
     AxrPoolAllocator(AxrPoolAllocator&& src) noexcept :
         AxrSubAllocatorBase_Aligned<Type>(std::move(src)) {
-        m_FreeChunksHeadIndex = src.m_FreeChunksHeadIndex;
-        m_ChunkCapacity = src.m_ChunkCapacity;
-        m_UsedChunkCount = src.m_UsedChunkCount;
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-        m_PeakUsedChunkCount = src.m_PeakUsedChunkCount;
-#endif
-
-        src.m_FreeChunksHeadIndex = {};
-        src.m_ChunkCapacity = {};
-        src.m_UsedChunkCount = {};
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-        src.m_PeakUsedChunkCount = {};
-#endif
+        move_internal(std::move(src));
     }
 
     // ---- Destructor ----
@@ -373,19 +358,7 @@ public:
 
             AxrSubAllocatorBase_Aligned<Type>::operator=(std::move(src));
 
-            m_FreeChunksHeadIndex = src.m_FreeChunksHeadIndex;
-            m_ChunkCapacity = src.m_ChunkCapacity;
-            m_UsedChunkCount = src.m_UsedChunkCount;
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-            m_PeakUsedChunkCount = src.m_PeakUsedChunkCount;
-#endif
-
-            src.m_FreeChunksHeadIndex = {};
-            src.m_ChunkCapacity = {};
-            src.m_UsedChunkCount = {};
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-            src.m_PeakUsedChunkCount = {};
-#endif
+            move_internal(std::move(src));
         }
         return *this;
     }
@@ -481,7 +454,7 @@ public:
     [[nodiscard]] bool empty() const {
         return m_UsedChunkCount == 0;
     }
-    
+
     /// Get the number of bytes this allocator requires for the given number of chunks.
     /// @param chunkCount Max number of chunks to allow for
     /// @return Number of bytes required for the given number of chunks
@@ -514,6 +487,27 @@ private:
 #endif
 
         AxrSubAllocatorBase_Aligned<Type>::cleanup();
+    }
+
+    /// Move the given AxrPoolAllocator to this class
+    /// @param src AxrPoolAllocator to move
+    void move_internal(AxrPoolAllocator&& src) {
+        // Please note that we aren't moving the base class. That should be done before calling this function because
+        // depending on how it's done, it changes if we call the base move constructor or move assignment operator.
+
+        m_FreeChunksHeadIndex = src.m_FreeChunksHeadIndex;
+        m_ChunkCapacity = src.m_ChunkCapacity;
+        m_UsedChunkCount = src.m_UsedChunkCount;
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+        m_PeakUsedChunkCount = src.m_PeakUsedChunkCount;
+#endif
+
+        src.m_FreeChunksHeadIndex = {};
+        src.m_ChunkCapacity = {};
+        src.m_UsedChunkCount = {};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+        src.m_PeakUsedChunkCount = {};
+#endif
     }
 
     /// Chain together all chunks, marking them all as free to use

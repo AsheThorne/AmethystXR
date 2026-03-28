@@ -49,11 +49,7 @@ public:
     /// Move Constructor
     /// @param src Source AxrHandle to move from
     AxrHandle(AxrHandle&& src) noexcept {
-        m_Data = src.m_Data;
-        m_Deallocator = src.m_Deallocator;
-
-        src.m_Data = {};
-        src.m_Deallocator = {};
+        move_internal(std::move(src));
     }
 
     // ---- Destructor ----
@@ -75,11 +71,7 @@ public:
         if (this != &src) {
             cleanup();
 
-            m_Data = src.m_Data;
-            m_Deallocator = src.m_Deallocator;
-
-            src.m_Data = {};
-            src.m_Deallocator = {};
+            move_internal(std::move(src));
         }
         return *this;
     }
@@ -164,6 +156,16 @@ private:
         m_Data = nullptr;
         m_Deallocator = {};
     }
+
+    /// Move the given AxrHandle to this class
+    /// @param src AxrHandle to move
+    void move_internal(AxrHandle&& src) {
+        m_Data = src.m_Data;
+        m_Deallocator = src.m_Deallocator;
+
+        src.m_Data = {};
+        src.m_Deallocator = {};
+    }
 };
 
 /// A `void` specialization pointer handle.
@@ -205,11 +207,7 @@ public:
     /// Move Constructor
     /// @param src Source AxrHandle to move from
     AxrHandle(AxrHandle&& src) noexcept {
-        m_Data = src.m_Data;
-        m_Deallocator = src.m_Deallocator;
-
-        src.m_Data = {};
-        src.m_Deallocator = {};
+        move_internal(std::move(src));
     }
 
     // ---- Destructor ----
@@ -231,11 +229,7 @@ public:
         if (this != &src) {
             cleanup();
 
-            m_Data = src.m_Data;
-            m_Deallocator = src.m_Deallocator;
-
-            src.m_Data = {};
-            src.m_Deallocator = {};
+            move_internal(std::move(src));
         }
         return *this;
     }
@@ -275,5 +269,15 @@ private:
 
         m_Data = nullptr;
         m_Deallocator = {};
+    }
+
+    /// Move the given AxrHandle to this class
+    /// @param src AxrHandle to move
+    void move_internal(AxrHandle&& src) {
+        m_Data = src.m_Data;
+        m_Deallocator = src.m_Deallocator;
+
+        src.m_Data = {};
+        src.m_Deallocator = {};
     }
 };

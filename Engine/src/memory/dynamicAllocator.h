@@ -41,7 +41,7 @@ public:
     AxrDynamicAllocator();
     /// Constructor
     /// @param memoryBlock Memory block to use
-    /// @param maxHandleCount The maximum number of handles we can have in use at one time. The same memory buffer is
+    /// @param handlesAllocator The handles allocator to use
     /// used to store the handles. Use `getHandlesMemoryBlockCapacity()` and add the result to the `size` parameter.
     AxrDynamicAllocator(const AxrMemoryBlock& memoryBlock, AxrPoolAllocator<HandlesTree_T::Node>* handlesAllocator);
     /// Copy Constructor
@@ -164,6 +164,10 @@ private:
 
     /// Clean up this class
     void cleanup();
+
+    /// Move the given AxrDynamicAllocator to this class
+    /// @param src AxrDynamicAllocator to move
+    void move_internal(AxrDynamicAllocator&& src);
 
     /// Find the first free block that has enough space for the given size
     /// @param size The minimum amount of space requested

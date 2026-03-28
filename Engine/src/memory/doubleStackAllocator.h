@@ -215,6 +215,10 @@ private:
 
     /// Clean up this class
     void cleanup();
+    
+    /// Move the given AxrDoubleStackAllocator to this class
+    /// @param src AxrDoubleStackAllocator to move
+    void move_internal(AxrDoubleStackAllocator&& src);
 
     /// Get the beginning of the allocated memory on the lower end
     /// @return The address to the beginning of the allocated memory on the lower end

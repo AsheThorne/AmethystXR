@@ -80,15 +80,7 @@ public:
     /// @param src Source AxrVector_Stack to move from
     AxrVector_Stack(AxrVector_Stack&& src) noexcept :
         AxrVectorBase<Type>(std::move(src)) {
-        m_StackAllocator = src.m_StackAllocator;
-        m_Data = src.m_Data;
-        m_AllocatorMarkerID = src.m_AllocatorMarkerID;
-        m_AutoDeallocateMemory = src.m_AutoDeallocateMemory;
-
-        src.m_StackAllocator = {};
-        src.m_Data = {};
-        src.m_AllocatorMarkerID = {};
-        src.m_AutoDeallocateMemory = {};
+        move_internal(std::move(src));
     }
 
     // ---- Destructor ----
@@ -112,15 +104,7 @@ public:
 
             AxrVectorBase<Type>::operator=(std::move(src));
 
-            m_StackAllocator = src.m_StackAllocator;
-            m_Data = src.m_Data;
-            m_AllocatorMarkerID = src.m_AllocatorMarkerID;
-            m_AutoDeallocateMemory = src.m_AutoDeallocateMemory;
-
-            src.m_StackAllocator = {};
-            src.m_Data = {};
-            src.m_AllocatorMarkerID = {};
-            src.m_AutoDeallocateMemory = {};
+            move_internal(std::move(src));
         }
         return *this;
     }
@@ -268,6 +252,23 @@ protected:
         m_AutoDeallocateMemory = {};
 
         AxrVectorBase<Type>::cleanup();
+    }
+
+    /// Move the given AxrVector_Stack to this class
+    /// @param src AxrVector_Stack to move
+    void move_internal(AxrVector_Stack&& src) {
+        // Please note that we aren't moving the base class. That should be done before calling this function because
+        // depending on how it's done, it changes if we call the base move constructor or move assignment operator.
+
+        m_StackAllocator = src.m_StackAllocator;
+        m_Data = src.m_Data;
+        m_AllocatorMarkerID = src.m_AllocatorMarkerID;
+        m_AutoDeallocateMemory = src.m_AutoDeallocateMemory;
+
+        src.m_StackAllocator = {};
+        src.m_Data = {};
+        src.m_AllocatorMarkerID = {};
+        src.m_AutoDeallocateMemory = {};
     }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to allocate AxrVector_Stack data. "

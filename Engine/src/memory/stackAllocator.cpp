@@ -19,15 +19,7 @@ AxrStackAllocator::AxrStackAllocator(const AxrMemoryBlock& memoryBlock) :
 
 AxrStackAllocator::AxrStackAllocator(AxrStackAllocator&& src) noexcept :
     AxrSubAllocatorBase(std::move(src)) {
-    m_Size = src.m_Size;
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-    m_PeakSize = src.m_PeakSize;
-#endif
-
-    src.m_Size = {};
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-    src.m_PeakSize = {};
-#endif
+    move_internal(std::move(src));
 }
 
 AxrStackAllocator::~AxrStackAllocator() {
@@ -40,15 +32,7 @@ AxrStackAllocator& AxrStackAllocator::operator=(AxrStackAllocator&& src) noexcep
 
         AxrSubAllocatorBase::operator=(std::move(src));
 
-        m_Size = src.m_Size;
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-        m_PeakSize = src.m_PeakSize;
-#endif
-
-        src.m_Size = {};
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-        src.m_PeakSize = {};
-#endif
+        move_internal(std::move(src));
     }
     return *this;
 }
@@ -145,6 +129,21 @@ void AxrStackAllocator::cleanup() {
 #endif
 
     AxrSubAllocatorBase::cleanup();
+}
+
+void AxrStackAllocator::move_internal(AxrStackAllocator&& src) {
+    // Please note that we aren't moving the base class. That should be done before calling this function because
+    // depending on how it's done, it changes if we call the base move constructor or move assignment operator.
+
+    m_Size = src.m_Size;
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    m_PeakSize = src.m_PeakSize;
+#endif
+
+    src.m_Size = {};
+#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
+    src.m_PeakSize = {};
+#endif
 }
 
 inline uintptr_t AxrStackAllocator::begin() const {
