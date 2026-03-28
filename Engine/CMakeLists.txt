@@ -246,8 +246,9 @@ target_include_directories(AXR_Test PUBLIC
 # ---------------------------------------------
 
 target_compile_definitions(AXR_Test PRIVATE
-        $<$<CONFIG:Debug>:AXR_LOG_SOURCE_LOCATION>
-        $<$<CONFIG:Debug>:AXR_TRACK_ALLOCATOR_PEAK_USAGE>
+    $<$<CONFIG:Debug>:AXR_LOG_SOURCE_LOCATION>
+    $<$<CONFIG:Debug>:AXR_TRACK_ALLOCATOR_PEAK_USAGE>
+    AXR_TESTING_ENABLED
 )
 
 if(Vulkan_FOUND)

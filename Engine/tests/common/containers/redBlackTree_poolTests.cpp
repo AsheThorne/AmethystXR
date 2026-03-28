@@ -23,21 +23,25 @@ static void deallocateCallback(void*& memory) {
 /// @param actualNodes The actual nodes in the tree to check against
 template<typename Type>
 static void testRedBlackTreeNodes(const typename AxrRedBlackTree_Pool<Type>::Node* testNodes,
-                                  const typename AxrRedBlackTree_Pool<Type>::Node* actualNodes) {
+                                  const typename AxrRedBlackTree_Pool<Type>::Node::Iterator actualNodes) {
     if (testNodes == nullptr) {
-        ASSERT_TRUE(actualNodes == nullptr);
+        ASSERT_TRUE(actualNodes.m_Node == nullptr);
         return;
     }
-    // If testNodes isn't null, actualNodes shouldn't be either
-    if (actualNodes == nullptr) {
+    // If testNode isn't null, actualNode shouldn't be either
+    if (actualNodes.m_Node == nullptr) {
         ASSERT_TRUE(false);
         return;
     }
 
-    ASSERT_TRUE(actualNodes->Data == testNodes->Data);
-    ASSERT_TRUE(actualNodes->IsRed == testNodes->IsRed);
-    testRedBlackTreeNodes<Type>(testNodes->Left, actualNodes->Left);
-    testRedBlackTreeNodes<Type>(testNodes->Right, actualNodes->Right);
+    ASSERT_TRUE(actualNodes.m_Node->Data == testNodes->Data);
+    ASSERT_TRUE(actualNodes.m_Node->IsRed == testNodes->IsRed);
+    testRedBlackTreeNodes<Type>(
+        testNodes->Left,
+        typename AxrRedBlackTree_Pool<Type>::Node::Iterator(actualNodes.m_RootNode, actualNodes.m_Node->Left));
+    testRedBlackTreeNodes<Type>(
+        testNodes->Right,
+        typename AxrRedBlackTree_Pool<Type>::Node::Iterator(actualNodes.m_RootNode, actualNodes.m_Node->Right));
 }
 
 // ----------------------------------------- //
@@ -99,7 +103,7 @@ TEST(AxrRedBlackTree_Pool, Insert_One) {
     tree.insert(node1.Data);
     ASSERT_TRUE(tree.size() == 1);
     ASSERT_TRUE(tree.exists(node1.Data));
-    testRedBlackTreeNodes<TestData_T>(&node1, tree.findNode(node1.Data));
+    testRedBlackTreeNodes<TestData_T>(&node1, tree.find(node1.Data));
 }
 
 TEST(AxrRedBlackTree_Pool, FindNode_Exists) {
@@ -125,11 +129,12 @@ TEST(AxrRedBlackTree_Pool, FindNode_Exists) {
     tree.insert(testData);
     tree.insert(2);
 
-    const Node_T* foundNode = tree.findNode(testData);
-    ASSERT_TRUE(foundNode != nullptr);
-    if (foundNode != nullptr) {
-        ASSERT_TRUE(foundNode->Data == testData);
+    const Node_T::Iterator foundNode = tree.find(testData);
+    if (foundNode == tree.end()) {
+        ASSERT_TRUE(false);
+        return;
     }
+    ASSERT_TRUE(*foundNode == testData);
 }
 
 TEST(AxrRedBlackTree_Pool, FindNode_DoesntExist) {
@@ -154,8 +159,8 @@ TEST(AxrRedBlackTree_Pool, FindNode_DoesntExist) {
     tree.insert(15);
     tree.insert(2);
 
-    const Node_T* foundNode = tree.findNode(10);
-    ASSERT_TRUE(foundNode == nullptr);
+    const Node_T::Iterator foundNode = tree.find(10);
+    ASSERT_TRUE(foundNode == tree.end());
 }
 
 TEST(AxrRedBlackTree_Pool, FindNextLargest) {
@@ -249,7 +254,7 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     tree.insert(node12.Data);
     ASSERT_TRUE(tree.size() == 1);
     ASSERT_TRUE(tree.exists(node12.Data));
-    testRedBlackTreeNodes<TestData_T>(&node12, tree.findNode(node12.Data));
+    testRedBlackTreeNodes<TestData_T>(&node12, tree.find(node12.Data));
 
     // Add 20
     // Tree should look like this:
@@ -270,7 +275,7 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     tree.insert(node20.Data);
     ASSERT_TRUE(tree.size() == 2);
     ASSERT_TRUE(tree.exists(node20.Data));
-    testRedBlackTreeNodes<TestData_T>(&node12, tree.findNode(node12.Data));
+    testRedBlackTreeNodes<TestData_T>(&node12, tree.find(node12.Data));
 
     // Add 9
     // Tree should look like this:
@@ -292,7 +297,7 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     tree.insert(node9.Data);
     ASSERT_TRUE(tree.size() == 3);
     ASSERT_TRUE(tree.exists(node9.Data));
-    testRedBlackTreeNodes<TestData_T>(&node12, tree.findNode(node12.Data));
+    testRedBlackTreeNodes<TestData_T>(&node12, tree.find(node12.Data));
 
     // Add 17
     // Tree should look like this:
@@ -318,7 +323,7 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     tree.insert(node17.Data);
     ASSERT_TRUE(tree.size() == 4);
     ASSERT_TRUE(tree.exists(node17.Data));
-    testRedBlackTreeNodes<TestData_T>(&node12, tree.findNode(node12.Data));
+    testRedBlackTreeNodes<TestData_T>(&node12, tree.find(node12.Data));
 
     // Add 18
     // Tree should look like this:
@@ -346,7 +351,7 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     tree.insert(node18.Data);
     ASSERT_TRUE(tree.size() == 5);
     ASSERT_TRUE(tree.exists(node18.Data));
-    testRedBlackTreeNodes<TestData_T>(&node12, tree.findNode(node12.Data));
+    testRedBlackTreeNodes<TestData_T>(&node12, tree.find(node12.Data));
 
     // Add 32
     // Tree should look like this:
@@ -375,7 +380,7 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     tree.insert(node32.Data);
     ASSERT_TRUE(tree.size() == 6);
     ASSERT_TRUE(tree.exists(node32.Data));
-    testRedBlackTreeNodes<TestData_T>(&node12, tree.findNode(node12.Data));
+    testRedBlackTreeNodes<TestData_T>(&node12, tree.find(node12.Data));
 
     // Add 27
     // Tree should look like this:
@@ -405,7 +410,7 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     tree.insert(node27.Data);
     ASSERT_TRUE(tree.size() == 7);
     ASSERT_TRUE(tree.exists(node27.Data));
-    testRedBlackTreeNodes<TestData_T>(&node12, tree.findNode(node12.Data));
+    testRedBlackTreeNodes<TestData_T>(&node12, tree.find(node12.Data));
 
     // Add 42
     // Tree should look like this:
@@ -441,7 +446,7 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     tree.insert(node42.Data);
     ASSERT_TRUE(tree.size() == 8);
     ASSERT_TRUE(tree.exists(node42.Data));
-    testRedBlackTreeNodes<TestData_T>(&node18, tree.findNode(node18.Data));
+    testRedBlackTreeNodes<TestData_T>(&node18, tree.find(node18.Data));
 
     // Add 80
     // Tree should look like this:
@@ -474,7 +479,7 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     tree.insert(node80.Data);
     ASSERT_TRUE(tree.size() == 9);
     ASSERT_TRUE(tree.exists(node80.Data));
-    testRedBlackTreeNodes<TestData_T>(&node18, tree.findNode(node18.Data));
+    testRedBlackTreeNodes<TestData_T>(&node18, tree.find(node18.Data));
 
     // Add 4
     // Tree should look like this:
@@ -500,7 +505,7 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     tree.insert(node4.Data);
     ASSERT_TRUE(tree.size() == 10);
     ASSERT_TRUE(tree.exists(node4.Data));
-    testRedBlackTreeNodes<TestData_T>(&node18, tree.findNode(node18.Data));
+    testRedBlackTreeNodes<TestData_T>(&node18, tree.find(node18.Data));
 
     // Add 2
     // Tree should look like this:
@@ -533,7 +538,7 @@ TEST(AxrRedBlackTree_Pool, Insert_All) {
     tree.insert(node2.Data);
     ASSERT_TRUE(tree.size() == 11);
     ASSERT_TRUE(tree.exists(node2.Data));
-    testRedBlackTreeNodes<TestData_T>(&node18, tree.findNode(node18.Data));
+    testRedBlackTreeNodes<TestData_T>(&node18, tree.find(node18.Data));
 }
 
 TEST(AxrRedBlackTree_Pool, ForLoop_Increment) {
@@ -727,13 +732,13 @@ TEST(AxrRedBlackTree_Pool, Insert_TooMany) {
 
     const size_t size = tree.size();
     ASSERT_TRUE(size == capacity);
-    testRedBlackTreeNodes<TestData_T>(&node63, tree.findNode(node63.Data));
+    testRedBlackTreeNodes<TestData_T>(&node63, tree.find(node63.Data));
 
     tree.insert(99);
 
     // Make sure the tree didn't change
     ASSERT_TRUE(tree.size() == size);
-    testRedBlackTreeNodes<TestData_T>(&node63, tree.findNode(node63.Data));
+    testRedBlackTreeNodes<TestData_T>(&node63, tree.find(node63.Data));
 }
 
 TEST(AxrRedBlackTree_Pool, Remove_1) {
@@ -760,12 +765,12 @@ TEST(AxrRedBlackTree_Pool, Remove_1) {
     tree.insert(testData);
 
     ASSERT_TRUE(tree.size() == 1);
-    ASSERT_TRUE(tree.findNode(testData) != nullptr);
+    ASSERT_TRUE(tree.find(testData) != tree.end());
 
     tree.remove(testData);
 
     ASSERT_TRUE(tree.empty());
-    ASSERT_TRUE(tree.findNode(testData) == nullptr);
+    ASSERT_TRUE(tree.find(testData) == tree.end());
 }
 
 TEST(AxrRedBlackTree_Pool, Remove_All) {
@@ -889,7 +894,7 @@ TEST(AxrRedBlackTree_Pool, Remove_All) {
     }
 
     ASSERT_TRUE(tree.size() == capacity);
-    testRedBlackTreeNodes<TestData_T>(&node40, tree.findNode(node40.Data));
+    testRedBlackTreeNodes<TestData_T>(&node40, tree.find(node40.Data));
 
     // Delete 50
     // Tree should look like this:
@@ -916,7 +921,7 @@ TEST(AxrRedBlackTree_Pool, Remove_All) {
 
     tree.remove(node50.Data);
     ASSERT_TRUE(tree.size() == capacity - 1);
-    testRedBlackTreeNodes<TestData_T>(&node40, tree.findNode(node40.Data));
+    testRedBlackTreeNodes<TestData_T>(&node40, tree.find(node40.Data));
 
     // Delete 20
     // Tree should look like this:
@@ -944,7 +949,7 @@ TEST(AxrRedBlackTree_Pool, Remove_All) {
 
     tree.remove(node20.Data);
     ASSERT_TRUE(tree.size() == capacity - 2);
-    testRedBlackTreeNodes<TestData_T>(&node40, tree.findNode(node40.Data));
+    testRedBlackTreeNodes<TestData_T>(&node40, tree.find(node40.Data));
 
     // Delete 100
     // Tree should look like this:
@@ -963,7 +968,7 @@ TEST(AxrRedBlackTree_Pool, Remove_All) {
 
     tree.remove(node100.Data);
     ASSERT_TRUE(tree.size() == capacity - 3);
-    testRedBlackTreeNodes<TestData_T>(&node40, tree.findNode(node40.Data));
+    testRedBlackTreeNodes<TestData_T>(&node40, tree.find(node40.Data));
 
     // Delete 90
     // Tree should look like this:
@@ -989,7 +994,7 @@ TEST(AxrRedBlackTree_Pool, Remove_All) {
 
     tree.remove(node90.Data);
     ASSERT_TRUE(tree.size() == capacity - 4);
-    testRedBlackTreeNodes<TestData_T>(&node40, tree.findNode(node40.Data));
+    testRedBlackTreeNodes<TestData_T>(&node40, tree.find(node40.Data));
 
     // Delete 40
     // Tree should look like this:
@@ -1016,7 +1021,7 @@ TEST(AxrRedBlackTree_Pool, Remove_All) {
 
     tree.remove(node40.Data);
     ASSERT_TRUE(tree.size() == capacity - 5);
-    testRedBlackTreeNodes<TestData_T>(&node60, tree.findNode(node60.Data));
+    testRedBlackTreeNodes<TestData_T>(&node60, tree.find(node60.Data));
 
     // Delete 60
     // Tree should look like this:
@@ -1039,7 +1044,7 @@ TEST(AxrRedBlackTree_Pool, Remove_All) {
 
     tree.remove(node60.Data);
     ASSERT_TRUE(tree.size() == capacity - 6);
-    testRedBlackTreeNodes<TestData_T>(&node70, tree.findNode(node70.Data));
+    testRedBlackTreeNodes<TestData_T>(&node70, tree.find(node70.Data));
 
     // Delete 30
     // Tree should look like this:
@@ -1057,7 +1062,7 @@ TEST(AxrRedBlackTree_Pool, Remove_All) {
 
     tree.remove(node30.Data);
     ASSERT_TRUE(tree.size() == capacity - 7);
-    testRedBlackTreeNodes<TestData_T>(&node70, tree.findNode(node70.Data));
+    testRedBlackTreeNodes<TestData_T>(&node70, tree.find(node70.Data));
 
     // Delete 10
     // Tree should look like this:
@@ -1073,7 +1078,7 @@ TEST(AxrRedBlackTree_Pool, Remove_All) {
 
     tree.remove(node10.Data);
     ASSERT_TRUE(tree.size() == capacity - 8);
-    testRedBlackTreeNodes<TestData_T>(&node70, tree.findNode(node70.Data));
+    testRedBlackTreeNodes<TestData_T>(&node70, tree.find(node70.Data));
 
     // Delete 70
     // Tree should look like this:
@@ -1087,7 +1092,7 @@ TEST(AxrRedBlackTree_Pool, Remove_All) {
 
     tree.remove(node70.Data);
     ASSERT_TRUE(tree.size() == capacity - 9);
-    testRedBlackTreeNodes<TestData_T>(&node80, tree.findNode(node80.Data));
+    testRedBlackTreeNodes<TestData_T>(&node80, tree.find(node80.Data));
 
     // Delete 80
     // Tree should look like this:
@@ -1095,7 +1100,7 @@ TEST(AxrRedBlackTree_Pool, Remove_All) {
 
     tree.remove(node80.Data);
     ASSERT_TRUE(tree.size() == capacity - 10);
-    testRedBlackTreeNodes<TestData_T>(nullptr, tree.findNode(node80.Data));
+    testRedBlackTreeNodes<TestData_T>(nullptr, tree.find(node80.Data));
 
     ASSERT_TRUE(tree.empty());
 }
@@ -1221,13 +1226,13 @@ TEST(AxrRedBlackTree_Pool, Replace) {
     }
 
     ASSERT_TRUE(tree.size() == capacity);
-    testRedBlackTreeNodes<TestData_T>(&node40, tree.findNode(node40.Data));
+    testRedBlackTreeNodes<TestData_T>(&node40, tree.find(node40.Data));
 
     TestData_T newData = 35;
-    const Node_T* replacedNode = tree.findNode(node60.Data);
-    ASSERT_TRUE(replacedNode->Data == node60.Data);
+    const Node_T::Iterator replacedNode = tree.find(node60.Data);
+    ASSERT_TRUE(*replacedNode == node60.Data);
     tree.replace(node60.Data, newData);
-    ASSERT_TRUE(replacedNode->Data == newData);
+    ASSERT_TRUE(*replacedNode == newData);
     ASSERT_TRUE(tree.size() == capacity);
 
     // Tree should look like this:
@@ -1264,7 +1269,7 @@ TEST(AxrRedBlackTree_Pool, Replace) {
     node80.IsRed = false;
     node100.IsRed = false;
 
-    testRedBlackTreeNodes<TestData_T>(&node40, tree.findNode(node40.Data));
+    testRedBlackTreeNodes<TestData_T>(&node40, tree.find(node40.Data));
 }
 
 TEST(AxrRedBlackTree_Pool, Clear) {

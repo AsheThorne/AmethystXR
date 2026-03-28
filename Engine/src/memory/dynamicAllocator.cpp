@@ -110,8 +110,9 @@ AxrResult AxrDynamicAllocator::allocateBlock(const size_t size,
 
     allocatedBlock = axrAlignMemory(allocatedBlock, alignment);
 
-    HandlesTree_T::Node* allocatedBlockHandleNode = m_HandlesTree.insert(reinterpret_cast<uintptr_t>(allocatedBlock));
-    if (allocatedBlockHandleNode == nullptr) {
+    const HandlesTree_T::Node::Iterator allocatedBlockHandleNode = m_HandlesTree.insert(
+        reinterpret_cast<uintptr_t>(allocatedBlock));
+    if (allocatedBlockHandleNode == m_HandlesTree.end()) {
         *reinterpret_cast<FreeBlockHeader*>(originalFreeBlockAddress) = originalFreeBlockHeader;
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to create handle.");
         return AXR_ERROR_OUT_OF_MEMORY;
@@ -148,7 +149,7 @@ AxrResult AxrDynamicAllocator::allocateBlock(const size_t size,
     AxrHandle<void>::Deallocator_T deallocatorCallback{};
     deallocatorCallback.connect<&AxrDynamicAllocator::deallocateHandle>(this);
 
-    handle = AxrHandle(&reinterpret_cast<void*&>(allocatedBlockHandleNode->Data), deallocatorCallback);
+    handle = AxrHandle(reinterpret_cast<void* const*>(&*allocatedBlockHandleNode), deallocatorCallback);
 
     m_Size += blockSize;
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE

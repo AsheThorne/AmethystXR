@@ -96,6 +96,16 @@ public:
         // ----------------------------------------- //
         class Iterator {
         public:
+#ifdef AXR_TESTING_ENABLED
+            // ----------------------------------------- //
+            // Friends
+            // ----------------------------------------- //
+
+            template<typename T>
+            friend void testRedBlackTreeNodes(const AxrRedBlackTree_Pool<T>::Node* testNodes,
+                                              AxrRedBlackTree_Pool<T>::Node::Iterator actualNodes);
+#endif
+
             // ----------------------------------------- //
             // Special Functions
             // ----------------------------------------- //
@@ -295,8 +305,8 @@ public:
 
     /// Find the node with the given data
     /// @param data Data to search for
-    /// @return The node with the given data. Or nullptr if the data wasn't found.
-    [[nodiscard]] const Node* findNode(const Type& data) const {
+    /// @return The node with the given data's iterator. Or the iterator end if the data wasn't found.
+    [[nodiscard]] Node::Iterator find(const Type& data) const {
         Node* currentNode = m_RootNode;
 
         while (currentNode != nullptr && currentNode->Data != data) {
@@ -307,7 +317,7 @@ public:
             }
         }
 
-        return currentNode;
+        return typename Node::Iterator(m_RootNode, currentNode);
     }
 
     /// Find the next largest value after the given value. The given value doesn't need to exist in the tree.
@@ -345,24 +355,24 @@ public:
     /// @param data Data to check
     /// @return True if the data exists
     [[nodiscard]] bool exists(const Type& data) const {
-        return findNode(data) != nullptr;
+        return find(data) != end();
     }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to insert data into the red black tree. "
     /// Insert data into the tree
     /// @param data Data to insert
-    /// @return The inserted node. Or nullptr if we failed to insert the data
-    Node* insert(const Type& data) {
+    /// @return The inserted node's iterator. Or the iterator end if we failed to insert the data
+    Node::Iterator insert(const Type& data) {
         if (m_PoolAllocator == nullptr) [[unlikely]] {
             axrLogError(AXR_FUNCTION_FAILED_STRING "Pool allocator is null.");
-            return nullptr;
+            return end();
         }
 
         Node* node{};
         AxrResult axrResult = m_PoolAllocator->allocate(node);
         if (AXR_FAILED(axrResult)) [[unlikely]] {
             axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to allocate memory.");
-            return nullptr;
+            return end();
         }
 
         *node = Node(data);
@@ -371,11 +381,11 @@ public:
         if (AXR_FAILED(axrResult)) {
             m_PoolAllocator->deallocate(node);
             axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to insert the node.");
-            return nullptr;
+            return end();
         }
 
         ++m_Size;
-        return node;
+        return typename Node::Iterator(m_RootNode, node);
     }
 #undef AXR_FUNCTION_FAILED_STRING
 
@@ -383,7 +393,7 @@ public:
     /// Remove data from the tree
     /// @param data Data to remove
     void remove(const Type& data) {
-        Node* node = findNode_internal(data);
+        Node* node = findNode(data);
         if (node == nullptr) {
             return;
         }
@@ -409,7 +419,7 @@ public:
     /// @param originalData Original data to replace
     /// @param newData New data to replace the original data with
     void replace(const Type& originalData, const Type& newData) {
-        Node* node = findNode_internal(originalData);
+        Node* node = findNode(originalData);
         if (node == nullptr) {
             return;
         }
@@ -534,7 +544,7 @@ private:
     /// Find the node with the given data
     /// @param data Data to search for
     /// @return The node with the given data. Or nullptr if the data wasn't found.
-    [[nodiscard]] Node* findNode_internal(const Type& data) {
+    [[nodiscard]] Node* findNode(const Type& data) {
         Node* currentNode = m_RootNode;
 
         while (currentNode != nullptr && currentNode->Data != data) {

@@ -10,7 +10,7 @@
 class AxrDynamicAllocator;
 
 /// A pointer handle.
-/// Used in memory allocators where the original pointer way be relocated due to factors like defragmentation.
+/// Used in memory allocators where the original pointer may be relocated due to factors like defragmentation.
 /// @tparam Type The pointer data type
 template<typename Type>
 class AxrHandle {
@@ -37,7 +37,7 @@ public:
     /// Constructor
     /// @param data The data handle
     /// @param deallocator The function callback to deallocate the given data
-    explicit AxrHandle(Type** data, const Deallocator_T& deallocator) :
+    explicit AxrHandle(Type* const* data, const Deallocator_T& deallocator) :
         m_Data(data),
         m_Deallocator(deallocator) {
     }
@@ -142,7 +142,7 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
-    Type** m_Data{};
+    Type* const* m_Data{};
     Deallocator_T m_Deallocator{};
 
     // ----------------------------------------- //
@@ -169,7 +169,7 @@ private:
 };
 
 /// A `void` specialization pointer handle.
-/// Used in memory allocators where the original pointer way be relocated due to factors like defragmentation.
+/// Used in memory allocators where the original pointer may be relocated due to factors like defragmentation.
 template<>
 class AxrHandle<void> {
 public:
@@ -195,7 +195,7 @@ public:
     /// Constructor
     /// @param data The data handle
     /// @param deallocator The function callback to deallocate the given data
-    explicit AxrHandle(void** data, const Deallocator_T& deallocator) :
+    explicit AxrHandle(void* const* data, const Deallocator_T& deallocator) :
         m_Data(data),
         m_Deallocator(deallocator) {
     }
@@ -256,7 +256,7 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
-    void** m_Data{};
+    void* const* m_Data{};
     Deallocator_T m_Deallocator{};
 
     // ----------------------------------------- //
