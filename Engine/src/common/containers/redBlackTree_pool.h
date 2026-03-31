@@ -510,6 +510,14 @@ public:
         return m_Size;
     }
 
+    static constexpr size_t getItemSize() {
+        return sizeof(Node);
+    }
+
+    static constexpr size_t getItemAlignment() {
+        return alignof(Node);
+    }
+
 private:
     // ----------------------------------------- //
     // Private Variables
