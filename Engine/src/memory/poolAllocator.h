@@ -3,6 +3,7 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
+#include "../utils.h"
 #include "axr/common/enums.h"
 #include "axr/logging.h"
 #include "subAllocatorBase.h"
@@ -131,6 +132,7 @@ public:
             return;
         }
 
+        axrCallDestructor(*memory);
         auto chunk = reinterpret_cast<Chunk*>(memory);
 
         chunk->Next = m_FreeChunksHead;

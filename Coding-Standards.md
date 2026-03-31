@@ -41,3 +41,16 @@
   `.allocated()`. If it's true, it has been allocated.
     - If it should be allocated and should already have data, then just check if `.empty()`. No need to check capacity
       too.
+
+## Restrictions
+
+Each item listed is banned from use within the engine.
+
+- Never call `new` or `malloc` outside of the AxrAllocator class.
+- std::vector is banned. → Use AxrVector instead.
+- std::unordered_map is banned. → Use AxrUnorderedMap instead.
+- std::map is banned. No direct alternatives currently exist. Either use a AxrRedBlackTree or create an AxrMap which is
+  built on top of the AxrRedBlackTree.
+- std::array should be avoided. → Use AxrArray instead if possible.
+- std::string is banned. No direct alternatives currently exist.
+    - TODO (Ashe): Create an AxrString and replace any instance of std::string with it.

@@ -89,10 +89,7 @@ public:
         ApiType(apiType) {
         switch (ApiType) {
             case AXR_RENDERER_API_TYPE_VULKAN: {
-                // We have to zero out Vulkan first. Since we trigger the copy assignment operator instead of the
-                // copy constructor. So it will try cleaning up garbage data which can cause undefined behavior.
-                memset(reinterpret_cast<void*>(&Vulkan), 0, sizeof(Vulkan));
-                Vulkan = AxrVulkanRendererContext{};
+                new (&Vulkan) AxrVulkanRendererContext{};
                 break;
             }
             case AXR_RENDERER_API_TYPE_UNDEFINED: {
@@ -230,10 +227,7 @@ public:
         ApiType(apiType) {
         switch (ApiType) {
             case AXR_RENDERER_API_TYPE_VULKAN: {
-                // We have to zero out Vulkan first. Since we trigger the copy assignment operator instead of the
-                // copy constructor. So it will try cleaning up garbage data which can cause undefined behavior.
-                memset(reinterpret_cast<void*>(&Vulkan), 0, sizeof(Vulkan));
-                Vulkan = AxrVulkanRenderSurface{};
+                new (&Vulkan) AxrVulkanRendererContext{};
                 break;
             }
             case AXR_RENDERER_API_TYPE_UNDEFINED: {

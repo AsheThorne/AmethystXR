@@ -113,6 +113,12 @@ public:
     // Public Functions
     // ----------------------------------------- //
 
+    /// Check if the vector has been allocated
+    /// @return True if the vector has been allocated
+    [[nodiscard]] bool allocated() const {
+        return m_DataHandle != nullptr;
+    }
+
     /// The beginning of the vector
     /// @return An iterator to the beginning of the vector
     Iterator begin() {
@@ -216,6 +222,32 @@ public:
         return AxrVectorBase<Type>::findFirst(data, m_DataHandle.getDataPtr());
     }
 
+    /// Remove the last item in the vector
+    void popBack() {
+        if (AxrVectorBase<Type>::empty()) [[unlikely]] {
+            return;
+        }
+
+        axrCallDestructor(m_DataHandle[AxrVectorBase<Type>::m_Size - 1]);
+        AxrVectorBase<Type>::popBack();
+    }
+
+    /// Remove all items in the vector
+    void clear() {
+        if (AxrVectorBase<Type>::empty()) {
+            return;
+        }
+
+        for (Iterator begin = end(), end = AxrVector_Dynamic::begin(); begin != end;
+             /* Don't decrement here. It's done inside the loop*/) {
+            --begin;
+            Type& data = *begin;
+            axrCallDestructor(data);
+        }
+
+        AxrVectorBase<Type>::clear();
+    }
+
 protected:
     // ----------------------------------------- //
     // Protected Variables
@@ -229,6 +261,7 @@ protected:
 
     /// Clean up this class
     void cleanup() {
+        clear();
         deallocateData();
 
         m_DynamicAllocator = {};

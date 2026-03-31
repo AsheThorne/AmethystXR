@@ -51,8 +51,8 @@ TEST(AxrVector_Dynamic, Initialization) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader) + sizeof(AxrDynamicAllocator::DataHeader);
+    constexpr size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
+                                     sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -79,8 +79,8 @@ TEST(AxrVector_Dynamic, PushBackOne) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader);
+    constexpr size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
+                                     sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -110,8 +110,8 @@ TEST(AxrVector_Dynamic, PushBackCharArray) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader);
+    constexpr size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
+                                     sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -140,8 +140,8 @@ TEST(AxrVector_Dynamic, PushBackConstCharPtr) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader);
+    constexpr size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
+                                     sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -191,8 +191,8 @@ TEST(AxrVector_Dynamic, PushBackAll) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader);
+    constexpr size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
+                                     sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -247,8 +247,8 @@ TEST(AxrVector_Dynamic, PushBackTooMany) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader);
+    constexpr size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
+                                     sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -285,8 +285,8 @@ TEST(AxrVector_Dynamic, EmplaceBackOne) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader);
+    constexpr size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
+                                     sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -338,8 +338,8 @@ TEST(AxrVector_Dynamic, EmplaceBackAll) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader);
+    constexpr size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
+                                     sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -394,8 +394,8 @@ TEST(AxrVector_Dynamic, EmplaceBackTooMany) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader);
+    constexpr size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
+                                     sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -432,8 +432,8 @@ TEST(AxrVector_Dynamic, AutoDeallocation) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader);
+    constexpr size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
+                                     sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -465,8 +465,8 @@ TEST(AxrVector_Dynamic, PopBack_1) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader);
+    constexpr size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
+                                     sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -501,8 +501,8 @@ TEST(AxrVector_Dynamic, PopBack_2) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader);
+    constexpr size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
+                                     sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -557,8 +557,8 @@ TEST(AxrVector_Dynamic, Clear) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader);
+    constexpr size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
+                                     sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -613,8 +613,8 @@ TEST(AxrVector_Dynamic, GetAt_InBounds) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader);
+    constexpr size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
+                                     sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -673,8 +673,8 @@ TEST(AxrVector_Dynamic, GetAt_OutBounds) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader);
+    constexpr size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
+                                     sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -712,8 +712,8 @@ TEST(AxrVector_Dynamic, FindFirst_Exists) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader);
+    constexpr size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
+                                     sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{
@@ -759,8 +759,8 @@ TEST(AxrVector_Dynamic, FindFirst_DoesntExist) {
     AxrDeallocateBlock callback;
     callback.connect<deallocateCallback>();
 
-    const size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
-                                 sizeof(AxrDynamicAllocator::DataHeader);
+    constexpr size_t allocatorSize = (sizeof(TestData) * capacity) + alignof(TestData) +
+                                     sizeof(AxrDynamicAllocator::DataHeader);
     void* memory = malloc(allocatorSize);
     AxrDynamicAllocator allocator(
         AxrMemoryBlock{

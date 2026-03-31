@@ -3,6 +3,7 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
+#include "../../utils.h"
 #include "axr/logging.h"
 
 #include <cstring>
@@ -95,19 +96,12 @@ public:
         return m_Size == 0;
     }
 
-    /// Check if the vector has been allocated
-    /// @return True if the vector has been allocated
-    [[nodiscard]] bool allocated() const {
-        return m_Capacity != 0;
-    }
-
     /// Remove the last item in the vector
     void popBack() {
-        if (m_Size == 0) [[unlikely]] {
+        if (empty()) [[unlikely]] {
             return;
         }
 
-        // Don't clear the data, just overwrite it when new data gets added
         m_Size--;
     }
 
@@ -123,9 +117,6 @@ protected:
     // ----------------------------------------- //
     size_t m_Capacity{};
     size_t m_Size{};
-    static constexpr bool const& m_IsTypeCharArray = std::is_array_v<Type> &&
-                                                     std::is_same_v<std::remove_extent_t<Type>, char>;
-    static constexpr bool const& m_IsTypeConstCharPtr = std::is_same_v<std::remove_extent_t<Type>, const char*>;
 
     // ----------------------------------------- //
     // Protected Functions
@@ -203,11 +194,11 @@ protected:
     /// @return An iterator to the first instance of the given value. Or end() if it wasn't found
     [[nodiscard]] Iterator findFirst(const Type& data, Type* arrayData) {
         for (Iterator it = begin(arrayData), e = end(arrayData); it != e; ++it) {
-            if constexpr (m_IsTypeCharArray) {
-                if (strncmp(*it, data, getArrayLength()) == 0) {
+            if constexpr (axrIsTypeCharArray<Type>()) {
+                if (strncmp(*it, data, axrGetArrayLength<Type>()) == 0) {
                     return it;
                 }
-            } else if constexpr (m_IsTypeConstCharPtr) {
+            } else if constexpr (axrIsTypeConstCharPtr<Type>()) {
                 if (strcmp(*it, data) == 0) {
                     return it;
                 }
@@ -227,11 +218,11 @@ protected:
     /// @return An iterator to the first instance of the given value. Or end() if it wasn't found
     [[nodiscard]] ConstIterator findFirst(const Type& data, const Type* arrayData) const {
         for (ConstIterator it = begin(arrayData), e = end(arrayData); it != e; ++it) {
-            if constexpr (m_IsTypeCharArray) {
-                if (strncmp(*it, data, getArrayLength()) == 0) {
+            if constexpr (axrIsTypeCharArray<Type>()) {
+                if (strncmp(*it, data, axrGetArrayLength<Type>()) == 0) {
                     return it;
                 }
-            } else if constexpr (m_IsTypeConstCharPtr) {
+            } else if constexpr (axrIsTypeConstCharPtr<Type>()) {
                 if (strcmp(*it, data) == 0) {
                     return it;
                 }
@@ -261,8 +252,8 @@ protected:
             return;
         }
 
-        if constexpr (m_IsTypeCharArray) {
-            strncpy(arrayData[m_Size], dataItem, getArrayLength());
+        if constexpr (axrIsTypeCharArray<Type>()) {
+            strncpy(arrayData[m_Size], dataItem, axrGetArrayLength<Type>());
         } else {
             arrayData[m_Size] = dataItem;
         }
@@ -331,13 +322,4 @@ protected:
         }
     }
 #undef AXR_FUNCTION_FAILED_STRING
-
-    /// If this type is an array, get the number of elements it holds
-    /// @return The number of elements the `Type` array holds. Or 0 if it's not an array.
-    [[nodiscard]] constexpr size_t getArrayLength() const {
-        if constexpr (std::is_array_v<Type>) {
-            return sizeof(Type) / sizeof(std::remove_extent_t<Type>);
-        }
-        return 0;
-    }
 };

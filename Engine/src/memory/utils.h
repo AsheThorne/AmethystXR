@@ -17,7 +17,7 @@
 /// @return The shifted address, aligned
 inline uintptr_t axrAlignAddress(const uintptr_t address, const size_t alignment) {
     const size_t mask = alignment - 1;
-    // Make sure alignment is a power of two (or 1)
+    // Make sure alignment is a power of two (or equal to 1)
     assert((alignment & mask) == 0);
     return (address + mask) & ~mask;
 }

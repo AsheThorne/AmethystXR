@@ -94,6 +94,7 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/common/containers/vector_stack.h
     ${AXR_SRC_DIR}/common/containers/vector_dynamic.h
     ${AXR_SRC_DIR}/common/containers/redBlackTree_pool.h
+    ${AXR_SRC_DIR}/common/containers/unorderedMap_dynamic.h
     # ---- Assets ----
     ${AXR_SRC_DIR}/assets/assets.cpp
     ${AXR_SRC_DIR}/assets/assets.h
@@ -192,6 +193,7 @@ set(AXR_TEST_DIR ${CMAKE_CURRENT_LIST_DIR}/tests)
 set(AXR_TEST_FILES
     # ---- Root ----
     ${AXR_TEST_DIR}/main.cpp
+    ${AXR_TEST_DIR}/utilsTests.cpp
     # ---- Memory ----
     ${AXR_TEST_DIR}/memory/stackAllocatorTests.cpp
     ${AXR_TEST_DIR}/memory/doubleStackAllocatorTests.cpp
@@ -204,6 +206,7 @@ set(AXR_TEST_FILES
     ${AXR_TEST_DIR}/common/containers/vector_stackTests.cpp
     ${AXR_TEST_DIR}/common/containers/vector_dynamicTests.cpp
     ${AXR_TEST_DIR}/common/containers/redBlackTree_poolTests.cpp
+    ${AXR_TEST_DIR}/common/containers/unorderedMap_dynamicTests.cpp
 )
 
 # ---------------------------------------------

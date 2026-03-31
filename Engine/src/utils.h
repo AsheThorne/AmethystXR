@@ -4,6 +4,8 @@
 // Headers
 // ----------------------------------------- //
 #include <concepts>
+#include <cstddef>
+#include <type_traits>
 
 /// Determine if each type is unique
 template<typename...>
@@ -17,3 +19,38 @@ struct AxrUniqueTypesStruct<Type, Types...> :
 /// Determine if each type is unique
 template<typename... Types>
 concept AxrUniqueTypes = AxrUniqueTypesStruct<Types...>::value;
+
+/// Check if the given type is of type `char[]`
+template<typename Type>
+[[nodiscard]] constexpr bool axrIsTypeCharArray() {
+    return std::is_array_v<Type> && std::is_same_v<std::remove_extent_t<Type>, char>;
+}
+
+/// Check if the given type is of type `const char*`
+template<typename Type>
+[[nodiscard]] constexpr bool axrIsTypeConstCharPtr() {
+    return std::is_same_v<std::remove_extent_t<Type>, const char*>;
+}
+
+/// If this type is an array, get the number of elements it holds
+/// @return The number of elements the `Type` array holds. Or 0 if it's not an array.
+template<typename Type>
+[[nodiscard]] constexpr size_t axrGetArrayLength() {
+    if constexpr (std::is_array_v<Type>) {
+        return sizeof(Type) / sizeof(std::remove_extent_t<Type>);
+    }
+    return 0;
+}
+
+/// Call the destructor for the given item
+/// @param item item to destruct
+template<typename Type>
+void axrCallDestructor(Type& item) {
+    if constexpr (std::is_array_v<Type>) {
+        for (int i = 0; i < axrGetArrayLength<Type>(); ++i) {
+            axrCallDestructor(item[i]);
+        }
+    } else {
+        item.~Type();
+    }
+}

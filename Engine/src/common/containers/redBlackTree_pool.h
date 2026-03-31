@@ -4,6 +4,7 @@
 // Headers
 // ----------------------------------------- //
 #include "../../memory/poolAllocator.h"
+#include "../../utils.h"
 
 /// A red black tree that uses a pool allocator
 /// @tparam Type Data type to use
@@ -429,6 +430,7 @@ public:
             return;
         }
 
+        axrCallDestructor(originalData);
         *node = Node(newData);
 
         axrResult = insertNode(node);
@@ -480,7 +482,7 @@ public:
 
     /// Get the beginning iterator
     /// @return The beginning iterator
-    Node::Iterator begin() const {
+    [[nodiscard]] Node::Iterator begin() const {
         Node* currentNode = m_RootNode;
 
         while (currentNode->Left != nullptr) {
@@ -492,7 +494,7 @@ public:
 
     /// Get the end iterator
     /// @return The end iterator
-    Node::Iterator end() const {
+    [[nodiscard]] Node::Iterator end() const {
         return typename Node::Iterator(m_RootNode, nullptr);
     }
 

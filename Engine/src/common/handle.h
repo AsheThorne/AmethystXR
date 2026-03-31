@@ -78,8 +78,14 @@ public:
 
     /// Null equality operator overload
     /// @return True if this handle is null
-    bool operator==(nullptr_t) noexcept {
+    bool operator==(nullptr_t) const noexcept {
         return m_Data == nullptr || *m_Data == nullptr;
+    }
+
+    /// Null equality operator overload
+    /// @return True if this handle is not null
+    bool operator!=(nullptr_t) const noexcept {
+        return m_Data != nullptr && *m_Data != nullptr;
     }
 
     /// Dereference operator overload
@@ -112,6 +118,20 @@ public:
         }
 
         return *m_Data;
+    }
+
+    /// The subscript operator overload
+    /// @param index The data array index
+    /// @return The data at the given index
+    const Type& operator[](size_t index) const {
+        return (*m_Data)[index];
+    }
+
+    /// The subscript operator overload
+    /// @param index The data array index
+    /// @return The data at the given index
+    Type& operator[](size_t index) {
+        return (*m_Data)[index];
     }
 
     // ----------------------------------------- //
