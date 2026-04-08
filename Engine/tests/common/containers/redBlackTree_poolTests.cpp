@@ -1,3 +1,5 @@
+// ReSharper disable CppDFAMemoryLeak
+
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
@@ -195,7 +197,7 @@ TEST(AxrRedBlackTree_Pool, FindNextLargest) {
     //                                                                      /    \
     //                                                                    Null  Null
 
-    const TestData_T testDataInsertionOrder[capacity]{
+    constexpr TestData_T testDataInsertionOrder[capacity]{
         20,
         10,
         30,
