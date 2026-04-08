@@ -95,6 +95,36 @@ public:
                              reinterpret_cast<AxrHandle<void>&>(handle),
                              zeroOutMemory);
     }
+    
+    /// Reallocate an existing memory block
+    /// @param size The new size in bytes for how much memory to reallocate for
+    /// @param alignment Memory alignment
+    /// @param handle Input/Output allocated memory handle
+    /// @param zeroOutNewMemory If true, all newly allocated memory will be zeroed out. This doesn't affect memory from
+    /// the existing allocation.
+    /// @return AXR_SUCCESS if the function succeeded.
+    /// AXR_ERROR_OUT_OF_MEMORY if there isn't enough space for the requested memory.
+    [[nodiscard]] AxrResult reallocateBlock(size_t size,
+                                            uint8_t alignment,
+                                            AxrHandle<void>& handle,
+                                            bool zeroOutNewMemory = false);
+    /// Reallocate an existing memory block
+    /// @tparam Type The memory data type
+    /// @param size The new number of data items of type `Type` to store in memory
+    /// @param handle Input/Output allocated memory handle
+    /// @param zeroOutNewMemory If true, all newly allocated memory will be zeroed out. This doesn't affect memory from
+    /// the existing allocation.
+    /// @return AXR_SUCCESS if the function succeeded.
+    /// AXR_ERROR_OUT_OF_MEMORY if there isn't enough space for the requested memory.
+    template<typename Type>
+    [[nodiscard]] AxrResult reallocate(const size_t size,
+                                       AxrHandle<Type>& handle,
+                                       const bool zeroOutNewMemory = false) {
+        return reallocateBlock(sizeof(Type) * size,
+                               alignof(Type),
+                               reinterpret_cast<AxrHandle<void>&>(handle),
+                               zeroOutNewMemory);
+    }
 
     /// Deallocate the given handle
     /// @param handle Handle to deallocate

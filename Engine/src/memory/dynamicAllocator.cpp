@@ -162,6 +162,49 @@ AxrResult AxrDynamicAllocator::allocateBlock(const size_t size,
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
+#define AXR_FUNCTION_FAILED_STRING "Failed to reallocate block for dynamic allocator. "
+AxrResult AxrDynamicAllocator::reallocateBlock(const size_t size,
+                                               const uint8_t alignment,
+                                               AxrHandle<void>& handle,
+                                               const bool zeroOutNewMemory) {
+    // This should never be null. The only time it's null is if this allocator is empty and wasn't given any data to
+    // manage. In such case, we shouldn't be calling this function
+    assert(AxrSubAllocatorBase::m_Memory != nullptr);
+
+    if (handle.m_Data == nullptr) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "The given handle is not allocated.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    const auto dataAddress = reinterpret_cast<uintptr_t>(*handle.m_Data);
+    // If the given data isn't part of the memory we manage, don't do anything with it
+    if (dataAddress < reinterpret_cast<uintptr_t>(AxrSubAllocatorBase::m_Memory) ||
+        dataAddress > reinterpret_cast<uintptr_t>(AxrSubAllocatorBase::m_Memory) + AxrSubAllocatorBase::m_Capacity)
+        [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Attempted to deallocate data that isn't from this dynamic allocator.");
+        return AXR_ERROR_VALIDATION_FAILED;
+    }
+
+    const DataHeader originalDataHeader = *reinterpret_cast<DataHeader*>(
+        reinterpret_cast<uintptr_t>(axrUnalignMemory(reinterpret_cast<void*>(dataAddress))) - sizeof(DataHeader));
+
+    AxrHandle<void> newHandle;
+    const AxrResult axrResult = allocateBlock(size, alignment, newHandle, zeroOutNewMemory);
+    if (AXR_FAILED(axrResult)) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to allocate new block.");
+        return axrResult;
+    }
+
+    std::memcpy(newHandle.getDataPtr(), handle.getDataPtr(), originalDataHeader.Size);
+
+    deallocateHandle(handle);
+
+    handle = std::move(newHandle);
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
 void AxrDynamicAllocator::deallocateHandle(AxrHandle<void>& handle) {
     // This should never be null. The only time it's null is if this allocator is empty and wasn't given any data to
     // manage. In such case, we shouldn't be calling this function

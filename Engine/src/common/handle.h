@@ -140,7 +140,7 @@ public:
 
     /// Get the pointer to the data
     /// @return The pointer to the data
-    Type* getDataPtr() {
+    [[nodiscard]] Type* getDataPtr() {
         if (m_Data == nullptr) {
             return nullptr;
         }
@@ -150,7 +150,7 @@ public:
 
     /// Get the pointer to the data
     /// @return The pointer to the data
-    const Type* getDataPtr() const {
+    [[nodiscard]] const Type* getDataPtr() const {
         if (m_Data == nullptr) {
             return nullptr;
         }
@@ -271,6 +271,30 @@ public:
     /// Pointer operator overload
     /// @return A pointer to this handles data
     const void* operator->() const = delete;
+
+    // ----------------------------------------- //
+    // Public Functions
+    // ----------------------------------------- //
+
+    /// Get the pointer to the data
+    /// @return The pointer to the data
+    void* getDataPtr() {
+        if (m_Data == nullptr) {
+            return nullptr;
+        }
+
+        return *m_Data;
+    }
+
+    /// Get the pointer to the data
+    /// @return The pointer to the data
+    [[nodiscard]] const void* getDataPtr() const {
+        if (m_Data == nullptr) {
+            return nullptr;
+        }
+
+        return *m_Data;
+    }
 
 private:
     // ----------------------------------------- //

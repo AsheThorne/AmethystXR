@@ -87,6 +87,8 @@ set(AXR_SOURCE_FILES
     # ---- Common ----
     ${AXR_SRC_DIR}/common/enums.cpp
     ${AXR_SRC_DIR}/common/handle.h
+    ${AXR_SRC_DIR}/common/string.h
+    ${AXR_SRC_DIR}/common/string.cpp
     # ---- Common - Containers ----
     ${AXR_SRC_DIR}/common/containers/array.h
     ${AXR_SRC_DIR}/common/containers/extensionArray.h
@@ -200,6 +202,8 @@ set(AXR_TEST_FILES
     ${AXR_TEST_DIR}/memory/poolAllocatorTests.cpp
     ${AXR_TEST_DIR}/memory/dynamicAllocatorTests.cpp
     ${AXR_TEST_DIR}/memory/utilsTests.cpp
+    # ---- Common ----
+    ${AXR_TEST_DIR}/common/stringTests.cpp
     # ---- Common - Containers ----
     ${AXR_TEST_DIR}/common/containers/arrayTests.cpp
     ${AXR_TEST_DIR}/common/containers/extensionArrayTests.cpp

@@ -8,8 +8,8 @@
 
 /// Axr Array
 /// @tparam Type Item type
-/// @tparam Cap Array capacity
-template<typename Type, size_t Cap>
+/// @tparam Capacity Array capacity
+template<typename Type, size_t Capacity>
 class AxrArray {
 public:
     // ----------------------------------------- //
@@ -36,6 +36,33 @@ public:
     /// @return A const reference to the item at the given index
     [[nodiscard]] const Type& operator[](size_t index) const {
         return m_Data[index];
+    }
+
+    /// == Operator overload
+    /// @param string String to check equality with
+    /// @returns True if this array and the given string is equal
+    [[nodiscard]] bool operator==(const char8_t* const string) const
+        requires std::is_same_v<Type, char8_t> {
+        const size_t stringSize = std::char_traits<char8_t>::length(string);
+        if (stringSize != m_Size) {
+            return false;
+        }
+
+        for (int i = 0; i < stringSize; ++i) {
+            if (string[i] != m_Data[i]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// == Operator overload
+    /// @param character Character to check equality with
+    /// @returns True if this array and the given character is equal
+    [[nodiscard]] bool operator==(const char8_t character) const
+        requires std::is_same_v<Type, char8_t> {
+        return m_Size == 1 && m_Data[0] == character;
     }
 
     // ----------------------------------------- //
@@ -75,7 +102,7 @@ public:
     /// Get the array capacity
     /// @return The array capacity
     [[nodiscard]] size_t capacity() const {
-        return m_Capacity;
+        return Capacity;
     }
 
     /// Check if the array is empty
@@ -166,7 +193,7 @@ public:
     /// Add a new item to the end of the array
     /// @param data New item to add
     void pushBack(const Type& data) {
-        if (m_Size == m_Capacity) [[unlikely]] {
+        if (m_Size == Capacity) [[unlikely]] {
             axrLogError(AXR_FUNCTION_FAILED_STRING "Array is full.");
             return;
         }
@@ -184,7 +211,7 @@ public:
     /// Append the array with the given items
     /// @param list Items to append
     void append(const std::initializer_list<Type>& list) {
-        if (m_Size + list.size() > m_Capacity) {
+        if (m_Size + list.size() > Capacity) {
             axrLogError(AXR_FUNCTION_FAILED_STRING "Not enough space for the whole list.");
             return;
         }
@@ -225,7 +252,6 @@ protected:
     // ----------------------------------------- //
     // Protected Variables
     // ----------------------------------------- //
-    Type m_Data[Cap]{};
-    size_t m_Capacity = Cap;
+    Type m_Data[Capacity]{};
     size_t m_Size{};
 };

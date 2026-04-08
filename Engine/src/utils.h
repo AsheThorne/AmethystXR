@@ -5,7 +5,10 @@
 // ----------------------------------------- //
 #include <concepts>
 #include <cstddef>
-#include <type_traits>
+
+// ----------------------------------------- //
+// Concepts
+// ----------------------------------------- //
 
 /// Determine if each type is unique
 template<typename...>
@@ -19,6 +22,16 @@ struct AxrUniqueTypesStruct<Type, Types...> :
 /// Determine if each type is unique
 template<typename... Types>
 concept AxrUniqueTypes = AxrUniqueTypesStruct<Types...>::value;
+
+template<typename Type>
+concept AxrIsChar8Like =
+    std::is_same_v<std::remove_cv_t<std::remove_reference_t<Type>>, const char8_t*> ||
+    std::is_array_v<std::remove_reference_t<Type>> &&
+        std::is_same_v<std::remove_cv_t<std::remove_extent_t<std::remove_reference_t<Type>>>, char8_t>;
+
+// ----------------------------------------- //
+// Functions
+// ----------------------------------------- //
 
 /// Check if the given type is of type `char[]`
 template<typename Type>
