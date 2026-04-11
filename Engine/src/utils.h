@@ -26,8 +26,8 @@ concept AxrUniqueTypes = AxrUniqueTypesStruct<Types...>::value;
 template<typename Type>
 concept AxrIsChar8Like =
     std::is_same_v<std::remove_cv_t<std::remove_reference_t<Type>>, const char8_t*> ||
-    std::is_array_v<std::remove_reference_t<Type>> &&
-        std::is_same_v<std::remove_cv_t<std::remove_extent_t<std::remove_reference_t<Type>>>, char8_t>;
+    (std::is_array_v<std::remove_reference_t<Type>> &&
+     std::is_same_v<std::remove_cv_t<std::remove_extent_t<std::remove_reference_t<Type>>>, char8_t>);
 
 // ----------------------------------------- //
 // Functions
