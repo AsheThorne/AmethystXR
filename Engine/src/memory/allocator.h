@@ -60,6 +60,10 @@ public:
         uint32_t MaxHandleCount;
         /// Size in bytes
         size_t EngineDataAllocatorMainMemorySize;
+        /// The max number of debug related dynamic allocator handles to allow for
+        uint32_t MaxDebugHandleCount;
+        /// Size in bytes
+        size_t DebugInfoAllocatorMainMemorySize;
     };
 
     // ----------------------------------------- //
@@ -73,6 +77,13 @@ public:
     /// Allocator for any and all persistent engine related data
     // TODO (Ashe): Defragment this allocator every now and then
     AxrDynamicAllocator EngineDataAllocator{};
+#ifdef AXR_DEBUG_INFO_ENABLED
+    /// Allocator for all debug related dynamic allocator handles
+    AxrPoolAllocator<AxrDynamicAllocator::HandlesTree_T::Node> DebugHandlesAllocator{};
+    /// Allocator for all debug related info
+    // TODO (Ashe): Defragment this allocator every now and then
+    AxrDynamicAllocator DebugInfoAllocator{};
+#endif
 
     // ----------------------------------------- //
     // Public Functions
@@ -89,6 +100,9 @@ public:
     /// Shut down the allocator
     void shutDown();
 
+    /// Log all allocator's usage
+    /// @param message Message to prefix log message with
+    void logAllAllocatorUsage(const char* message) const;
     /// Log the frame allocator's usage
     /// @param message Message to prefix log message with
     void logFrameAllocatorUsage(const char* message) const;
@@ -98,6 +112,12 @@ public:
     /// Log the engine data allocator's usage
     /// @param message Message to prefix log message with
     void logEngineDataAllocatorUsage(const char* message) const;
+    /// Log the debug handles allocator's usage
+    /// @param message Message to prefix log message with
+    void logDebugHandlesAllocatorUsage(const char* message) const;
+    /// Log the debug info allocator's usage
+    /// @param message Message to prefix log message with
+    void logDebugInfoAllocatorUsage(const char* message) const;
 
 private:
     // ----------------------------------------- //
@@ -120,4 +140,10 @@ private:
     /// Callback function for when the engine data allocator gets deallocated
     /// @param memory Engine data allocator memory block to deallocate
     static void deallocateEngineDataAllocatorCallback(void*& memory);
+    /// Callback function for when the debug handles allocator gets deallocated
+    /// @param memory Debug handles allocator memory block to deallocate
+    static void deallocateDebugHandlesAllocatorCallback(void*& memory);
+    /// Callback function for when the debug info allocator gets deallocated
+    /// @param memory Debug info allocator memory block to deallocate
+    static void deallocateDebugInfoAllocatorCallback(void*& memory);
 };

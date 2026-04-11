@@ -21,15 +21,18 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
 
     AxrResult axrResult = AXR_SUCCESS;
 
-    constexpr AxrAllocator::Config axrAllocatorConfig{
-        /// 512 Kibibytes (Half a Mebibyte)
-        .FrameAllocatorSize = 524'288,
+    constexpr AxrAllocator::Config allocatorConfig{
+        /// 128 Kibibytes
+        .FrameAllocatorSize = 131'072,
         .MaxHandleCount = 10'000,
         /// 1 Mebibyte
         .EngineDataAllocatorMainMemorySize = 1'048'576,
+        .MaxDebugHandleCount = 100,
+        /// 2 Mebibytes
+        .DebugInfoAllocatorMainMemorySize = 2'097'152,
     };
 
-    axrResult = AxrAllocator::get().setup(axrAllocatorConfig);
+    axrResult = AxrAllocator::get().setup(allocatorConfig);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrAllocator.setup() failed.");
         return axrResult;
@@ -41,34 +44,32 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
         return axrResult;
     }
 
-    AxrAllocator::get().logFrameAllocatorUsage("Server Setup");
-    AxrAllocator::get().logHandlesAllocatorUsage("Server Setup");
-    AxrAllocator::get().logEngineDataAllocatorUsage("Server Setup");
+    AxrAllocator::get().logAllAllocatorUsage("Server Setup");
 
-    const AxrPlatform::Config axrPlatformConfig{
+    const AxrPlatform::Config platformConfig{
         .WindowConfig = &config->WindowConfig,
         .RendererApiType = config->RendererConfig.ApiType,
     };
 
-    axrResult = AxrPlatform::get().setup(axrPlatformConfig);
+    axrResult = AxrPlatform::get().setup(platformConfig);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrPlatform.setup() failed.");
         return axrResult;
     }
 
-    AxrAllocator::get().logFrameAllocatorUsage("Platform Setup");
-    AxrAllocator::get().logHandlesAllocatorUsage("Platform Setup");
-    AxrAllocator::get().logEngineDataAllocatorUsage("Platform Setup");
+    AxrAllocator::get().logAllAllocatorUsage("Platform Setup");
 
-    axrResult = AxrAssets::get().setup(AxrAssets::Config{});
+    const AxrAssets::Config axrAssetsConfig{
+        .MaxIDCount = 16'384,
+    };
+
+    axrResult = AxrAssets::get().setup(axrAssetsConfig);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrAssets.setup() failed.");
         return axrResult;
     }
 
-    AxrAllocator::get().logFrameAllocatorUsage("Assets Setup");
-    AxrAllocator::get().logHandlesAllocatorUsage("Assets Setup");
-    AxrAllocator::get().logEngineDataAllocatorUsage("Assets Setup");
+    AxrAllocator::get().logAllAllocatorUsage("Assets Setup");
 
     AxrRenderer::Config axrRendererConfig{
         .RendererConfig = &config->RendererConfig,
@@ -86,9 +87,7 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
         return axrResult;
     }
 
-    AxrAllocator::get().logFrameAllocatorUsage("Renderer Setup");
-    AxrAllocator::get().logHandlesAllocatorUsage("Renderer Setup");
-    AxrAllocator::get().logEngineDataAllocatorUsage("Renderer Setup");
+    AxrAllocator::get().logAllAllocatorUsage("Renderer Setup");
 
     axrResult = AxrApplication::get().setup(AxrApplication::Config{});
     if (AXR_FAILED(axrResult)) [[unlikely]] {
@@ -96,9 +95,7 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
         return axrResult;
     }
 
-    AxrAllocator::get().logFrameAllocatorUsage("Application Setup");
-    AxrAllocator::get().logHandlesAllocatorUsage("Application Setup");
-    AxrAllocator::get().logEngineDataAllocatorUsage("Application Setup");
+    AxrAllocator::get().logAllAllocatorUsage("Application Setup");
 
     return AXR_SUCCESS;
 }

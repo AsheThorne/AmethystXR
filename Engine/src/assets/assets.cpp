@@ -2,6 +2,7 @@
 // Headers
 // ----------------------------------------- //
 #include "assets.h"
+#include "../memory/allocator.h"
 #include "axr/logging.h"
 
 #include <cassert>
@@ -33,11 +34,17 @@ AxrAssets& AxrAssets::get() {
 AxrResult AxrAssets::setup(const Config& config) {
     assert(!m_IsSetup);
 
+#ifdef AXR_DEBUG_INFO_ENABLED
+    m_IDMap = AxrUnorderedMap_Dynamic<AxrID, AxrString>(config.MaxIDCount, &AxrAllocator::get().DebugInfoAllocator);
+#endif
+
     m_IsSetup = true;
     return AXR_SUCCESS;
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
 void AxrAssets::shutDown() {
+    m_IDMap = {};
+
     m_IsSetup = false;
 }

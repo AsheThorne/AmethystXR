@@ -98,7 +98,7 @@ static void allocateAll_Test(const DataType* exampleTestDatas) {
     });
 
     DataType* outTestDatas[DataSize]{};
-    for (int i = 0; i < DataSize; i++) {
+    for (size_t i = 0; i < DataSize; i++) {
         const AxrResult axrResult = allocator.allocate(outTestDatas[i], true);
         ASSERT_TRUE(AXR_SUCCEEDED(axrResult));
         ASSERT_TRUE(outTestDatas[i] != nullptr);
@@ -110,7 +110,7 @@ static void allocateAll_Test(const DataType* exampleTestDatas) {
     }
 
     // Check that there are no overlaps in memory by assigning data (happens in the loop) and checking it
-    for (int i = 0; i < DataSize; i++) {
+    for (size_t i = 0; i < DataSize; i++) {
         ASSERT_TRUE(*outTestDatas[i] == exampleTestDatas[i]);
     }
 

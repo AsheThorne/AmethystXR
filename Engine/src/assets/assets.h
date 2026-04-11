@@ -3,6 +3,9 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
+#include "../common/containers/unorderedMap_dynamic.h"
+#include "../common/id.h"
+#include "../common/string.h"
 #include "axr/common/enums.h"
 
 /// Axr Assets
@@ -51,7 +54,10 @@ public:
     // ----------------------------------------- //
 
     /// AxrAssets Config
-    struct Config {};
+    struct Config {
+        /// Must be a power of 2
+        uint32_t MaxIDCount;
+    };
 
     // ----------------------------------------- //
     // Public Functions
@@ -72,5 +78,6 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
+    AxrUnorderedMap_Dynamic<AxrID, AxrString> m_IDMap{};
     bool m_IsSetup = false;
 };

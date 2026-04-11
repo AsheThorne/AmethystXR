@@ -89,6 +89,8 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/common/handle.h
     ${AXR_SRC_DIR}/common/string.h
     ${AXR_SRC_DIR}/common/string.cpp
+    ${AXR_SRC_DIR}/common/id.h
+    ${AXR_SRC_DIR}/common/id.cpp
     # ---- Common - Containers ----
     ${AXR_SRC_DIR}/common/containers/array.h
     ${AXR_SRC_DIR}/common/containers/extensionArray.h
@@ -115,6 +117,7 @@ set_target_properties(AXR_Engine PROPERTIES
 
 target_link_libraries(AXR_Engine PRIVATE
     SDL3::SDL3
+    xxHash::xxhash
 )
 
 if(Vulkan_FOUND)
@@ -148,6 +151,7 @@ target_compile_definitions(AXR_Engine PRIVATE
     AXR_BUILD_DLL
     $<$<CONFIG:Debug>:AXR_LOG_SOURCE_LOCATION>
     $<$<CONFIG:Debug>:AXR_TRACK_ALLOCATOR_PEAK_USAGE>
+    $<$<CONFIG:Debug>:AXR_DEBUG_INFO_ENABLED>
 )
 
 if(WIN32)
@@ -256,6 +260,7 @@ target_compile_definitions(AXR_Test PRIVATE
     $<$<CONFIG:Debug>:AXR_LOG_SOURCE_LOCATION>
     $<$<CONFIG:Debug>:AXR_TRACK_ALLOCATOR_PEAK_USAGE>
     AXR_TESTING_ENABLED
+    AXR_DEBUG_INFO_ENABLED
 )
 
 if(Vulkan_FOUND)

@@ -48,7 +48,7 @@ public:
             return false;
         }
 
-        for (int i = 0; i < stringSize; ++i) {
+        for (size_t i = 0; i < stringSize; ++i) {
             if (string[i] != m_Data[i]) {
                 return false;
             }

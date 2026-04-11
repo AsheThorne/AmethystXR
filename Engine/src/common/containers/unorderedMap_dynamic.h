@@ -358,7 +358,7 @@ public:
             return;
         }
 
-        for (int i = 0; i < m_Capacity; ++i) {
+        for (size_t i = 0; i < m_Capacity; ++i) {
             if (m_DataHandle[i].Hash == 0) {
                 continue;
             }

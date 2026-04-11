@@ -51,6 +51,9 @@ set(DEPS_BUILD_DIRECTORY "${CMAKE_BINARY_DIR}/cmake-deps-build")
 
 set(SPDLOG_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/spdlog)
 set(SDL_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/SDL)
+set(XXHASH_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/xxHash)
+
+set(XXHASH_BUILD_XXHSUM OFF)
 
 # ---------------------------------------------
 # Setup Build Configurations
@@ -88,7 +91,8 @@ add_subdirectory(
 # ---------------------------------------------
 # Include thirdparty libraries
 # ---------------------------------------------
-add_subdirectory(thirdparty/SDL EXCLUDE_FROM_ALL)
+add_subdirectory(${SDL_DIRECTORY} EXCLUDE_FROM_ALL)
+add_subdirectory(${XXHASH_DIRECTORY}/build/cmake xxhash_build EXCLUDE_FROM_ALL)
 
 # ---------------------------------------------
 # Set platform
