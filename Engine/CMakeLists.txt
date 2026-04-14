@@ -31,6 +31,7 @@ set(AXR_PUBLIC_HEADER_FILES
     ${AXR_INCLUDE_DIR}/axr/common/enums.h
     ${AXR_INCLUDE_DIR}/axr/common/callback.h
     ${AXR_INCLUDE_DIR}/axr/common/utils.h
+    ${AXR_INCLUDE_DIR}/axr/common/types.h
 )
 
 # ---------------------------------------------
@@ -60,6 +61,9 @@ set(AXR_SOURCE_FILES
     # ---- Application ----
     ${AXR_SRC_DIR}/application/application.h
     ${AXR_SRC_DIR}/application/application.cpp
+    # ---- Debug Info ----
+    ${AXR_SRC_DIR}/debugInfo/debugInfo.h
+    ${AXR_SRC_DIR}/debugInfo/debugInfo.cpp
     # ---- Server ----
     ${AXR_SRC_DIR}/server/server.h
     ${AXR_SRC_DIR}/server/server.cpp

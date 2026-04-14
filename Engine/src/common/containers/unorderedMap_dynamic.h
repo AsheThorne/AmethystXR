@@ -24,7 +24,8 @@ private:
     // Private Structs
     // ----------------------------------------- //
 
-    struct Item {
+    class Item {
+    public:
         using Hash_T = uint32_t;
 
         Key_T Key{};
@@ -32,12 +33,80 @@ private:
         Hash_T Hash{};
         static constexpr Hash_T const& UninitializedHashValue = 0;
 
+        // ----------------------------------------- //
+        // Special Functions
+        // ----------------------------------------- //
+
+        // ---- Constructors ----
+
+        /// Default Constructor
+        Item() = default;
+
+        /// Constructor
+        /// @param key Key
+        /// @param value Value
+        /// @param hash hash
+        template<typename V_T>
+        Item(const Key_T& key, V_T&& value, const Hash_T hash) :
+            Key(key),
+            Value(std::forward<V_T>(value)),
+            Hash(hash) {
+        }
+
+        /// Copy Constructor
+        /// @param src Source Item to copy from
+        Item(const Item& src) = delete;
+
+        /// Move Constructor
+        /// @param src Source Item to move from
+        Item(Item&& src) noexcept {
+            move_internal(std::move(src));
+        }
+
+        // ---- Destructor ----
+
+        /// Destructor
         ~Item() {
+            cleanup();
+        }
+
+        // ---- Operator Overloads ----
+
+        /// Copy Assignment Operator
+        /// @param src Source Item to copy from
+        Item& operator=(const Item& src) = delete;
+
+        /// Move Assignment Operator
+        /// @param src Source Item to move from
+        Item& operator=(Item&& src) noexcept {
+            if (this != &src) {
+                cleanup();
+
+                move_internal(std::move(src));
+            }
+            return *this;
+        }
+
+    private:
+        // ----------------------------------------- //
+        // Private Functions
+        // ----------------------------------------- //
+
+        /// Clean up this class
+        void cleanup() {
             Key.~Key_T();
             Value.~Value_T();
 
             // Reset the hash value so we know the slot this item is in is empty
             Hash = UninitializedHashValue;
+        }
+
+        /// Move the given Item to this class
+        /// @param src Item to move
+        void move_internal(Item&& src) {
+            Key = std::move(src.Key);
+            Value = std::move(src.Value);
+            Hash = std::move(src.Hash);
         }
     };
 
@@ -126,8 +195,8 @@ public:
 
         /// Get the underlining data for this iterator
         /// @return The underlining data for this iterator
-        std::pair<Key_T, Value_T> operator*() const {
-            return std::pair<Key_T, Value_T>(m_Item->Key, m_Item->Value);
+        std::pair<Key_T, const Value_T&> operator*() const {
+            return std::pair<Key_T, const Value_T&>(m_Item->Key, m_Item->Value);
         }
 
     private:
@@ -260,71 +329,21 @@ public:
         return find(key) != end();
     }
 
-#define AXR_FUNCTION_FAILED_STRING "Failed to insert a new item into the AxrUnorderedMap_Dynamic. "
     /// Insert a new key value pair
     /// @param key Key to insert
     /// @param value Value to insert
     /// @return The inserted item iterator. Or the iterator end if we failed to insert.
     Iterator insert(const Key_T& key, const Value_T& value) {
-        if (m_Size + 1 > m_Capacity) [[unlikely]] {
-            axrLogError(AXR_FUNCTION_FAILED_STRING "Unordered map is full.");
-            return end();
-        }
-
-        const typename Item::Hash_T hash = hashKey(key);
-        size_t position = getDesiredIndex(hash);
-        size_t probeDistance = 0;
-
-        Item itemToInsert{
-            .Key = key,
-            .Value = value,
-            .Hash = hash,
-        };
-
-        size_t indexInserted = SIZE_MAX;
-
-        // (Ashe) - This looks like it might infinitely loop, but it won't. It will only infinitely loop if there are no
-        // free slots. But because we check above to make sure there is space, we're ok.
-        while (true) {
-            // If the position is free, use it for the new item
-            if (m_DataHandle[position].Hash == Item::UninitializedHashValue) {
-                new (&m_DataHandle[position]) Item(itemToInsert);
-                ++m_Size;
-
-                // Keep track of where we inserted the original item that was asked to be inserted.
-                // If it is SIZE_MAX, then we haven't set it yet. So this must be the new item that is being inserted.
-                if (indexInserted == SIZE_MAX) {
-                    indexInserted = position;
-                }
-
-                return Iterator(&m_DataHandle[indexInserted]);
-            }
-
-            // If the existing item has the same key, then fail the insert
-            if (m_DataHandle[position].Key == itemToInsert.Key) {
-                axrLogError(AXR_FUNCTION_FAILED_STRING "Key already exists.");
-                return end();
-            }
-
-            // If the existing element has probed less than us, then swap the existing item with the new item and loop
-            // again to find a new slot for the existing item.
-            const size_t existingElementProbeDistance = getProbeDistance(position);
-            if (existingElementProbeDistance < probeDistance) {
-                std::swap(m_DataHandle[position], itemToInsert);
-                probeDistance = existingElementProbeDistance;
-
-                // Keep track of where we inserted the original item that was asked to be inserted.
-                // If it is SIZE_MAX, then we haven't set it yet. So this must be the new item that is being inserted.
-                if (indexInserted == SIZE_MAX) {
-                    indexInserted = position;
-                }
-            }
-
-            position = (position + 1) & m_IndexWraparoundMask;
-            ++probeDistance;
-        }
+        return insert_internal(key, value);
     }
-#undef AXR_FUNCTION_FAILED_STRING
+
+    /// Insert a new key value pair
+    /// @param key Key to insert
+    /// @param value Value to insert
+    /// @return The inserted item iterator. Or the iterator end if we failed to insert.
+    Iterator insert(const Key_T& key, Value_T&& value) {
+        return insert_internal(key, std::move(value));
+    }
 
     /// Remove the item with the given key
     /// @param key Key to remove
@@ -412,6 +431,69 @@ private:
         src.m_Size = {};
         src.m_IndexWraparoundMask = {};
     }
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to insert a new item into the AxrUnorderedMap_Dynamic. "
+    /// Insert a new key value pair
+    /// @param key Key to insert
+    /// @param value Value to insert
+    /// @return The inserted item iterator. Or the iterator end if we failed to insert.
+    template<typename V_T>
+    Iterator insert_internal(const Key_T& key, V_T&& value) {
+        if (m_Size + 1 > m_Capacity) [[unlikely]] {
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Unordered map is full.");
+            return end();
+        }
+
+        const typename Item::Hash_T hash = hashKey(key);
+        size_t position = getDesiredIndex(hash);
+        size_t probeDistance = 0;
+
+        Item itemToInsert(key, std::forward<V_T>(value), hash);
+
+        size_t indexInserted = SIZE_MAX;
+
+        // (Ashe) - This looks like it might infinitely loop, but it won't. It will only infinitely loop if there are no
+        // free slots. But because we check above to make sure there is space, we're ok.
+        while (true) {
+            // If the position is free, use it for the new item
+            if (m_DataHandle[position].Hash == Item::UninitializedHashValue) {
+                ::new (&m_DataHandle[position]) Item(std::move(itemToInsert));
+                ++m_Size;
+
+                // Keep track of where we inserted the original item that was asked to be inserted.
+                // If it is SIZE_MAX, then we haven't set it yet. So this must be the new item that is being inserted.
+                if (indexInserted == SIZE_MAX) {
+                    indexInserted = position;
+                }
+
+                return Iterator(&m_DataHandle[indexInserted]);
+            }
+
+            // If the existing item has the same key, then fail the insert
+            if (m_DataHandle[position].Key == itemToInsert.Key) {
+                axrLogError(AXR_FUNCTION_FAILED_STRING "Key already exists.");
+                return end();
+            }
+
+            // If the existing element has probed less than us, then swap the existing item with the new item and loop
+            // again to find a new slot for the existing item.
+            const size_t existingElementProbeDistance = getProbeDistance(position);
+            if (existingElementProbeDistance < probeDistance) {
+                std::swap(m_DataHandle[position], itemToInsert);
+                probeDistance = existingElementProbeDistance;
+
+                // Keep track of where we inserted the original item that was asked to be inserted.
+                // If it is SIZE_MAX, then we haven't set it yet. So this must be the new item that is being inserted.
+                if (indexInserted == SIZE_MAX) {
+                    indexInserted = position;
+                }
+            }
+
+            position = (position + 1) & m_IndexWraparoundMask;
+            ++probeDistance;
+        }
+    }
+#undef AXR_FUNCTION_FAILED_STRING
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to allocate AxrUnorderedMap_Dynamic data. "
     /// Allocate the data we need

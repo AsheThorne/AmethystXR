@@ -5,6 +5,7 @@
 #include "application/application.h"
 #include "assets/assets.h"
 #include "axr/logging.h"
+#include "debugInfo/debugInfo.h"
 #include "memory/allocator.h"
 #include "platform/platform.h"
 #include "renderer/renderer.h"
@@ -38,6 +39,20 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
         return axrResult;
     }
 
+#ifdef AXR_DEBUG_INFO_ENABLED
+    constexpr AxrDebugInfo::Config debugInfoConfig{
+        .MaxIDCount = 16'384,
+    };
+
+    axrResult = AxrDebugInfo::get().setup(debugInfoConfig);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "AxrDebugInfo.setup() failed.");
+        return axrResult;
+    }
+
+    AxrAllocator::get().logAllAllocatorUsage("Debug Info Setup");
+#endif
+
     axrResult = AxrServer::get().setup(AxrServer::Config{});
     if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrServer.setup() failed.");
@@ -59,11 +74,7 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
 
     AxrAllocator::get().logAllAllocatorUsage("Platform Setup");
 
-    const AxrAssets::Config axrAssetsConfig{
-        .MaxIDCount = 16'384,
-    };
-
-    axrResult = AxrAssets::get().setup(axrAssetsConfig);
+    axrResult = AxrAssets::get().setup(AxrAssets::Config{});
     if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrAssets.setup() failed.");
         return axrResult;
@@ -71,17 +82,17 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
 
     AxrAllocator::get().logAllAllocatorUsage("Assets Setup");
 
-    AxrRenderer::Config axrRendererConfig{
+    AxrRenderer::Config rendererConfig{
         .RendererConfig = &config->RendererConfig,
         .ApplicationVersion = config->ApplicationConfig.ApplicationVersion,
         .ApplicationName = "",
     };
 
-    std::strncpy(axrRendererConfig.ApplicationName,
+    std::strncpy(rendererConfig.ApplicationName,
                  config->ApplicationConfig.ApplicationName,
                  AXR_MAX_APPLICATION_NAME_SIZE);
 
-    axrResult = AxrRenderer::get().setup(axrRendererConfig);
+    axrResult = AxrRenderer::get().setup(rendererConfig);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrRenderer.setup() failed.");
         return axrResult;
@@ -107,5 +118,8 @@ void axrShutdown() {
     AxrAssets::get().shutDown();
     AxrPlatform::get().shutDown();
     AxrServer::get().shutDown();
+#ifdef AXR_DEBUG_INFO_ENABLED
+    AxrDebugInfo::get().shutDown();
+#endif
     AxrAllocator::get().shutDown();
 }

@@ -1,7 +1,9 @@
+#ifdef AXR_DEBUG_INFO_ENABLED
+
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
-#include "assets.h"
+#include "debugInfo.h"
 #include "../memory/allocator.h"
 #include "axr/logging.h"
 
@@ -15,9 +17,9 @@
 // Special Functions
 // ----------------------------------------- //
 
-AxrAssets::AxrAssets() = default;
+AxrDebugInfo::AxrDebugInfo() = default;
 
-AxrAssets::~AxrAssets() {
+AxrDebugInfo::~AxrDebugInfo() {
     shutDown();
 }
 
@@ -25,21 +27,25 @@ AxrAssets::~AxrAssets() {
 // Public Functions
 // ----------------------------------------- //
 
-AxrAssets& AxrAssets::get() {
-    static AxrAssets singleton;
+AxrDebugInfo& AxrDebugInfo::get() {
+    static AxrDebugInfo singleton;
     return singleton;
 }
 
-#define AXR_FUNCTION_FAILED_STRING "Failed to set up axr assets. "
-AxrResult AxrAssets::setup(const Config& config) {
+#define AXR_FUNCTION_FAILED_STRING "Failed to set up axr debug info. "
+AxrResult AxrDebugInfo::setup(const Config& config) {
     assert(!m_IsSetup);
 
+    IDNames = AxrUnorderedMap_Dynamic<AxrID, AxrString>(config.MaxIDCount, &AxrAllocator::get().DebugInfoAllocator);
 
     m_IsSetup = true;
     return AXR_SUCCESS;
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
-void AxrAssets::shutDown() {
+void AxrDebugInfo::shutDown() {
+    IDNames = {};
     m_IsSetup = false;
 }
+
+#endif

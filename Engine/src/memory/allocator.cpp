@@ -35,7 +35,7 @@ AxrResult AxrAllocator::setup(const Config& config) {
     const size_t engineDataAllocatorSize = config.EngineDataAllocatorMainMemorySize;
     const size_t debugHandlesAllocatorSize =
         AxrPoolAllocator<AxrDynamicAllocator::HandlesTree_T::Node>::getAllocatorSize(config.MaxDebugHandleCount);
-    const size_t debugInfoAllocatorSize = config.DebugInfoAllocatorMainMemorySize;
+    [[maybe_unused]] const size_t debugInfoAllocatorSize = config.DebugInfoAllocatorMainMemorySize;
 
     m_MemorySize = frameAllocatorSize + handlesAllocatorSize + engineDataAllocatorSize;
 #ifdef AXR_DEBUG_INFO_ENABLED
@@ -91,7 +91,7 @@ AxrResult AxrAllocator::setup(const Config& config) {
 #endif
 
     // ---- Debug Info Allocator ----
-    const auto debugInfoAllocatorMemory = reinterpret_cast<void*>(
+    [[maybe_unused]] const auto debugInfoAllocatorMemory = reinterpret_cast<void*>(
         reinterpret_cast<uintptr_t>(debugHandlesAllocatorMemory) + debugHandlesAllocatorSize);
 #ifdef AXR_DEBUG_INFO_ENABLED
     AxrDeallocateBlock debugInfoAllocatorDeallocateCallback;
@@ -110,11 +110,13 @@ AxrResult AxrAllocator::setup(const Config& config) {
 }
 
 void AxrAllocator::shutDown() {
-    FrameAllocator = {};
-    HandlesAllocator = {};
-    EngineDataAllocator = {};
-    DebugHandlesAllocator = {};
+#ifdef AXR_DEBUG_INFO_ENABLED
     DebugInfoAllocator = {};
+    DebugHandlesAllocator = {};
+#endif
+    EngineDataAllocator = {};
+    HandlesAllocator = {};
+    FrameAllocator = {};
 
     if (m_Memory != nullptr) {
         free(m_Memory);
@@ -125,11 +127,13 @@ void AxrAllocator::shutDown() {
     m_IsSetup = false;
 }
 void AxrAllocator::logAllAllocatorUsage(const char* message) const {
+    axrLogInfo("----------------------------------------------------------------");
     logFrameAllocatorUsage(message);
     logHandlesAllocatorUsage(message);
     logEngineDataAllocatorUsage(message);
     logDebugHandlesAllocatorUsage(message);
     logDebugInfoAllocatorUsage(message);
+    axrLogInfo("----------------------------------------------------------------");
 }
 
 void AxrAllocator::logFrameAllocatorUsage(const char* message) const {
@@ -204,6 +208,7 @@ void AxrAllocator::logEngineDataAllocatorUsage(const char* message) const {
 }
 
 void AxrAllocator::logDebugHandlesAllocatorUsage(const char* message) const {
+#ifdef AXR_DEBUG_INFO_ENABLED
     const size_t size = DebugHandlesAllocator.size();
     const size_t capacity = DebugHandlesAllocator.chunkCapacity();
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
@@ -225,9 +230,11 @@ void AxrAllocator::logDebugHandlesAllocatorUsage(const char* message) const {
                static_cast<float>(peakSize) / static_cast<float>(capacity) * 100
 #endif
     );
+#endif
 }
 
 void AxrAllocator::logDebugInfoAllocatorUsage(const char* message) const {
+#ifdef AXR_DEBUG_INFO_ENABLED
     const size_t size = DebugInfoAllocator.size();
     const size_t capacity = DebugInfoAllocator.capacity();
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
@@ -249,6 +256,7 @@ void AxrAllocator::logDebugInfoAllocatorUsage(const char* message) const {
                static_cast<float>(peakSize) / static_cast<float>(capacity) * 100
 #endif
     );
+#endif
 }
 
 // ----------------------------------------- //

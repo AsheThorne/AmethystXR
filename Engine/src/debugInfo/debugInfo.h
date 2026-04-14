@@ -1,4 +1,5 @@
 #pragma once
+#ifdef AXR_DEBUG_INFO_ENABLED
 
 // ----------------------------------------- //
 // Headers
@@ -8,8 +9,8 @@
 #include "../common/string.h"
 #include "axr/common/enums.h"
 
-/// Axr Assets
-class AxrAssets {
+/// Axr Debug Info singleton
+class AxrDebugInfo {
 public:
     // ----------------------------------------- //
     // Public Special Functions
@@ -18,20 +19,20 @@ public:
     // ---- Constructors ----
 
     /// Copy Constructor
-    /// @param src Source AxrAssets to copy from
-    AxrAssets(const AxrAssets& src) = delete;
+    /// @param src Source AxrDebugInfo to copy from
+    AxrDebugInfo(const AxrDebugInfo& src) = delete;
     /// Move Constructor
-    /// @param src Source AxrAssets to move from
-    AxrAssets(AxrAssets&& src) noexcept = delete;
+    /// @param src Source AxrDebugInfo to move from
+    AxrDebugInfo(AxrDebugInfo&& src) noexcept = delete;
 
     // ---- Operator Overloads ----
 
     /// Copy Assignment Operator
-    /// @param src Source AxrAssets to copy from
-    AxrAssets& operator=(const AxrAssets& src) = delete;
+    /// @param src Source AxrDebugInfo to copy from
+    AxrDebugInfo& operator=(const AxrDebugInfo& src) = delete;
     /// Move Assignment Operator
-    /// @param src Source AxrAssets to move from
-    AxrAssets& operator=(AxrAssets&& src) noexcept = delete;
+    /// @param src Source AxrDebugInfo to move from
+    AxrDebugInfo& operator=(AxrDebugInfo&& src) noexcept = delete;
 
 private:
     // ----------------------------------------- //
@@ -41,34 +42,42 @@ private:
     // ---- Constructors ----
 
     /// Constructor
-    AxrAssets();
+    AxrDebugInfo();
 
     // ---- Destructor ----
 
     /// Destructor
-    ~AxrAssets();
+    ~AxrDebugInfo();
 
 public:
     // ----------------------------------------- //
     // Public Structs
     // ----------------------------------------- //
 
-    /// AxrAssets Config
-    struct Config {};
+    /// AxrDebugInfo Config
+    struct Config {
+        /// Must be a power of 2
+        uint32_t MaxIDCount;
+    };
+
+    // ----------------------------------------- //
+    // Public Variables
+    // ----------------------------------------- //
+    AxrUnorderedMap_Dynamic<AxrID, AxrString> IDNames{};
 
     // ----------------------------------------- //
     // Public Functions
     // ----------------------------------------- //
 
-    /// Get the AxrAssets singleton
-    /// @return A reference to the AxrAssets singleton
-    static AxrAssets& get();
+    /// Get the AxrDebugInfo singleton
+    /// @return A reference to the AxrDebugInfo singleton
+    static AxrDebugInfo& get();
 
-    /// Set up the assets
-    /// @param config Assets config
+    /// Set up the debug info
+    /// @param config Debug info config
     /// @return AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult setup(const Config& config);
-    /// Shut down the assets
+    /// Shut down the debug info
     void shutDown();
 
 private:
@@ -77,3 +86,5 @@ private:
     // ----------------------------------------- //
     bool m_IsSetup = false;
 };
+
+#endif
