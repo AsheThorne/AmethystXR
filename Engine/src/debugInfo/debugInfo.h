@@ -6,7 +6,7 @@
 // ----------------------------------------- //
 #include "../common/containers/unorderedMap_dynamic.h"
 #include "../common/id.h"
-#include "../common/string.h"
+#include "../common/string/string.h"
 #include "axr/common/enums.h"
 
 /// Axr Debug Info singleton

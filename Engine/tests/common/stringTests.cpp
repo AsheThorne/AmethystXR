@@ -5,7 +5,7 @@
 // ----------------------------------------- //
 #include <gtest/gtest.h>
 
-#include "common/string.h"
+#include "common/string/string.h"
 
 // ----------------------------------------- //
 // Shared Data

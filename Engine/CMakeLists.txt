@@ -91,10 +91,11 @@ set(AXR_SOURCE_FILES
     # ---- Common ----
     ${AXR_SRC_DIR}/common/enums.cpp
     ${AXR_SRC_DIR}/common/handle.h
-    ${AXR_SRC_DIR}/common/string.h
-    ${AXR_SRC_DIR}/common/string.cpp
     ${AXR_SRC_DIR}/common/id.h
     ${AXR_SRC_DIR}/common/id.cpp
+    # ---- Common - String ----
+    ${AXR_SRC_DIR}/common/string/string.h
+    ${AXR_SRC_DIR}/common/string/string.cpp
     # ---- Common - Containers ----
     ${AXR_SRC_DIR}/common/containers/array.h
     ${AXR_SRC_DIR}/common/containers/extensionArray.h

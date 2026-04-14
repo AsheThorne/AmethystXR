@@ -3,9 +3,9 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
-#include "../memory/dynamicAllocator.h"
-#include "../utils.h"
-#include "containers/array.h"
+#include "../../memory/dynamicAllocator.h"
+#include "../../utils.h"
+#include "../containers/array.h"
 
 #include <cstdint>
 #include <type_traits>
