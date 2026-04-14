@@ -205,7 +205,7 @@ AxrResult AxrString::append(const char8_t* string) {
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
-AxrString AxrString::substring(const size_t characterIndex, const size_t count, AxrDynamicAllocator* allocator) const {
+AxrStringView AxrString::substring(const size_t characterIndex, const size_t count) const {
     Iterator startIterator = end();
 
     size_t currentCharacterIndex = 0;
@@ -218,12 +218,10 @@ AxrString AxrString::substring(const size_t characterIndex, const size_t count, 
         ++currentCharacterIndex;
     }
 
-    return substring(startIterator, count, allocator);
+    return substring(startIterator, count);
 }
 
-AxrString AxrString::substring(const Iterator& startIterator,
-                               const size_t count,
-                               AxrDynamicAllocator* allocator) const {
+AxrStringView AxrString::substring(const Iterator& startIterator, const size_t count) const {
     Iterator endIterator = end();
 
     size_t currentCharacterIndex = 0;
@@ -236,27 +234,15 @@ AxrString AxrString::substring(const Iterator& startIterator,
         ++currentCharacterIndex;
     }
 
-    return substring(startIterator, endIterator, allocator);
+    return substring(startIterator, endIterator);
 }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to get AxrString substring. "
-AxrString AxrString::substring(const Iterator& startIterator,
-                               const Iterator& endIterator,
-                               AxrDynamicAllocator* allocator) const {
+AxrStringView AxrString::substring(const Iterator& startIterator, const Iterator& endIterator) const {
     const size_t substringSize = reinterpret_cast<uintptr_t>(endIterator.getDataPtr()) -
                                  reinterpret_cast<uintptr_t>(startIterator.getDataPtr());
 
-    AxrString substring(allocator != nullptr ? allocator : m_DynamicAllocator);
-
-    const AxrResult axrResult = substring.growAllocation(substringSize);
-    if (AXR_FAILED(axrResult)) [[unlikely]] {
-        axrLogError("Failed to grow substring allocation.");
-        return {};
-    }
-
-    substring.setStringData(startIterator.getDataPtr(), substringSize);
-
-    return substring;
+    return AxrStringView(startIterator.getDataPtr(), substringSize);
 }
 #undef AXR_FUNCTION_FAILED_STRING
 

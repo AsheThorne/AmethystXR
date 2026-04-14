@@ -6,6 +6,7 @@
 #include "../../memory/dynamicAllocator.h"
 #include "../../utils.h"
 #include "../containers/array.h"
+#include "stringView.h"
 
 #include <cstdint>
 #include <type_traits>
@@ -252,30 +253,21 @@ public:
     /// Get the substring starting from the given character index, and ending after `count` number of characters.
     /// @param characterIndex Character index to start at
     /// @param count Number of characters to include in the substring
-    /// @param allocator Allocator to use for the returned substring. If this is nullptr, the allocator will be the same
     /// as this string's allocator.
     /// @return A new AxrString, storing the substring
-    [[nodiscard]] AxrString substring(size_t characterIndex,
-                                      size_t count,
-                                      AxrDynamicAllocator* allocator = nullptr) const;
+    [[nodiscard]] AxrStringView substring(size_t characterIndex, size_t count) const;
     /// Get the substring starting from the given `startIterator`, and ending after `count` number of characters.
     /// @param startIterator Character iterator to start at
     /// @param count Number of characters to include in the substring
-    /// @param allocator Allocator to use for the returned substring. If this is nullptr, the allocator will be the same
     /// as this string's allocator.
     /// @return A new AxrString, storing the substring
-    [[nodiscard]] AxrString substring(const Iterator& startIterator,
-                                      size_t count,
-                                      AxrDynamicAllocator* allocator = nullptr) const;
+    [[nodiscard]] AxrStringView substring(const Iterator& startIterator, size_t count) const;
     /// Get the substring starting from the given `startIterator`, and ending at the given `endIterator`.
     /// @param startIterator Character iterator to start at
     /// @param endIterator Character iterator to end at. This character is NOT included in the substring.
-    /// @param allocator Allocator to use for the returned substring. If this is nullptr, the allocator will be the same
     /// as this string's allocator.
     /// @return A new AxrString, storing the substring
-    [[nodiscard]] AxrString substring(const Iterator& startIterator,
-                                      const Iterator& endIterator,
-                                      AxrDynamicAllocator* allocator = nullptr) const;
+    [[nodiscard]] AxrStringView substring(const Iterator& startIterator, const Iterator& endIterator) const;
 
     /// Pop the given number of characters off of this string
     /// @param count Number of characters to pop off

@@ -753,9 +753,9 @@ TEST(AxrString, Substring_Index) {
         &HandlesAllocator);
 
     const AxrString string(u8"Hello World!", &allocator);
-    const AxrString substring = string.substring(6, 7);
+    const AxrStringView substring = string.substring(0, 5);
 
-    ASSERT_TRUE(substring == u8"World!");
+    ASSERT_TRUE(substring == u8"Hello");
 }
 
 TEST(AxrString, Substring_Iterator) {
@@ -790,7 +790,7 @@ TEST(AxrString, Substring_Iterator) {
         }
     }
 
-    const AxrString substring = string.substring(substringStart, substringEnd);
+    const AxrStringView substring = string.substring(substringStart, substringEnd);
 
     ASSERT_TRUE(substring == u8"World");
 }

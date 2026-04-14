@@ -96,6 +96,8 @@ set(AXR_SOURCE_FILES
     # ---- Common - String ----
     ${AXR_SRC_DIR}/common/string/string.h
     ${AXR_SRC_DIR}/common/string/string.cpp
+    ${AXR_SRC_DIR}/common/string/stringView.h
+    ${AXR_SRC_DIR}/common/string/stringView.cpp
     # ---- Common - Containers ----
     ${AXR_SRC_DIR}/common/containers/array.h
     ${AXR_SRC_DIR}/common/containers/extensionArray.h
