@@ -217,6 +217,7 @@ set(AXR_TEST_FILES
     ${AXR_TEST_DIR}/memory/utilsTests.cpp
     # ---- Common - String ----
     ${AXR_TEST_DIR}/common/string/stringTests.cpp
+    ${AXR_TEST_DIR}/common/string/stringViewTests.cpp
     # ---- Common - Containers ----
     ${AXR_TEST_DIR}/common/containers/arrayTests.cpp
     ${AXR_TEST_DIR}/common/containers/extensionArrayTests.cpp
