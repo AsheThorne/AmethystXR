@@ -25,27 +25,11 @@ bool AxrStringView::operator==(const char8_t* srcString) const {
         return false;
     }
 
-    for (size_t i = 0; i < m_Size; ++i) {
-        if (m_Data[i] != srcString[i]) {
-            return false;
-        }
-    }
-
-    return true;
+    return std::char_traits<char8_t>::compare(m_Data, srcString, m_Size) == 0;
 }
 
 bool AxrStringView::operator==(const AxrStringView& srcString) const {
-    if (srcString.m_Size != m_Size) {
-        return false;
-    }
-
-    for (size_t i = 0; i < m_Size; ++i) {
-        if (m_Data[i] != srcString.m_Data[i]) {
-            return false;
-        }
-    }
-
-    return true;
+    return operator==(srcString.data());
 }
 
 // ----------------------------------------- //

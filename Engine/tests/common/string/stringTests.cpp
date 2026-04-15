@@ -65,14 +65,20 @@ TEST(AxrString, Initialization) {
         },
         &HandlesAllocator);
 
-    constexpr char8_t testArray[]{u8"Test"};
-    const auto testChar8Ptr = u8"Test";
-    const AxrString string(u8"Test", &allocator);
+    constexpr char8_t testArray[]{u8"シ Hello"};
+    const auto testChar8Ptr = u8"シ Hello";
+    
+    const auto testData = u8"シ Hello";
+    const AxrString string(testData, &allocator);
+    
     ASSERT_TRUE(!string.empty());
-    ASSERT_TRUE(string.size() == 4);
-    ASSERT_TRUE(string == u8"Test");
+    ASSERT_TRUE(string.size() == std::char_traits<char8_t>::length(testData));
+    ASSERT_TRUE(string == u8"シ Hello");
     ASSERT_TRUE(string == testArray);
     ASSERT_TRUE(string == testChar8Ptr);
+    ASSERT_TRUE(string != u8"シ Hellooooo");
+    ASSERT_TRUE(string != u8"シ He");
+    ASSERT_TRUE(string != u8"Hello");
 }
 
 TEST(AxrString, CopyAxrString) {

@@ -44,6 +44,10 @@ public:
     // Special Functions
     // ----------------------------------------- //
 
+    // NOTE (Ashe): Even though we have functions for basic chars, do NOT make special functions (constructors, operator
+    //  overloads, etc...) for a basic char, only char8_t. This is because chars are less efficient to use, since we
+    //  need to convert them to char8_ts. So we want it to be very intentional and not use it if we can avoid it.
+
     // ---- Constructors ----
 
     /// Default Constructor
@@ -195,6 +199,22 @@ public:
     }
 #undef AXR_FUNCTION_FAILED_STRING
 
+    /// Set this string to the given char string, converted to a char8_t string.
+    ///
+    /// We don't have a constructor/assignment operator for basic chars because we want it to be very intentional and
+    /// only use this if you really must. Since it's less efficient.
+    /// @param string Char string
+    /// @return AXR_SUCCESS if the function succeeded
+    AxrResult buildFromCharString(const char* string);
+
+    /// Compare this AxrString with the given basic char string.
+    ///
+    /// We don't have an equality operator for basic chars because we want it to be very intentional and only use this
+    /// if you really must. Since it's less efficient.
+    /// @param string Char string
+    /// @return True if both strings are equal
+    [[nodiscard]] bool compareWithCharString(const char* string) const;
+
     /// Get the substring starting from the given character index, and ending after `count` number of characters.
     /// @param characterIndex Character index to start at
     /// @param count Number of characters to include in the substring
@@ -257,8 +277,9 @@ private:
         StackStorage m_StackString;
     };
 
+protected:
     // ----------------------------------------- //
-    // Private Functions
+    // Protected Functions
     // ----------------------------------------- //
 
     /// Clean up this class
@@ -281,4 +302,9 @@ private:
     /// @param stringSize String size. Not including null terminator.
     /// @param dataOffset Data offset for where to insert the given string
     void setStringData(const char8_t* string, size_t stringSize, size_t dataOffset = 0);
+    /// Set the string data
+    /// @param string Source string to copy
+    /// @param stringSize String size. Not including null terminator.
+    /// @param dataOffset Data offset for where to insert the given string
+    void setStringData(const char* string, size_t stringSize, size_t dataOffset = 0);
 };

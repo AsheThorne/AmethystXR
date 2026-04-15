@@ -100,6 +100,8 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/common/string/string.cpp
     ${AXR_SRC_DIR}/common/string/stringView.h
     ${AXR_SRC_DIR}/common/string/stringView.cpp
+    ${AXR_SRC_DIR}/common/string/path.h
+    ${AXR_SRC_DIR}/common/string/path.cpp
     # ---- Common - Containers ----
     ${AXR_SRC_DIR}/common/containers/array.h
     ${AXR_SRC_DIR}/common/containers/extensionArray.h
@@ -218,6 +220,7 @@ set(AXR_TEST_FILES
     # ---- Common - String ----
     ${AXR_TEST_DIR}/common/string/stringTests.cpp
     ${AXR_TEST_DIR}/common/string/stringViewTests.cpp
+    ${AXR_TEST_DIR}/common/string/pathTests.cpp
     # ---- Common - Containers ----
     ${AXR_TEST_DIR}/common/containers/arrayTests.cpp
     ${AXR_TEST_DIR}/common/containers/extensionArrayTests.cpp
