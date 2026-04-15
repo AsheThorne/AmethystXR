@@ -5,101 +5,6 @@
 
 #include <algorithm>
 
-// ---------------------------------------------------------------------------------- //
-//                               AxrString - Iterator                                 //
-// ---------------------------------------------------------------------------------- //
-
-AxrString::Iterator::Iterator(const char8_t* character) :
-    m_Character(character) {
-}
-
-AxrString::Iterator& AxrString::Iterator::operator++() {
-    if ((*m_Character & 0b10000000) == 0) {
-        // Current character is a 1 byte code point (ascii)
-        ++m_Character;
-        return *this;
-    }
-
-    if (*m_Character >> 5 == 0b00000110) {
-        // Current character is a 2 byte code point
-        m_Character += 2;
-        return *this;
-    }
-
-    if (*m_Character >> 4 == 0b00001110) {
-        // Current character is a 3 byte code point
-        m_Character += 3;
-        return *this;
-    }
-
-    if (*m_Character >> 3 == 0b00011110) {
-        // Current character is a 4 byte code point
-        m_Character += 4;
-        return *this;
-    }
-
-    axrLogError("Failed to increment AxrString iterator. Current character is not a UTF-8 leading character.");
-    return *this;
-}
-
-AxrString::Iterator AxrString::Iterator::operator++(int) {
-    const Iterator returnValue = *this;
-    operator++();
-
-    return returnValue;
-}
-
-AxrString::Iterator& AxrString::Iterator::operator--() {
-    --m_Character;
-
-    if ((*m_Character & 0b10000000) == 0) {
-        // previous character is a 1 byte code point (ascii)
-        return *this;
-    }
-
-    // If we get here, the previous character must be a multibyte code point. So we keep stepping backwards
-    // until we're no longer on a continuation byte
-    while (*m_Character >> 6 == 0b00000010) {
-        --m_Character;
-    }
-
-    return *this;
-}
-
-AxrString::Iterator AxrString::Iterator::operator--(int) {
-    const Iterator returnValue = *this;
-    operator--();
-
-    return returnValue;
-}
-
-bool AxrString::Iterator::operator==(const Iterator& other) const {
-    return m_Character == other.m_Character;
-}
-
-bool AxrString::Iterator::operator!=(const Iterator& other) const {
-    return !(*this == other);
-}
-
-AxrArray<char8_t, 4> AxrString::Iterator::operator*() const {
-    AxrArray<char8_t, 4> array;
-    const char8_t* currentByte = m_Character;
-    // Add each byte making up the current character
-    do {
-        array.pushBack(*currentByte);
-        ++currentByte;
-        // Continue to loop if the current byte is a continuation byte
-    } while (*currentByte >> 6 == 0b00000010);
-    // We don't set a null terminator since it's an array of a fixed length. And this will only ever represent a single
-    // UTF-8 character
-
-    return array;
-}
-
-// ---------------------------------------------------------------------------------- //
-//                                     AxrString                                      //
-// ---------------------------------------------------------------------------------- //
-
 // ----------------------------------------- //
 // Special Functions
 // ----------------------------------------- //
@@ -206,45 +111,16 @@ AxrResult AxrString::append(const char8_t* string) {
 #undef AXR_FUNCTION_FAILED_STRING
 
 AxrStringView AxrString::substring(const size_t characterIndex, const size_t count) const {
-    Iterator startIterator = end();
-
-    size_t currentCharacterIndex = 0;
-    for (Iterator beginIt = begin(), endIt = end(); beginIt != endIt; ++beginIt) {
-        if (currentCharacterIndex == characterIndex) {
-            startIterator = beginIt;
-            break;
-        }
-
-        ++currentCharacterIndex;
-    }
-
-    return substring(startIterator, count);
+    return AxrStringView(data(), size()).substring(characterIndex, count);
 }
 
 AxrStringView AxrString::substring(const Iterator& startIterator, const size_t count) const {
-    Iterator endIterator = end();
-
-    size_t currentCharacterIndex = 0;
-    for (Iterator beginIt = startIterator, endIt = end(); beginIt != endIt; ++beginIt) {
-        if (currentCharacterIndex == count) {
-            endIterator = beginIt;
-            break;
-        }
-
-        ++currentCharacterIndex;
-    }
-
-    return substring(startIterator, endIterator);
+    return AxrStringView(data(), size()).substring(startIterator, count);
 }
 
-#define AXR_FUNCTION_FAILED_STRING "Failed to get AxrString substring. "
 AxrStringView AxrString::substring(const Iterator& startIterator, const Iterator& endIterator) const {
-    const size_t substringSize = reinterpret_cast<uintptr_t>(endIterator.getDataPtr()) -
-                                 reinterpret_cast<uintptr_t>(startIterator.getDataPtr());
-
-    return AxrStringView(startIterator.getDataPtr(), substringSize);
+    return AxrStringView(data(), size()).substring(startIterator, endIterator);
 }
-#undef AXR_FUNCTION_FAILED_STRING
 
 void AxrString::pop(const size_t count) {
     Iterator popEndIterator = end();

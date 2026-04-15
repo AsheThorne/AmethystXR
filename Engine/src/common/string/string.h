@@ -5,7 +5,7 @@
 // ----------------------------------------- //
 #include "../../memory/dynamicAllocator.h"
 #include "../../utils.h"
-#include "../containers/array.h"
+#include "stringIterator.h"
 #include "stringView.h"
 
 #include <cstdint>
@@ -36,64 +36,9 @@ public:
 #endif
 
     // ----------------------------------------- //
-    // Iterator
+    // Types
     // ----------------------------------------- //
-    class Iterator {
-    public:
-        // ----------------------------------------- //
-        // Special Functions
-        // ----------------------------------------- //
-
-        // ---- Constructors ----
-
-        /// Default Constructor
-        Iterator() = default;
-
-        /// Constructor
-        /// @param character The character for this iterator to point to
-        explicit Iterator(const char8_t* character);
-
-        // ---- Operator Overloads ----
-
-        /// Prefix increment operator overload
-        /// @return The iterator, incremented by 1
-        Iterator& operator++();
-        /// Postfix increment operator overload
-        /// @return the current iterator, before incrementing it by 1
-        Iterator operator++(int);
-
-        /// Prefix decrement operator overload
-        /// @return The iterator, decremented by 1
-        Iterator& operator--();
-        /// Postfix decrement operator overload
-        /// @return the current iterator, before decrementing it by 1
-        Iterator operator--(int);
-
-        /// Equality operator overload
-        /// @other Iterator to compare against
-        /// @return True if both iterators point to the same character
-        bool operator==(const Iterator& other) const;
-        /// Inequality operator overload
-        /// @other Iterator to compare against
-        /// @return True if both iterators point to different characters
-        bool operator!=(const Iterator& other) const;
-
-        /// Get the character data for this iterator
-        /// @return The character data for this iterator
-        AxrArray<char8_t, 4> operator*() const;
-
-        /// Get the pointer to the character data
-        /// @return The pointer to the character data
-        [[nodiscard]] const char8_t* getDataPtr() const {
-            return m_Character;
-        }
-
-    private:
-        // ----------------------------------------- //
-        // Private Variables
-        // ----------------------------------------- //
-        const char8_t* m_Character{};
-    };
+    using Iterator = AxrStringIterator;
 
     // ----------------------------------------- //
     // Special Functions
@@ -253,20 +198,17 @@ public:
     /// Get the substring starting from the given character index, and ending after `count` number of characters.
     /// @param characterIndex Character index to start at
     /// @param count Number of characters to include in the substring
-    /// as this string's allocator.
-    /// @return A new AxrString, storing the substring
+    /// @return A new AxrStringView, storing the substring
     [[nodiscard]] AxrStringView substring(size_t characterIndex, size_t count) const;
     /// Get the substring starting from the given `startIterator`, and ending after `count` number of characters.
     /// @param startIterator Character iterator to start at
     /// @param count Number of characters to include in the substring
-    /// as this string's allocator.
-    /// @return A new AxrString, storing the substring
+    /// @return A new AxrStringView, storing the substring
     [[nodiscard]] AxrStringView substring(const Iterator& startIterator, size_t count) const;
     /// Get the substring starting from the given `startIterator`, and ending at the given `endIterator`.
     /// @param startIterator Character iterator to start at
     /// @param endIterator Character iterator to end at. This character is NOT included in the substring.
-    /// as this string's allocator.
-    /// @return A new AxrString, storing the substring
+    /// @return A new AxrStringView, storing the substring
     [[nodiscard]] AxrStringView substring(const Iterator& startIterator, const Iterator& endIterator) const;
 
     /// Pop the given number of characters off of this string

@@ -586,7 +586,7 @@ TEST(AxrString, ForLoop_Increment) {
         &HandlesAllocator);
 
     const auto testData = u8"シ Hello 🗸 😃";
-    AxrString string(testData, &allocator);
+    const AxrString string(testData, &allocator);
 
     uint32_t index = 0;
     for (AxrArray character : string) {
@@ -668,7 +668,7 @@ TEST(AxrString, ForLoop_Decrement) {
         &HandlesAllocator);
 
     const auto testData = u8"シ Hello 🗸 😃";
-    AxrString string(testData, &allocator);
+    const AxrString string(testData, &allocator);
 
     uint32_t index = 0;
     for (AxrString::Iterator begin = string.end(), end = string.begin(); begin != end;

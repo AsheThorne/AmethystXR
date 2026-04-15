@@ -94,6 +94,8 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/common/id.h
     ${AXR_SRC_DIR}/common/id.cpp
     # ---- Common - String ----
+    ${AXR_SRC_DIR}/common/string/stringIterator.h
+    ${AXR_SRC_DIR}/common/string/stringIterator.cpp
     ${AXR_SRC_DIR}/common/string/string.h
     ${AXR_SRC_DIR}/common/string/string.cpp
     ${AXR_SRC_DIR}/common/string/stringView.h
@@ -213,8 +215,8 @@ set(AXR_TEST_FILES
     ${AXR_TEST_DIR}/memory/poolAllocatorTests.cpp
     ${AXR_TEST_DIR}/memory/dynamicAllocatorTests.cpp
     ${AXR_TEST_DIR}/memory/utilsTests.cpp
-    # ---- Common ----
-    ${AXR_TEST_DIR}/common/stringTests.cpp
+    # ---- Common - String ----
+    ${AXR_TEST_DIR}/common/string/stringTests.cpp
     # ---- Common - Containers ----
     ${AXR_TEST_DIR}/common/containers/arrayTests.cpp
     ${AXR_TEST_DIR}/common/containers/extensionArrayTests.cpp
