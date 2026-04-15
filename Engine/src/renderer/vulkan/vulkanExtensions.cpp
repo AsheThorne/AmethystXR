@@ -395,7 +395,7 @@ VkBool32 AxrVulkanExtensions::debugUtilsCallback(const VkDebugUtilsMessageSeveri
     switch (messageSeverity) {
         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT: {
             messageSeverityString = "Verbose";
-            logLevel = AXR_LOG_LEVEL_INFO;
+            logLevel = AXR_LOG_LEVEL_DEBUG;
             break;
         }
         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT: {

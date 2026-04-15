@@ -127,13 +127,13 @@ void AxrAllocator::shutDown() {
     m_IsSetup = false;
 }
 void AxrAllocator::logAllAllocatorUsage(const char* message) const {
-    axrLogInfo("----------------------------------------------------------------");
+    axrLogDebug("----------------------------------------------------------------");
     logFrameAllocatorUsage(message);
     logHandlesAllocatorUsage(message);
     logEngineDataAllocatorUsage(message);
     logDebugHandlesAllocatorUsage(message);
     logDebugInfoAllocatorUsage(message);
-    axrLogInfo("----------------------------------------------------------------");
+    axrLogDebug("----------------------------------------------------------------");
 }
 
 void AxrAllocator::logFrameAllocatorUsage(const char* message) const {
@@ -143,7 +143,7 @@ void AxrAllocator::logFrameAllocatorUsage(const char* message) const {
     const size_t peakSize = FrameAllocator.peakSize();
 #endif
 
-    axrLogInfo("{}: Frame Allocator memory usage. {:.2f}% Used currently. {} Bytes used out of {}."
+    axrLogDebug("{}: Frame Allocator memory usage. {:.2f}% Used currently. {} Bytes used out of {}."
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
                " Peak usage reached {:.2f}%."
 #endif
@@ -166,7 +166,7 @@ void AxrAllocator::logHandlesAllocatorUsage(const char* message) const {
     const size_t peakSize = HandlesAllocator.peakChunkCount();
 #endif
 
-    axrLogInfo("{}: Handles Allocator memory usage."
+    axrLogDebug("{}: Handles Allocator memory usage."
                " {:.2f}% Handles used currently. {} Handles used out of {}."
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
                " Peak handles usage reached {:.2f}%."
@@ -190,7 +190,7 @@ void AxrAllocator::logEngineDataAllocatorUsage(const char* message) const {
     const size_t peakSize = EngineDataAllocator.peakSize();
 #endif
 
-    axrLogInfo("{}: Engine Data Allocator memory usage."
+    axrLogDebug("{}: Engine Data Allocator memory usage."
                " {:.2f}% Memory used currently. {} Bytes used out of {}."
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
                " Peak memory usage reached {:.2f}%."
@@ -215,7 +215,7 @@ void AxrAllocator::logDebugHandlesAllocatorUsage(const char* message) const {
     const size_t peakSize = DebugHandlesAllocator.peakChunkCount();
 #endif
 
-    axrLogInfo("{}: Debug Handles Allocator memory usage."
+    axrLogDebug("{}: Debug Handles Allocator memory usage."
                " {:.2f}% Handles used currently. {} Handles used out of {}."
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
                " Peak handles usage reached {:.2f}%."
@@ -241,7 +241,7 @@ void AxrAllocator::logDebugInfoAllocatorUsage(const char* message) const {
     const size_t peakSize = DebugInfoAllocator.peakSize();
 #endif
 
-    axrLogInfo("{}: Debug info Allocator memory usage."
+    axrLogDebug("{}: Debug info Allocator memory usage."
                " {:.2f}% Memory used currently. {} Bytes used out of {}."
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
                " Peak memory usage reached {:.2f}%."

@@ -138,6 +138,7 @@ private:
 /// Log level enum
 enum AxrLogLevelEnum {
     AXR_LOG_LEVEL_UNDEFINED = 0,
+    AXR_LOG_LEVEL_DEBUG,
     AXR_LOG_LEVEL_INFO,
     AXR_LOG_LEVEL_WARNING,
     AXR_LOG_LEVEL_ERROR,
@@ -170,6 +171,9 @@ void axrLoggerSetup(const char* loggerName);
 
 // ---- Basic Logging Functions ----
 
+/// @brief Log a debug message to the default logger
+/// @param message Message
+void axrLogDebug(const AxrLogMessageWithLocation& message);
 /// @brief Log an info message to the default logger
 /// @param message Message
 void axrLogInfo(const AxrLogMessageWithLocation& message);
@@ -184,6 +188,10 @@ void axrLogError(const AxrLogMessageWithLocation& message);
 /// @param message Message
 void axrLog(AxrLogLevelEnum level, const AxrLogMessageWithLocation& message);
 
+/// @brief Log a debug message to the named logger
+/// @param loggerName Name of the logger
+/// @param message Message
+void axrLogDebugForLogger(const char* loggerName, const AxrLogMessageWithLocation& message);
 /// @brief Log an info message to the named logger
 /// @param loggerName Name of the logger
 /// @param message Message
@@ -204,6 +212,12 @@ void axrLogForLogger(const char* loggerName, AxrLogLevelEnum level, const AxrLog
 
 // ---- Formatted Logging Functions ----
 
+/// @brief Log a debug message to the default logger
+/// @tparam Args Message property types
+/// @param message Message
+/// @param args Message properties
+template<typename... Args>
+void axrLogDebug(const AxrLogMessageWithLocation& message, Args&&... args);
 /// @brief Log an info message to the default logger
 /// @tparam Args Message property types
 /// @param message Message
@@ -230,6 +244,13 @@ void axrLogError(const AxrLogMessageWithLocation& message, Args&&... args);
 template<typename... Args>
 void axrLog(AxrLogLevelEnum level, const AxrLogMessageWithLocation& message, Args&&... args);
 
+/// @brief Log a debug message to the named logger
+/// @tparam Args Message property types
+/// @param loggerName Name of the logger
+/// @param message Message
+/// @param args Message properties
+template<typename... Args>
+void axrLogDebugForLogger(const char* loggerName, const AxrLogMessageWithLocation& message, Args&&... args);
 /// @brief Log an info message to the named logger
 /// @tparam Args Message property types
 /// @param loggerName Name of the logger
@@ -286,7 +307,7 @@ inline AxrResult axrLoggerCreate(const char* loggerName) {
     formatter->add_flag<AxrFlagFormatter>('.').set_pattern("%.");
     formatter->need_localtime(true);
     logger->set_formatter(std::move(formatter));
-    logger->set_level(axrToSpdlogLevel(AXR_LOG_LEVEL_INFO));
+    logger->set_level(axrToSpdlogLevel(AXR_LOG_LEVEL_DEBUG));
 
     axrLogInfoForLogger(loggerName, "Logger created.");
 
@@ -311,6 +332,9 @@ inline AxrResult axrLoggerSetDefault(const char* loggerName) {
 
 inline spdlog::level::level_enum axrToSpdlogLevel(const AxrLogLevelEnum level) {
     switch (level) {
+        case AXR_LOG_LEVEL_DEBUG: {
+            return spdlog::level::level_enum::debug;
+        }
         case AXR_LOG_LEVEL_INFO: {
             return spdlog::level::level_enum::info;
         }
@@ -328,6 +352,10 @@ inline spdlog::level::level_enum axrToSpdlogLevel(const AxrLogLevelEnum level) {
 }
 
 // ---- Basic Logging Functions ----
+
+inline void axrLogDebug(const AxrLogMessageWithLocation& message) {
+    axrLog(AXR_LOG_LEVEL_DEBUG, message);
+}
 
 inline void axrLogInfo(const AxrLogMessageWithLocation& message) {
     axrLog(AXR_LOG_LEVEL_INFO, message);
@@ -351,6 +379,10 @@ inline void axrLog(const AxrLogLevelEnum level, const AxrLogMessageWithLocation&
 #else
     spdlog::log(axrToSpdlogLevel(level), message.Message);
 #endif
+}
+
+inline void axrLogDebugForLogger(const char* loggerName, const AxrLogMessageWithLocation& message) {
+    axrLogForLogger(loggerName, AXR_LOG_LEVEL_DEBUG, message);
 }
 
 inline void axrLogInfoForLogger(const char* loggerName, const AxrLogMessageWithLocation& message) {
@@ -387,6 +419,11 @@ inline void axrLogForLogger(const char* loggerName,
 // ---- Formatted Logging Functions ----
 
 template<typename... Args>
+void axrLogDebug(const AxrLogMessageWithLocation& message, Args&&... args) {
+    axrLog(AXR_LOG_LEVEL_DEBUG, message, std::forward<Args>(args)...);
+}
+
+template<typename... Args>
 void axrLogInfo(const AxrLogMessageWithLocation& message, Args&&... args) {
     axrLog(AXR_LOG_LEVEL_INFO, message, std::forward<Args>(args)...);
 }
@@ -418,6 +455,11 @@ void axrLog(const AxrLogLevelEnum level, const AxrLogMessageWithLocation& messag
 template<typename... Args>
 void axrLogWithoutLocation(const AxrLogLevelEnum level, const std::string_view& message, Args&&... args) {
     spdlog::log(axrToSpdlogLevel(level), fmt::runtime(message), std::forward<Args>(args)...);
+}
+
+template<typename... Args>
+void axrLogDebugForLogger(const char* loggerName, const AxrLogMessageWithLocation& message, Args&&... args) {
+    axrLogForLogger(loggerName, AXR_LOG_LEVEL_DEBUG, message, std::forward<Args>(args)...);
 }
 
 template<typename... Args>
