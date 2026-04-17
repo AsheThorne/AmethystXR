@@ -4,7 +4,7 @@
 #include "renderer.h"
 #include "../memory/allocator.h"
 #include "axr/logging.h"
-#include "utils.h"
+#include "rendererUtils.h"
 #include "vulkan/vulkanRenderer.h"
 
 // ----------------------------------------- //

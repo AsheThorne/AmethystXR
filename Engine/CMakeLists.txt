@@ -52,7 +52,7 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/memory/doubleStackAllocator.h
     ${AXR_SRC_DIR}/memory/doubleStackAllocator.cpp
     ${AXR_SRC_DIR}/memory/poolAllocator.h
-    ${AXR_SRC_DIR}/memory/utils.h
+    ${AXR_SRC_DIR}/memory/memoryUtils.h
     ${AXR_SRC_DIR}/memory/dynamicAllocator.h
     ${AXR_SRC_DIR}/memory/dynamicAllocator.cpp
     # ---- Platform ----
@@ -71,7 +71,7 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/renderer/renderer.h
     ${AXR_SRC_DIR}/renderer/renderer.cpp
     ${AXR_SRC_DIR}/renderer/types.h
-    ${AXR_SRC_DIR}/renderer/utils.h
+    ${AXR_SRC_DIR}/renderer/rendererUtils.h
     # ---- Renderer - Vulkan ----
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanApi.cpp
     ${AXR_SRC_DIR}/renderer/vulkan/vulkanRenderer.h
@@ -216,7 +216,7 @@ set(AXR_TEST_FILES
     ${AXR_TEST_DIR}/memory/doubleStackAllocatorTests.cpp
     ${AXR_TEST_DIR}/memory/poolAllocatorTests.cpp
     ${AXR_TEST_DIR}/memory/dynamicAllocatorTests.cpp
-    ${AXR_TEST_DIR}/memory/utilsTests.cpp
+    ${AXR_TEST_DIR}/memory/memoryUtilsTests.cpp
     # ---- Common - String ----
     ${AXR_TEST_DIR}/common/string/stringTests.cpp
     ${AXR_TEST_DIR}/common/string/stringViewTests.cpp

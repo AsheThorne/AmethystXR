@@ -3,8 +3,8 @@
 // ----------------------------------------- //
 // Headers
 // ----------------------------------------- //
+#include "memoryUtils.h"
 #include "types.h"
-#include "utils.h"
 
 #include <cstdint>
 
@@ -65,7 +65,7 @@ protected:
 
     /// Clean up this class
     void cleanup();
-    
+
     /// Move the given AxrSubAllocatorBase to this class
     /// @param src AxrSubAllocatorBase to move
     void move_internal(AxrSubAllocatorBase&& src);

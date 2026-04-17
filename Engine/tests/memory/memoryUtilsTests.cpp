@@ -3,7 +3,7 @@
 // ----------------------------------------- //
 #include <gtest/gtest.h>
 
-#include "memory/utils.h"
+#include "memory/memoryUtils.h"
 
 // ----------------------------------------- //
 // Align Address Tests

@@ -4,8 +4,8 @@
 #include "dynamicAllocator.h"
 
 #include "axr/logging.h"
+#include "memoryUtils.h"
 #include "poolAllocator.h"
-#include "utils.h"
 
 // ----------------------------------------- //
 // Special Functions
