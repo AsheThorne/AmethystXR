@@ -35,6 +35,7 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
 
     axrResult = AxrAllocator::get().setup(allocatorConfig);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
+        axrShutdown();
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrAllocator.setup() failed.");
         return axrResult;
     }
@@ -46,6 +47,7 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
 
     axrResult = AxrDebugInfo::get().setup(debugInfoConfig);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
+        axrShutdown();
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrDebugInfo.setup() failed.");
         return axrResult;
     }
@@ -55,6 +57,7 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
 
     axrResult = AxrServer::get().setup(AxrServer::Config{});
     if (AXR_FAILED(axrResult)) [[unlikely]] {
+        axrShutdown();
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrServer.setup() failed.");
         return axrResult;
     }
@@ -68,6 +71,7 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
 
     axrResult = AxrPlatform::get().setup(platformConfig);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
+        axrShutdown();
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrPlatform.setup() failed.");
         return axrResult;
     }
@@ -76,6 +80,7 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
 
     axrResult = AxrAssets::get().setup(AxrAssets::Config{});
     if (AXR_FAILED(axrResult)) [[unlikely]] {
+        axrShutdown();
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrAssets.setup() failed.");
         return axrResult;
     }
@@ -94,6 +99,7 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
 
     axrResult = AxrRenderer::get().setup(rendererConfig);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
+        axrShutdown();
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrRenderer.setup() failed.");
         return axrResult;
     }
@@ -102,6 +108,7 @@ AxrResult axrSetup(const AxrEngineConfig* config) {
 
     axrResult = AxrApplication::get().setup(AxrApplication::Config{});
     if (AXR_FAILED(axrResult)) [[unlikely]] {
+        axrShutdown();
         axrLogError(AXR_FUNCTION_FAILED_STRING "AxrApplication.setup() failed.");
         return axrResult;
     }
