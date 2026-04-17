@@ -58,7 +58,7 @@ public:
     /// Constructor
     /// @param string String to initialize with
     /// @param dynamicAllocator Dynamic allocator to use
-    template<AxrIsChar8Like Char_T>
+    template<AxrIsChar8StringLike Char_T>
     AxrString(Char_T string, AxrDynamicAllocator* dynamicAllocator) :
         m_DynamicAllocator(dynamicAllocator),
         m_StackString() {
@@ -148,7 +148,7 @@ public:
     /// Set this string to all the given strings concatenated together
     /// @param strings All strings to combine
     /// @return AXR_SUCCESS if the function succeeded
-    template<AxrIsChar8Like... Args>
+    template<AxrIsChar8StringLike... Args>
     AxrResult buildString(Args&&... strings) {
         auto countStringSize = []<typename T>(T&& string, size_t& size) {
             using Type = std::remove_cv_t<std::remove_reference_t<T>>;
@@ -199,13 +199,70 @@ public:
     }
 #undef AXR_FUNCTION_FAILED_STRING
 
+#define AXR_FUNCTION_FAILED_STRING "Failed to build AxrString from char string. "
     /// Set this string to the given char string, converted to a char8_t string.
     ///
     /// We don't have a constructor/assignment operator for basic chars because we want it to be very intentional and
     /// only use this if you really must. Since it's less efficient.
-    /// @param string Char string
+    /// @param strings All strings to combine
     /// @return AXR_SUCCESS if the function succeeded
-    AxrResult buildFromCharString(const char* string);
+    template<AxrIsCharStringLike... Args>
+    AxrResult buildFromCharString(Args&&... strings) {
+        auto countStringSize = []<typename T>(T&& string, size_t& size) {
+            using Type = std::remove_cv_t<std::remove_reference_t<T>>;
+
+            if constexpr (std::is_same_v<Type, const char*>) {
+                size += std::char_traits<char>::length(string);
+            } else if (std::is_array_v<Type>) {
+                // Minus 1 so we don't count the null terminator
+                constexpr std::size_t arraySize = std::extent_v<Type> - 1;
+                size += arraySize;
+            }
+        };
+
+        auto concatenateString = [countStringSize]<typename T>(T&& srcString, char8_t*& dstString) {
+            size_t stringSize = 0;
+            countStringSize(srcString, stringSize);
+
+            for (size_t i = 0; i < stringSize; ++i) {
+                dstString[i] = static_cast<char8_t>(srcString[i]);
+            }
+
+            // Increment the dstString to the end of the srcString we just copied over, so that the next string
+            // starts from there
+            dstString = dstString + stringSize;
+        };
+
+        size_t stringSize = 0;
+        (countStringSize(std::forward<Args>(strings), stringSize), ...);
+
+        const AxrResult axrResult = growAllocation(stringSize);
+        if (AXR_FAILED(axrResult)) [[unlikely]] {
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to grow allocation.");
+            return axrResult;
+        }
+
+        if (m_IsHeapAllocated) {
+            char8_t* data = m_HeapString.Data.getDataPtr();
+            (concatenateString(std::forward<Args>(strings), data), ...);
+            m_HeapString.Size = stringSize;
+            m_HeapString.Data[m_HeapString.Size] = '\0';
+        } else {
+            char8_t* data = m_StackString.Data;
+            (concatenateString(std::forward<Args>(strings), data), ...);
+            m_StackString.Size = stringSize;
+            m_StackString.Data[m_StackString.Size] = '\0';
+        }
+
+        return AXR_SUCCESS;
+    }
+#undef AXR_FUNCTION_FAILED_STRING
+
+    /// Grow the allocation to fit the given size plus a null terminator. If the given size is smaller than the current
+    /// capacity, then nothing happens.
+    /// @param size The number of char8_ts to allocate for.
+    /// @return AXR_SUCCESS if the function succeeds
+    [[nodiscard]] AxrResult growAllocation(size_t size);
 
     /// Compare this AxrString with the given basic char string.
     ///
@@ -241,9 +298,9 @@ public:
     /// Clear this string
     void clear();
 
-private:
+protected:
     // ----------------------------------------- //
-    // Private Structs
+    // Protected Structs
     // ----------------------------------------- //
 
     struct HeapStorage {
@@ -268,7 +325,7 @@ private:
     static_assert(StackCapacity <= UINT8_MAX + 1);
 
     // ----------------------------------------- //
-    // Private Variables
+    // Protected Variables
     // ----------------------------------------- //
     AxrDynamicAllocator* m_DynamicAllocator{};
     bool m_IsHeapAllocated{};
@@ -277,7 +334,6 @@ private:
         StackStorage m_StackString;
     };
 
-protected:
     // ----------------------------------------- //
     // Protected Functions
     // ----------------------------------------- //
@@ -290,12 +346,6 @@ protected:
 
     /// Deallocate the string data
     void deallocateData();
-
-    /// Grow the allocation to fit the given size plus a null terminator. If the given size is smaller than the current
-    /// capacity, then nothing happens.
-    /// @param size The number of char8_ts to allocate for.
-    /// @return AXR_SUCCESS if the function succeeds
-    [[nodiscard]] AxrResult growAllocation(size_t size);
 
     /// Set the string data
     /// @param string Source string to copy

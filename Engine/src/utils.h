@@ -23,11 +23,19 @@ struct AxrUniqueTypesStruct<Type, Types...> :
 template<typename... Types>
 concept AxrUniqueTypes = AxrUniqueTypesStruct<Types...>::value;
 
+/// Determine if the type is a `const char8_t*` or a `char8_t[]`
 template<typename Type>
-concept AxrIsChar8Like =
+concept AxrIsChar8StringLike =
     std::is_same_v<std::remove_cv_t<std::remove_reference_t<Type>>, const char8_t*> ||
     (std::is_array_v<std::remove_reference_t<Type>> &&
      std::is_same_v<std::remove_cv_t<std::remove_extent_t<std::remove_reference_t<Type>>>, char8_t>);
+
+/// Determine if the type is a `const char*` or a `char[]`
+template<typename Type>
+concept AxrIsCharStringLike =
+    std::is_same_v<std::remove_cv_t<std::remove_reference_t<Type>>, const char*> ||
+    (std::is_array_v<std::remove_reference_t<Type>> &&
+     std::is_same_v<std::remove_cv_t<std::remove_extent_t<std::remove_reference_t<Type>>>, char>);
 
 // ----------------------------------------- //
 // Functions

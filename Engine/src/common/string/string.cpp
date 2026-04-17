@@ -96,7 +96,7 @@ AxrResult AxrString::append(const AxrString& string) {
 #define AXR_FUNCTION_FAILED_STRING "Failed to append AxrString. "
 AxrResult AxrString::append(const char8_t* string) {
     const size_t stringSize = std::char_traits<char8_t>::length(string);
-    const size_t currentStringSize = m_IsHeapAllocated ? m_HeapString.Size : m_StackString.Size;
+    const size_t currentStringSize = size();
 
     const AxrResult axrResult = growAllocation(currentStringSize + stringSize);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
@@ -110,17 +110,56 @@ AxrResult AxrString::append(const char8_t* string) {
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
-#define AXR_FUNCTION_FAILED_STRING "Failed to build AxrString from char string. "
-AxrResult AxrString::buildFromCharString(const char* string) {
-    const size_t stringSize = std::char_traits<char>::length(string);
+#define AXR_FUNCTION_FAILED_STRING "Failed to grow allocation for AxrString. "
+AxrResult AxrString::growAllocation(size_t size) {
+    assert(m_DynamicAllocator != nullptr);
 
-    const AxrResult axrResult = growAllocation(stringSize);
+    // Plus 1 for the null terminator character
+    size += 1;
+
+    // ---- Handle Stack Allocation ----
+
+    if (!m_IsHeapAllocated) {
+        if (size <= StackCapacity) {
+            return AXR_SUCCESS;
+        }
+
+        const StackStorage oldStackString = m_StackString;
+
+        const AxrResult axrResult = m_DynamicAllocator->allocate(size, m_HeapString.Data);
+        if (AXR_FAILED(axrResult)) [[unlikely]] {
+            axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to allocate memory of size: {}.", size);
+            return axrResult;
+        }
+
+        m_IsHeapAllocated = true;
+        m_HeapString.Capacity = size;
+
+        // Copy the old string to the new allocation
+        std::char_traits<char8_t>::copy(m_HeapString.Data.getDataPtr(), oldStackString.Data, oldStackString.Size);
+        m_HeapString.Size = oldStackString.Size;
+
+        // Set the null terminator
+        m_HeapString.Data[m_HeapString.Size] = '\0';
+
+        return AXR_SUCCESS;
+    }
+
+    // ---- Handle Heap Allocation ----
+
+    if (size <= m_HeapString.Capacity) {
+        return AXR_SUCCESS;
+    }
+
+    const AxrResult axrResult = m_DynamicAllocator->reallocate(size, m_HeapString.Data);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to grow allocation.");
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to reallocate memory of size: {}.", size);
         return axrResult;
     }
 
-    setStringData(string, stringSize, 0);
+    m_HeapString.Capacity = size;
+
+    // We don't need to set the null terminator. It gets copied when the allocator reallocates.
 
     return AXR_SUCCESS;
 }
@@ -261,61 +300,6 @@ void AxrString::deallocateData() {
     }
 
     m_DynamicAllocator->deallocate(m_HeapString.Data);
-}
-#undef AXR_FUNCTION_FAILED_STRING
-
-#define AXR_FUNCTION_FAILED_STRING "Failed to grow allocation for AxrString. "
-AxrResult AxrString::growAllocation(size_t size) {
-    assert(m_DynamicAllocator != nullptr);
-
-    // Plus 1 for the null terminator character
-    size += 1;
-
-    // ---- Handle Stack Allocation ----
-
-    if (!m_IsHeapAllocated) {
-        if (size <= StackCapacity) {
-            return AXR_SUCCESS;
-        }
-
-        const StackStorage oldStackString = m_StackString;
-
-        const AxrResult axrResult = m_DynamicAllocator->allocate(size, m_HeapString.Data);
-        if (AXR_FAILED(axrResult)) [[unlikely]] {
-            axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to allocate memory of size: {}.", size);
-            return axrResult;
-        }
-
-        m_IsHeapAllocated = true;
-        m_HeapString.Capacity = size;
-
-        // Copy the old string to the new allocation
-        std::char_traits<char8_t>::copy(m_HeapString.Data.getDataPtr(), oldStackString.Data, oldStackString.Size);
-        m_HeapString.Size = oldStackString.Size;
-
-        // Set the null terminator
-        m_HeapString.Data[m_HeapString.Size] = '\0';
-
-        return AXR_SUCCESS;
-    }
-
-    // ---- Handle Heap Allocation ----
-
-    if (size <= m_IsHeapAllocated) {
-        return AXR_SUCCESS;
-    }
-
-    const AxrResult axrResult = m_DynamicAllocator->reallocate(size, m_HeapString.Data);
-    if (AXR_FAILED(axrResult)) [[unlikely]] {
-        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to reallocate memory of size: {}.", size);
-        return axrResult;
-    }
-
-    m_HeapString.Capacity = size;
-
-    // We don't need to set the null terminator. It gets copied when the allocator reallocates.
-
-    return AXR_SUCCESS;
 }
 #undef AXR_FUNCTION_FAILED_STRING
 

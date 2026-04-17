@@ -2,6 +2,7 @@
 // Headers
 // ----------------------------------------- //
 #include "platform.h"
+#include "../memory/allocator.h"
 #include "axr/common/defines.h"
 #include "axr/logging.h"
 
@@ -107,6 +108,28 @@ AxrResult AxrPlatform::getWindowSizeInPixels(uint32_t& width, uint32_t& height) 
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
+#define AXR_FUNCTION_FAILED_STRING "Failed to get engine assets path. "
+AxrPath AxrPlatform::getEngineAssetsPath(const size_t extraCapacity) const {
+    const char* basePath = SDL_GetBasePath();
+    const auto assetsFolder = u8"assets/";
+    auto path = AxrPath(&AxrAllocator::get().EngineDataAllocator);
+
+    const AxrResult axrResult = path.growAllocation(std::char_traits<char>::length(basePath) +
+                                                    std::char_traits<char8_t>::length(assetsFolder) + extraCapacity);
+    if (AXR_FAILED(axrResult)) {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to grow AxrPath allocation.");
+        return {};
+    }
+
+    // Don't need to use appendPath() for the base path because the separator should already be correct for the current
+    // platform.
+    path.append(basePath);
+    path.appendPath(assetsFolder);
+
+    return path;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
 #ifdef AXR_VULKAN_SUPPORTED
 AxrExtensionArray<AxrVulkanExtension, AxrVulkanExtensionMaxCount> AxrPlatform::getRequiredVulkanExtensions() {
     AxrExtensionArray<AxrVulkanExtension, AxrVulkanExtensionMaxCount> extensionsArray;
@@ -207,8 +230,8 @@ AxrResult AxrPlatform::handleWindowEvent(const SDL_WindowEvent& event) {
             return AXR_EVENT_WINDOW_CLOSE_REQUESTED;
         }
         case SDL_EVENT_WINDOW_RESIZED: {
-            // TODO (Ashe): Instead of using callbacks, we could just set a flag here that the window resized. Then on every
-            //  frame, in the renderer, we check if the window swapchain needs recreating
+            // TODO (Ashe): Instead of using callbacks, we could just set a flag here that the window resized. Then on
+            //  every frame, in the renderer, we check if the window swapchain needs recreating
             OnWindowResizedRendererCallback(static_cast<uint32_t>(event.data1), static_cast<uint32_t>(event.data2));
             return AXR_SUCCESS;
         }

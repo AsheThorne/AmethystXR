@@ -4,6 +4,7 @@
 // Headers
 // ----------------------------------------- //
 #include "../common/containers/extensionArray.h"
+#include "../common/string/path.h"
 #include "axr/common/callback.h"
 #include "axr/common/defines.h"
 #include "axr/common/enums.h"
@@ -110,6 +111,11 @@ public:
     /// @param height Output window height
     /// @return AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult getWindowSizeInPixels(uint32_t& width, uint32_t& height) const;
+
+    /// Get the file path to the engine assets
+    /// @param extraCapacity Extra capacity to add to the path so you can append the path without needing to reallocate
+    /// @return The file path to the engine assets
+    [[nodiscard]] AxrPath getEngineAssetsPath(size_t extraCapacity) const;
 
 #ifdef AXR_VULKAN_SUPPORTED
     /// Get the required vulkan platform extensions
