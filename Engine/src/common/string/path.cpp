@@ -2,6 +2,7 @@
 // Headers
 // ----------------------------------------- //
 #include "path.h"
+#include "../../platform/platform.h"
 
 // ----------------------------------------- //
 // Special Functions
@@ -102,6 +103,14 @@ AxrResult AxrPath::appendPath(const char* path) {
     correctPathSeparators(oldEndPoint, AxrString::end());
 
     return AXR_SUCCESS;
+}
+
+bool AxrPath::isAbsolute() const {
+    return AxrPlatform::isPathAbsolute(*this);
+}
+
+bool AxrPath::isRelative() const {
+    return AxrPlatform::isPathRelative(*this);
 }
 
 // ----------------------------------------- //

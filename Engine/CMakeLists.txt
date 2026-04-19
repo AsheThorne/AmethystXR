@@ -61,6 +61,7 @@ set(AXR_SOURCE_FILES
     # ---- Platform ----
     ${AXR_SRC_DIR}/platform/platform.h
     ${AXR_SRC_DIR}/platform/platform.cpp
+    ${AXR_SRC_DIR}/platform/platform_${AXR_PLATFORM}.cpp
     # ---- Application ----
     ${AXR_SRC_DIR}/application/application.h
     ${AXR_SRC_DIR}/application/application.cpp

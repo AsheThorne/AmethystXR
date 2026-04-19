@@ -84,6 +84,13 @@ public:
     /// @param path Source path to append
     /// @return AXR_SUCCESS if the function succeeded
     AxrResult appendPath(const char* path);
+    
+    /// Check if this path is an absolute path
+    /// @return True if this path is absolute
+    [[nodiscard]] bool isAbsolute() const;
+    /// Check if this path is a relative path
+    /// @return True if this path is relative
+    [[nodiscard]] bool isRelative() const;
 
 private:
     // ----------------------------------------- //

@@ -108,8 +108,12 @@ AxrResult AxrPlatform::getWindowSizeInPixels(uint32_t& width, uint32_t& height) 
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
-bool AxrPlatform::pathExists(const char8_t* path) const {
+bool AxrPlatform::pathExists(const char8_t* path) {
     return SDL_GetPathInfo(reinterpret_cast<const char*>(path), nullptr);
+}
+
+bool AxrPlatform::isPathRelative(const AxrPath& path) {
+    return !isPathAbsolute(path);
 }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to get engine assets path. "

@@ -115,7 +115,11 @@ public:
     /// Check if the given path exists
     /// @param path Path to check
     /// @return True if the path exists
-    [[nodiscard]] bool pathExists(const char8_t* path) const;
+    [[nodiscard]] static bool pathExists(const char8_t* path);
+    /// Check if the given path is a relative path
+    /// @param path Path to check
+    /// @return True if the given path is relative
+    [[nodiscard]] static bool isPathRelative(const AxrPath& path);
     /// Get the file path to the engine assets
     /// @param extraCapacity Extra capacity to add to the path so you can append the path without needing to reallocate
     /// @param path Output file path to the engine assets
@@ -144,6 +148,15 @@ public:
     /// @param surface VkSurfaceKHR to destroy
     void destroyVulkanSurface(const VkInstance& instance, VkSurfaceKHR& surface) const;
 #endif
+
+    // ---- Platform Specific Implementations ----
+    // The following functions have a platform specific implementation. Meaning, they aren't defined in the platform.cpp
+    // file, but the platform_<platformName>.cpp file for each supported platform.
+
+    /// Check if the given path is an absolute path
+    /// @param path Path to check
+    /// @return True if the given path is absolute
+    [[nodiscard]] static bool isPathAbsolute(const AxrPath& path);
 
 private:
     // ----------------------------------------- //
