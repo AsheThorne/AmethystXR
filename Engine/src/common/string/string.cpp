@@ -27,6 +27,10 @@ AxrString::~AxrString() {
 }
 
 AxrString& AxrString::operator=(const char8_t* src) {
+    if (src == nullptr) {
+        return *this;
+    }
+    
     buildString(src);
     return *this;
 }

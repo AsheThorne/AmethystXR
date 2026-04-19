@@ -16,11 +16,6 @@ AxrPath::AxrPath(AxrDynamicAllocator* dynamicAllocator) :
     AxrString(dynamicAllocator) {
 }
 
-AxrPath::AxrPath(const char* path, AxrDynamicAllocator* dynamicAllocator) :
-    AxrString(dynamicAllocator) {
-    AxrString::buildFromCharString(path);
-}
-
 AxrPath::AxrPath(AxrPath&& src) noexcept :
     AxrString(std::move(src)) {
     move_internal(std::move(src));
@@ -31,6 +26,10 @@ AxrPath::~AxrPath() {
 }
 
 AxrPath& AxrPath::operator=(const char* src) {
+    if (src == nullptr) {
+        return *this;
+    }
+
     AxrString::buildFromCharString(src);
     return *this;
 }
@@ -62,8 +61,12 @@ AxrResult AxrPath::append(const AxrPath& path) {
     return AxrString::append(path.data());
 }
 
+AxrResult AxrPath::appendString(const AxrString& string) {
+    return AxrString::append(string);
+}
+
 #define AXR_FUNCTION_FAILED_STRING "Failed to append AxrPath. "
-AxrResult AxrPath::append(const char* string) {
+AxrResult AxrPath::appendString(const char* string) {
     const size_t stringSize = std::char_traits<char>::length(string);
     const size_t currentStringSize = AxrString::size();
 
@@ -79,10 +82,14 @@ AxrResult AxrPath::append(const char* string) {
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
+AxrResult AxrPath::appendString(const char8_t* string) {
+    return AxrString::append(string);
+}
+
 AxrResult AxrPath::appendPath(const char8_t* path) {
     const AxrStringIterator oldEndPoint = AxrString::end();
 
-    const AxrResult axrResult = AxrString::append(path);
+    const AxrResult axrResult = appendString(path);
     if (AXR_FAILED(axrResult)) {
         return axrResult;
     }
@@ -95,7 +102,7 @@ AxrResult AxrPath::appendPath(const char8_t* path) {
 AxrResult AxrPath::appendPath(const char* path) {
     const AxrStringIterator oldEndPoint = AxrString::end();
 
-    const AxrResult axrResult = append(path);
+    const AxrResult axrResult = appendString(path);
     if (AXR_FAILED(axrResult)) {
         return axrResult;
     }
@@ -111,6 +118,22 @@ bool AxrPath::isAbsolute() const {
 
 bool AxrPath::isRelative() const {
     return AxrPlatform::isPathRelative(*this);
+}
+
+// ----------------------------------------- //
+// Hidden Base Functions
+// ----------------------------------------- //
+
+AxrResult AxrPath::copy(const AxrString& string) {
+    return AXR_ERROR_NOT_SUPPORTED;
+}
+
+AxrResult AxrPath::append(const AxrString& string) {
+    return AXR_ERROR_NOT_SUPPORTED;
+}
+
+AxrResult AxrPath::append(const char8_t* string) {
+    return AXR_ERROR_NOT_SUPPORTED;
 }
 
 // ----------------------------------------- //

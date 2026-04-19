@@ -25,10 +25,24 @@ public:
     /// Constructor
     /// @param dynamicAllocator Dynamic allocator to use
     explicit AxrPath(AxrDynamicAllocator* dynamicAllocator);
+
     /// Constructor
     /// @param path Path to initialize with
     /// @param dynamicAllocator Dynamic allocator to use
-    AxrPath(const char* path, AxrDynamicAllocator* dynamicAllocator);
+    template<AxrIsCharStringLike Char_T>
+    AxrPath(Char_T path, AxrDynamicAllocator* dynamicAllocator) :
+        AxrString(dynamicAllocator) {
+        AxrString::buildFromCharString(path);
+    }
+
+    /// Constructor
+    /// @param path Path to initialize with
+    /// @param dynamicAllocator Dynamic allocator to use
+    template<AxrIsChar8StringLike Char_T>
+    AxrPath(Char_T path, AxrDynamicAllocator* dynamicAllocator) :
+        AxrString(path, dynamicAllocator) {
+    }
+
     /// Copy Constructor
     /// @param src Source AxrPath to copy from
     AxrPath(const AxrPath& src) = delete;
@@ -70,21 +84,31 @@ public:
     /// @param path Source path to append
     /// @return AXR_SUCCESS if the function succeeded
     AxrResult append(const AxrPath& path);
-    /// Append the given string to the end of this path
+
+    /// Append the given string to the end of this path without any special path sanitization
     /// @param string Source string to append
     /// @return AXR_SUCCESS if the function succeeded
-    AxrResult append(const char* string);
-    /// Append the given path to the end of this path. This function also checks for separator characters and converts
-    /// them to the correct separator for the current platform.
-    /// @param path Source path to append
+    AxrResult appendString(const AxrString& string);
+    /// Append the given string to the end of this path without any special path sanitization
+    /// @param string Source string to append
     /// @return AXR_SUCCESS if the function succeeded
-    AxrResult appendPath(const char8_t* path);
+    AxrResult appendString(const char* string);
+    /// Append the given string to the end of this path without any special path sanitization
+    /// @param string Source string to append
+    /// @return AXR_SUCCESS if the function succeeded
+    AxrResult appendString(const char8_t* string);
+
     /// Append the given path to the end of this path. This function also checks for separator characters and converts
     /// them to the correct separator for the current platform.
     /// @param path Source path to append
     /// @return AXR_SUCCESS if the function succeeded
     AxrResult appendPath(const char* path);
-    
+    /// Append the given path to the end of this path. This function also checks for separator characters and converts
+    /// them to the correct separator for the current platform.
+    /// @param path Source path to append
+    /// @return AXR_SUCCESS if the function succeeded
+    AxrResult appendPath(const char8_t* path);
+
     /// Check if this path is an absolute path
     /// @return True if this path is absolute
     [[nodiscard]] bool isAbsolute() const;
@@ -94,9 +118,34 @@ public:
 
 private:
     // ----------------------------------------- //
-    // Private Functions
+    // Private Variables
     // ----------------------------------------- //
     static constexpr char8_t m_Separator = static_cast<char8_t>(std::filesystem::path::preferred_separator);
+
+    // ----------------------------------------- //
+    // Hidden Base Functions
+    // ----------------------------------------- //
+
+    // NOTE (Ashe): We hide some functions and then reintroduce them under a different name (like append() ->
+    //  appendString()) to make it more clear that the given string will NOT be sanitized as a path, and the raw string
+    //  will just be appended with no checks.
+
+    /// Copy the given string to this string
+    /// @param string Source string to copy from
+    /// @return AXR_SUCCESS if the function succeeded
+    AxrResult copy(const AxrString& string);
+    /// Append the given string to the end of this string
+    /// @param string Source string to append
+    /// @return AXR_SUCCESS if the function succeeded
+    AxrResult append(const AxrString& string);
+    /// Append the given string to the end of this string
+    /// @param string Source string to append
+    /// @return AXR_SUCCESS if the function succeeded
+    AxrResult append(const char8_t* string);
+
+    // ----------------------------------------- //
+    // Private Functions
+    // ----------------------------------------- //
 
     /// Clean up this class
     void cleanup();

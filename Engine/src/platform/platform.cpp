@@ -129,9 +129,8 @@ AxrResult AxrPlatform::getEngineAssetsPath(const size_t extraCapacity, AxrPath& 
         return axrResult;
     }
 
-    // Don't need to use appendPath() for the base path because the separator should already be correct for the current
-    // platform.
-    tempPath.append(basePath);
+    // Don't need to use appendPath() for the base path because the path is already been valid for the current platform.
+    tempPath.appendString(basePath);
     tempPath.appendPath(assetsFolder);
 
     path = std::move(tempPath);
