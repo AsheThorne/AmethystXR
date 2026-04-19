@@ -33,6 +33,7 @@ public:
     AxrPath(Char_T path, AxrDynamicAllocator* dynamicAllocator) :
         AxrString(dynamicAllocator) {
         AxrString::buildFromCharString(path);
+        correctPathSeparators(AxrString::begin(), AxrString::end());
     }
 
     /// Constructor
@@ -41,6 +42,7 @@ public:
     template<AxrIsChar8StringLike Char_T>
     AxrPath(Char_T path, AxrDynamicAllocator* dynamicAllocator) :
         AxrString(path, dynamicAllocator) {
+        correctPathSeparators(AxrString::begin(), AxrString::end());
     }
 
     /// Copy Constructor

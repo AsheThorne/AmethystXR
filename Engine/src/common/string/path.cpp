@@ -31,6 +31,7 @@ AxrPath& AxrPath::operator=(const char* src) {
     }
 
     AxrString::buildFromCharString(src);
+    correctPathSeparators(AxrString::begin(), AxrString::end());
     return *this;
 }
 
