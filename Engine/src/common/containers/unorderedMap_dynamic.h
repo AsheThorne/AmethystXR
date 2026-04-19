@@ -217,7 +217,7 @@ public:
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to initialize AxrUnorderedMap_Dynamic. "
     /// Constructor
-    /// @param capacity The max number of items this map can hold
+    /// @param capacity The max number of items this map can hold. This value MUST be a power of two.
     /// @param allocator Dynamic allocator to use
     explicit AxrUnorderedMap_Dynamic(const size_t capacity, AxrDynamicAllocator* allocator) :
         m_DynamicAllocator(allocator),

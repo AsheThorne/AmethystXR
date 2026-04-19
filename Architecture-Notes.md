@@ -272,6 +272,10 @@ A module must NEVER access anything above or next to themselves in the following
 |-------------------------------------------------------------------------|
 ```
 
+## Terminology
+
+- `Engine Assets` refer to assets that come with the engine and are always available for use.
+
 ## General Notes
 
 - The game world object model, renderer, HID, player control system and animations are all effected by a multiplayer

@@ -97,7 +97,7 @@ void AxrPlatform::destroyWindow() {
 AxrResult AxrPlatform::getWindowSizeInPixels(uint32_t& width, uint32_t& height) const {
     int x;
     int y;
-    if (!SDL_GetWindowSizeInPixels(m_SDLWindow, &x, &y)) {
+    if (!SDL_GetWindowSizeInPixels(m_SDLWindow, &x, &y)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "SDL_GetWindowSizeInPixels failed: {}", SDL_GetError());
         return AXR_ERROR_SDL_ERROR;
     }
@@ -108,25 +108,31 @@ AxrResult AxrPlatform::getWindowSizeInPixels(uint32_t& width, uint32_t& height) 
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
-#define AXR_FUNCTION_FAILED_STRING "Failed to get engine assets path. "
-AxrPath AxrPlatform::getEngineAssetsPath(const size_t extraCapacity) const {
-    const char* basePath = SDL_GetBasePath();
-    const auto assetsFolder = u8"assets/";
-    auto path = AxrPath(&AxrAllocator::get().EngineDataAllocator);
+bool AxrPlatform::pathExists(const char8_t* path) const {
+    return SDL_GetPathInfo(reinterpret_cast<const char*>(path), nullptr);
+}
 
-    const AxrResult axrResult = path.growAllocation(std::char_traits<char>::length(basePath) +
-                                                    std::char_traits<char8_t>::length(assetsFolder) + extraCapacity);
-    if (AXR_FAILED(axrResult)) {
+#define AXR_FUNCTION_FAILED_STRING "Failed to get engine assets path. "
+AxrResult AxrPlatform::getEngineAssetsPath(const size_t extraCapacity, AxrPath& path) const {
+    const char* basePath = SDL_GetBasePath();
+    const auto assetsFolder = u8"axr-assets/";
+    auto tempPath = AxrPath(&AxrAllocator::get().EngineDataAllocator);
+
+    const AxrResult axrResult = tempPath.growAllocation(
+        std::char_traits<char>::length(basePath) + std::char_traits<char8_t>::length(assetsFolder) + extraCapacity);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to grow AxrPath allocation.");
-        return {};
+        return axrResult;
     }
 
     // Don't need to use appendPath() for the base path because the separator should already be correct for the current
     // platform.
-    path.append(basePath);
-    path.appendPath(assetsFolder);
+    tempPath.append(basePath);
+    tempPath.appendPath(assetsFolder);
 
-    return path;
+    path = std::move(tempPath);
+
+    return AXR_SUCCESS;
 }
 #undef AXR_FUNCTION_FAILED_STRING
 

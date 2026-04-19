@@ -40,6 +40,7 @@
 #define AXR_MAX_ENGINE_NAME_SIZE 128
 #define AXR_MAX_APPLICATION_NAME_SIZE 128
 #define AXR_MAX_WINDOW_TITLE_SIZE 128
+#define AXR_MAX_FILE_PATH_SIZE 256
 
 // ----------------------------------------- //
 // AXR Engine Data

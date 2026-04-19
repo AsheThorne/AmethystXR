@@ -36,16 +36,18 @@ enum AxrResult {
     AXR_ERROR_NOT_SUPPORTED = -5,
     /// Error, Validation failed
     AXR_ERROR_VALIDATION_FAILED = -6,
+    /// Error, Encountered an invalid file path
+    AXR_ERROR_INVALID_PATH = -7,
     /// Error, Encountered an error with vulkan
-    AXR_ERROR_VULKAN_ERROR = -7,
+    AXR_ERROR_VULKAN_ERROR = -8,
     /// Error, Encountered an error with SDL
-    AXR_ERROR_SDL_ERROR = -8,
+    AXR_ERROR_SDL_ERROR = -9,
 };
 
 /// Axr renderer api type
 enum AxrRendererApiTypeEnum {
     AXR_RENDERER_API_TYPE_UNDEFINED = 0,
-    AXR_RENDERER_API_TYPE_VULKAN = 1,
+    AXR_RENDERER_API_TYPE_VULKAN,
 };
 
 // ----------------------------------------- //

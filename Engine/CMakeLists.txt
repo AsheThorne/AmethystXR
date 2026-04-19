@@ -6,6 +6,8 @@ project(AXR_Engine VERSION 0.1.0)
 
 set(AXR_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/include)
 set(AXR_SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/src)
+set(AXR_ASSETS_DIR ${CMAKE_CURRENT_LIST_DIR}/assets)
+set(AXR_SHADERS_DIR ${AXR_ASSETS_DIR}/shaders)
 
 # ---------------------------------------------
 # Generate defines.h from defines.h.in
@@ -26,6 +28,7 @@ set(AXR_PUBLIC_HEADER_FILES
     ${AXR_INCLUDE_DIR}/axr/lifecycle.h
     ${AXR_INCLUDE_DIR}/axr/application.h
     ${AXR_INCLUDE_DIR}/axr/vulkanApi.h
+    ${AXR_INCLUDE_DIR}/axr/assets.h
     # ---- Common ----
     ${AXR_INCLUDE_DIR}/axr/common/defines.h
     ${AXR_INCLUDE_DIR}/axr/common/enums.h
@@ -113,6 +116,8 @@ set(AXR_SOURCE_FILES
     # ---- Assets ----
     ${AXR_SRC_DIR}/assets/assets.cpp
     ${AXR_SRC_DIR}/assets/assets.h
+    ${AXR_SRC_DIR}/assets/shaderAsset.cpp
+    ${AXR_SRC_DIR}/assets/shaderAsset.h
 )
 
 # ---------------------------------------------
@@ -195,6 +200,28 @@ if(Vulkan_FOUND)
         )
     endif()
 endif()
+
+# ---------------------------------------------
+# Generate vulkan shaders
+# ---------------------------------------------
+
+generate_vulkan_shaders(${AXR_SHADERS_DIR} AXR_Engine)
+
+# ---------------------------------------------
+# Copy Axr engine assets to output folder
+# ---------------------------------------------
+
+set(AXR_OUTPUT_ASSETS_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/axr-assets)
+
+# Delete old axr assets folder
+add_custom_command(TARGET AXR_Engine POST_BUILD COMMAND
+        ${CMAKE_COMMAND} -E remove_directory ${AXR_OUTPUT_ASSETS_DIR}
+)
+
+# Copy axr assets folder to output directory
+add_custom_command(TARGET AXR_Engine POST_BUILD COMMAND
+        ${CMAKE_COMMAND} -E copy_directory ${AXR_ASSETS_DIR} ${AXR_OUTPUT_ASSETS_DIR}
+)
 
 # ---------------------------------------------
 # Testing

@@ -112,10 +112,15 @@ public:
     /// @return AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult getWindowSizeInPixels(uint32_t& width, uint32_t& height) const;
 
+    /// Check if the given path exists
+    /// @param path Path to check
+    /// @return True if the path exists
+    [[nodiscard]] bool pathExists(const char8_t* path) const;
     /// Get the file path to the engine assets
     /// @param extraCapacity Extra capacity to add to the path so you can append the path without needing to reallocate
-    /// @return The file path to the engine assets
-    [[nodiscard]] AxrPath getEngineAssetsPath(size_t extraCapacity) const;
+    /// @param path Output file path to the engine assets
+    /// @return AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult getEngineAssetsPath(size_t extraCapacity, AxrPath& path) const;
 
 #ifdef AXR_VULKAN_SUPPORTED
     /// Get the required vulkan platform extensions

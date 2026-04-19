@@ -5,8 +5,9 @@
 // ----------------------------------------- //
 #include "../common/containers/unorderedMap_dynamic.h"
 #include "../common/id.h"
-#include "../common/string.h"
+#include "axr/assets.h"
 #include "axr/common/enums.h"
+#include "shaderAsset.h"
 
 /// Axr Assets
 class AxrAssets {
@@ -71,9 +72,40 @@ public:
     /// Shut down the assets
     void shutDown();
 
+    /// Register a new shader asset
+    /// @param config Shader asset config
+    /// @return AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult registerShaderAsset(const AxrShaderAssetConfig& config);
+
 private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
+    AxrUnorderedMap_Dynamic<AxrID, AxrShaderAsset> m_ShaderRegistry;
     bool m_IsSetup = false;
+
+    // ----------------------------------------- //
+    // Private Functions
+    // ----------------------------------------- //
+
+    /// Set up all registries
+    /// @return AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult setupRegistries();
+    /// Clean up all registries
+    void cleanupRegistries();
+
+    /// Register all engine assets
+    /// @return AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult registerEngineAssets();
+
+    // ---- Shader Asset ----
+
+    /// Get the AxrShaderAssetConfig for the given shader engine asset
+    /// @param engineAsset Engine asset
+    /// @return The engine asset AxrShaderAssetConfig
+    [[nodiscard]] static AxrShaderAssetConfig getEngineAssetShaderConfig(AxrEngineAssetEnum engineAsset);
+    /// Check if the given shader asset config is valid
+    /// @param config Config to check
+    /// @return AXR_SUCCESS if the config is valid
+    [[nodiscard]] static AxrResult isShaderAssetConfigValid(const AxrShaderAssetConfig& config);
 };
