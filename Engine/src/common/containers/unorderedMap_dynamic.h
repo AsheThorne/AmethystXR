@@ -106,7 +106,10 @@ private:
         void move_internal(Item&& src) {
             Key = std::move(src.Key);
             Value = std::move(src.Value);
-            Hash = std::move(src.Hash);
+            Hash = src.Hash;
+
+            // Reset the hash value so we know the slot this item is in is empty
+            src.Hash = UninitializedHashValue;
         }
     };
 
@@ -410,10 +413,9 @@ private:
         clear();
         deallocateData();
 
-        m_DynamicAllocator = {};
+        m_DynamicAllocator = nullptr;
         m_Capacity = {};
         m_Size = {};
-        m_IndexWraparoundMask = {};
     }
 
     /// Move the given AxrUnorderedMap_Dynamic to this class
@@ -426,10 +428,9 @@ private:
         m_Size = src.m_Size;
         m_IndexWraparoundMask = src.m_IndexWraparoundMask;
 
-        src.m_DynamicAllocator = {};
+        src.m_DynamicAllocator = nullptr;
         src.m_Capacity = {};
         src.m_Size = {};
-        src.m_IndexWraparoundMask = {};
     }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to insert a new item into the AxrUnorderedMap_Dynamic. "

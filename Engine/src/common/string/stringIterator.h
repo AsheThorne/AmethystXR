@@ -52,9 +52,7 @@ public:
 
     /// Get the pointer to the character data
     /// @return The pointer to the character data
-    [[nodiscard]] const char8_t* getDataPtr() const {
-        return m_Character;
-    }
+    [[nodiscard]] const char8_t* getDataPtr() const;
 
 private:
     // ----------------------------------------- //

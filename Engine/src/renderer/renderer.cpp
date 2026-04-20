@@ -157,6 +157,7 @@ AxrResult AxrRenderer::renderScene_vulkan(const AxrVulkanRendererContext& contex
                                           const AxrVector_Stack<AxrRenderCommand>& renderCommands,
                                           AxrRenderSurface& renderSurface) {
 #ifdef AXR_VULKAN_SUPPORTED
+    renderSurface.ApiType = AXR_RENDERER_API_TYPE_VULKAN;
     return AxrVulkanRenderer::renderScene(context, renderCommands, renderSurface.Vulkan);
 #else
     axrLogError(AXR_FUNCTION_FAILED_STRING "Vulkan isn't supported.");

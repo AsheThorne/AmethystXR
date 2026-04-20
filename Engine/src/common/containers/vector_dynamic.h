@@ -264,7 +264,7 @@ protected:
         clear();
         deallocateData();
 
-        m_DynamicAllocator = {};
+        m_DynamicAllocator = nullptr;
 
         AxrVectorBase<Type>::cleanup();
     }
@@ -279,7 +279,7 @@ protected:
 
         m_DynamicAllocator = src.m_DynamicAllocator;
 
-        src.m_DynamicAllocator = {};
+        src.m_DynamicAllocator = nullptr;
     }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to allocate AxrVector_Dynamic data. "

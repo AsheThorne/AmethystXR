@@ -172,20 +172,22 @@ private:
 
     /// Clean up this class
     void cleanup() {
-        m_Deallocator(*this);
+        if (m_Data != nullptr) {
+            m_Deallocator(*this);
+        }
 
         m_Data = nullptr;
-        m_Deallocator = {};
+        m_Deallocator.~AxrCallback();
     }
 
     /// Move the given AxrHandle to this class
     /// @param src AxrHandle to move
     void move_internal(AxrHandle&& src) {
-        m_Data = src.m_Data;
-        m_Deallocator = src.m_Deallocator;
+        m_Deallocator = std::move(src.m_Deallocator);
 
-        src.m_Data = {};
-        src.m_Deallocator = {};
+        m_Data = src.m_Data;
+
+        src.m_Data = nullptr;
     }
 };
 
@@ -310,19 +312,21 @@ private:
 
     /// Clean up this class
     void cleanup() {
-        m_Deallocator(*this);
+        if (m_Data != nullptr) {
+            m_Deallocator(*this);
+        }
 
         m_Data = nullptr;
-        m_Deallocator = {};
+        m_Deallocator.~AxrCallback();
     }
 
     /// Move the given AxrHandle to this class
     /// @param src AxrHandle to move
     void move_internal(AxrHandle&& src) {
-        m_Data = src.m_Data;
-        m_Deallocator = src.m_Deallocator;
+        m_Deallocator = std::move(src.m_Deallocator);
 
-        src.m_Data = {};
-        src.m_Deallocator = {};
+        m_Data = src.m_Data;
+
+        src.m_Data = nullptr;
     }
 };

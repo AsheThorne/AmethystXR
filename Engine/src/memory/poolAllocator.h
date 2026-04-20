@@ -208,13 +208,6 @@ protected:
 
     /// Clean up this class
     void cleanup() {
-        m_FreeChunksHead = {};
-        m_ChunkCapacity = {};
-        m_UsedChunkCount = {};
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-        m_PeakUsedChunkCount = {};
-#endif
-
         AxrSubAllocatorBase_Aligned<Type>::cleanup();
     }
 
@@ -229,13 +222,6 @@ protected:
         m_UsedChunkCount = src.m_UsedChunkCount;
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
         m_PeakUsedChunkCount = src.m_PeakUsedChunkCount;
-#endif
-
-        src.m_FreeChunksHead = {};
-        src.m_ChunkCapacity = {};
-        src.m_UsedChunkCount = {};
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-        src.m_PeakUsedChunkCount = {};
 #endif
     }
 
@@ -481,13 +467,6 @@ private:
 
     /// Clean up this class
     void cleanup() {
-        m_FreeChunksHeadIndex = {};
-        m_ChunkCapacity = {};
-        m_UsedChunkCount = {};
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-        m_PeakUsedChunkCount = {};
-#endif
-
         AxrSubAllocatorBase_Aligned<Type>::cleanup();
     }
 
@@ -502,13 +481,6 @@ private:
         m_UsedChunkCount = src.m_UsedChunkCount;
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
         m_PeakUsedChunkCount = src.m_PeakUsedChunkCount;
-#endif
-
-        src.m_FreeChunksHeadIndex = {};
-        src.m_ChunkCapacity = {};
-        src.m_UsedChunkCount = {};
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-        src.m_PeakUsedChunkCount = {};
 #endif
     }
 

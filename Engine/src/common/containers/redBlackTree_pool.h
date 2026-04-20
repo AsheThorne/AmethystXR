@@ -534,9 +534,8 @@ private:
     void cleanup() {
         clear();
 
-        m_PoolAllocator = {};
-        m_RootNode = {};
-        m_Size = {};
+        m_PoolAllocator = nullptr;
+        m_RootNode = nullptr;
     }
 
     /// Move the given AxrRedBlackTree_Pool to this class
@@ -546,9 +545,8 @@ private:
         m_RootNode = src.m_RootNode;
         m_Size = src.m_Size;
 
-        src.m_PoolAllocator = {};
-        src.m_RootNode = {};
-        src.m_Size = {};
+        src.m_PoolAllocator = nullptr;
+        src.m_RootNode = nullptr;
     }
 
     /// Find the node with the given data

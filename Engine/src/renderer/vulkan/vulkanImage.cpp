@@ -104,9 +104,6 @@ AxrResult AxrVulkanImage::createImage(const VkExtent2D extent,
 }
 
 void AxrVulkanImage::destroyImage() {
-    m_ImageFormat = VK_FORMAT_UNDEFINED;
-    m_MipLevelCount = {};
-    m_ImageAspectMask = VK_IMAGE_ASPECT_NONE;
     destroyImageView(m_Config.Device, m_ImageView);
     destroyImage(m_Config.Device, m_Image, m_ImageMemory);
 }
@@ -339,7 +336,7 @@ void AxrVulkanImage::destroyImageView(const VkDevice& device, VkImageView& image
 void AxrVulkanImage::cleanup() {
     destroyImage();
 
-    m_Config = {};
+    m_Config.~Config();
 }
 
 void AxrVulkanImage::move_internal(AxrVulkanImage&& src) {
@@ -355,9 +352,6 @@ void AxrVulkanImage::move_internal(AxrVulkanImage&& src) {
     src.m_Image = VK_NULL_HANDLE;
     src.m_ImageMemory = VK_NULL_HANDLE;
     src.m_ImageView = VK_NULL_HANDLE;
-    src.m_MipLevelCount = {};
-    src.m_ImageAspectMask = VK_IMAGE_ASPECT_NONE;
-    src.m_ImageFormat = VK_FORMAT_UNDEFINED;
 }
 
 #endif

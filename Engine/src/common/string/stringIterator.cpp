@@ -90,3 +90,7 @@ AxrArray<char8_t, 4> AxrStringIterator::operator*() const {
 
     return array;
 }
+
+const char8_t* AxrStringIterator::getDataPtr() const {
+    return m_Character;
+}

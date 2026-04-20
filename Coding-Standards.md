@@ -30,10 +30,10 @@
 - Keep heap allocations to a minimum and NEVER from the heap within a tight loop.
 - Avoid namespaces in the engine source code. This is because we can't use them in exported functions (including return
   types and parameters). so to keep things consistent, we'll just avoid using them.
-- If you free/delete memory, you should also set the pointer for that memory to `nullptr` to help prevent hanging
+- If you free/delete memory, you MUST also set the pointer for that memory to `nullptr` to help prevent hanging
   pointers.
-- In a move constructor/move assignment operator, if you aren't using `std::move()` for a variable then make sure to set
-  the source variable to its default value via `{}` after it's been copied. E.g. `a = src.a; src.a = {}`.
+- If an `Axr*` object is being cleaned up or moved (usually done in `cleanup()` or `move_interal()` functions), Always
+  prefer to call their destructors in said functions.
 - If you encounter a bug that wasn't picked up by the unit tests, then write a unit test for it if it's possible.
 - When passing an AxrVector_Stack to a function, you SHOULD do a check inside the function if it's already allocated.
   Most functions fall into either of the two camps. Either, it shouldn't be allocated before passing it into the

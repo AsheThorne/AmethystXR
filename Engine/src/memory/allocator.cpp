@@ -111,12 +111,12 @@ AxrResult AxrAllocator::setup(const Config& config) {
 
 void AxrAllocator::shutDown() {
 #ifdef AXR_DEBUG_INFO_ENABLED
-    DebugInfoAllocator = {};
-    DebugHandlesAllocator = {};
+    DebugInfoAllocator.~AxrDynamicAllocator();
+    DebugHandlesAllocator.~AxrPoolAllocator();
 #endif
-    EngineDataAllocator = {};
-    HandlesAllocator = {};
-    FrameAllocator = {};
+    EngineDataAllocator.~AxrDynamicAllocator();
+    HandlesAllocator.~AxrPoolAllocator();
+    FrameAllocator.~AxrStackAllocator();
 
     if (m_Memory != nullptr) {
         free(m_Memory);
@@ -145,16 +145,16 @@ void AxrAllocator::logFrameAllocatorUsage(const char* message) const {
 
     axrLogDebug("{}: Frame Allocator memory usage. {:.2f}% Used currently. {} Bytes used out of {}."
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-               " Peak usage reached {:.2f}%."
+                " Peak usage reached {:.2f}%."
 #endif
-               ,
-               message,
-               static_cast<float>(size) / static_cast<float>(capacity) * 100,
-               size,
-               capacity
+                ,
+                message,
+                static_cast<float>(size) / static_cast<float>(capacity) * 100,
+                size,
+                capacity
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-               ,
-               static_cast<float>(peakSize) / static_cast<float>(capacity) * 100
+                ,
+                static_cast<float>(peakSize) / static_cast<float>(capacity) * 100
 #endif
     );
 }
@@ -167,18 +167,18 @@ void AxrAllocator::logHandlesAllocatorUsage(const char* message) const {
 #endif
 
     axrLogDebug("{}: Handles Allocator memory usage."
-               " {:.2f}% Handles used currently. {} Handles used out of {}."
+                " {:.2f}% Handles used currently. {} Handles used out of {}."
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-               " Peak handles usage reached {:.2f}%."
+                " Peak handles usage reached {:.2f}%."
 #endif
-               ,
-               message,
-               static_cast<float>(size) / static_cast<float>(capacity) * 100,
-               size,
-               capacity
+                ,
+                message,
+                static_cast<float>(size) / static_cast<float>(capacity) * 100,
+                size,
+                capacity
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-               ,
-               static_cast<float>(peakSize) / static_cast<float>(capacity) * 100
+                ,
+                static_cast<float>(peakSize) / static_cast<float>(capacity) * 100
 #endif
     );
 }
@@ -191,18 +191,18 @@ void AxrAllocator::logEngineDataAllocatorUsage(const char* message) const {
 #endif
 
     axrLogDebug("{}: Engine Data Allocator memory usage."
-               " {:.2f}% Memory used currently. {} Bytes used out of {}."
+                " {:.2f}% Memory used currently. {} Bytes used out of {}."
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-               " Peak memory usage reached {:.2f}%."
+                " Peak memory usage reached {:.2f}%."
 #endif
-               ,
-               message,
-               static_cast<float>(size) / static_cast<float>(capacity) * 100,
-               size,
-               capacity
+                ,
+                message,
+                static_cast<float>(size) / static_cast<float>(capacity) * 100,
+                size,
+                capacity
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-               ,
-               static_cast<float>(peakSize) / static_cast<float>(capacity) * 100
+                ,
+                static_cast<float>(peakSize) / static_cast<float>(capacity) * 100
 #endif
     );
 }
@@ -216,18 +216,18 @@ void AxrAllocator::logDebugHandlesAllocatorUsage(const char* message) const {
 #endif
 
     axrLogDebug("{}: Debug Handles Allocator memory usage."
-               " {:.2f}% Handles used currently. {} Handles used out of {}."
+                " {:.2f}% Handles used currently. {} Handles used out of {}."
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-               " Peak handles usage reached {:.2f}%."
+                " Peak handles usage reached {:.2f}%."
 #endif
-               ,
-               message,
-               static_cast<float>(size) / static_cast<float>(capacity) * 100,
-               size,
-               capacity
+                ,
+                message,
+                static_cast<float>(size) / static_cast<float>(capacity) * 100,
+                size,
+                capacity
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-               ,
-               static_cast<float>(peakSize) / static_cast<float>(capacity) * 100
+                ,
+                static_cast<float>(peakSize) / static_cast<float>(capacity) * 100
 #endif
     );
 #endif
@@ -242,18 +242,18 @@ void AxrAllocator::logDebugInfoAllocatorUsage(const char* message) const {
 #endif
 
     axrLogDebug("{}: Debug info Allocator memory usage."
-               " {:.2f}% Memory used currently. {} Bytes used out of {}."
+                " {:.2f}% Memory used currently. {} Bytes used out of {}."
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-               " Peak memory usage reached {:.2f}%."
+                " Peak memory usage reached {:.2f}%."
 #endif
-               ,
-               message,
-               static_cast<float>(size) / static_cast<float>(capacity) * 100,
-               size,
-               capacity
+                ,
+                message,
+                static_cast<float>(size) / static_cast<float>(capacity) * 100,
+                size,
+                capacity
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-               ,
-               static_cast<float>(peakSize) / static_cast<float>(capacity) * 100
+                ,
+                static_cast<float>(peakSize) / static_cast<float>(capacity) * 100
 #endif
     );
 #endif

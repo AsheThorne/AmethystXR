@@ -123,11 +123,6 @@ bool AxrStackAllocator::empty() const {
 // ----------------------------------------- //
 
 void AxrStackAllocator::cleanup() {
-    m_Size = {};
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-    m_PeakSize = {};
-#endif
-
     AxrSubAllocatorBase::cleanup();
 }
 
@@ -138,11 +133,6 @@ void AxrStackAllocator::move_internal(AxrStackAllocator&& src) {
     m_Size = src.m_Size;
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
     m_PeakSize = src.m_PeakSize;
-#endif
-
-    src.m_Size = {};
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-    src.m_PeakSize = {};
 #endif
 }
 

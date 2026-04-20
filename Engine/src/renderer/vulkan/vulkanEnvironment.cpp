@@ -525,10 +525,9 @@ void AxrVulkanEnvironment::destroyDesktopSyncObjects(const VkDevice& device,
     destroySemaphores(device, renderingFinishedSemaphores);
     destroyFences(device, renderingFences);
 
-    // Reset the vectors so the data can be deallocated
-    imageAvailableSemaphores = AxrVector_Dynamic<VkSemaphore>();
-    renderingFinishedSemaphores = AxrVector_Dynamic<VkSemaphore>();
-    renderingFences = AxrVector_Dynamic<VkFence>();
+    imageAvailableSemaphores.~AxrVector_Dynamic();
+    renderingFinishedSemaphores.~AxrVector_Dynamic();
+    renderingFences.~AxrVector_Dynamic();
 }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to create semaphores. "
@@ -686,8 +685,7 @@ void AxrVulkanEnvironment::destroyCommandBuffers(const VkDevice& device,
 
     vkFreeCommandBuffers(device, commandPool, static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
 
-    // Reset the vector so the data can be deallocated
-    commandBuffers = {};
+    commandBuffers.~AxrVector_Dynamic();
 }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to set up desktop swapchain. "
@@ -1106,9 +1104,8 @@ void AxrVulkanEnvironment::resetDesktopSwapchainImages(const VkDevice& device,
         AxrVulkanImage::destroyImageView(device, imageView);
     }
 
-    // Reset the vectors so the data can be deallocated
-    imageViews = {};
-    images = {};
+    imageViews.~AxrVector_Dynamic();
+    images.~AxrVector_Dynamic();
 }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to create swapchain depth images. "
@@ -1242,7 +1239,7 @@ void AxrVulkanEnvironment::destroyVulkanImages(AxrVector_Dynamic<AxrVulkanImage>
     }
 
     // Reset the vector so the data can be deallocated
-    images = {};
+    images.~AxrVector_Dynamic();
 }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to recreate desktop swapchain. "
@@ -1372,7 +1369,7 @@ void AxrVulkanEnvironment::destroyFramebuffers(const VkDevice& device, AxrVector
     }
 
     // Reset the vector so the data can be deallocated
-    framebuffers = {};
+    framebuffers.~AxrVector_Dynamic();
 }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to handle window resizing. "

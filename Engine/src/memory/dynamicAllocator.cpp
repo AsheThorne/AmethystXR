@@ -287,12 +287,7 @@ size_t AxrDynamicAllocator::peakSize() const {
 // ----------------------------------------- //
 
 void AxrDynamicAllocator::cleanup() {
-    m_HandlesTree = {};
-    m_FreeBlocksHead = {};
-    m_Size = {};
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-    m_PeakSize = {};
-#endif
+    m_HandlesTree.~AxrRedBlackTree_Pool();
 
     AxrSubAllocatorBase::cleanup();
 }
@@ -307,12 +302,6 @@ void AxrDynamicAllocator::move_internal(AxrDynamicAllocator&& src) {
     m_Size = src.m_Size;
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
     m_PeakSize = src.m_PeakSize;
-#endif
-
-    src.m_FreeBlocksHead = {};
-    src.m_Size = {};
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-    src.m_PeakSize = {};
 #endif
 }
 

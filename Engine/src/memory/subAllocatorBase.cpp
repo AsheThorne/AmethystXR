@@ -49,21 +49,19 @@ void AxrSubAllocatorBase::cleanup() {
     if (m_Memory != nullptr) {
         if (m_Deallocator) {
             m_Deallocator(reinterpret_cast<void*&>(m_Memory));
-        } else {
+        } else [[unlikely]] {
             axrLogWarning("Memory leak detected inside AxrSubAllocatorBase. Failed to deallocate a block of memory. No "
                           "deallocator available.");
         }
     }
-    m_Capacity = {};
-    m_Deallocator.reset();
+    m_Deallocator.~AxrCallback();
 }
 
 void AxrSubAllocatorBase::move_internal(AxrSubAllocatorBase&& src) {
-    m_Deallocator = src.m_Deallocator;
+    m_Deallocator = std::move(src.m_Deallocator);
+
     m_Memory = src.m_Memory;
     m_Capacity = src.m_Capacity;
 
-    src.m_Deallocator = {};
-    src.m_Memory = {};
-    src.m_Capacity = {};
+    src.m_Memory = nullptr;
 }

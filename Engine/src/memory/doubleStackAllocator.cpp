@@ -209,12 +209,6 @@ bool AxrDoubleStackAllocator::emptyUpper() const {
 // ----------------------------------------- //
 
 void AxrDoubleStackAllocator::cleanup() {
-    m_SizeLower = {};
-    m_SizeUpper = {};
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-    m_PeakSize = {};
-#endif
-
     AxrSubAllocatorBase::cleanup();
 }
 
@@ -226,12 +220,6 @@ void AxrDoubleStackAllocator::move_internal(AxrDoubleStackAllocator&& src) {
     m_SizeUpper = src.m_SizeUpper;
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
     m_PeakSize = src.m_PeakSize;
-#endif
-
-    src.m_SizeLower = {};
-    src.m_SizeUpper = {};
-#ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE
-    src.m_PeakSize = {};
 #endif
 }
 

@@ -107,7 +107,6 @@ public:
 
     /// Remove all items in the vector
     void clear() {
-        // Don't clear the data, just overwrite it when new data gets added
         m_Size = 0;
     }
 

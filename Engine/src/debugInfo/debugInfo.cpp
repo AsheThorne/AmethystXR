@@ -44,7 +44,7 @@ AxrResult AxrDebugInfo::setup(const Config& config) {
 #undef AXR_FUNCTION_FAILED_STRING
 
 void AxrDebugInfo::shutDown() {
-    IDNames = {};
+    IDNames.~AxrUnorderedMap_Dynamic();
     m_IsSetup = false;
 }
 

@@ -101,7 +101,7 @@ AxrResult AxrAssets::setupRegistries() {
 }
 
 void AxrAssets::cleanupRegistries() {
-    m_ShaderRegistry = {};
+    m_ShaderRegistry.~AxrUnorderedMap_Dynamic();
 }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to register engine assets. "

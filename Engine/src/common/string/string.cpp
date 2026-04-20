@@ -30,7 +30,7 @@ AxrString& AxrString::operator=(const char8_t* src) {
     if (src == nullptr) {
         return *this;
     }
-    
+
     buildString(src);
     return *this;
 }
@@ -252,15 +252,7 @@ void AxrString::clear() {
 void AxrString::cleanup() {
     deallocateData();
 
-    if (m_IsHeapAllocated) {
-        m_HeapString.Capacity = {};
-        m_HeapString.Size = {};
-    } else {
-        m_StackString.Size = {};
-    }
-
-    m_DynamicAllocator = {};
-    m_IsHeapAllocated = {};
+    m_DynamicAllocator = nullptr;
 }
 
 void AxrString::move_internal(AxrString&& src) {
@@ -269,23 +261,16 @@ void AxrString::move_internal(AxrString&& src) {
 
         m_HeapString.Capacity = src.m_HeapString.Capacity;
         m_HeapString.Size = src.m_HeapString.Size;
-
-        src.m_HeapString.Capacity = {};
-        src.m_HeapString.Size = {};
     } else {
         m_StackString.Size = src.m_StackString.Size;
 
         memccpy(m_StackString.Data, src.m_StackString.Data, '\0', sizeof(m_StackString.Data));
-
-        src.m_StackString.Size = {};
-        std::memset(src.m_StackString.Data, 0, sizeof(src.m_StackString.Data));
     }
 
     m_DynamicAllocator = src.m_DynamicAllocator;
     m_IsHeapAllocated = src.m_IsHeapAllocated;
 
-    src.m_DynamicAllocator = {};
-    src.m_IsHeapAllocated = {};
+    src.m_DynamicAllocator = nullptr;
 }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to deallcoate AxrString data. "

@@ -159,8 +159,6 @@ private:
                 break;
             }
         }
-
-        ApiType = AXR_RENDERER_API_TYPE_UNDEFINED;
     }
 
     /// Move the given AxrRendererContext to this class
@@ -182,8 +180,6 @@ private:
         }
 
         ApiType = src.ApiType;
-
-        src.ApiType = AXR_RENDERER_API_TYPE_UNDEFINED;
     }
 };
 
@@ -284,8 +280,7 @@ private:
     void cleanup() {
         switch (ApiType) {
             case AXR_RENDERER_API_TYPE_VULKAN: {
-                using ContextApi_T = AxrVulkanRenderSurface;
-                Vulkan.~ContextApi_T();
+                Vulkan.~AxrVulkanRenderSurface();
                 break;
             }
             case AXR_RENDERER_API_TYPE_UNDEFINED: {
@@ -297,8 +292,6 @@ private:
                 break;
             }
         }
-
-        ApiType = AXR_RENDERER_API_TYPE_UNDEFINED;
     }
 
     /// Move the given AxrRenderSurface to this class
@@ -320,7 +313,5 @@ private:
         }
 
         ApiType = src.ApiType;
-
-        src.ApiType = AXR_RENDERER_API_TYPE_UNDEFINED;
     }
 };

@@ -280,9 +280,7 @@ protected:
         clear();
         deallocateData();
 
-        m_StackAllocator = {};
-        m_AllocatorMarkerID = {};
-        m_AutoDeallocateMemory = {};
+        m_StackAllocator = nullptr;
 
         AxrVectorBase<Type>::cleanup();
     }
@@ -298,10 +296,8 @@ protected:
         m_AllocatorMarkerID = src.m_AllocatorMarkerID;
         m_AutoDeallocateMemory = src.m_AutoDeallocateMemory;
 
-        src.m_StackAllocator = {};
-        src.m_Data = {};
-        src.m_AllocatorMarkerID = {};
-        src.m_AutoDeallocateMemory = {};
+        src.m_StackAllocator = nullptr;
+        src.m_Data = nullptr;
     }
 
 #define AXR_FUNCTION_FAILED_STRING "Failed to allocate AxrVector_Stack data. "
