@@ -117,7 +117,8 @@ public:
     // ----------------------------------------- //
     // Iterator
     // ----------------------------------------- //
-    class Iterator {
+    template<typename ItemType>
+    class BaseIterator {
     public:
         // ----------------------------------------- //
         // Special Functions
@@ -126,11 +127,11 @@ public:
         // ---- Constructors ----
 
         /// Default Constructor
-        Iterator() = default;
+        BaseIterator() = default;
 
         /// Constructor
         /// @param item The item for this iterator to point to
-        explicit Iterator(const Item* item) :
+        explicit BaseIterator(ItemType* item) :
             m_Item(item) {
         }
 
@@ -138,7 +139,7 @@ public:
 
         /// Prefix increment operator overload
         /// @return The iterator, incremented by 1
-        Iterator& operator++() {
+        BaseIterator& operator++() {
             if (m_Item == nullptr) [[unlikely]] {
                 return *this;
             }
@@ -152,8 +153,8 @@ public:
 
         /// Postfix increment operator overload
         /// @return the current iterator, before incrementing it by 1
-        Iterator operator++(int) {
-            Iterator returnValue = *this;
+        BaseIterator operator++(int) {
+            BaseIterator returnValue = *this;
             operator++();
 
             return returnValue;
@@ -161,7 +162,7 @@ public:
 
         /// Prefix decrement operator overload
         /// @return The iterator, decremented by 1
-        Iterator& operator--() {
+        BaseIterator& operator--() {
             if (m_Item == nullptr) [[unlikely]] {
                 return *this;
             }
@@ -175,8 +176,8 @@ public:
 
         /// Postfix decrement operator overload
         /// @return the current iterator, before decrementing it by 1
-        Iterator operator--(int) {
-            Iterator returnValue = *this;
+        BaseIterator operator--(int) {
+            BaseIterator returnValue = *this;
             operator--();
 
             return returnValue;
@@ -185,14 +186,14 @@ public:
         /// Equality operator overload
         /// @other Iterator to compare against
         /// @return True if both iterators point to the same node
-        bool operator==(const Iterator& other) const {
+        bool operator==(const BaseIterator& other) const {
             return m_Item == other.m_Item;
         }
 
         /// Inequality operator overload
         /// @other Iterator to compare against
         /// @return True if both iterators point to different nodes
-        bool operator!=(const Iterator& other) const {
+        bool operator!=(const BaseIterator& other) const {
             return !(*this == other);
         }
 
@@ -202,12 +203,23 @@ public:
             return std::pair<Key_T, const Value_T&>(m_Item->Key, m_Item->Value);
         }
 
+        /// Get the underlining data for this iterator
+        /// @return The underlining data for this iterator
+        template<typename T = ItemType>
+            requires(!std::is_const_v<T>)
+        std::pair<Key_T, Value_T&> operator*() {
+            return std::pair<Key_T, Value_T&>(m_Item->Key, m_Item->Value);
+        }
+
     private:
         // ----------------------------------------- //
         // Private Variables
         // ----------------------------------------- //
-        const Item* m_Item{};
+        ItemType* m_Item{};
     };
+
+    using Iterator = BaseIterator<Item>;
+    using ConstIterator = BaseIterator<const Item>;
 
     // ----------------------------------------- //
     // Special Functions
@@ -302,20 +314,30 @@ public:
 
     /// Get the beginning iterator
     /// @return The beginning iterator
-    [[nodiscard]] Iterator begin() const {
+    [[nodiscard]] Iterator begin() {
         return Iterator(&m_DataHandle[0]);
+    }
+    /// Get the beginning iterator
+    /// @return The beginning iterator
+    [[nodiscard]] ConstIterator begin() const {
+        return ConstIterator(&m_DataHandle[0]);
     }
 
     /// Get the end iterator
     /// @return The end iterator
-    [[nodiscard]] Iterator end() const {
+    [[nodiscard]] Iterator end() {
         return Iterator(&m_DataHandle[m_Capacity]);
+    }
+    /// Get the end iterator
+    /// @return The end iterator
+    [[nodiscard]] ConstIterator end() const {
+        return ConstIterator(&m_DataHandle[m_Capacity]);
     }
 
     /// Find the item with the given key
     /// @param key Key to search for
     /// @return The item with the given key's iterator. Or the iterator end if the key wasn't found.
-    [[nodiscard]] Iterator find(const Key_T& key) const {
+    [[nodiscard]] Iterator find(const Key_T& key) {
         const size_t foundIndex = findIndex(key);
 
         if (foundIndex == SIZE_MAX) {
@@ -323,6 +345,19 @@ public:
         }
 
         return Iterator(&m_DataHandle[foundIndex]);
+    }
+
+    /// Find the item with the given key
+    /// @param key Key to search for
+    /// @return The item with the given key's iterator. Or the iterator end if the key wasn't found.
+    [[nodiscard]] ConstIterator find(const Key_T& key) const {
+        const size_t foundIndex = findIndex(key);
+
+        if (foundIndex == SIZE_MAX) {
+            return end();
+        }
+
+        return ConstIterator(&m_DataHandle[foundIndex]);
     }
 
     /// Check if the given key exists in this map
