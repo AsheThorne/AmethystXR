@@ -19,7 +19,7 @@ AxrString::AxrString(AxrDynamicAllocator* dynamicAllocator) :
 }
 
 AxrString::AxrString(AxrString&& src) noexcept {
-    move_internal(std::move(src));
+    move_internal(std::move(src), true);
 }
 
 AxrString::~AxrString() {
@@ -39,7 +39,7 @@ AxrString& AxrString::operator=(AxrString&& src) noexcept {
     if (this != &src) {
         cleanup();
 
-        move_internal(std::move(src));
+        move_internal(std::move(src), false);
     }
     return *this;
 }
@@ -255,10 +255,18 @@ void AxrString::cleanup() {
     m_DynamicAllocator = nullptr;
 }
 
-void AxrString::move_internal(AxrString&& src) {
-    if (src.m_IsHeapAllocated) {
-        m_HeapString.Data = std::move(src.m_HeapString.Data);
+void AxrString::move_internal(AxrString&& src, const bool useConstructor) {
+    if (useConstructor) {
+        if (src.m_IsHeapAllocated) {
+            new (&m_HeapString.Data) AxrHandle(std::move(src.m_HeapString.Data));
+        }
+    } else {
+        if (src.m_IsHeapAllocated) {
+            m_HeapString.Data = std::move(src.m_HeapString.Data);
+        }
+    }
 
+    if (src.m_IsHeapAllocated) {
         m_HeapString.Capacity = src.m_HeapString.Capacity;
         m_HeapString.Size = src.m_HeapString.Size;
     } else {

@@ -19,7 +19,7 @@ AxrDoubleStackAllocator::AxrDoubleStackAllocator(const AxrMemoryBlock& memoryBlo
 
 AxrDoubleStackAllocator::AxrDoubleStackAllocator(AxrDoubleStackAllocator&& src) noexcept :
     AxrSubAllocatorBase(std::move(src)) {
-    move_internal(std::move(src));
+    move_internal(std::move(src), true);
 }
 
 AxrDoubleStackAllocator::~AxrDoubleStackAllocator() {
@@ -32,7 +32,7 @@ AxrDoubleStackAllocator& AxrDoubleStackAllocator::operator=(AxrDoubleStackAlloca
 
         AxrSubAllocatorBase::operator=(std::move(src));
 
-        move_internal(std::move(src));
+        move_internal(std::move(src), false);
     }
     return *this;
 }
@@ -212,9 +212,8 @@ void AxrDoubleStackAllocator::cleanup() {
     AxrSubAllocatorBase::cleanup();
 }
 
-void AxrDoubleStackAllocator::move_internal(AxrDoubleStackAllocator&& src) {
-    // Please note that we aren't moving the base class. That should be done before calling this function because
-    // depending on how it's done, it changes if we call the base move constructor or move assignment operator.
+void AxrDoubleStackAllocator::move_internal(AxrDoubleStackAllocator&& src, const bool useConstructor) {
+    // Please note that we aren't moving the base class. That should be done before calling this function.
 
     m_SizeLower = src.m_SizeLower;
     m_SizeUpper = src.m_SizeUpper;

@@ -68,7 +68,9 @@ protected:
 
     /// Move the given AxrSubAllocatorBase to this class
     /// @param src AxrSubAllocatorBase to move
-    void move_internal(AxrSubAllocatorBase&& src);
+    /// @param useConstructor If true, this function will use the move constructor for non-primitive objects instead of
+    /// the move assignment operator when moving variables
+    void move_internal(AxrSubAllocatorBase&& src, bool useConstructor);
 };
 
 /// Base generic sub allocator with type alignment to inherit from

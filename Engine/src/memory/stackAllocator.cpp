@@ -19,7 +19,7 @@ AxrStackAllocator::AxrStackAllocator(const AxrMemoryBlock& memoryBlock) :
 
 AxrStackAllocator::AxrStackAllocator(AxrStackAllocator&& src) noexcept :
     AxrSubAllocatorBase(std::move(src)) {
-    move_internal(std::move(src));
+    move_internal(std::move(src), true);
 }
 
 AxrStackAllocator::~AxrStackAllocator() {
@@ -32,7 +32,7 @@ AxrStackAllocator& AxrStackAllocator::operator=(AxrStackAllocator&& src) noexcep
 
         AxrSubAllocatorBase::operator=(std::move(src));
 
-        move_internal(std::move(src));
+        move_internal(std::move(src), false);
     }
     return *this;
 }
@@ -126,9 +126,8 @@ void AxrStackAllocator::cleanup() {
     AxrSubAllocatorBase::cleanup();
 }
 
-void AxrStackAllocator::move_internal(AxrStackAllocator&& src) {
-    // Please note that we aren't moving the base class. That should be done before calling this function because
-    // depending on how it's done, it changes if we call the base move constructor or move assignment operator.
+void AxrStackAllocator::move_internal(AxrStackAllocator&& src, const bool useConstructor) {
+    // Please note that we aren't moving the base class. That should be done before calling this function.
 
     m_Size = src.m_Size;
 #ifdef AXR_TRACK_ALLOCATOR_PEAK_USAGE

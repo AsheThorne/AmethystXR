@@ -47,7 +47,7 @@ public:
     /// Move Constructor
     /// @param src Source AxrVectorBase to move from
     AxrVectorBase(AxrVectorBase&& src) noexcept {
-        move_internal(std::move(src));
+        move_internal(std::move(src), true);
     }
 
     // ---- Destructor ----
@@ -69,7 +69,7 @@ public:
         if (this != &src) {
             cleanup();
 
-            move_internal(std::move(src));
+            move_internal(std::move(src), false);
         }
         return *this;
     }
@@ -129,7 +129,9 @@ protected:
 
     /// Move the given AxrVectorBase to this class
     /// @param src AxrVectorBase to move
-    void move_internal(AxrVectorBase&& src) {
+    /// @param useConstructor If true, this function will use the move constructor for non-primitive objects instead of
+    /// the move assignment operator when moving variables
+    void move_internal(AxrVectorBase&& src, const bool useConstructor) {
         m_Capacity = src.m_Capacity;
         m_Size = src.m_Size;
 

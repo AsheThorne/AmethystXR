@@ -181,7 +181,9 @@ private:
     
     /// Move the given AxrVulkanImage to this class
     /// @param src AxrVulkanImage to move
-    void move_internal(AxrVulkanImage&& src);
+    /// @param useConstructor If true, this function will use the move constructor for non-primitive objects instead of
+    /// the move assignment operator when moving variables
+    void move_internal(AxrVulkanImage&& src, bool useConstructor);
 };
 
 #endif

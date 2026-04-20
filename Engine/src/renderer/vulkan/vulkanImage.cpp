@@ -19,7 +19,7 @@ AxrVulkanImage::AxrVulkanImage(const Config& config) :
 }
 
 AxrVulkanImage::AxrVulkanImage(AxrVulkanImage&& src) noexcept {
-    move_internal(std::move(src));
+    move_internal(std::move(src), true);
 }
 
 AxrVulkanImage::~AxrVulkanImage() {
@@ -30,7 +30,7 @@ AxrVulkanImage& AxrVulkanImage::operator=(AxrVulkanImage&& src) noexcept {
     if (this != &src) {
         cleanup();
 
-        move_internal(std::move(src));
+        move_internal(std::move(src), false);
     }
 
     return *this;
@@ -339,8 +339,12 @@ void AxrVulkanImage::cleanup() {
     m_Config.~Config();
 }
 
-void AxrVulkanImage::move_internal(AxrVulkanImage&& src) {
-    m_Config = std::move(src.m_Config);
+void AxrVulkanImage::move_internal(AxrVulkanImage&& src, const bool useConstructor) {
+    if (useConstructor) {
+        new (&m_Config) Config(std::move(src.m_Config));
+    } else {
+        m_Config = std::move(src.m_Config);
+    }
 
     m_Image = src.m_Image;
     m_ImageMemory = src.m_ImageMemory;

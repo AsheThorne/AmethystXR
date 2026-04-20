@@ -153,7 +153,9 @@ private:
     void cleanup();
     /// Move the given AxrPath to this class
     /// @param src AxrPath to move
-    void move_internal(AxrPath&& src);
+    /// @param useConstructor If true, this function will use the move constructor for non-primitive objects instead of
+    /// the move assignment operator when moving variables
+    void move_internal(AxrPath&& src, bool useConstructor);
 
     /// Find every path separator character within the given range and convert it to the correct separator for the
     /// current platform

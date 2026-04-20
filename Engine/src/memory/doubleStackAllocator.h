@@ -218,7 +218,9 @@ private:
     
     /// Move the given AxrDoubleStackAllocator to this class
     /// @param src AxrDoubleStackAllocator to move
-    void move_internal(AxrDoubleStackAllocator&& src);
+    /// @param useConstructor If true, this function will use the move constructor for non-primitive objects instead of
+    /// the move assignment operator when moving variables
+    void move_internal(AxrDoubleStackAllocator&& src, bool useConstructor);
 
     /// Get the beginning of the allocated memory on the lower end
     /// @return The address to the beginning of the allocated memory on the lower end

@@ -55,7 +55,7 @@ public:
     /// @param src Source AxrPoolAllocator to move from
     AxrPoolAllocator(AxrPoolAllocator&& src) noexcept :
         AxrSubAllocatorBase_Aligned<Type>(std::move(src)) {
-        move_internal(std::move(src));
+        move_internal(std::move(src), true);
     }
 
     // ---- Destructor ----
@@ -79,7 +79,7 @@ public:
 
             AxrSubAllocatorBase_Aligned<Type>::operator=(std::move(src));
 
-            move_internal(std::move(src));
+            move_internal(std::move(src), false);
         }
         return *this;
     }
@@ -213,9 +213,10 @@ protected:
 
     /// Move the given AxrPoolAllocator to this class
     /// @param src AxrPoolAllocator to move
-    void move_internal(AxrPoolAllocator&& src) {
-        // Please note that we aren't moving the base class. That should be done before calling this function because
-        // depending on how it's done, it changes if we call the base move constructor or move assignment operator.
+    /// @param useConstructor If true, this function will use the move constructor for non-primitive objects instead of
+    /// the move assignment operator when moving variables
+    void move_internal(AxrPoolAllocator&& src, const bool useConstructor) {
+        // Please note that we aren't moving the base class. That should be done before calling this function.
 
         m_FreeChunksHead = src.m_FreeChunksHead;
         m_ChunkCapacity = src.m_ChunkCapacity;
@@ -322,7 +323,7 @@ public:
     /// @param src Source AxrPoolAllocator to move from
     AxrPoolAllocator(AxrPoolAllocator&& src) noexcept :
         AxrSubAllocatorBase_Aligned<Type>(std::move(src)) {
-        move_internal(std::move(src));
+        move_internal(std::move(src), true);
     }
 
     // ---- Destructor ----
@@ -346,7 +347,7 @@ public:
 
             AxrSubAllocatorBase_Aligned<Type>::operator=(std::move(src));
 
-            move_internal(std::move(src));
+            move_internal(std::move(src), false);
         }
         return *this;
     }
@@ -472,9 +473,10 @@ private:
 
     /// Move the given AxrPoolAllocator to this class
     /// @param src AxrPoolAllocator to move
-    void move_internal(AxrPoolAllocator&& src) {
-        // Please note that we aren't moving the base class. That should be done before calling this function because
-        // depending on how it's done, it changes if we call the base move constructor or move assignment operator.
+    /// @param useConstructor If true, this function will use the move constructor for non-primitive objects instead of
+    /// the move assignment operator when moving variables
+    void move_internal(AxrPoolAllocator&& src, const bool useConstructor) {
+        // Please note that we aren't moving the base class. That should be done before calling this function.
 
         m_FreeChunksHeadIndex = src.m_FreeChunksHeadIndex;
         m_ChunkCapacity = src.m_ChunkCapacity;

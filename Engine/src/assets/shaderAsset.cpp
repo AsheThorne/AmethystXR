@@ -15,7 +15,7 @@ AxrShaderAsset::AxrShaderAsset(const AxrShaderAssetConfig& config) {
 }
 
 AxrShaderAsset::AxrShaderAsset(AxrShaderAsset&& src) noexcept {
-    move_internal(std::move(src));
+    move_internal(std::move(src), true);
 }
 
 AxrShaderAsset::~AxrShaderAsset() {
@@ -26,7 +26,7 @@ AxrShaderAsset& AxrShaderAsset::operator=(AxrShaderAsset&& src) noexcept {
     if (this != &src) {
         cleanup();
 
-        move_internal(std::move(src));
+        move_internal(std::move(src), false);
     }
     return *this;
 }
@@ -42,5 +42,5 @@ AxrShaderAsset& AxrShaderAsset::operator=(AxrShaderAsset&& src) noexcept {
 void AxrShaderAsset::cleanup() {
 }
 
-void AxrShaderAsset::move_internal(AxrShaderAsset&& src) {
+void AxrShaderAsset::move_internal(AxrShaderAsset&& src, const bool useConstructor) {
 }

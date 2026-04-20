@@ -60,7 +60,7 @@ private:
         /// Move Constructor
         /// @param src Source Item to move from
         Item(Item&& src) noexcept {
-            move_internal(std::move(src));
+            move_internal(std::move(src), true);
         }
 
         // ---- Destructor ----
@@ -82,7 +82,7 @@ private:
             if (this != &src) {
                 cleanup();
 
-                move_internal(std::move(src));
+                move_internal(std::move(src), false);
             }
             return *this;
         }
@@ -103,9 +103,17 @@ private:
 
         /// Move the given Item to this class
         /// @param src Item to move
-        void move_internal(Item&& src) {
-            Key = std::move(src.Key);
-            Value = std::move(src.Value);
+        /// @param useConstructor If true, this function will use the move constructor for non-primitive objects instead
+        /// of the move assignment operator when moving variables
+        void move_internal(Item&& src, const bool useConstructor) {
+            if (useConstructor) {
+                new (&Key) Key_T(std::move(src.Key));
+                new (&Value) Value_T(std::move(src.Value));
+            } else {
+                Key = std::move(src.Key);
+                Value = std::move(src.Value);
+            }
+
             Hash = src.Hash;
 
             // Reset the hash value so we know the slot this item is in is empty
@@ -257,7 +265,7 @@ public:
     /// Move Constructor
     /// @param src Source AxrUnorderedMap_Dynamic to move from
     AxrUnorderedMap_Dynamic(AxrUnorderedMap_Dynamic&& src) noexcept {
-        move_internal(std::move(src));
+        move_internal(std::move(src), true);
     }
 
     // ---- Destructor ----
@@ -279,7 +287,7 @@ public:
         if (this != &src) {
             cleanup();
 
-            move_internal(std::move(src));
+            move_internal(std::move(src), false);
         }
         return *this;
     }
@@ -455,8 +463,14 @@ private:
 
     /// Move the given AxrUnorderedMap_Dynamic to this class
     /// @param src AxrUnorderedMap_Dynamic to move
-    void move_internal(AxrUnorderedMap_Dynamic&& src) {
-        m_DataHandle = std::move(src.m_DataHandle);
+    /// @param useConstructor If true, this function will use the move constructor for non-primitive objects instead of
+    /// the move assignment operator when moving variables
+    void move_internal(AxrUnorderedMap_Dynamic&& src, const bool useConstructor) {
+        if (useConstructor) {
+            new (&m_DataHandle) AxrHandle(std::move(src.m_DataHandle));
+        } else {
+            m_DataHandle = std::move(src.m_DataHandle);
+        }
 
         m_DynamicAllocator = src.m_DynamicAllocator;
         m_Capacity = src.m_Capacity;

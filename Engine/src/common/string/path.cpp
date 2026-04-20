@@ -18,7 +18,7 @@ AxrPath::AxrPath(AxrDynamicAllocator* dynamicAllocator) :
 
 AxrPath::AxrPath(AxrPath&& src) noexcept :
     AxrString(std::move(src)) {
-    move_internal(std::move(src));
+    move_internal(std::move(src), true);
 }
 
 AxrPath::~AxrPath() {
@@ -41,7 +41,7 @@ AxrPath& AxrPath::operator=(AxrPath&& src) noexcept {
 
         AxrString::operator=(std::move(src));
 
-        move_internal(std::move(src));
+        move_internal(std::move(src), false);
     }
     return *this;
 }
@@ -145,9 +145,8 @@ void AxrPath::cleanup() {
     AxrString::cleanup();
 }
 
-void AxrPath::move_internal(AxrPath&& src) {
-    // Please note that we aren't moving the base class. That should be done before calling this function because
-    // depending on how it's done, it changes if we call the base move constructor or move assignment operator.
+void AxrPath::move_internal(AxrPath&& src, const bool useConstructor) {
+    // Please note that we aren't moving the base class. That should be done before calling this function.
 }
 
 void AxrPath::correctPathSeparators(const size_t characterIndex, const size_t count) {

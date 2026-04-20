@@ -110,7 +110,7 @@ public:
     /// Move Constructor
     /// @param src Source AxrRendererContext to move from
     AxrRendererContext(AxrRendererContext&& src) noexcept {
-        move_internal(std::move(src));
+        move_internal(std::move(src), true);
     }
 
     // ---- Destructor ----
@@ -132,7 +132,7 @@ public:
         if (this != &src) {
             cleanup();
 
-            move_internal(std::move(src));
+            move_internal(std::move(src), false);
         }
         return *this;
     }
@@ -163,10 +163,16 @@ private:
 
     /// Move the given AxrRendererContext to this class
     /// @param src AxrRendererContext to move
-    void move_internal(AxrRendererContext&& src) {
+    /// @param useConstructor If true, this function will use the move constructor for non-primitive objects instead of
+    /// the move assignment operator when moving variables
+    void move_internal(AxrRendererContext&& src, const bool useConstructor) {
         switch (src.ApiType) {
             case AXR_RENDERER_API_TYPE_VULKAN: {
-                Vulkan = std::move(src.Vulkan);
+                if (useConstructor) {
+                    new (&Vulkan) AxrVulkanRendererContext(std::move(src.Vulkan));
+                } else {
+                    Vulkan = std::move(src.Vulkan);
+                }
                 break;
             }
             case AXR_RENDERER_API_TYPE_UNDEFINED: {
@@ -244,7 +250,7 @@ public:
     /// Move Constructor
     /// @param src Source AxrRenderSurface to move from
     AxrRenderSurface(AxrRenderSurface&& src) noexcept {
-        move_internal(std::move(src));
+        move_internal(std::move(src), true);
     }
 
     // ---- Destructor ----
@@ -266,7 +272,7 @@ public:
         if (this != &src) {
             cleanup();
 
-            move_internal(std::move(src));
+            move_internal(std::move(src), false);
         }
         return *this;
     }
@@ -296,10 +302,16 @@ private:
 
     /// Move the given AxrRenderSurface to this class
     /// @param src AxrRenderSurface to move
-    void move_internal(AxrRenderSurface&& src) {
+    /// @param useConstructor If true, this function will use the move constructor for non-primitive objects instead of
+    /// the move assignment operator when moving variables
+    void move_internal(AxrRenderSurface&& src, const bool useConstructor) {
         switch (src.ApiType) {
             case AXR_RENDERER_API_TYPE_VULKAN: {
-                Vulkan = std::move(src.Vulkan);
+                if (useConstructor) {
+                    new (&Vulkan) AxrVulkanRenderSurface(std::move(src.Vulkan));
+                } else {
+                    Vulkan = std::move(src.Vulkan);
+                }
                 break;
             }
             case AXR_RENDERER_API_TYPE_UNDEFINED: {

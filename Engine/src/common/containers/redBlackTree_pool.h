@@ -273,7 +273,7 @@ public:
     /// Move Constructor
     /// @param src Source AxrRedBlackTree_Pool to move from
     AxrRedBlackTree_Pool(AxrRedBlackTree_Pool&& src) noexcept {
-        move_internal(std::move(src));
+        move_internal(std::move(src), true);
     }
 
     // ---- Destructor ----
@@ -295,7 +295,7 @@ public:
         if (this != &src) {
             cleanup();
 
-            move_internal(std::move(src));
+            move_internal(std::move(src), false);
         }
         return *this;
     }
@@ -540,7 +540,9 @@ private:
 
     /// Move the given AxrRedBlackTree_Pool to this class
     /// @param src AxrRedBlackTree_Pool to move
-    void move_internal(AxrRedBlackTree_Pool&& src) {
+    /// @param useConstructor If true, this function will use the move constructor for non-primitive objects instead of
+    /// the move assignment operator when moving variables
+    void move_internal(AxrRedBlackTree_Pool&& src, const bool useConstructor) {
         m_PoolAllocator = src.m_PoolAllocator;
         m_RootNode = src.m_RootNode;
         m_Size = src.m_Size;

@@ -197,7 +197,9 @@ private:
 
     /// Move the given AxrDynamicAllocator to this class
     /// @param src AxrDynamicAllocator to move
-    void move_internal(AxrDynamicAllocator&& src);
+    /// @param useConstructor If true, this function will use the move constructor for non-primitive objects instead of
+    /// the move assignment operator when moving variables
+    void move_internal(AxrDynamicAllocator&& src, bool useConstructor);
 
     /// Find the first free block that has enough space for the given size
     /// @param size The minimum amount of space requested

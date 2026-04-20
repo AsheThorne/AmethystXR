@@ -27,7 +27,7 @@ AxrDynamicAllocator::AxrDynamicAllocator(const AxrMemoryBlock& memoryBlock,
 
 AxrDynamicAllocator::AxrDynamicAllocator(AxrDynamicAllocator&& src) noexcept :
     AxrSubAllocatorBase(std::move(src)) {
-    move_internal(std::move(src));
+    move_internal(std::move(src), true);
 }
 
 AxrDynamicAllocator::~AxrDynamicAllocator() {
@@ -40,7 +40,7 @@ AxrDynamicAllocator& AxrDynamicAllocator::operator=(AxrDynamicAllocator&& src) n
 
         AxrSubAllocatorBase::operator=(std::move(src));
 
-        move_internal(std::move(src));
+        move_internal(std::move(src), false);
     }
     return *this;
 }
@@ -292,11 +292,14 @@ void AxrDynamicAllocator::cleanup() {
     AxrSubAllocatorBase::cleanup();
 }
 
-void AxrDynamicAllocator::move_internal(AxrDynamicAllocator&& src) {
-    // Please note that we aren't moving the base class. That should be done before calling this function because
-    // depending on how it's done, it changes if we call the base move constructor or move assignment operator.
+void AxrDynamicAllocator::move_internal(AxrDynamicAllocator&& src, const bool useConstructor) {
+    // Please note that we aren't moving the base class. That should be done before calling this function.
 
-    m_HandlesTree = std::move(src.m_HandlesTree);
+    if (useConstructor) {
+        new (&m_HandlesTree) HandlesTree_T(std::move(src.m_HandlesTree));
+    } else {
+        m_HandlesTree = std::move(src.m_HandlesTree);
+    }
 
     m_FreeBlocksHead = src.m_FreeBlocksHead;
     m_Size = src.m_Size;

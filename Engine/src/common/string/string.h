@@ -342,7 +342,9 @@ protected:
     void cleanup();
     /// Move the given AxrString to this class
     /// @param src AxrString to move
-    void move_internal(AxrString&& src);
+    /// @param useConstructor If true, this function will use the move constructor for non-primitive objects instead of
+    /// the move assignment operator when moving variables
+    void move_internal(AxrString&& src, bool useConstructor);
 
     /// Deallocate the string data
     void deallocateData();

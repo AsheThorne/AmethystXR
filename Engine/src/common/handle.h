@@ -50,7 +50,7 @@ public:
     /// Move Constructor
     /// @param src Source AxrHandle to move from
     AxrHandle(AxrHandle&& src) noexcept {
-        move_internal(std::move(src));
+        move_internal(std::move(src), true);
     }
 
     // ---- Destructor ----
@@ -72,7 +72,7 @@ public:
         if (this != &src) {
             cleanup();
 
-            move_internal(std::move(src));
+            move_internal(std::move(src), false);
         }
         return *this;
     }
@@ -182,8 +182,14 @@ private:
 
     /// Move the given AxrHandle to this class
     /// @param src AxrHandle to move
-    void move_internal(AxrHandle&& src) {
-        m_Deallocator = std::move(src.m_Deallocator);
+    /// @param useConstructor If true, this function will use the move constructor for non-primitive objects instead of
+    /// the move assignment operator when moving variables
+    void move_internal(AxrHandle&& src, const bool useConstructor) {
+        if (useConstructor) {
+            new (&m_Deallocator) Deallocator_T(std::move(src.m_Deallocator));
+        } else {
+            m_Deallocator = std::move(src.m_Deallocator);
+        }
 
         m_Data = src.m_Data;
 
@@ -230,7 +236,7 @@ public:
     /// Move Constructor
     /// @param src Source AxrHandle to move from
     AxrHandle(AxrHandle&& src) noexcept {
-        move_internal(std::move(src));
+        move_internal(std::move(src), true);
     }
 
     // ---- Destructor ----
@@ -252,7 +258,7 @@ public:
         if (this != &src) {
             cleanup();
 
-            move_internal(std::move(src));
+            move_internal(std::move(src), false);
         }
         return *this;
     }
@@ -322,8 +328,14 @@ private:
 
     /// Move the given AxrHandle to this class
     /// @param src AxrHandle to move
-    void move_internal(AxrHandle&& src) {
-        m_Deallocator = std::move(src.m_Deallocator);
+    /// @param useConstructor If true, this function will use the move constructor for non-primitive objects instead of
+    /// the move assignment operator when moving variables
+    void move_internal(AxrHandle&& src, const bool useConstructor) {
+        if (useConstructor) {
+            new (&m_Deallocator) Deallocator_T(std::move(src.m_Deallocator));
+        } else {
+            m_Deallocator = std::move(src.m_Deallocator);
+        }
 
         m_Data = src.m_Data;
 
