@@ -21,6 +21,9 @@ const char* axrResultToString(const AxrResult axrResult) {
         case AXR_EVENT_WINDOW_CLOSED: {
             return "AXR_EVENT_WINDOW_CLOSED";
         }
+        case AXR_DONT_RENDER: {
+            return "AXR_DONT_RENDER";
+        }
         case AXR_ERROR_UNKNOWN: {
             return "AXR_ERROR_UNKNOWN";
         }
@@ -38,6 +41,9 @@ const char* axrResultToString(const AxrResult axrResult) {
         }
         case AXR_ERROR_VALIDATION_FAILED: {
             return "AXR_ERROR_VALIDATION_FAILED";
+        }
+        case AXR_ERROR_INVALID_PATH: {
+            return "AXR_ERROR_INVALID_PATH";
         }
         case AXR_ERROR_VULKAN_ERROR: {
             return "AXR_ERROR_VULKAN_ERROR";
