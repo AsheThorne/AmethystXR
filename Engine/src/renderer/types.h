@@ -56,8 +56,9 @@ struct AxrRenderCommand {
 //                                  Render Context                                    //
 // ---------------------------------------------------------------------------------- //
 
-/// AxrRenderer Context
-class AxrRendererContext {
+/// Axr Renderer Object
+template<typename VulkanObject_T>
+class AxrRendererObject {
 public:
     // ----------------------------------------- //
     // Public Variables
@@ -65,8 +66,8 @@ public:
 
     union {
         // Don't wrap in an AXR_VULKAN_SUPPORTED preprocessor.
-        // An empty AxrVulkanRendererContext struct is declared if AXR_VULKAN_SUPPORTED isn't defined
-        AxrVulkanRendererContext Vulkan;
+        // An empty VulkanObject_T struct should still be declared if AXR_VULKAN_SUPPORTED isn't defined
+        VulkanObject_T Vulkan;
     };
     AxrRendererApiTypeEnum ApiType = AXR_RENDERER_API_TYPE_UNDEFINED;
 
@@ -77,7 +78,7 @@ public:
     // ---- Constructors ----
 
     /// Default Constructor
-    AxrRendererContext() {
+    AxrRendererObject() {
         // NOTE (Ashe): If a new api is added, like OpenGL, then modify the line below to be this instead
         //  memset(reinterpret_cast<void*>(&Vulkan), 0, std::max(sizeof(Vulkan), sizeof(OpenGL)));
         memset(reinterpret_cast<void*>(&Vulkan), 0, sizeof(Vulkan));
@@ -85,11 +86,11 @@ public:
 
     /// Constructor
     /// @param apiType Api type to use
-    explicit AxrRendererContext(const AxrRendererApiTypeEnum apiType) :
+    explicit AxrRendererObject(const AxrRendererApiTypeEnum apiType) :
         ApiType(apiType) {
         switch (ApiType) {
             case AXR_RENDERER_API_TYPE_VULKAN: {
-                new (&Vulkan) AxrVulkanRendererContext{};
+                new (&Vulkan) VulkanObject_T{};
                 break;
             }
             case AXR_RENDERER_API_TYPE_UNDEFINED: {
@@ -97,38 +98,38 @@ public:
                 break;
             }
             default: {
-                axrLogWarning("Failed to properly construct renderer context. Unknown renderer api.");
+                axrLogWarning("Failed to properly construct AxrRendererObject. Unknown renderer api.");
                 break;
             }
         }
     }
 
     /// Copy Constructor
-    /// @param src Source AxrRendererContext to copy from
-    AxrRendererContext(const AxrRendererContext& src) = delete;
+    /// @param src Source AxrRendererObject to copy from
+    AxrRendererObject(const AxrRendererObject& src) = delete;
 
     /// Move Constructor
-    /// @param src Source AxrRendererContext to move from
-    AxrRendererContext(AxrRendererContext&& src) noexcept {
+    /// @param src Source AxrRendererObject to move from
+    AxrRendererObject(AxrRendererObject&& src) noexcept {
         move_internal(std::move(src), true);
     }
 
     // ---- Destructor ----
 
     /// Destructor
-    ~AxrRendererContext() {
+    ~AxrRendererObject() {
         cleanup();
     }
 
     // ---- Operator Overloads ----
 
     /// Copy Assignment Operator
-    /// @param src Source AxrRendererContext to copy from
-    AxrRendererContext& operator=(const AxrRendererContext& src) = delete;
+    /// @param src Source AxrRendererObject to copy from
+    AxrRendererObject& operator=(const AxrRendererObject& src) = delete;
 
     /// Move Assignment Operator
-    /// @param src Source AxrRendererContext to move from
-    AxrRendererContext& operator=(AxrRendererContext&& src) noexcept {
+    /// @param src Source AxrRendererObject to move from
+    AxrRendererObject& operator=(AxrRendererObject&& src) noexcept {
         if (this != &src) {
             cleanup();
 
@@ -146,8 +147,7 @@ private:
     void cleanup() {
         switch (ApiType) {
             case AXR_RENDERER_API_TYPE_VULKAN: {
-                using ContextApi_T = AxrVulkanRendererContext;
-                Vulkan.~ContextApi_T();
+                Vulkan.~VulkanObject_T();
                 break;
             }
             case AXR_RENDERER_API_TYPE_UNDEFINED: {
@@ -155,21 +155,23 @@ private:
                 break;
             }
             default: {
-                axrLogWarning("Failed to properly destroy renderer context. Unknown renderer api.");
+                axrLogWarning("Failed to properly destroy AxrRendererObject. Unknown renderer api.");
                 break;
             }
         }
+
+        ApiType = AXR_RENDERER_API_TYPE_UNDEFINED;
     }
 
-    /// Move the given AxrRendererContext to this class
-    /// @param src AxrRendererContext to move
+    /// Move the given AxrRendererObject to this class
+    /// @param src AxrRendererObject to move
     /// @param useConstructor If true, this function will use the move constructor for non-primitive objects instead of
     /// the move assignment operator when moving variables
-    void move_internal(AxrRendererContext&& src, const bool useConstructor) {
+    void move_internal(AxrRendererObject&& src, const bool useConstructor) {
         switch (src.ApiType) {
             case AXR_RENDERER_API_TYPE_VULKAN: {
                 if (useConstructor) {
-                    new (&Vulkan) AxrVulkanRendererContext(std::move(src.Vulkan));
+                    new (&Vulkan) VulkanObject_T(std::move(src.Vulkan));
                 } else {
                     Vulkan = std::move(src.Vulkan);
                 }
@@ -180,150 +182,22 @@ private:
                 break;
             }
             default: {
-                axrLogWarning("Failed to properly move renderer context. Unknown renderer api.");
+                axrLogWarning("Failed to properly move AxrRendererObject. Unknown renderer api.");
                 break;
             }
         }
 
         ApiType = src.ApiType;
+
+        src.ApiType = AXR_RENDERER_API_TYPE_UNDEFINED;
     }
 };
 
 // ---------------------------------------------------------------------------------- //
-//                                  Render Surface                                    //
+//                                 Renderer Objects                                   //
 // ---------------------------------------------------------------------------------- //
 
-// ----------------------------------------- //
-// Structs
-// ----------------------------------------- //
-
-class AxrRenderSurface {
-public:
-    // ----------------------------------------- //
-    // Public Variables
-    // ----------------------------------------- //
-
-    union {
-        // Don't wrap in an AXR_VULKAN_SUPPORTED preprocessor.
-        // An empty AxrVulkanRenderSurface struct is declared if AXR_VULKAN_SUPPORTED isn't defined
-        AxrVulkanRenderSurface Vulkan;
-    };
-    AxrRendererApiTypeEnum ApiType = AXR_RENDERER_API_TYPE_UNDEFINED;
-
-    // ----------------------------------------- //
-    // Special Functions
-    // ----------------------------------------- //
-
-    // ---- Constructors ----
-
-    /// Default Constructor
-    AxrRenderSurface() {
-        // NOTE (Ashe): If a new api is added, like OpenGL, then modify the line below to be this instead
-        //  memset(reinterpret_cast<void*>(&Vulkan), 0, std::max(sizeof(Vulkan), sizeof(OpenGL)));
-        memset(reinterpret_cast<void*>(&Vulkan), 0, sizeof(Vulkan));
-    };
-
-    /// Constructor
-    /// @param apiType Api type to use
-    explicit AxrRenderSurface(const AxrRendererApiTypeEnum apiType) :
-        ApiType(apiType) {
-        switch (ApiType) {
-            case AXR_RENDERER_API_TYPE_VULKAN: {
-                new (&Vulkan) AxrVulkanRendererContext{};
-                break;
-            }
-            case AXR_RENDERER_API_TYPE_UNDEFINED: {
-                // Nothing to do. No api selected
-                break;
-            }
-            default: {
-                axrLogWarning("Failed to properly construct renderer context. Unknown renderer api.");
-                break;
-            }
-        }
-    }
-
-    /// Copy Constructor
-    /// @param src Source AxrRenderSurface to copy from
-    AxrRenderSurface(const AxrRenderSurface& src) = delete;
-
-    /// Move Constructor
-    /// @param src Source AxrRenderSurface to move from
-    AxrRenderSurface(AxrRenderSurface&& src) noexcept {
-        move_internal(std::move(src), true);
-    }
-
-    // ---- Destructor ----
-
-    /// Destructor
-    ~AxrRenderSurface() {
-        cleanup();
-    }
-
-    // ---- Operator Overloads ----
-
-    /// Copy Assignment Operator
-    /// @param src Source AxrRenderSurface to copy from
-    AxrRenderSurface& operator=(const AxrRenderSurface& src) = delete;
-
-    /// Move Assignment Operator
-    /// @param src Source AxrRenderSurface to move from
-    AxrRenderSurface& operator=(AxrRenderSurface&& src) noexcept {
-        if (this != &src) {
-            cleanup();
-
-            move_internal(std::move(src), false);
-        }
-        return *this;
-    }
-
-private:
-    // ----------------------------------------- //
-    // Private Functions
-    // ----------------------------------------- //
-
-    /// Clean up this class
-    void cleanup() {
-        switch (ApiType) {
-            case AXR_RENDERER_API_TYPE_VULKAN: {
-                Vulkan.~AxrVulkanRenderSurface();
-                break;
-            }
-            case AXR_RENDERER_API_TYPE_UNDEFINED: {
-                // Nothing to do. No api selected
-                break;
-            }
-            default: {
-                axrLogWarning("Failed to properly destroy renderer context. Unknown renderer api.");
-                break;
-            }
-        }
-    }
-
-    /// Move the given AxrRenderSurface to this class
-    /// @param src AxrRenderSurface to move
-    /// @param useConstructor If true, this function will use the move constructor for non-primitive objects instead of
-    /// the move assignment operator when moving variables
-    void move_internal(AxrRenderSurface&& src, const bool useConstructor) {
-        switch (src.ApiType) {
-            case AXR_RENDERER_API_TYPE_VULKAN: {
-                if (useConstructor) {
-                    new (&Vulkan) AxrVulkanRenderSurface(std::move(src.Vulkan));
-                } else {
-                    Vulkan = std::move(src.Vulkan);
-                }
-                break;
-            }
-            case AXR_RENDERER_API_TYPE_UNDEFINED: {
-                // Nothing to do. No api selected
-                break;
-            }
-            default: {
-                axrLogWarning("Failed to properly move renderer context. Unknown renderer api.");
-                break;
-            }
-        }
-
-        ApiType = src.ApiType;
-    }
-};
+/// Axr Renderer Context
+using AxrRendererContext = AxrRendererObject<AxrVulkanRendererContext>;
+/// Axr Render Surface
+using AxrRenderSurface = AxrRendererObject<AxrVulkanRenderSurface>;
