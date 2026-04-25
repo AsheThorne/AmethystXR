@@ -3,13 +3,24 @@
 # ---------------------------------------------
 cmake_minimum_required(VERSION 3.25.0)
 project(AmethystXR VERSION 0.1.0)
+include(FetchContent)
 
 # ---------------------------------------------
 # Add External Libraries
 # ---------------------------------------------
+
+# ---- Vulkan ----
 find_package(Vulkan COMPONENTS
     glslc
 )
+
+# ---- GLM ----
+FetchContent_Declare(
+    glm
+    GIT_REPOSITORY https://github.com/g-truc/glm.git
+    GIT_TAG 8d1fd52e5ab5590e2c81768ace50c72bae28f2ed # Version 1.0.3 Tag
+)
+FetchContent_MakeAvailable(glm)
 
 # ---------------------------------------------
 # Define Functions
@@ -70,8 +81,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/builds/${OUTPUT_DIRECTO
 # ---------------------------------------------
 # Testing
 # ---------------------------------------------
-include(FetchContent)
-
 FetchContent_GetProperties(googletest)
 if(NOT googletest_POPULATED)
     FetchContent_Populate(

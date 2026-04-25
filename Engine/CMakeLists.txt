@@ -133,6 +133,7 @@ set_target_properties(AXR_Engine PROPERTIES
 )
 
 target_link_libraries(AXR_Engine
+    PUBLIC glm::glm
     PRIVATE SDL3::SDL3
     PRIVATE xxHash::xxhash
 )
