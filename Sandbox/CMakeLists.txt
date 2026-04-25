@@ -45,9 +45,9 @@ set_target_properties(Sandbox PROPERTIES
 # ---------------------------------------------
 
 if(WIN32 AND MINGW)
-    target_link_options(Sandbox PRIVATE
-        "-Wl,--subsystem,console"
-        -municode
+    target_link_options(Sandbox
+        PRIVATE "-Wl,--subsystem,console"
+        PRIVATE -municode
     )
 endif()
 
@@ -55,9 +55,9 @@ endif()
 # Set Sandbox compile options
 # ---------------------------------------------
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_compile_options(Sandbox PRIVATE
-        $<$<CONFIG:Debug>:-Wall>
-        $<$<CONFIG:Debug>:-Werror>
+    target_compile_options(Sandbox
+        PRIVATE $<$<CONFIG:Debug>:-Wall>
+        PRIVATE $<$<CONFIG:Debug>:-Werror>
     )
 endif()
 
@@ -65,32 +65,18 @@ endif()
 # Link libraries to Sandbox 
 # ---------------------------------------------
 target_link_libraries(Sandbox
-    PUBLIC AXR_Engine
+    PRIVATE AXR_Engine
 )
-
-if(Vulkan_FOUND)
-    target_link_libraries(Sandbox PRIVATE
-        Vulkan::Vulkan
-    )
-endif()
 
 # ---------------------------------------------
 # Set Sandbox compile definitions
 # ---------------------------------------------
-target_compile_definitions(Sandbox PRIVATE
-    $<$<CONFIG:Debug>:AXR_LOG_SOURCE_LOCATION>
-)
 
 if(WIN32)
-    target_compile_definitions(Sandbox PRIVATE
-        AXR_PLATFORM_WIN32
-        NOMINMAX
-        UNICODE
-        _UNICODE
-    )
-elseif(SDL_WAYLAND)
-    target_compile_definitions(Sandbox PRIVATE
-        AXR_PLATFORM_WAYLAND
+    target_compile_definitions(Sandbox
+        PRIVATE NOMINMAX
+        PRIVATE UNICODE
+        PRIVATE _UNICODE
     )
 endif()
 

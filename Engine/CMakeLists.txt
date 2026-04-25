@@ -132,14 +132,14 @@ set_target_properties(AXR_Engine PROPERTIES
     CXX_STANDARD 20
 )
 
-target_link_libraries(AXR_Engine PRIVATE
-    SDL3::SDL3
-    xxHash::xxhash
+target_link_libraries(AXR_Engine
+    PRIVATE SDL3::SDL3
+    PRIVATE xxHash::xxhash
 )
 
 if(Vulkan_FOUND)
-    target_link_libraries(AXR_Engine PRIVATE
-        Vulkan::Vulkan
+    target_link_libraries(AXR_Engine
+        PUBLIC Vulkan::Vulkan
     )
 endif()
 
@@ -148,56 +148,55 @@ endif()
 # ---------------------------------------------
 target_include_directories(AXR_Engine
     PUBLIC ${AXR_INCLUDE_DIR}
-    ${SPDLOG_DIRECTORY}/include
+    PUBLIC ${SPDLOG_DIRECTORY}/include
 )
 
 # ---------------------------------------------
 # Set AXR_Engine compile options
 # ---------------------------------------------
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_compile_options(AXR_Engine PRIVATE
-        $<$<CONFIG:Debug>:-Wall>
-        $<$<CONFIG:Debug>:-Werror>
+    target_compile_options(AXR_Engine
+        PRIVATE $<$<CONFIG:Debug>:-Wall>
+        PRIVATE $<$<CONFIG:Debug>:-Werror>
     )
 endif()
 
 # ---------------------------------------------
 # Set AXR_Engine compile definitions
 # ---------------------------------------------
-target_compile_definitions(AXR_Engine PRIVATE
-    AXR_BUILD_DLL
-    $<$<CONFIG:Debug>:AXR_LOG_SOURCE_LOCATION>
-    $<$<CONFIG:Debug>:AXR_TRACK_ALLOCATOR_PEAK_USAGE>
-    $<$<CONFIG:Debug>:AXR_DEBUG_INFO_ENABLED>
+target_compile_definitions(AXR_Engine
+    PUBLIC $<$<CONFIG:Debug>:AXR_LOG_SOURCE_LOCATION>
+    PUBLIC $<$<CONFIG:Debug>:AXR_TRACK_ALLOCATOR_PEAK_USAGE>
+    PUBLIC $<$<CONFIG:Debug>:AXR_DEBUG_INFO_ENABLED>
+    PRIVATE AXR_BUILD_DLL
 )
 
 if(WIN32)
-    target_compile_definitions(AXR_Engine PRIVATE
-        AXR_PLATFORM_WIN32
-        NOMINMAX
-        UNICODE
-        _UNICODE
+    target_compile_definitions(AXR_Engine
+        PUBLIC AXR_PLATFORM_WIN32
+        PRIVATE NOMINMAX
+        PRIVATE UNICODE
+        PRIVATE _UNICODE
     )
 elseif(SDL_WAYLAND)
-    target_compile_definitions(AXR_Engine PRIVATE
-        AXR_PLATFORM_WAYLAND
+    target_compile_definitions(AXR_Engine
+        PUBLIC AXR_PLATFORM_WAYLAND
     )
 endif()
 
 if(Vulkan_FOUND)
-    target_compile_definitions(AXR_Engine PRIVATE
-        AXR_VULKAN_SUPPORTED
-        # This definition is for OpenXR
-        XR_USE_GRAPHICS_API_VULKAN
+    target_compile_definitions(AXR_Engine
+        PUBLIC AXR_VULKAN_SUPPORTED
+        PUBLIC XR_USE_GRAPHICS_API_VULKAN # This definition is for OpenXR
     )
 
     if(WIN32)
-        target_compile_definitions(AXR_Engine PRIVATE
-            VK_USE_PLATFORM_WIN32_KHR
+        target_compile_definitions(AXR_Engine
+            PUBLIC VK_USE_PLATFORM_WIN32_KHR # This definition is for Vulkan
         )
     elseif(SDL_WAYLAND)
-        target_compile_definitions(AXR_Engine PRIVATE
-            VK_USE_PLATFORM_WAYLAND_KHR
+        target_compile_definitions(AXR_Engine
+            PUBLIC VK_USE_PLATFORM_WAYLAND_KHR # This definition is for Vulkan
         )
     endif()
 endif()
@@ -268,17 +267,11 @@ else()
     add_executable(AXR_Test ${AXR_TEST_FILES} ${AXR_FILES})
 endif()
 
-target_link_libraries(AXR_Test PRIVATE
-    GTest::gtest_main
-    AXR_Engine
-    SDL3::SDL3
+target_link_libraries(AXR_Test
+    PRIVATE GTest::gtest_main
+    PRIVATE AXR_Engine
+    PRIVATE SDL3::SDL3
 )
-
-if(Vulkan_FOUND)
-    target_link_libraries(AXR_Test PRIVATE
-        Vulkan::Vulkan
-    )
-endif()
 
 set_target_properties(AXR_Test PROPERTIES
     LINKER_LANGUAGE CXX
@@ -289,28 +282,17 @@ set_target_properties(AXR_Test PROPERTIES
 # AXR_Test Include Directories
 # ---------------------------------------------
 
-target_include_directories(AXR_Test PUBLIC
-    ${AXR_SRC_DIR}
+target_include_directories(AXR_Test
+    PUBLIC ${AXR_SRC_DIR}
 )
 
 # ---------------------------------------------
 # Set AXR_Test compile definitions
 # ---------------------------------------------
 
-target_compile_definitions(AXR_Test PRIVATE
-    $<$<CONFIG:Debug>:AXR_LOG_SOURCE_LOCATION>
-    $<$<CONFIG:Debug>:AXR_TRACK_ALLOCATOR_PEAK_USAGE>
-    AXR_TESTING_ENABLED
-    AXR_DEBUG_INFO_ENABLED
+target_compile_definitions(AXR_Test
+    PRIVATE AXR_TESTING_ENABLED
 )
-
-if(Vulkan_FOUND)
-    target_compile_definitions(AXR_Test PRIVATE
-        AXR_VULKAN_SUPPORTED
-        # This definition is for OpenXR
-        XR_USE_GRAPHICS_API_VULKAN
-    )
-endif()
 
 # ---------------------------------------------
 # Add Tests
