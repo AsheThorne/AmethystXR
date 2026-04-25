@@ -18,7 +18,7 @@ find_package(Vulkan COMPONENTS
 FetchContent_Declare(
     glm
     GIT_REPOSITORY https://github.com/g-truc/glm.git
-    GIT_TAG 8d1fd52e5ab5590e2c81768ace50c72bae28f2ed # Version 1.0.3 Tag
+    GIT_TAG 1.0.3
 )
 FetchContent_MakeAvailable(glm)
 
@@ -63,6 +63,7 @@ set(DEPS_BUILD_DIRECTORY "${CMAKE_BINARY_DIR}/cmake-deps-build")
 set(SPDLOG_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/spdlog)
 set(SDL_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/SDL)
 set(XXHASH_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/xxHash)
+set(TOML_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/toml)
 
 set(XXHASH_BUILD_XXHSUM OFF)
 

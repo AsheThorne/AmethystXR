@@ -18,6 +18,15 @@ configure_file(
 )
 
 # ---------------------------------------------
+# Set Third Party Source Files
+# ---------------------------------------------
+set(AXR_THIRDPARTY_SOURCE_FILES
+    ${TOML_DIRECTORY}/src/tomlc17.c
+    ${TOML_DIRECTORY}/src/tomlc17.h
+    ${TOML_DIRECTORY}/src/tomlcpp.hpp
+)
+
+# ---------------------------------------------
 # Set Public Header Files
 # ---------------------------------------------
 set(AXR_PUBLIC_HEADER_FILES
@@ -124,7 +133,7 @@ set(AXR_SOURCE_FILES
 # ---------------------------------------------
 # Create AXR_Engine library
 # ---------------------------------------------
-list(APPEND AXR_FILES ${AXR_SOURCE_FILES} ${AXR_PUBLIC_HEADER_FILES})
+list(APPEND AXR_FILES ${AXR_SOURCE_FILES} ${AXR_PUBLIC_HEADER_FILES} ${AXR_THIRDPARTY_SOURCE_FILES})
 add_library(AXR_Engine SHARED ${AXR_FILES})
 
 set_target_properties(AXR_Engine PROPERTIES
@@ -150,6 +159,7 @@ endif()
 target_include_directories(AXR_Engine
     PUBLIC ${AXR_INCLUDE_DIR}
     PUBLIC ${SPDLOG_DIRECTORY}/include
+    PUBLIC ${TOML_DIRECTORY}/src
 )
 
 # ---------------------------------------------
