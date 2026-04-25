@@ -5,6 +5,7 @@
     <mapping directory="$PROJECT_DIR$/cmake-deps-src/googletest" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/thirdparty/SDL" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/thirdparty/spdlog" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/thirdparty/toml" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/thirdparty/xxHash" vcs="Git" />
   </component>
 </project>
