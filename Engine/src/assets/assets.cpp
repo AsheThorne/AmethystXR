@@ -63,6 +63,38 @@ void AxrAssets::shutDown() {
     cleanupRegistries();
     m_IsSetup = false;
 }
+
+const AxrUnorderedMap_Dynamic<AxrID, AxrSceneAsset>& AxrAssets::getSceneAssetRegistry() const {
+    return m_SceneRegistry;
+}
+
+const AxrUnorderedMap_Dynamic<AxrID, AxrShaderAsset>& AxrAssets::getShaderAssetRegistry() const {
+    return m_ShaderRegistry;
+}
+
+#define AXR_FUNCTION_FAILED_STRING "Failed to register scene asset. "
+AxrResult AxrAssets::registerSceneAsset(const AxrSceneAssetConfig& config) {
+    if (m_SceneRegistry.exists(config.ID)) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "A scene with the ID: {0} already exists.", config.ID);
+        return AXR_ERROR_DUPLICATE;
+    }
+
+    const AxrResult axrResult = isSceneAssetConfigValid(config);
+    if (AXR_FAILED(axrResult)) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Scene config is invalid.");
+        return axrResult;
+    }
+
+    const auto assetIterator = m_SceneRegistry.insert(config.ID, AxrSceneAsset(config));
+    if (assetIterator == m_SceneRegistry.end()) [[unlikely]] {
+        axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to add scene to registry.");
+        return AXR_ERROR_UNKNOWN;
+    }
+
+    return AXR_SUCCESS;
+}
+#undef AXR_FUNCTION_FAILED_STRING
+
 #define AXR_FUNCTION_FAILED_STRING "Failed to register shader asset. "
 AxrResult AxrAssets::registerShaderAsset(const AxrShaderAssetConfig& config) {
     if (m_ShaderRegistry.exists(config.ID)) [[unlikely]] {
@@ -128,6 +160,15 @@ AxrResult AxrAssets::registerEngineAssets() {
 }
 #undef AXR_FUNCTION_FAILED_STRING
 
+AxrResult AxrAssets::isSceneAssetConfigValid(const AxrSceneAssetConfig& config) {
+    const bool pathExists = AxrPlatform::pathExists(config.FilePath);
+    if (!pathExists) [[unlikely]] {
+        return AXR_ERROR_INVALID_PATH;
+    }
+
+    return AXR_SUCCESS;
+}
+
 #define AXR_FUNCTION_FAILED_STRING "Failed to get engine asset shader config. "
 AxrShaderAssetConfig AxrAssets::getEngineAssetShaderConfig(const AxrEngineAssetEnum engineAsset) {
     const char8_t* relativeAssetFile;
@@ -153,7 +194,7 @@ AxrShaderAssetConfig AxrAssets::getEngineAssetShaderConfig(const AxrEngineAssetE
     const size_t assetFileLength = std::char_traits<char8_t>::length(relativeAssetFile);
 
     AxrPath assetPath;
-    const AxrResult axrResult = AxrPlatform::get().getEngineAssetsPath(assetFileLength, assetPath);
+    const AxrResult axrResult = AxrPlatform::getEngineAssetsPath(assetFileLength, assetPath);
     if (AXR_FAILED(axrResult)) [[unlikely]] {
         axrLogError(AXR_FUNCTION_FAILED_STRING "Failed to get engine assets path.");
         return {};
@@ -172,7 +213,7 @@ AxrShaderAssetConfig AxrAssets::getEngineAssetShaderConfig(const AxrEngineAssetE
 #undef AXR_FUNCTION_FAILED_STRING
 
 AxrResult AxrAssets::isShaderAssetConfigValid(const AxrShaderAssetConfig& config) {
-    const bool pathExists = AxrPlatform::get().pathExists(config.FilePath);
+    const bool pathExists = AxrPlatform::pathExists(config.FilePath);
     if (!pathExists) [[unlikely]] {
         return AXR_ERROR_INVALID_PATH;
     }

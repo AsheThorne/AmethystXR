@@ -128,6 +128,8 @@ set(AXR_SOURCE_FILES
     ${AXR_SRC_DIR}/assets/assets.h
     ${AXR_SRC_DIR}/assets/shaderAsset.cpp
     ${AXR_SRC_DIR}/assets/shaderAsset.h
+    ${AXR_SRC_DIR}/assets/sceneAsset.cpp
+    ${AXR_SRC_DIR}/assets/sceneAsset.h
 )
 
 # ---------------------------------------------

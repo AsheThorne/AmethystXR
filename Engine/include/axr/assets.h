@@ -34,3 +34,9 @@ struct AxrShaderAssetConfig {
     AxrID_T ID;
     char8_t FilePath[AXR_MAX_FILE_PATH_SIZE];
 };
+
+/// Scene asset config
+struct AxrSceneAssetConfig {
+    AxrID_T ID;
+    char8_t FilePath[AXR_MAX_FILE_PATH_SIZE];
+};

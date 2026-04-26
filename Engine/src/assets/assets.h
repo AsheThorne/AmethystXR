@@ -7,6 +7,7 @@
 #include "../common/id.h"
 #include "axr/assets.h"
 #include "axr/common/enums.h"
+#include "sceneAsset.h"
 #include "shaderAsset.h"
 
 /// Axr Assets
@@ -72,6 +73,17 @@ public:
     /// Shut down the assets
     void shutDown();
 
+    /// Get the scene asset registry
+    /// @return The scene asset registry
+    [[nodiscard]] const AxrUnorderedMap_Dynamic<AxrID, AxrSceneAsset>& getSceneAssetRegistry() const;
+    /// Get the shader asset registry
+    /// @return The shader asset registry
+    [[nodiscard]] const AxrUnorderedMap_Dynamic<AxrID, AxrShaderAsset>& getShaderAssetRegistry() const;
+
+    /// Register a new scene asset
+    /// @param config Scene asset config
+    /// @return AXR_SUCCESS if the function succeeded
+    [[nodiscard]] AxrResult registerSceneAsset(const AxrSceneAssetConfig& config);
     /// Register a new shader asset
     /// @param config Shader asset config
     /// @return AXR_SUCCESS if the function succeeded
@@ -81,6 +93,7 @@ private:
     // ----------------------------------------- //
     // Private Variables
     // ----------------------------------------- //
+    AxrUnorderedMap_Dynamic<AxrID, AxrSceneAsset> m_SceneRegistry;
     AxrUnorderedMap_Dynamic<AxrID, AxrShaderAsset> m_ShaderRegistry;
     bool m_IsSetup = false;
 
@@ -97,6 +110,13 @@ private:
     /// Register all engine assets
     /// @return AXR_SUCCESS if the function succeeded
     [[nodiscard]] AxrResult registerEngineAssets();
+
+    // ---- Scene Asset ----
+
+    /// Check if the given scene asset config is valid
+    /// @param config Config to check
+    /// @return AXR_SUCCESS if the config is valid
+    [[nodiscard]] static AxrResult isSceneAssetConfigValid(const AxrSceneAssetConfig& config);
 
     // ---- Shader Asset ----
 
