@@ -102,7 +102,7 @@ add_subdirectory(
 # Include thirdparty libraries
 # ---------------------------------------------
 add_subdirectory(${SDL_DIRECTORY} EXCLUDE_FROM_ALL)
-add_subdirectory(${XXHASH_DIRECTORY}/build/cmake xxhash_build EXCLUDE_FROM_ALL)
+add_subdirectory(${XXHASH_DIRECTORY}/cmake_unofficial EXCLUDE_FROM_ALL)
 
 # ---------------------------------------------
 # Set platform
